@@ -410,34 +410,6 @@
     }
 
     /* Floating Overlays on Canvas */
-    #canvas-hud {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      pointer-events: none;
-    }
-
-    .hud-badge {
-      background: rgba(18, 22, 28, 0.88);
-      backdrop-filter: blur(6px);
-      border: 1px solid var(--border-bright);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      pointer-events: auto;
-    }
-
-    .hud-badge strong {
-      color: var(--text-main);
-    }
 
     #zoom-controls {
       position: absolute;
@@ -885,6 +857,10 @@
           <option value="lfsr_light">2. Lauflicht &amp; Gatterlogik (LFSR + XOR)</option>
         </select>
 
+        <button id="btn-auto-route" class="btn" title="Alle Leitungen rechtwinklig sortieren, Überlappungen trennen und Kanäle entflechten">
+          🔀 Leitungen ordnen
+        </button>
+
         <button id="btn-export" class="btn" title="Schaltung als JSON-Datei exportieren">
           &#11015; JSON Export
         </button>
@@ -1011,27 +987,6 @@
       <!-- 3. CENTRAL CANVAS WORKSPACE -->
       <main id="canvas-container">
         <canvas id="grid-canvas"></canvas>
-
-        <div id="canvas-hud">
-          <div class="hud-badge">
-            <span>Modus:</span>
-            <strong id="hud-mode" style="color: var(--accent-blue);">EDIT</strong>
-          </div>
-          <div class="hud-badge">
-            <span>Norm:</span>
-            <strong id="hud-norm" style="color: var(--accent-green);">DIN 40700</strong>
-          </div>
-          <div class="hud-badge">
-            <span>Tick:</span>
-            <strong id="hud-tick">0</strong>
-          </div>
-          <div class="hud-badge">
-            <span>Bauteile:</span>
-            <strong id="hud-comp-count">0</strong>
-            <span>| Leitungen:</span>
-            <strong id="hud-wire-count">0</strong>
-          </div>
-        </div>
 
         <div id="help-hint">
           Rechtsklick: <b>Einstellungen öffnen</b> &bull; Pan: <b>Mittelklick / Leertaste + Ziehen</b> &bull; Zoom: <b>Mausrad</b> &bull; Löschen: <b>Entf</b>
@@ -1244,13 +1199,15 @@
      * Wire Connection between an Output Pin and an Input Pin
      */
     class Wire {
-      constructor(id, fromCompId, fromPin, toCompId, toPin) {
+      constructor(id, fromCompId, fromPin, toCompId, toPin, waypoints = []) {
         this.id = id;
         this.fromCompId = fromCompId;
         this.fromPin = fromPin;
         this.toCompId = toCompId;
         this.toPin = toPin;
         this.level = 0;
+        this.waypoints = Array.isArray(waypoints) ? waypoints.map(p => ({ x: Math.round(p.x / GRID_SIZE) * GRID_SIZE, y: Math.round(p.y / GRID_SIZE) * GRID_SIZE })) : [];
+        this.channelOffset = 0;
       }
 
       toJSON() {
@@ -1259,7 +1216,8 @@
           fromCompId: this.fromCompId,
           fromPin: this.fromPin,
           toCompId: this.toCompId,
-          toPin: this.toPin
+          toPin: this.toPin,
+          waypoints: this.waypoints
         };
       }
     }
@@ -1722,7 +1680,7 @@
         );
       }
 
-      addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null) {
+      addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null, waypoints = []) {
         const fromComp = this.getComponent(fromCompId);
         const toComp = this.getComponent(toCompId);
         if (!fromComp || !toComp) return null;
@@ -1735,7 +1693,7 @@
         );
 
         const id = forcedId || this.generateId('wire');
-        const wire = new Wire(id, fromCompId, fromPin, toCompId, toPin);
+        const wire = new Wire(id, fromCompId, fromPin, toCompId, toPin, waypoints);
         wire.level = fromComp.outputs[fromPin]?.value || 0;
         this.wires.push(wire);
         toComp.inputs[toPin].value = wire.level;
@@ -1820,7 +1778,7 @@
 
         for (const wData of data.wires) {
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
-          this.addWire(wData.fromCompId, wData.fromPin, wData.toCompId, wData.toPin, wData.id);
+          this.addWire(wData.fromCompId, wData.fromPin, wData.toCompId, wData.toPin, wData.id, wData.waypoints || []);
         }
 
         this.nextId = maxNum + 1;
@@ -2118,16 +2076,98 @@
       }
 
       getWireControlPoints(x1, y1, x2, y2) {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        if (dx >= 20) {
-          const offset = Math.max(40, Math.min(160, dx * 0.48));
-          return { cp1x: x1 + offset, cp1y: y1, cp2x: x2 - offset, cp2y: y2 };
-        } else {
-          const horiz = Math.max(65, Math.abs(dx) * 0.35 + 55);
-          const vertShift = dy === 0 ? -70 : Math.sign(dy) * Math.min(90, Math.abs(dy) * 0.4 + 35);
-          return { cp1x: x1 + horiz, cp1y: y1 + vertShift, cp2x: x2 - horiz, cp2y: y2 + vertShift };
+        // Kept for backward compatibility if ever called externally
+        return { cp1x: (x1 + x2) / 2, cp1y: y1, cp2x: (x1 + x2) / 2, cp2y: y2 };
+      }
+
+      /**
+       * Computes a strictly orthogonal (90-degree) polyline path between p1 and p2.
+       * If custom waypoints are provided, routes through them.
+       * Otherwise, computes an optimal Manhattan routing with optional channelOffset.
+       */
+      computeWirePath(p1, p2, waypoints = null, channelOffset = 0) {
+        if (waypoints && waypoints.length > 0) {
+          const fullPts = [{ x: p1.x, y: p1.y }];
+          for (let i = 0; i < waypoints.length; i++) {
+            const prev = fullPts[fullPts.length - 1];
+            const curr = waypoints[i];
+            if (prev.x !== curr.x && prev.y !== curr.y) {
+              fullPts.push({ x: curr.x, y: prev.y });
+            }
+            fullPts.push({ x: curr.x, y: curr.y });
+          }
+          const last = fullPts[fullPts.length - 1];
+          if (last.x !== p2.x && last.y !== p2.y) {
+            fullPts.push({ x: last.x, y: p2.y });
+          }
+          fullPts.push({ x: p2.x, y: p2.y });
+          return this.simplifyCollinear(fullPts);
         }
+
+        const x1 = p1.x;
+        const y1 = p1.y;
+        const x2 = p2.x;
+        const y2 = p2.y;
+        const pts = [{ x: x1, y: y1 }];
+
+        if (x2 >= x1 + 20) {
+          let midX = Math.round(((x1 + x2) / 2) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
+          midX = Math.max(x1 + 10, Math.min(x2 - 10, midX));
+          if (y1 === y2 && !channelOffset) {
+            pts.push({ x: x2, y: y2 });
+          } else {
+            pts.push({ x: midX, y: y1 });
+            pts.push({ x: midX, y: y2 });
+            pts.push({ x: x2, y: y2 });
+          }
+        } else {
+          const exitX = x1 + 20 + Math.max(0, channelOffset || 0);
+          const enterX = x2 - 20 - Math.max(0, -(channelOffset || 0));
+          let routeY;
+          if ((y1 + y2) / 2 <= 220) {
+            routeY = Math.min(y1, y2) - 40 - Math.abs(channelOffset || 0);
+          } else {
+            routeY = Math.max(y1, y2) + 40 + Math.abs(channelOffset || 0);
+          }
+          routeY = Math.round(routeY / GRID_SIZE) * GRID_SIZE;
+
+          pts.push({ x: exitX, y: y1 });
+          pts.push({ x: exitX, y: routeY });
+          pts.push({ x: enterX, y: routeY });
+          pts.push({ x: enterX, y: y2 });
+          pts.push({ x: x2, y: y2 });
+        }
+
+        return this.simplifyCollinear(pts);
+      }
+
+      simplifyCollinear(pts) {
+        if (!pts || pts.length <= 2) return pts || [];
+        const res = [pts[0]];
+        for (let i = 1; i < pts.length - 1; i++) {
+          const prev = res[res.length - 1];
+          const curr = pts[i];
+          const next = pts[i + 1];
+
+          const isHoriz = (prev.y === curr.y && curr.y === next.y);
+          const isVert = (prev.x === curr.x && curr.x === next.x);
+          const isIdentical = (curr.x === prev.x && curr.y === prev.y);
+
+          if (!isHoriz && !isVert && !isIdentical) {
+            res.push(curr);
+          }
+        }
+        res.push(pts[pts.length - 1]);
+        return res;
+      }
+
+      getWirePolyline(wire) {
+        const fromComp = this.circuit.getComponent(wire.fromCompId);
+        const toComp = this.circuit.getComponent(wire.toCompId);
+        if (!fromComp || !toComp) return [];
+        const p1 = fromComp.getPinWorldPos(true, wire.fromPin);
+        const p2 = toComp.getPinWorldPos(false, wire.toPin);
+        return this.computeWirePath(p1, p2, wire.waypoints, wire.channelOffset || 0);
       }
 
       findPinAt(worldX, worldY, radius = 10) {
@@ -2173,36 +2213,15 @@
         const tolSq = tolerance * tolerance;
         for (let i = this.circuit.wires.length - 1; i >= 0; i--) {
           const w = this.circuit.wires[i];
-          const fromComp = this.circuit.getComponent(w.fromCompId);
-          const toComp = this.circuit.getComponent(w.toCompId);
-          if (!fromComp || !toComp) continue;
+          const pts = this.getWirePolyline(w);
+          if (pts.length < 2) continue;
 
-          const p1 = fromComp.getPinWorldPos(true, w.fromPin);
-          const p2 = toComp.getPinWorldPos(false, w.toPin);
-          const cp = this.getWireControlPoints(p1.x, p1.y, p2.x, p2.y);
-
-          const steps = 28;
-          let prevX = p1.x;
-          let prevY = p1.y;
-          for (let s = 1; s <= steps; s++) {
-            const t = s / steps;
-            const mt = 1 - t;
-            const bx =
-              mt * mt * mt * p1.x +
-              3 * mt * mt * t * cp.cp1x +
-              3 * mt * t * t * cp.cp2x +
-              t * t * t * p2.x;
-            const by =
-              mt * mt * mt * p1.y +
-              3 * mt * mt * t * cp.cp1y +
-              3 * mt * t * t * cp.cp2y +
-              t * t * t * p2.y;
-
-            if (this.distToSegmentSq(worldX, worldY, prevX, prevY, bx, by) <= tolSq) {
+          for (let j = 0; j < pts.length - 1; j++) {
+            const pA = pts[j];
+            const pB = pts[j + 1];
+            if (this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y) <= tolSq) {
               return w;
             }
-            prevX = bx;
-            prevY = by;
           }
         }
         return null;
@@ -2292,24 +2311,40 @@
       }
 
       drawWires(ctx) {
+        if (!this.circuit.wires || this.circuit.wires.length === 0) return;
+
+        // 1. Compute orthogonal paths for all wires
+        const wireEntries = [];
+        const allVertSegments = [];
+
         for (const w of this.circuit.wires) {
-          const fromComp = this.circuit.getComponent(w.fromCompId);
-          const toComp = this.circuit.getComponent(w.toCompId);
-          if (!fromComp || !toComp) continue;
+          const pts = this.getWirePolyline(w);
+          if (pts.length < 2) continue;
+          wireEntries.push({ wire: w, pts });
 
-          const p1 = fromComp.getPinWorldPos(true, w.fromPin);
-          const p2 = toComp.getPinWorldPos(false, w.toPin);
-          const cp = this.getWireControlPoints(p1.x, p1.y, p2.x, p2.y);
+          // Collect vertical segments for crossing bridge detection
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+            if (pA.x === pB.x && pA.y !== pB.y) {
+              allVertSegments.push({
+                wireId: w.id,
+                x: pA.x,
+                minY: Math.min(pA.y, pB.y),
+                maxY: Math.max(pA.y, pB.y)
+              });
+            }
+          }
+        }
 
+        // 2. Draw each wire orthogonally with crossing jumper arcs
+        for (const entry of wireEntries) {
+          const { wire: w, pts } = entry;
           const isSelected = w.id === this.selectedWireId;
           const isHovered = w.id === this.hoveredWireId;
           const isHigh = w.level === 1;
 
           ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.bezierCurveTo(cp.cp1x, cp.cp1y, cp.cp2x, cp.cp2y, p2.x, p2.y);
-
           if (isSelected) {
             ctx.strokeStyle = '#ff5252';
             ctx.lineWidth = 4;
@@ -2329,29 +2364,128 @@
           }
 
           ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+
+            if (pA.y === pB.y && pA.x !== pB.x) {
+              // Horizontal segment: check for crossings over vertical wires of other connections
+              const minX = Math.min(pA.x, pB.x);
+              const maxX = Math.max(pA.x, pB.x);
+              const y = pA.y;
+
+              const crossings = [];
+              for (const vs of allVertSegments) {
+                if (vs.wireId !== w.id && vs.x > minX + 6 && vs.x < maxX - 6 && y > vs.minY + 6 && y < vs.maxY - 6) {
+                  crossings.push(vs.x);
+                }
+              }
+
+              if (crossings.length === 0) {
+                ctx.lineTo(pB.x, pB.y);
+              } else {
+                const goingRight = pA.x < pB.x;
+                crossings.sort((a, b) => goingRight ? a - b : b - a);
+
+                for (const cx of crossings) {
+                  const r = 5;
+                  if (goingRight) {
+                    ctx.lineTo(cx - r, y);
+                    ctx.arc(cx, y, r, Math.PI, 0, false);
+                  } else {
+                    ctx.lineTo(cx + r, y);
+                    ctx.arc(cx, y, r, 0, Math.PI, false);
+                  }
+                }
+                ctx.lineTo(pB.x, pB.y);
+              }
+            } else {
+              // Vertical segment
+              ctx.lineTo(pB.x, pB.y);
+            }
+          }
           ctx.stroke();
+
+          // Draw waypoint handles if wire has custom waypoints and is selected/hovered
+          if (w.waypoints && w.waypoints.length > 0 && (isSelected || isHovered)) {
+            ctx.fillStyle = isSelected ? '#ff5252' : '#00b0ff';
+            for (const wp of w.waypoints) {
+              ctx.beginPath();
+              ctx.arc(wp.x, wp.y, 4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
           ctx.restore();
+        }
+
+        // 3. Draw Junction Dots at branches (where multiple wires share an output pin)
+        const outputPinCounts = new Map();
+        for (const w of this.circuit.wires) {
+          const key = `${w.fromCompId}_${w.fromPin}`;
+          outputPinCounts.set(key, (outputPinCounts.get(key) || 0) + 1);
+        }
+        for (const [key, count] of outputPinCounts.entries()) {
+          if (count > 1) {
+            const [compId, pinStr] = key.split('_');
+            const comp = this.circuit.getComponent(compId);
+            if (comp) {
+              const pos = comp.getPinWorldPos(true, parseInt(pinStr, 10));
+              ctx.save();
+              ctx.fillStyle = comp.outputs[parseInt(pinStr, 10)]?.value === 1 ? '#00e676' : '#546e7a';
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
+          }
         }
       }
 
       drawActiveWireDrag(ctx) {
         if (!this.activeWireDrag) return;
-        const { startX, startY, currX, currY, isOutput } = this.activeWireDrag;
-        const x1 = isOutput ? startX : currX;
-        const y1 = isOutput ? startY : currY;
-        const x2 = isOutput ? currX : startX;
-        const y2 = isOutput ? currY : startY;
+        const drag = this.activeWireDrag;
+        const startX = drag.startX;
+        const startY = drag.startY;
+        const currX = Math.round(drag.currX / GRID_SIZE) * GRID_SIZE;
+        const currY = Math.round(drag.currY / GRID_SIZE) * GRID_SIZE;
 
-        const cp = this.getWireControlPoints(x1, y1, x2, y2);
+        const p1 = drag.isOutput ? { x: startX, y: startY } : { x: currX, y: currY };
+        const p2 = drag.isOutput ? { x: currX, y: currY } : { x: startX, y: startY };
+
+        const pts = this.computeWirePath(p1, p2, drag.waypoints);
+        if (!pts || pts.length < 2) return;
 
         ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.bezierCurveTo(cp.cp1x, cp.cp1y, cp.cp2x, cp.cp2y, x2, y2);
         ctx.strokeStyle = '#00b0ff';
         ctx.lineWidth = 2.5;
         ctx.setLineDash([5, 4]);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i].x, pts[i].y);
+        }
         ctx.stroke();
+
+        // Draw placed waypoints along active drag
+        if (drag.waypoints && drag.waypoints.length > 0) {
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#00b0ff';
+          for (const wp of drag.waypoints) {
+            ctx.beginPath();
+            ctx.arc(wp.x, wp.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
         ctx.restore();
       }
 
@@ -3807,12 +3941,17 @@
         }
 
         const hudMode = document.getElementById('hud-mode');
-        hudMode.textContent = isSim ? (this.engine.running ? 'SIM (RUN)' : 'SIM (PAUSE)') : 'EDIT';
-        hudMode.style.color = isSim ? 'var(--accent-green)' : 'var(--accent-blue)';
+        if (hudMode) {
+          hudMode.textContent = isSim ? (this.engine.running ? 'SIM (RUN)' : 'SIM (PAUSE)') : 'EDIT';
+          hudMode.style.color = isSim ? 'var(--accent-green)' : 'var(--accent-blue)';
+        }
 
-        document.getElementById('hud-tick').textContent = String(this.engine.tickCount);
-        document.getElementById('hud-comp-count').textContent = String(this.circuit.components.length);
-        document.getElementById('hud-wire-count').textContent = String(this.circuit.wires.length);
+        const hudTick = document.getElementById('hud-tick');
+        if (hudTick) hudTick.textContent = String(this.engine.tickCount);
+        const hudComp = document.getElementById('hud-comp-count');
+        if (hudComp) hudComp.textContent = String(this.circuit.components.length);
+        const hudWire = document.getElementById('hud-wire-count');
+        if (hudWire) hudWire.textContent = String(this.circuit.wires.length);
       }
 
       selectItem(compId, wireId) {
@@ -3863,6 +4002,7 @@
         this.engine.tickCount = 0;
         this.circuit.fromJSON(preset, this.ringBuffer);
         this.selectItem(null, null);
+        this.autoRouteAllWires();
         this.renderer.panX = 30;
         this.renderer.panY = 20;
         this.renderer.zoom = 1.0;
@@ -3917,6 +4057,13 @@
             e.target.value = '';
           }
         });
+
+        const btnAutoRoute = document.getElementById('btn-auto-route');
+        if (btnAutoRoute) {
+          btnAutoRoute.addEventListener('click', () => {
+            this.autoRouteAllWires();
+          });
+        }
 
         document.getElementById('btn-export').addEventListener('click', () => {
           const jsonStr = JSON.stringify(this.circuit.toJSON(), null, 2);
@@ -4115,7 +4262,37 @@
           }
 
           // EDIT MODE
-          const hitPin = this.renderer.findPinAt(world.x, world.y);
+          if (this.renderer.activeWireDrag) {
+            // Already routing a wire: check if clicked on compatible target pin
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            if (
+              hitPin &&
+              hitPin.isOutput !== this.renderer.activeWireDrag.isOutput &&
+              hitPin.compId !== this.renderer.activeWireDrag.compId
+            ) {
+              const drag = this.renderer.activeWireDrag;
+              const fromCompId = drag.isOutput ? drag.compId : hitPin.compId;
+              const fromPin = drag.isOutput ? drag.pinIndex : hitPin.pinIndex;
+              const toCompId = drag.isOutput ? hitPin.compId : drag.compId;
+              const toPin = drag.isOutput ? hitPin.pinIndex : drag.pinIndex;
+              const waypoints = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
+
+              this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints);
+              this.circuit.syncImmediateWireLevels();
+              this.renderer.activeWireDrag = null;
+              this.refreshAll();
+              return;
+            }
+
+            // Clicked on canvas/grid: add a raster waypoint!
+            const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+            this.renderer.activeWireDrag.waypoints.push({ x: snapX, y: snapY });
+            this.renderer.render();
+            return;
+          }
+
+          const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
           if (hitPin) {
             this.renderer.activeWireDrag = {
               compId: hitPin.compId,
@@ -4123,6 +4300,7 @@
               pinIndex: hitPin.pinIndex,
               startX: hitPin.x,
               startY: hitPin.y,
+              waypoints: [],
               currX: world.x,
               currY: world.y
             };
@@ -4341,21 +4519,21 @@
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
             const world = this.renderer.screenToWorld(sx, sy);
-            const targetPin = this.renderer.findPinAt(world.x, world.y, 12);
+            const targetPin = this.renderer.findPinAt(world.x, world.y, 14);
             const drag = this.renderer.activeWireDrag;
 
-            if (targetPin && targetPin.isOutput !== drag.isOutput) {
+            if (targetPin && targetPin.isOutput !== drag.isOutput && targetPin.compId !== drag.compId) {
               const fromCompId = drag.isOutput ? drag.compId : targetPin.compId;
               const fromPin = drag.isOutput ? drag.pinIndex : targetPin.pinIndex;
               const toCompId = drag.isOutput ? targetPin.compId : drag.compId;
               const toPin = drag.isOutput ? targetPin.pinIndex : drag.pinIndex;
+              const waypoints = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
 
-              this.circuit.addWire(fromCompId, fromPin, toCompId, toPin);
+              this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints);
               this.circuit.syncImmediateWireLevels();
+              this.renderer.activeWireDrag = null;
+              this.refreshAll();
             }
-
-            this.renderer.activeWireDrag = null;
-            this.refreshAll();
           }
 
           if (this.draggingComp) {
@@ -4383,6 +4561,11 @@
 
         canvas.addEventListener('contextmenu', (e) => {
           e.preventDefault();
+          if (this.renderer.activeWireDrag) {
+            this.renderer.activeWireDrag = null;
+            this.renderer.render();
+            return;
+          }
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
@@ -4676,6 +4859,17 @@
           });
           menu.appendChild(openInspect);
 
+          const autoRouteWire = document.createElement('div');
+          autoRouteWire.className = 'ctx-item';
+          autoRouteWire.innerHTML = `<span>🔀</span> <span>Wegpunkte zurücksetzen (Auto-Route)</span>`;
+          autoRouteWire.addEventListener('click', () => {
+            wire.waypoints = [];
+            wire.channelOffset = 0;
+            this.renderer.render();
+            this.hideContextMenu();
+          });
+          menu.appendChild(autoRouteWire);
+
           const delWire = document.createElement('div');
           delWire.className = 'ctx-item danger';
           delWire.innerHTML = `<span>🗑️</span> <span>Leitung löschen</span>`;
@@ -4781,6 +4975,15 @@
           div2.className = 'ctx-divider';
           menu.appendChild(div2);
 
+          const autoRouteAll = document.createElement('div');
+          autoRouteAll.className = 'ctx-item';
+          autoRouteAll.innerHTML = `<span>🔀</span> <span>Alle Leitungen rechtwinklig ordnen</span>`;
+          autoRouteAll.addEventListener('click', () => {
+            this.autoRouteAllWires();
+            this.hideContextMenu();
+          });
+          menu.appendChild(autoRouteAll);
+
           const resetView = document.createElement('div');
           resetView.className = 'ctx-item';
           resetView.innerHTML = `<span>🔍</span> <span>Ansicht zentrieren (100%)</span>`;
@@ -4876,7 +5079,13 @@
             return;
           }
 
-          if (e.code === 'Space') {
+          if (e.key === 'Escape') {
+            if (this.renderer.activeWireDrag) {
+              this.renderer.activeWireDrag = null;
+              this.renderer.render();
+            }
+            this.hideContextMenu();
+          } else if (e.code === 'Space') {
             if (!this.spacePressed) {
               this.spacePressed = true;
               this.gridCanvas.style.cursor = 'grab';
@@ -4975,6 +5184,66 @@
             btnExpand.style.display = 'none';
             this.renderer.resize();
           });
+        }
+      }
+
+      /**
+       * Auto-sorts and organizes all wires in the circuit:
+       * - Distributes wires sharing a vertical channel onto distinct parallel grid tracks.
+       * - Untangles crossings by sorting wires vertically by their destination.
+       * - Resets manual waypoints to clean, optimized orthogonal routes.
+       */
+      autoRouteAllWires() {
+        if (!this.circuit.wires || this.circuit.wires.length === 0) return;
+
+        // Group forward wires by channel (midpoint X bucket)
+        const channelBuckets = new Map();
+
+        for (const w of this.circuit.wires) {
+          const fromComp = this.circuit.getComponent(w.fromCompId);
+          const toComp = this.circuit.getComponent(w.toCompId);
+          if (!fromComp || !toComp) continue;
+
+          const p1 = fromComp.getPinWorldPos(true, w.fromPin);
+          const p2 = toComp.getPinWorldPos(false, w.toPin);
+
+          // Clear manual waypoints to allow clean auto-sorting
+          w.waypoints = [];
+
+          if (p2.x >= p1.x + 20) {
+            const rawMid = (p1.x + p2.x) / 2;
+            const channelKey = Math.round(rawMid / 40) * 40;
+            if (!channelBuckets.has(channelKey)) {
+              channelBuckets.set(channelKey, []);
+            }
+            channelBuckets.get(channelKey).push({ wire: w, p1, p2 });
+          } else {
+            // Feedback wires
+            w.channelOffset = 0;
+          }
+        }
+
+        // Separate and sort each channel
+        for (const [channelKey, group] of channelBuckets.entries()) {
+          if (group.length === 1) {
+            group[0].wire.channelOffset = 0;
+            continue;
+          }
+
+          // Sort wires in channel by destination Y to untangle criss-crossing
+          group.sort((a, b) => a.p2.y - b.p2.y);
+
+          const count = group.length;
+          const step = GRID_SIZE; // 20px track separation
+          for (let i = 0; i < count; i++) {
+            const offset = (i - (count - 1) / 2) * step;
+            group[i].wire.channelOffset = Math.round(offset);
+          }
+        }
+
+        this.renderer.render();
+        if (this.renderer.selectedWireId) {
+          this.inspector.render(null, this.renderer.selectedWireId);
         }
       }
     }
