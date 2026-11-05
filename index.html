@@ -1245,6 +1245,274 @@
       cursor: pointer;
       accent-color: var(--accent-blue);
     }
+
+    /* Brand Menu Dropdown (Office/Word-style) */
+    .brand-dropdown-container {
+      position: relative;
+      display: inline-block;
+    }
+    .brand-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
+    }
+    .brand-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+    .app-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 6px;
+      z-index: 1000;
+      background: #141820;
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      min-width: 250px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      backdrop-filter: blur(12px);
+      animation: ctxFadeIn 0.12s ease-out;
+    }
+    .app-menu-header {
+      padding: 6px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+    }
+    .app-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.1s ease, color 0.1s ease;
+      width: 100%;
+    }
+    .app-menu-item:hover {
+      background: var(--accent-blue-dim);
+      color: var(--accent-blue);
+    }
+    .app-menu-divider {
+      height: 1px;
+      background: var(--border-dim);
+      margin: 4px 6px;
+    }
+
+    /* Analyzer Loop Controls */
+    .analyzer-loop-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--bg-elevated);
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border-dim);
+    }
+    #btn-analyzer-loop.active {
+      background: rgba(0, 230, 118, 0.2);
+      border-color: #00e676;
+      color: #00e676;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.35);
+    }
+
+    /* Settings Modal Styles */
+    .settings-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .settings-section:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .settings-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .color-swatch-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .color-swatch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11.5px;
+      transition: all 0.15s ease;
+    }
+    .color-swatch-btn:hover {
+      border-color: var(--c);
+      color: var(--text-main);
+    }
+    .color-swatch-btn.active {
+      border-color: var(--c);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+    }
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .custom-color-picker-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+    }
+    .custom-color-picker-wrap input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+    }
+    .custom-color-picker-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .custom-color-picker-wrap input[type="color"]::-webkit-color-swatch {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+    }
+    .norm-card-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .norm-card {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .norm-card:hover {
+      border-color: var(--accent-blue);
+      background: rgba(0, 176, 255, 0.04);
+    }
+    .norm-card.active {
+      border-color: var(--accent-blue);
+      background: rgba(0, 176, 255, 0.08);
+      box-shadow: 0 0 0 1px var(--accent-blue);
+    }
+    .norm-card-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .norm-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .norm-card-desc {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      line-height: 1.35;
+    }
+    .settings-checkbox-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .settings-checkbox-label input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    /* Synthesizer Legend */
+    .synth-legend-box {
+      background: rgba(0, 176, 255, 0.04);
+      border: 1px solid rgba(0, 176, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .synth-legend-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+    .synth-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px 14px;
+    }
+    .synth-legend-item {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+    }
+    .synth-legend-math {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .synth-legend-desc {
+      color: var(--text-dim);
+      font-size: 10.5px;
+    }
   </style>
 </head>
 <body>
@@ -1252,9 +1520,49 @@
     <!-- 1. TOP TOOLBAR -->
     <header id="toolbar">
       <div class="toolbar-group">
-        <div class="brand">
-          <div class="brand-icon">&amp;</div>
-          <span>LogicSim Pro</span>
+        <div class="brand-dropdown-container">
+          <button id="btn-app-menu" class="brand-btn" title="Hauptmenü öffnen (LogicSim Pro)">
+            <div class="brand-icon">&amp;</div>
+            <span>LogicSim Pro</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="app-dropdown-menu" class="app-dropdown-menu" style="display: none;">
+            <div class="app-menu-header">LogicSim Pro Menü</div>
+            <button class="app-menu-item" id="menu-item-new">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Neu (Arbeitsfläche leeren)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-open">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Öffnen... (JSON Import)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-save">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Speichern... (JSON Export)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-export-png">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Bild exportieren (PNG)</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-truth-table">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+              <span>Wahrheitstabelle (Strg+T)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-bool-synth">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg>
+              <span>Boolesche Schaltalgebra (Strg+B)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-layout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/></svg>
+              <span>Schaltung sauber anordnen</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-settings">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Einstellungen (Farben, Normen, Optionen)...</span>
+            </button>
+          </div>
         </div>
 
         <div class="divider"></div>
@@ -1346,6 +1654,11 @@
         </button>
         <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
 
+        <button id="btn-open-settings" class="btn" title="Einstellungen öffnen (Farben, Normen, Edit-Mode Interaktion)">
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          <span class="btn-text btn-text-full">Einstellungen</span>
+        </button>
+
         <button id="btn-clear" class="btn btn-danger" title="Gesamte Arbeitsfläche leeren">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
           <span class="btn-text">Leeren</span>
@@ -1416,6 +1729,18 @@
             <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR-Gatter / Gerade Parität (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-XNOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg></div>
               <div class="palette-name">XNOR</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="BUFFER" title="Puffer / Treiber (Buffer, 1 Eingang)">
+              <div class="palette-icon" id="pal-icon-BUFFER"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/></svg></div>
+              <div class="palette-name">BUFFER</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="TRI_STATE" title="Tri-State-Treiber mit Enable (IN, EN)">
+              <div class="palette-icon" id="pal-icon-TRI_STATE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/><line x1="12" y1="21" x2="12" y2="15.5"/></svg></div>
+              <div class="palette-name">Tri-State</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="MAJORITY" title="Mehrheitsgatter / Majority (3 Eingänge)">
+              <div class="palette-icon" id="pal-icon-MAJORITY"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7a8 8 0 0 1 8 8 8 8 0 0 1-8 8H4z"/><text x="7" y="15" font-size="8" fill="currentColor" stroke="none" font-weight="bold">≥2</text></svg></div>
+              <div class="palette-name">Majority</div>
             </div>
           </div>
         </div>
@@ -1516,6 +1841,25 @@
         </div>
 
         <div class="toolbar-group">
+          <!-- Loop & Playhead Controls -->
+          <div class="analyzer-loop-group">
+            <button id="btn-analyzer-set-in" class="btn" style="padding: 2px 7px; font-size: 11px;" title="In-Klammer '[' an aktueller Cursor-Position setzen (Taste I)">
+              <span style="font-weight:700; color:var(--accent-blue);">[</span> In
+            </button>
+            <button id="btn-analyzer-set-out" class="btn" style="padding: 2px 7px; font-size: 11px;" title="Out-Klammer ']' an aktueller Cursor-Position setzen (Taste O)">
+              <span style="font-weight:700; color:var(--accent-blue);">]</span> Out
+            </button>
+            <button id="btn-analyzer-loop" class="btn" style="padding: 2px 8px; font-size: 11px;" title="Eingeklammerten Bereich in einer Animation abspielen (Taste L)">
+              <span class="btn-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+              <span id="analyzer-loop-text">Loop Play</span>
+            </button>
+            <button id="btn-analyzer-clear-range" class="btn" style="padding: 2px 6px; font-size: 11px;" title="Klammern / Loop-Bereich aufheben">
+              <span>✕</span>
+            </button>
+          </div>
+
+          <span id="analyzer-playhead-info" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-green); min-width: 60px;">t = 0</span>
+
           <div class="freq-control" style="padding: 2px 8px;">
             <span class="freq-label">Zeit-Zoom:</span>
             <input type="range" id="slider-time-zoom" min="4" max="32" value="12" />
@@ -1616,11 +1960,55 @@
               <span class="synth-op-chip" data-insert=" AND ">∧ AND (&amp;)</span>
               <span class="synth-op-chip" data-insert=" OR ">∨ OR (|)</span>
               <span class="synth-op-chip" data-insert=" XOR ">⊕ XOR (^)</span>
+              <span class="synth-op-chip" data-insert=" -> ">→ Implikation (-&gt;)</span>
+              <span class="synth-op-chip" data-insert=" <-> ">↔ Äquivalenz (&lt;-&gt;)</span>
               <span class="synth-op-chip" data-insert=" NAND ">NAND</span>
               <span class="synth-op-chip" data-insert=" NOR ">NOR</span>
               <span class="synth-op-chip" data-insert=" XNOR ">XNOR</span>
               <span class="synth-op-chip" data-insert="'">' (Negationsstrich)</span>
               <span class="synth-op-chip" data-insert="(  )">( ) Klammern</span>
+            </div>
+          </div>
+
+          <!-- Operator & Syntax Legend -->
+          <div class="synth-legend-box" id="synth-legend-box">
+            <div class="synth-legend-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Syntax-Legende der Booleschen Schaltalgebra:</span>
+            </div>
+            <div class="synth-legend-grid">
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">¬ A, A&apos;, !A, ~A</span>
+                <span class="synth-legend-desc">Negation / Invertierung</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A ∧ B, A * B, A &amp; B</span>
+                <span class="synth-legend-desc">Konjunktion (AND)</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A ∨ B, A + B, A | B</span>
+                <span class="synth-legend-desc">Disjunktion (OR)</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A ⊕ B, A ^ B</span>
+                <span class="synth-legend-desc">Antivalenz (XOR)</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A → B, A -&gt; B, A =&gt; B</span>
+                <span class="synth-legend-desc">Implikation (¬A ∨ B)</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A ↔ B, A &equiv; B, A &lt;-&gt; B</span>
+                <span class="synth-legend-desc">Äquivalenz (XNOR)</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">A NAND B, A NOR B</span>
+                <span class="synth-legend-desc">Invertierte Verknüpfungen</span>
+              </div>
+              <div class="synth-legend-item">
+                <span class="synth-legend-math">( ... )</span>
+                <span class="synth-legend-desc">Klammer-Priorität</span>
+              </div>
             </div>
           </div>
 
@@ -1659,6 +2047,118 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               <span>In Gatter umwandeln &amp; platzieren</span>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div id="settings-modal" class="logic-modal" style="display: none; max-width: 580px;" role="dialog" aria-labelledby="settings-title">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <div>
+              <h3 id="settings-title" class="modal-title">Einstellungen &amp; Personalisierung</h3>
+              <div class="modal-subtitle">Signalfarben, Schaltsymbol-Normen, Interaktion und Layout anpassen</div>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btn-close-settings" title="Schließen">&times;</button>
+        </div>
+        <div class="modal-body" style="gap: 16px;">
+          <!-- 1. Signalfarben -->
+          <div class="settings-section">
+            <div class="settings-section-title">Leitungs- &amp; Signalfarben (HIGH-Zustand 1):</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Wähle die Leuchtfarbe für aktive Signale, Leitungen und Glüheffekte:</div>
+            <div class="color-swatch-group" id="settings-color-swatches">
+              <button class="color-swatch-btn active" data-color="#00e676" style="--c: #00e676;" title="Neon-Grün (Standard DIN/IEC)">
+                <span class="color-dot" style="background: #00e676; color: #00e676;"></span>
+                <span>Neon-Grün</span>
+              </button>
+              <button class="color-swatch-btn" data-color="#00e5ff" style="--c: #00e5ff;" title="Cyan / Cyber-Blau">
+                <span class="color-dot" style="background: #00e5ff; color: #00e5ff;"></span>
+                <span>Cyan</span>
+              </button>
+              <button class="color-swatch-btn" data-color="#ffb300" style="--c: #ffb300;" title="Bernstein / Amber Vintage">
+                <span class="color-dot" style="background: #ffb300; color: #ffb300;"></span>
+                <span>Bernstein</span>
+              </button>
+              <button class="color-swatch-btn" data-color="#ff1744" style="--c: #ff1744;" title="Neon-Rot / Alert">
+                <span class="color-dot" style="background: #ff1744; color: #ff1744;"></span>
+                <span>Rot</span>
+              </button>
+              <button class="color-swatch-btn" data-color="#d500f9" style="--c: #d500f9;" title="Pink / Violett">
+                <span class="color-dot" style="background: #d500f9; color: #d500f9;"></span>
+                <span>Violett</span>
+              </button>
+              <div class="custom-color-picker-wrap">
+                <input type="color" id="settings-custom-color" value="#00e676" title="Eigene Farbe wählen" />
+                <span style="font-size: 11px; color: var(--text-muted);">Individuell</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Gatter-Norm -->
+          <div class="settings-section">
+            <div class="settings-section-title">Schaltsymbol-Norm:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Darstellung aller Logikgatter nach historischem oder internationalem Standard:</div>
+            <div class="norm-card-group" id="settings-norm-cards">
+              <div class="norm-card active" data-norm="DIN_40700">
+                <div class="norm-card-badge">Historisch DE</div>
+                <div class="norm-card-title">DIN 40700</div>
+                <div class="norm-card-desc">Klassisch deutsche Symbole mit Halbkreis, Pfeilspitzen und Dreiecken.</div>
+              </div>
+              <div class="norm-card" data-norm="DIN_EN_60617">
+                <div class="norm-card-badge">IEC Standard</div>
+                <div class="norm-card-title">DIN EN 60617</div>
+                <div class="norm-card-desc">Internationale Rechteck-Gatter mit Kennzeichnungen (&amp;, &ge;1, =1, 1). Bündige Anschlüsse.</div>
+              </div>
+              <div class="norm-card" data-norm="ANSI">
+                <div class="norm-card-badge">US Standard</div>
+                <div class="norm-card-title">ANSI / IEEE</div>
+                <div class="norm-card-desc">Amerikanische Kurven-Symbole (D-Shape für AND, Curved Shield für OR/XOR).</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Interaktion im Edit-Modus -->
+          <div class="settings-section">
+            <div class="settings-section-title">Interaktion &amp; Bedienung:</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+              <label class="settings-checkbox-label">
+                <input type="checkbox" id="settings-edit-interactive" checked />
+                <div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schalter &amp; Taster im Edit-Modus direkt schaltbar</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Ein Klick (ohne Ziehen) auf Schalter schaltet ihren Zustand sofort um, ohne erst in den Sim-Modus zu wechseln.</div>
+                </div>
+              </label>
+              <label class="settings-checkbox-label">
+                <input type="checkbox" id="settings-auto-save" checked />
+                <div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schaltung automatisch im Browser sichern (localStorage)</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Behält deine Schaltung beim Schließen oder Neuladen des Browsers automatisch bei.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 4. Hintergrund-Design -->
+          <div class="settings-section">
+            <div class="settings-section-title">Arbeitsflächen-Thema:</div>
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
+              <select id="settings-canvas-theme" class="select-input" style="flex: 1;">
+                <option value="tech_dots" selected>Dark Tech (Elektronik-Raster mit Glow)</option>
+                <option value="deep_black">OLED Pure Black (Hoher Kontrast, tiefschwarz)</option>
+                <option value="blueprint">Ingenieur Blueprint (Dezentes dunkles Blau-Raster)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="footer-left">
+            <span>Alle Änderungen werden sofort angewendet und gespeichert.</span>
+          </div>
+          <div class="footer-right">
+            <button id="btn-reset-settings" class="btn">Auf Standard zurücksetzen</button>
+            <button id="btn-close-settings-footer" class="btn btn-primary">Fertig</button>
           </div>
         </div>
       </div>
@@ -1749,6 +2249,12 @@
             return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="9.5" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">=1</text></svg>';
           case 'XNOR':
             return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="13" height="18" rx="1"/><text x="9.5" y="15" font-size="9" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">=1</text><circle cx="19" cy="12" r="2.2" stroke-width="1.8"/></svg>';
+          case 'BUFFER':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="10" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">1</text></svg>';
+          case 'TRI_STATE':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="10" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">1</text><line x1="12" y1="23" x2="12" y2="19"/></svg>';
+          case 'MAJORITY':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="9" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&#8805;2</text></svg>';
         }
       }
       // DIN 40700 & ANSI
@@ -1767,6 +2273,12 @@
           return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M6 5c2.5 3 2.5 11 0 14 6.5 0 11-2 15-7-4-5-8.5-7-15-7z"/></svg>';
         case 'XNOR':
           return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg>';
+        case 'BUFFER':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/></svg>';
+        case 'TRI_STATE':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/><line x1="12" y1="21" x2="12" y2="15.5"/></svg>';
+        case 'MAJORITY':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7a8 8 0 0 1 8 8 8 8 0 0 1-8 8H4z"/><text x="7" y="15" font-size="8" fill="currentColor" stroke="none" font-weight="bold">≥2</text></svg>';
         default:
           return '';
       }
@@ -1972,6 +2484,28 @@
               invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false]
             };
             break;
+          case 'BUFFER':
+            this.params = {
+              label: customParams.label ?? 'BUF',
+              invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : false,
+              invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false]
+            };
+            break;
+          case 'TRI_STATE':
+            this.params = {
+              label: customParams.label ?? 'TRI',
+              invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : false,
+              invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false, false]
+            };
+            break;
+          case 'MAJORITY':
+            this.params = {
+              label: customParams.label ?? 'MAJ',
+              numInputs: 3,
+              invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : false,
+              invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false, false, false]
+            };
+            break;
           case 'AND':
           case 'OR':
           case 'NAND':
@@ -2059,6 +2593,33 @@
             inOffsets = [20];
             outNames = ['Y'];
             outOffsets = [20];
+            break;
+
+          case 'BUFFER':
+            this.width = 80;
+            this.height = 40;
+            inNames = ['X1'];
+            inOffsets = [20];
+            outNames = ['Y'];
+            outOffsets = [20];
+            break;
+
+          case 'TRI_STATE':
+            this.width = 80;
+            this.height = 50;
+            inNames = ['IN', 'EN'];
+            inOffsets = [20, 36];
+            outNames = ['Y'];
+            outOffsets = [20];
+            break;
+
+          case 'MAJORITY':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['X1', 'X2', 'X3'];
+            inOffsets = [20, 40, 60];
+            outNames = ['Y'];
+            outOffsets = [40];
             break;
 
           case 'AND':
@@ -2260,6 +2821,31 @@
             const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
             this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
+            break;
+          }
+          case 'BUFFER': {
+            const raw0 = inputValues[0] ? 1 : 0;
+            const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
+            const isOutInv = Boolean(this.params.invertedOutput);
+            this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
+            break;
+          }
+          case 'TRI_STATE': {
+            const inVal = inputValues[0] ? 1 : 0;
+            const enVal = inputValues[1] ? 1 : 0;
+            const effIn = Boolean(this.params.invertedInputs?.[0]) ? (inVal ? 0 : 1) : inVal;
+            const effEn = Boolean(this.params.invertedInputs?.[1]) ? (enVal ? 0 : 1) : enVal;
+            const isOutInv = Boolean(this.params.invertedOutput);
+            const base = effEn === 1 ? effIn : 0;
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            break;
+          }
+          case 'MAJORITY': {
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const count = eff.filter(v => v === 1).length;
+            const base = count >= Math.ceil(eff.length / 2) ? 1 : 0;
+            const isOutInv = Boolean(this.params.invertedOutput);
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'AND': {
@@ -2579,7 +3165,7 @@
               comp.inputs[i].value = val;
               inValues.push(val);
             }
-            if (['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BCD_DEC'].includes(comp.type)) {
+            if (['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC'].includes(comp.type)) {
               comp.compute(inValues);
               comp.commit();
             }
@@ -3083,6 +3669,9 @@
         this.engine = engine;
 
         this.symbolStandard = 'DIN_40700'; // Default: DIN 40700 Deutsch
+        this.highSignalColor = '#00e676';
+        this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
+        this.canvasTheme = 'tech_dots';
 
         this.panX = 40;
         this.panY = 40;
@@ -3673,7 +4262,7 @@
           ctx.fillText(nameStr, bx + 7.5, by + 10);
 
           // Digital Level (1 / 0)
-          ctx.fillStyle = isHigh ? '#00e676' : '#64748b';
+          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00e676') : '#64748b';
           ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 4.5, by + 10.5);
@@ -3691,7 +4280,13 @@
         ctx.save();
         ctx.scale(dpr, dpr);
 
-        ctx.fillStyle = '#0b0d10';
+        if (this.canvasTheme === 'deep_black') {
+          ctx.fillStyle = '#020406';
+        } else if (this.canvasTheme === 'blueprint') {
+          ctx.fillStyle = '#07111e';
+        } else {
+          ctx.fillStyle = '#0b0d10';
+        }
         ctx.fillRect(0, 0, width, height);
 
         ctx.save();
@@ -3800,9 +4395,9 @@
             ctx.strokeStyle = '#00b0ff';
             ctx.lineWidth = 3.5;
           } else if (isHigh) {
-            ctx.strokeStyle = '#00e676';
+            ctx.strokeStyle = this.highSignalColor || '#00e676';
             ctx.lineWidth = 2.8;
-            ctx.shadowColor = 'rgba(0, 230, 118, 0.65)';
+            ctx.shadowColor = this.highSignalGlow || 'rgba(0, 230, 118, 0.65)';
             ctx.shadowBlur = 8;
           } else {
             ctx.strokeStyle = '#2d3d4f';
@@ -4034,7 +4629,7 @@
       }
 
       isGate(type) {
-        return ['NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR'].includes(type);
+        return ['NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR'].includes(type);
       }
 
       drawSingleComponent(ctx, comp) {
@@ -4122,13 +4717,13 @@
         // 1. Draw Body Outline
         ctx.beginPath();
 
-        if (type === 'NOT') {
+        if (type === 'NOT' || type === 'BUFFER' || type === 'TRI_STATE') {
           // Right-pointing Triangle
           ctx.moveTo(gx1, gy1);
           ctx.lineTo(bodyEnd, cy);
           ctx.lineTo(gx1, gy2);
           ctx.closePath();
-        } else if (type === 'AND' || type === 'NAND') {
+        } else if (type === 'AND' || type === 'NAND' || type === 'MAJORITY') {
           // Semi-Ellipse / D-Form (DIN 40700 & ANSI)
           const straightX = gx1 + (bodyEnd - gx1) * 0.38;
           ctx.moveTo(gx1, gy1);
@@ -4251,13 +4846,16 @@
         const rBubble = 3.6;
         const dBubble = rBubble * 2;
 
-        const gx1 = x + 18;
-        const gx2 = x + width - 18;
+        const gx1 = x + 8;
+        const gx2 = x + width - 8;
         const gy1 = y + 8;
         const gy2 = y + height - 8;
 
         const symbols = {
           NOT: '1',
+          BUFFER: '1',
+          TRI_STATE: '1',
+          MAJORITY: '≥2',
           AND: '&',
           OR: '≥1',
           NAND: '&',
@@ -4726,6 +5324,14 @@
         this.hoverY = null;
         this.gutterWidth = 155;
 
+        // Video-Style Playhead & Loop Region
+        this.playheadOffset = null;
+        this.isScrubbing = false;
+        this.loopRange = null; // { inOffset: number, outOffset: number }
+        this.isLoopPlaying = false;
+        this.loopInterval = null;
+        this.activeBracketDrag = null; // 'in' | 'out' | null
+
         this.setupEvents();
       }
 
@@ -4735,19 +5341,99 @@
           this.hoverX = e.clientX - rect.left;
           this.hoverY = e.clientY - rect.top;
 
+          const totalSamples = this.ringBuffer.count;
+          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+          const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+
+          if (this.activeBracketDrag === 'in' && this.loopRange) {
+            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
+            this.loopRange.inOffset = targetOffset;
+            this.updateLoopUi();
+            this.render();
+            return;
+          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
+            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
+            this.loopRange.outOffset = targetOffset;
+            this.updateLoopUi();
+            this.render();
+            return;
+          }
+
+          if (this.isScrubbing && totalSamples > 0) {
+            const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
+            this.setPlayheadOffset(targetOffset);
+            this.render();
+            return;
+          }
+
           if (this.hoverX <= this.gutterWidth) {
             this.canvas.style.cursor = 'pointer';
+          } else if (this.hoverY <= 22 && this.loopRange) {
+            // Check if hovering near bracket handles in ruler
+            const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
+            const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
+            if (Math.abs(this.hoverX - inX) <= 6 || Math.abs(this.hoverX - outX) <= 6) {
+              this.canvas.style.cursor = 'ew-resize';
+            } else {
+              this.canvas.style.cursor = 'crosshair';
+            }
           } else {
             this.canvas.style.cursor = 'crosshair';
           }
           this.render();
         });
 
+        this.canvas.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          const rect = this.canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+
+          if (mx > this.gutterWidth) {
+            const totalSamples = this.ringBuffer.count;
+            if (totalSamples === 0) return;
+            const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+            const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+            const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+            const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+
+            if (my <= 22 && this.loopRange) {
+              const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
+              const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
+              if (Math.abs(mx - inX) <= 7) {
+                this.activeBracketDrag = 'in';
+                return;
+              } else if (Math.abs(mx - outX) <= 7) {
+                this.activeBracketDrag = 'out';
+                return;
+              }
+            }
+
+            this.isScrubbing = true;
+            const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
+            this.setPlayheadOffset(targetOffset);
+            this.render();
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isScrubbing = false;
+          this.activeBracketDrag = null;
+        });
+
         this.canvas.addEventListener('mouseleave', () => {
-          this.hoverX = null;
-          this.hoverY = null;
-          this.canvas.style.cursor = 'default';
-          this.render();
+          if (!this.isScrubbing && !this.activeBracketDrag) {
+            this.hoverX = null;
+            this.hoverY = null;
+            this.canvas.style.cursor = 'default';
+            this.render();
+          }
         });
 
         this.canvas.addEventListener('click', (e) => {
@@ -4819,6 +5505,151 @@
           }
           this.render();
         }, { passive: false });
+
+        // Keyboard hotkeys for Timeline Loop (I, O, L)
+        window.addEventListener('keydown', (e) => {
+          const activeTag = document.activeElement ? document.activeElement.tagName : '';
+          if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+
+          if (this.hoverX !== null && this.hoverX >= this.gutterWidth) {
+            if (e.key.toLowerCase() === 'i') {
+              this.setInPoint();
+              e.preventDefault();
+            } else if (e.key.toLowerCase() === 'o') {
+              this.setOutPoint();
+              e.preventDefault();
+            } else if (e.key.toLowerCase() === 'l') {
+              this.toggleLoopAnimation();
+              e.preventDefault();
+            }
+          }
+        });
+      }
+
+      setPlayheadOffset(offset) {
+        this.playheadOffset = offset;
+        this.updateLoopUi();
+        if (this.callbacks?.onPlayheadChange) {
+          this.callbacks.onPlayheadChange(offset);
+        }
+      }
+
+      setInPoint(offset = null) {
+        const total = this.ringBuffer.count;
+        if (total === 0) return;
+        const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
+        const effective = target !== null ? target : 0;
+        const currentOut = this.loopRange ? this.loopRange.outOffset : Math.min(total - 1, effective + 20);
+
+        this.loopRange = {
+          inOffset: Math.min(effective, currentOut),
+          outOffset: Math.max(effective + 1, currentOut)
+        };
+        this.updateLoopUi();
+        this.render();
+      }
+
+      setOutPoint(offset = null) {
+        const total = this.ringBuffer.count;
+        if (total === 0) return;
+        const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
+        const effective = target !== null ? target : total - 1;
+        const currentIn = this.loopRange ? this.loopRange.inOffset : Math.max(0, effective - 20);
+
+        this.loopRange = {
+          inOffset: Math.min(currentIn, effective - 1),
+          outOffset: Math.max(currentIn + 1, effective)
+        };
+        this.updateLoopUi();
+        this.render();
+      }
+
+      clearLoopRange() {
+        this.stopLoopAnimation();
+        this.loopRange = null;
+        this.updateLoopUi();
+        this.render();
+      }
+
+      toggleLoopAnimation() {
+        if (this.isLoopPlaying) {
+          this.stopLoopAnimation();
+        } else {
+          this.startLoopAnimation();
+        }
+      }
+
+      startLoopAnimation() {
+        const total = this.ringBuffer.count;
+        if (total === 0) return;
+
+        if (!this.loopRange) {
+          const out = Math.min(total - 1, 30);
+          this.loopRange = { inOffset: 0, outOffset: out };
+        }
+
+        this.isLoopPlaying = true;
+        this.playheadOffset = this.loopRange.inOffset;
+        this.updateLoopUi();
+
+        const btnLoop = document.getElementById('btn-analyzer-loop');
+        if (btnLoop) btnLoop.classList.add('active');
+
+        if (this.loopInterval) clearInterval(this.loopInterval);
+        this.loopInterval = setInterval(() => {
+          if (!this.loopRange || this.ringBuffer.count === 0) {
+            this.stopLoopAnimation();
+            return;
+          }
+          this.playheadOffset++;
+          if (this.playheadOffset > this.loopRange.outOffset) {
+            this.playheadOffset = this.loopRange.inOffset;
+          }
+          if (this.callbacks?.onPlayheadChange) {
+            this.callbacks.onPlayheadChange(this.playheadOffset);
+          }
+          this.render();
+        }, 60);
+      }
+
+      stopLoopAnimation() {
+        this.isLoopPlaying = false;
+        if (this.loopInterval) {
+          clearInterval(this.loopInterval);
+          this.loopInterval = null;
+        }
+        const btnLoop = document.getElementById('btn-analyzer-loop');
+        if (btnLoop) btnLoop.classList.remove('active');
+        this.updateLoopUi();
+      }
+
+      updateLoopUi() {
+        const badge = document.getElementById('analyzer-playhead-info');
+        if (!badge) return;
+
+        let info = '';
+        if (this.playheadOffset !== null) {
+          const tick = this.ringBuffer.getTickAtOffset(this.playheadOffset);
+          info += `Playhead: t = ${tick}`;
+        }
+        if (this.loopRange) {
+          const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
+          const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
+          const span = tOut - tIn;
+          info += `  |  [ Loop: ${tIn}..${tOut} (${span} T) ]`;
+        }
+        badge.textContent = info;
+      }
+
+      getHoveredOffset() {
+        if (this.hoverX === null || this.hoverX < this.gutterWidth || this.ringBuffer.count === 0) return null;
+        const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+        const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+        const maxStartOffset = Math.max(0, this.ringBuffer.count - visibleTicks);
+        const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+        const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+        const candidate = startOffset + relIdx;
+        return (candidate >= 0 && candidate < this.ringBuffer.count) ? candidate : null;
       }
 
       roundRect(ctx, x, y, w, h, r = 4) {
@@ -4898,6 +5729,23 @@
         ctx.textAlign = 'left';
         ctx.fillText('KANAL / PROBE', 10, 14);
 
+        // Highlight Loop Bracket Range (In/Out) across timeline
+        if (this.loopRange && totalSamples > 0) {
+          const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
+          const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
+          const bandX = Math.max(this.gutterWidth, inX);
+          const bandW = Math.max(0, Math.min(width, outX) - bandX);
+
+          if (bandW > 0) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 230, 118, 0.08)';
+            ctx.fillRect(bandX, headerH, bandW, height - headerH);
+            ctx.fillStyle = 'rgba(0, 230, 118, 0.45)';
+            ctx.fillRect(bandX, headerH - 3, bandW, 3);
+            ctx.restore();
+          }
+        }
+
         const labelInterval = this.pixelsPerTick >= 18 ? 2 : (this.pixelsPerTick >= 10 ? 5 : 10);
         for (let i = 0; i <= visibleTicks; i++) {
           const offset = startOffset + i;
@@ -4924,14 +5772,41 @@
           }
         }
 
-        let hoveredOffset = null;
-        if (this.hoverX !== null && this.hoverX >= this.gutterWidth && totalSamples > 0) {
-          const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-          const candidate = startOffset + relIdx;
-          if (candidate >= 0 && candidate < totalSamples) {
-            hoveredOffset = candidate;
+        // Render In / Out bracket markers in header
+        if (this.loopRange && totalSamples > 0) {
+          const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
+          const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
+
+          // In bracket [
+          if (inX >= this.gutterWidth && inX <= width) {
+            ctx.fillStyle = '#ffd600';
+            ctx.fillRect(inX - 1, 2, 3, headerH - 4);
+            ctx.fillRect(inX, 2, 7, 3);
+            ctx.fillRect(inX, headerH - 5, 7, 3);
+            ctx.strokeStyle = 'rgba(255, 214, 0, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(inX, headerH);
+            ctx.lineTo(inX, height);
+            ctx.stroke();
+          }
+
+          // Out bracket ]
+          if (outX >= this.gutterWidth && outX <= width) {
+            ctx.fillStyle = '#00b0ff';
+            ctx.fillRect(outX - 2, 2, 3, headerH - 4);
+            ctx.fillRect(outX - 8, 2, 7, 3);
+            ctx.fillRect(outX - 8, headerH - 5, 7, 3);
+            ctx.strokeStyle = 'rgba(0, 176, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(outX, headerH);
+            ctx.lineTo(outX, height);
+            ctx.stroke();
           }
         }
+
+        const hoveredOffset = this.getHoveredOffset();
 
         for (let pIdx = 0; pIdx < probes.length; pIdx++) {
           const probe = probes[pIdx];
@@ -5002,8 +5877,9 @@
 
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
           const currentVal = wire ? wire.level : (probe.inputs ? probe.inputs[0]?.value : 0);
-          const displayVal = hoveredOffset !== null
-            ? this.ringBuffer.getValueAtOffset(probe.id, hoveredOffset)
+          const refOffset = this.playheadOffset !== null ? this.playheadOffset : hoveredOffset;
+          const displayVal = refOffset !== null
+            ? this.ringBuffer.getValueAtOffset(probe.id, refOffset)
             : (currentVal || 0);
 
           ctx.fillStyle = displayVal === 1 ? '#00e676' : '#64748b';
@@ -5037,14 +5913,15 @@
         ctx.lineTo(this.gutterWidth, height);
         ctx.stroke();
 
-        if (hoveredOffset !== null) {
+        // 1. Draw Hover Line (dotted amber line)
+        if (hoveredOffset !== null && hoveredOffset !== this.playheadOffset) {
           const cursorIdx = hoveredOffset - startOffset;
           const cursorX = this.gutterWidth + (cursorIdx + 0.5) * this.pixelsPerTick;
           const tickAtCursor = this.ringBuffer.getTickAtOffset(hoveredOffset);
 
           ctx.save();
           ctx.strokeStyle = '#ffb300';
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 1.2;
           ctx.setLineDash([3, 3]);
           ctx.beginPath();
           ctx.moveTo(cursorX, headerH);
@@ -5061,21 +5938,74 @@
 
             ctx.fillStyle = '#ffb300';
             ctx.beginPath();
-            ctx.arc(cursorX, py, 3.5, 0, Math.PI * 2);
+            ctx.arc(cursorX, py, 3, 0, Math.PI * 2);
             ctx.fill();
           }
 
-          const badgeText = `Tick t = ${tickAtCursor}`;
-          ctx.font = '700 10.5px monospace';
-          const tw = ctx.measureText(badgeText).width + 12;
+          const badgeText = `t = ${tickAtCursor}`;
+          ctx.font = '700 10px monospace';
+          const tw = ctx.measureText(badgeText).width + 8;
           const bx = Math.min(width - tw - 4, Math.max(this.gutterWidth + 4, cursorX - tw / 2));
 
           ctx.fillStyle = '#ffb300';
-          ctx.fillRect(bx, 2, tw, 18);
+          ctx.fillRect(bx, 3, tw, 16);
           ctx.fillStyle = '#080a0d';
           ctx.textAlign = 'center';
           ctx.fillText(badgeText, bx + tw / 2, 14);
           ctx.restore();
+        }
+
+        // 2. Draw Playhead (solid glowing green cursor like in Video Editing NLE)
+        if (this.playheadOffset !== null && totalSamples > 0) {
+          const phIdx = this.playheadOffset - startOffset;
+          const phX = this.gutterWidth + (phIdx + 0.5) * this.pixelsPerTick;
+
+          if (phX >= this.gutterWidth && phX <= width) {
+            const tickAtPh = this.ringBuffer.getTickAtOffset(this.playheadOffset);
+
+            ctx.save();
+            ctx.strokeStyle = '#00e676';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(0, 230, 118, 0.7)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(phX, headerH);
+            ctx.lineTo(phX, height);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Playhead scrubber marker in ruler
+            ctx.fillStyle = '#00e676';
+            ctx.beginPath();
+            ctx.moveTo(phX - 7, 2);
+            ctx.lineTo(phX + 7, 2);
+            ctx.lineTo(phX + 7, 13);
+            ctx.lineTo(phX, 19);
+            ctx.lineTo(phX - 7, 13);
+            ctx.closePath();
+            ctx.fill();
+
+            // Value bead on each probe channel
+            for (let pIdx = 0; pIdx < probes.length; pIdx++) {
+              const probe = probes[pIdx];
+              const rowTop = headerH + pIdx * rowH;
+              if (rowTop + 8 > height) break;
+              const val = this.ringBuffer.getValueAtOffset(probe.id, this.playheadOffset);
+              const py = val === 1 ? rowTop + 6 : rowTop + rowH - 6;
+
+              ctx.fillStyle = '#00e676';
+              ctx.beginPath();
+              ctx.arc(phX, py, 3.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            const phText = `${tickAtPh}`;
+            ctx.fillStyle = '#041007';
+            ctx.font = '700 8.5px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(phText, phX, 11);
+            ctx.restore();
+          }
         }
 
         ctx.restore();
@@ -5723,6 +6653,9 @@
           BUTTON: 'Taster (Button)',
           CLOCK: 'Taktgeber (Clock)',
           NOT: 'NOT-Gatter (Inverter)',
+          BUFFER: 'Puffer / Treiber (Buffer)',
+          TRI_STATE: 'Tri-State-Puffer (Treiber)',
+          MAJORITY: 'Mehrheitsgatter (Majority)',
           AND: 'AND-Gatter (Konjunktion)',
           OR: 'OR-Gatter (Disjunktion)',
           NAND: 'NAND-Gatter',
@@ -5767,9 +6700,42 @@
             continue;
           }
 
+          if (c === '-' && s[i + 1] === '>') {
+            tokens.push({ type: 'OP_IMPLY', val: '->' });
+            i += 2;
+            continue;
+          }
+
+          if (c === '<' && s[i + 1] === '-' && s[i + 2] === '>') {
+            tokens.push({ type: 'OP_EQUIV', val: '<->' });
+            i += 3;
+            continue;
+          }
+
+          if (c === '<' && s[i + 1] === '=' && s[i + 2] === '>') {
+            tokens.push({ type: 'OP_EQUIV', val: '<=>' });
+            i += 3;
+            continue;
+          }
+
+          if (c === '→') {
+            tokens.push({ type: 'OP_IMPLY', val: '->' });
+            i++;
+            continue;
+          }
+
+          if (c === '↔' || c === '≡') {
+            tokens.push({ type: 'OP_EQUIV', val: '<->' });
+            i++;
+            continue;
+          }
+
           if (c === '=') {
-            if (s[i + 1] === '=' || s[i + 1] === '>') {
-              tokens.push({ type: 'OP_XNOR', val: '==' });
+            if (s[i + 1] === '>') {
+              tokens.push({ type: 'OP_IMPLY', val: '=>' });
+              i += 2;
+            } else if (s[i + 1] === '=') {
+              tokens.push({ type: 'OP_EQUIV', val: '==' });
               i += 2;
             } else {
               tokens.push({ type: 'EQUALS', val: '=' });
@@ -5846,12 +6812,14 @@
               tokens.push({ type: 'OP_OR', val: '|' });
             } else if (upper === 'XOR') {
               tokens.push({ type: 'OP_XOR', val: '^' });
+            } else if (upper === 'IMPLY' || upper === 'FOLGT') {
+              tokens.push({ type: 'OP_IMPLY', val: '->' });
             } else if (upper === 'NAND') {
               tokens.push({ type: 'OP_NAND', val: 'NAND' });
             } else if (upper === 'NOR') {
               tokens.push({ type: 'OP_NOR', val: 'NOR' });
-            } else if (upper === 'XNOR' || upper === 'EQUIV') {
-              tokens.push({ type: 'OP_XNOR', val: 'XNOR' });
+            } else if (upper === 'XNOR' || upper === 'EQUIV' || upper === 'AEQUIV' || upper === 'IFF') {
+              tokens.push({ type: 'OP_EQUIV', val: '<->' });
             } else if (upper === 'TRUE' || word === '1') {
               tokens.push({ type: 'CONST', val: 1 });
             } else if (upper === 'FALSE' || word === '0') {
@@ -5906,12 +6874,32 @@
             targetName = `Y${equations.length + 1}`;
           }
 
-          const ast = parseOr();
+          const ast = parseEquiv();
           equations.push({ target: targetName, ast });
 
           if (peek().type === 'SEMI') {
             consume('SEMI');
           }
+        }
+
+        function parseEquiv() {
+          let node = parseImply();
+          while (peek().type === 'OP_EQUIV') {
+            consume('OP_EQUIV');
+            const right = parseImply();
+            node = { type: 'XNOR', children: [node, right] };
+          }
+          return node;
+        }
+
+        function parseImply() {
+          let node = parseOr();
+          while (peek().type === 'OP_IMPLY') {
+            consume('OP_IMPLY');
+            const right = parseOr();
+            node = { type: 'IMPLY', children: [node, right] };
+          }
+          return node;
         }
 
         function parseOr() {
@@ -5990,7 +6978,7 @@
           const t = peek();
           if (t.type === 'LPAREN') {
             consume('LPAREN');
-            const expr = parseOr();
+            const expr = parseEquiv();
             consume('RPAREN');
             return expr;
           }
@@ -6020,8 +7008,14 @@
             const sum = node.children.reduce((acc, c) => acc + BooleanParser.evaluateAST(c, varMap), 0);
             return sum % 2 === 1 ? 1 : 0;
           }
+          case 'IMPLY': {
+            const left = BooleanParser.evaluateAST(node.children[0], varMap);
+            const right = BooleanParser.evaluateAST(node.children[1], varMap);
+            return (left === 1 && right === 0) ? 0 : 1;
+          }
           case 'NAND': return BooleanParser.evaluateAST({ type: 'AND', children: node.children }, varMap) === 1 ? 0 : 1;
           case 'NOR': return BooleanParser.evaluateAST({ type: 'OR', children: node.children }, varMap) === 1 ? 0 : 1;
+          case 'EQUIV':
           case 'XNOR': return BooleanParser.evaluateAST({ type: 'XOR', children: node.children }, varMap) === 1 ? 0 : 1;
           default: return 0;
         }
@@ -6051,9 +7045,11 @@
           case 'AND': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∧ ')})`;
           case 'OR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∨ ')})`;
           case 'XOR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ⊕ ')})`;
+          case 'IMPLY': return `(${BooleanParser.formatMath(node.children[0])} → ${BooleanParser.formatMath(node.children[1])})`;
           case 'NAND': return `¬(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∧ ')})`;
           case 'NOR': return `¬(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∨ ')})`;
-          case 'XNOR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ≡ ')})`;
+          case 'EQUIV':
+          case 'XNOR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ↔ ')})`;
           default: return '';
         }
       }
@@ -6100,6 +7096,7 @@
           if (!node) return 0;
           if (node.type === 'VAR' || node.type === 'CONST') return 0;
           if (node.type === 'NOT') return 1 + getNodeDepth(node.child);
+          if (node.type === 'IMPLY') return 1 + Math.max(getNodeDepth(node.children[0]), getNodeDepth(node.children[1]));
           if (node.children) {
             return 1 + Math.max(...node.children.map(getNodeDepth));
           }
@@ -6136,6 +7133,19 @@
               gateYCounter += 70;
               circuit.addWire(childSource.compId, childSource.pin, gateComp.id, 0);
               return { compId: gateComp.id, pin: 0 };
+            }
+            if (node.type === 'IMPLY') {
+              const childA = buildNode(node.children[0], depth + 2);
+              const childB = buildNode(node.children[1], depth + 1);
+              if (!childA || !childB) return null;
+              const notComp = circuit.addComponent('NOT', startX + (depth + 1) * 180, gateYCounter, { label: '' });
+              circuit.addWire(childA.compId, childA.pin, notComp.id, 0);
+              gateYCounter += 70;
+              const orComp = circuit.addComponent('OR', startX + depth * 180, gateYCounter, { numInputs: 2, label: '' });
+              circuit.addWire(notComp.id, 0, orComp.id, 0);
+              circuit.addWire(childB.compId, childB.pin, orComp.id, 1);
+              gateYCounter += 70;
+              return { compId: orComp.id, pin: 0 };
             }
             if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'XNOR'].includes(node.type)) {
               const childSources = node.children.map(c => buildNode(c, depth + 1)).filter(Boolean);
@@ -6199,7 +7209,7 @@
         // If no LEDs or PROBEs exist, look for any logic gates
         if (outputs.length === 0) {
           outputs = circuit.components.filter(c =>
-            ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BCD_DEC'].includes(c.type)
+            ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC'].includes(c.type)
           );
         }
 
@@ -6487,6 +7497,19 @@
             },
             onContextMenu: (clientX, clientY, probe) => {
               this.showProbeContextMenu(clientX, clientY, probe);
+            },
+            onPlayheadChange: (offset) => {
+              if (offset !== null) {
+                const probes = this.circuit.getProbes();
+                for (const probe of probes) {
+                  const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
+                  const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+                  if (wire) {
+                    wire.level = val;
+                  }
+                }
+                this.renderer.render();
+              }
             }
           }
         );
@@ -6538,6 +7561,15 @@
         this.draggingSegment = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
+        this.compMouseDownPos = null;
+
+        this.allowEditModeInteraction = true;
+        this.highSignalColor = '#00e676';
+        this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
+        this.canvasTheme = 'tech_dots';
+        this.autoSaveCircuit = true;
+
+        this.loadSettings();
 
         // Restore or set Default Symbol Standard: DIN 40700
         const savedNorm = localStorage.getItem('logicsim_symbol_norm') || 'DIN_40700';
@@ -6545,6 +7577,7 @@
 
         this.currentTruthTableData = null;
 
+        this.initAppMenuEvents();
         this.initToolbarEvents();
         this.initPaletteEvents();
         this.initCanvasEvents();
@@ -6553,13 +7586,17 @@
         this.initContextMenuEvents();
         this.initInspectorResizerEvents();
         this.initModalEvents();
+        this.initSettingsModalEvents();
 
         window.addEventListener('resize', () => {
           this.renderer.resize();
           this.analyzer.resize();
         });
 
-        this.loadDemo('bcd_clock');
+        const restored = this.loadCircuitFromStorage();
+        if (!restored) {
+          this.loadDemo('bcd_clock');
+        }
         setTimeout(() => {
           this.renderer.resize();
           this.analyzer.resize();
@@ -6752,6 +7789,11 @@
           hudNorm.textContent = norm === 'DIN_40700' ? 'DIN 40700' : (norm === 'DIN_EN_60617' ? 'DIN EN (IEC)' : 'ANSI (US)');
         }
 
+        const normCards = document.querySelectorAll('#settings-norm-cards .norm-card');
+        normCards.forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-norm') === norm);
+        });
+
         this.updatePaletteIcons(norm);
         this.renderer.render();
       }
@@ -6764,6 +7806,9 @@
         const iconNOR  = document.getElementById('pal-icon-NOR');
         const iconXOR  = document.getElementById('pal-icon-XOR');
         const iconXNOR = document.getElementById('pal-icon-XNOR');
+        const iconBUF = document.getElementById('pal-icon-BUFFER');
+        const iconTRI = document.getElementById('pal-icon-TRI_STATE');
+        const iconMAJ = document.getElementById('pal-icon-MAJORITY');
 
         if (iconNOT) iconNOT.innerHTML = getGateSvgForNorm('NOT', norm);
         if (iconAND) iconAND.innerHTML = getGateSvgForNorm('AND', norm);
@@ -6772,12 +7817,18 @@
         if (iconNOR)  iconNOR.innerHTML  = getGateSvgForNorm('NOR', norm);
         if (iconXOR)  iconXOR.innerHTML  = getGateSvgForNorm('XOR', norm);
         if (iconXNOR) iconXNOR.innerHTML = getGateSvgForNorm('XNOR', norm);
+        if (iconBUF)  iconBUF.innerHTML  = getGateSvgForNorm('BUFFER', norm);
+        if (iconTRI)  iconTRI.innerHTML  = getGateSvgForNorm('TRI_STATE', norm);
+        if (iconMAJ)  iconMAJ.innerHTML  = getGateSvgForNorm('MAJORITY', norm);
       }
 
       refreshAll() {
         this.updateHUDAndToolbar();
         this.renderer.render();
         this.analyzer.render();
+        if (this.engine.mode === 'edit') {
+          this.saveCircuitToStorage();
+        }
       }
 
       onSimulationUpdate() {
@@ -7543,6 +8594,15 @@
               x: world.x - hitComp.x,
               y: world.y - hitComp.y
             };
+            this.compMouseDownPos = { compId: hitComp.id, origX: hitComp.x, origY: hitComp.y };
+            if (this.allowEditModeInteraction && hitComp.type === 'BUTTON') {
+              hitComp.state.pressed = 1;
+              hitComp.outputs[0].value = 1;
+              hitComp.nextOutputs[0] = 1;
+              this.activeButtonComp = hitComp;
+              this.circuit.syncImmediateWireLevels();
+              this.refreshAll();
+            }
             canvas.style.cursor = 'move';
             return;
           }
@@ -7874,7 +8934,23 @@
           }
 
           if (this.draggingComp) {
+            const comp = this.draggingComp;
+            if (this.allowEditModeInteraction && this.compMouseDownPos && this.compMouseDownPos.compId === comp.id) {
+              const dx = Math.abs(comp.x - this.compMouseDownPos.origX);
+              const dy = Math.abs(comp.y - this.compMouseDownPos.origY);
+              if (dx < 4 && dy < 4) {
+                if (comp.type === 'SWITCH') {
+                  comp.state.value = comp.state.value === 1 ? 0 : 1;
+                  comp.outputs[0].value = comp.state.value;
+                  comp.nextOutputs[0] = comp.state.value;
+                  this.circuit.syncImmediateWireLevels();
+                  this.inspector.render(comp.id, null);
+                  this.refreshAll();
+                }
+              }
+            }
             this.draggingComp = null;
+            this.compMouseDownPos = null;
             this.gridCanvas.style.cursor = 'default';
           }
         });
@@ -8740,6 +9816,34 @@
           this.ringBuffer.clear();
           this.analyzer.render();
         });
+
+        const btnSetIn = document.getElementById('btn-analyzer-set-in');
+        if (btnSetIn) {
+          btnSetIn.addEventListener('click', () => {
+            this.analyzer.setInPoint();
+          });
+        }
+
+        const btnSetOut = document.getElementById('btn-analyzer-set-out');
+        if (btnSetOut) {
+          btnSetOut.addEventListener('click', () => {
+            this.analyzer.setOutPoint();
+          });
+        }
+
+        const btnLoop = document.getElementById('btn-analyzer-loop');
+        if (btnLoop) {
+          btnLoop.addEventListener('click', () => {
+            this.analyzer.toggleLoopAnimation();
+          });
+        }
+
+        const btnClearRange = document.getElementById('btn-analyzer-clear-range');
+        if (btnClearRange) {
+          btnClearRange.addEventListener('click', () => {
+            this.analyzer.clearLoopRange();
+          });
+        }
       }
 
       initKeyboardEvents() {
@@ -9963,9 +11067,360 @@
         const modalBackdrop = document.getElementById('modal-backdrop');
         const ttModal = document.getElementById('truth-table-modal');
         const synthModal = document.getElementById('bool-synth-modal');
+        const settingsModal = document.getElementById('settings-modal');
         if (ttModal) ttModal.style.display = 'none';
         if (synthModal) synthModal.style.display = 'none';
+        if (settingsModal) settingsModal.style.display = 'none';
         if (modalBackdrop) modalBackdrop.style.display = 'none';
+      }
+
+      openSettingsModal() {
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const settingsModal = document.getElementById('settings-modal');
+        const ttModal = document.getElementById('truth-table-modal');
+        const synthModal = document.getElementById('bool-synth-modal');
+        if (!modalBackdrop || !settingsModal) return;
+
+        if (ttModal) ttModal.style.display = 'none';
+        if (synthModal) synthModal.style.display = 'none';
+        settingsModal.style.display = 'flex';
+        modalBackdrop.style.display = 'flex';
+      }
+
+      initAppMenuEvents() {
+        const brandBtn = document.getElementById('btn-app-menu');
+        const dropdown = document.getElementById('app-dropdown-menu');
+        if (!brandBtn || !dropdown) return;
+
+        brandBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isShown = dropdown.style.display !== 'none';
+          dropdown.style.display = isShown ? 'none' : 'flex';
+        });
+
+        window.addEventListener('click', (e) => {
+          if (!dropdown.contains(e.target) && e.target !== brandBtn && !brandBtn.contains(e.target)) {
+            dropdown.style.display = 'none';
+          }
+        });
+
+        document.getElementById('menu-item-new')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          document.getElementById('btn-clear')?.click();
+        });
+
+        document.getElementById('menu-item-open')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          document.getElementById('btn-import')?.click();
+        });
+
+        document.getElementById('menu-item-save')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          document.getElementById('btn-export')?.click();
+        });
+
+        document.getElementById('menu-item-export-png')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          this.exportCanvasAsPNG();
+        });
+
+        document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          this.openTruthTableModal();
+        });
+
+        document.getElementById('menu-item-bool-synth')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          this.openBoolSynthModal();
+        });
+
+        document.getElementById('menu-item-layout')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          this.autoLayoutCircuit();
+        });
+
+        document.getElementById('menu-item-settings')?.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          this.openSettingsModal();
+        });
+      }
+
+      initSettingsModalEvents() {
+        const btnOpen = document.getElementById('btn-open-settings');
+        if (btnOpen) {
+          btnOpen.addEventListener('click', () => this.openSettingsModal());
+        }
+
+        const btnClose = document.getElementById('btn-close-settings');
+        const btnCloseFooter = document.getElementById('btn-close-settings-footer');
+        [btnClose, btnCloseFooter].forEach(b => {
+          if (b) b.addEventListener('click', () => this.closeAllModals());
+        });
+
+        // 1. Color Swatches
+        const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
+        swatches.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const color = btn.getAttribute('data-color');
+            if (color) {
+              this.setHighSignalColor(color);
+              this.saveSettings();
+            }
+          });
+        });
+
+        const customColor = document.getElementById('settings-custom-color');
+        if (customColor) {
+          customColor.addEventListener('input', (e) => {
+            this.setHighSignalColor(e.target.value);
+            this.saveSettings();
+          });
+        }
+
+        // 2. Norm Cards
+        const normCards = document.querySelectorAll('#settings-norm-cards .norm-card');
+        normCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const norm = card.getAttribute('data-norm');
+            if (norm) {
+              this.setSymbolStandard(norm);
+              this.saveSettings();
+            }
+          });
+        });
+
+        // 3. Edit-Mode Interaction
+        const chkInteractive = document.getElementById('settings-edit-interactive');
+        if (chkInteractive) {
+          chkInteractive.checked = this.allowEditModeInteraction;
+          chkInteractive.addEventListener('change', (e) => {
+            this.allowEditModeInteraction = e.target.checked;
+            this.saveSettings();
+            this.showToast(`Schalter im Edit-Modus ${this.allowEditModeInteraction ? 'klickbar' : 'nur verschiebbar'}`);
+          });
+        }
+
+        // 4. Auto-Save
+        const chkAutoSave = document.getElementById('settings-auto-save');
+        if (chkAutoSave) {
+          chkAutoSave.checked = this.autoSaveCircuit;
+          chkAutoSave.addEventListener('change', (e) => {
+            this.autoSaveCircuit = e.target.checked;
+            this.saveSettings();
+          });
+        }
+
+        // 5. Canvas Theme
+        const selectTheme = document.getElementById('settings-canvas-theme');
+        if (selectTheme) {
+          selectTheme.value = this.canvasTheme;
+          selectTheme.addEventListener('change', (e) => {
+            this.setCanvasTheme(e.target.value);
+            this.saveSettings();
+          });
+        }
+
+        // 6. Reset Settings
+        const btnReset = document.getElementById('btn-reset-settings');
+        if (btnReset) {
+          btnReset.addEventListener('click', () => {
+            this.setHighSignalColor('#00e676');
+            this.setSymbolStandard('DIN_40700');
+            this.allowEditModeInteraction = true;
+            this.autoSaveCircuit = true;
+            this.setCanvasTheme('tech_dots');
+            if (chkInteractive) chkInteractive.checked = true;
+            if (chkAutoSave) chkAutoSave.checked = true;
+            this.saveSettings();
+            this.showToast('Einstellungen auf Standard zurückgesetzt.');
+          });
+        }
+      }
+
+      setHighSignalColor(color) {
+        if (!color) color = '#00e676';
+        this.highSignalColor = color;
+        this.renderer.highSignalColor = color;
+
+        // Compute glow rgba
+        let glow = 'rgba(0, 230, 118, 0.65)';
+        if (color.startsWith('#')) {
+          let c = color.replace('#', '');
+          if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+          if (c.length === 6) {
+            const num = parseInt(c, 16);
+            const r = (num >> 16) & 255;
+            const g = (num >> 8) & 255;
+            const b = num & 255;
+            glow = `rgba(${r}, ${g}, ${b}, 0.65)`;
+          }
+        }
+        this.highSignalGlow = glow;
+        this.renderer.highSignalGlow = glow;
+
+        document.documentElement.style.setProperty('--accent-green', color);
+        document.documentElement.style.setProperty('--wire-high', color);
+
+        const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
+        swatches.forEach(s => {
+          s.classList.toggle('active', s.getAttribute('data-color') === color);
+        });
+
+        const customInput = document.getElementById('settings-custom-color');
+        if (customInput && color.startsWith('#')) {
+          customInput.value = color;
+        }
+
+        this.renderer.render();
+        this.analyzer.render();
+      }
+
+      setCanvasTheme(theme) {
+        if (!theme) theme = 'tech_dots';
+        this.canvasTheme = theme;
+        this.renderer.canvasTheme = theme;
+
+        const select = document.getElementById('settings-canvas-theme');
+        if (select) select.value = theme;
+
+        this.renderer.render();
+      }
+
+      loadSettings() {
+        try {
+          const raw = localStorage.getItem('logicsim_user_settings');
+          if (raw) {
+            const s = JSON.parse(raw);
+            if (s.highSignalColor) this.setHighSignalColor(s.highSignalColor);
+            if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
+            if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
+            if (s.canvasTheme) this.setCanvasTheme(s.canvasTheme);
+          }
+        } catch (e) {
+          console.warn('Could not load settings:', e);
+        }
+      }
+
+      saveSettings() {
+        try {
+          const s = {
+            highSignalColor: this.highSignalColor,
+            allowEditModeInteraction: this.allowEditModeInteraction,
+            autoSaveCircuit: this.autoSaveCircuit,
+            canvasTheme: this.canvasTheme
+          };
+          localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
+        } catch (e) {
+          console.warn('Could not save settings:', e);
+        }
+      }
+
+      loadCircuitFromStorage() {
+        if (!this.autoSaveCircuit) return false;
+        try {
+          const raw = localStorage.getItem('logicsim_autosave');
+          if (raw) {
+            const json = JSON.parse(raw);
+            if (json && Array.isArray(json.components) && json.components.length > 0) {
+              this.circuit.fromJSON(json, this.ringBuffer);
+              this.selectItem(null, null);
+              this.refreshAll();
+              return true;
+            }
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      saveCircuitToStorage() {
+        if (!this.autoSaveCircuit) return;
+        try {
+          localStorage.setItem('logicsim_autosave', JSON.stringify(this.circuit.toJSON()));
+        } catch (e) {}
+      }
+
+      exportCanvasAsPNG() {
+        try {
+          const comps = this.circuit.components;
+          if (comps.length === 0) {
+            this.showToast('Die Schaltung ist leer.');
+            return;
+          }
+
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          comps.forEach(c => {
+            minX = Math.min(minX, c.x);
+            minY = Math.min(minY, c.y);
+            maxX = Math.max(maxX, c.x + c.width);
+            maxY = Math.max(maxY, c.y + c.height);
+          });
+          this.circuit.wires.forEach(w => {
+            const pts = this.renderer.getWirePolyline(w);
+            pts.forEach(p => {
+              minX = Math.min(minX, p.x);
+              minY = Math.min(minY, p.y);
+              maxX = Math.max(maxX, p.x);
+              maxY = Math.max(maxY, p.y);
+            });
+          });
+
+          const pad = 50;
+          const boxW = Math.max(200, (maxX - minX) + pad * 2);
+          const boxH = Math.max(150, (maxY - minY) + pad * 2);
+
+          const offCanvas = document.createElement('canvas');
+          const dpr = 2; // High-DPI export
+          offCanvas.width = boxW * dpr;
+          offCanvas.height = boxH * dpr;
+          const offCtx = offCanvas.getContext('2d');
+          offCtx.scale(dpr, dpr);
+
+          // Background
+          if (this.canvasTheme === 'deep_black') {
+            offCtx.fillStyle = '#020406';
+          } else if (this.canvasTheme === 'blueprint') {
+            offCtx.fillStyle = '#07111e';
+          } else {
+            offCtx.fillStyle = '#0b0d10';
+          }
+          offCtx.fillRect(0, 0, boxW, boxH);
+
+          // Render circuit into offscreen canvas
+          const origCtx = this.renderer.ctx;
+          const origPanX = this.renderer.panX;
+          const origPanY = this.renderer.panY;
+          const origZoom = this.renderer.zoom;
+
+          this.renderer.ctx = offCtx;
+          this.renderer.panX = pad - minX;
+          this.renderer.panY = pad - minY;
+          this.renderer.zoom = 1.0;
+
+          this.renderer.drawDotGrid(offCtx, boxW, boxH);
+          this.renderer.drawWires(offCtx);
+          this.renderer.drawComponents(offCtx);
+          this.renderer.drawProbes(offCtx);
+
+          // Restore renderer state
+          this.renderer.ctx = origCtx;
+          this.renderer.panX = origPanX;
+          this.renderer.panY = origPanY;
+          this.renderer.zoom = origZoom;
+          this.renderer.render();
+
+          // Download image
+          const dataUrl = offCanvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = `logicsim_schaltung_${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          this.showToast('📸 Schaltung erfolgreich als PNG-Bild exportiert!');
+        } catch (err) {
+          console.error('PNG export error:', err);
+          this.showToast('Fehler beim PNG-Export: ' + err.message);
+        }
       }
     }
 
