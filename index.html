@@ -60,22 +60,25 @@
 
     /* 1. Top Toolbar */
     #toolbar {
-      height: 50px;
-      min-height: 50px;
+      min-height: 48px;
+      height: auto;
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 14px;
-      gap: 12px;
+      flex-wrap: wrap;
+      padding: 4px 12px;
+      gap: 6px 10px;
       z-index: 20;
+      box-sizing: border-box;
     }
 
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .brand {
@@ -281,6 +284,68 @@
 
     select.select-input:hover {
       border-color: #475569;
+    }
+
+    /* Responsive scaling for top toolbar */
+    @media (max-width: 1440px) {
+      #toolbar {
+        padding: 3px 8px;
+        gap: 4px 6px;
+      }
+      .toolbar-group {
+        gap: 4px;
+      }
+      .btn {
+        font-size: 11px;
+      }
+      .mode-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      select.select-input {
+        padding: 4px 6px;
+        font-size: 11px;
+        max-width: 175px;
+      }
+      .brand {
+        font-size: 13px;
+        gap: 6px;
+        margin-right: 2px;
+      }
+    }
+
+    @media (max-width: 1240px) {
+      .btn-text-full {
+        display: none !important;
+      }
+      .btn-text-short {
+        display: inline !important;
+      }
+      .brand span {
+        display: none;
+      }
+      select.select-input {
+        max-width: 140px;
+      }
+      .freq-control {
+        padding: 2px 5px !important;
+      }
+      .freq-label {
+        font-size: 10px !important;
+      }
+      .freq-val {
+        font-size: 10px !important;
+        min-width: 36px !important;
+      }
+    }
+
+    @media (max-width: 1060px) {
+      .btn-text {
+        display: none !important;
+      }
+      .mode-btn span:not(.status-dot) {
+        font-size: 10.5px;
+      }
     }
 
     /* Main Workspace Middle Row */
@@ -811,11 +876,11 @@
         <div class="mode-switch" role="group" aria-label="Betriebsmodus">
           <button id="btn-mode-edit" class="mode-btn active-edit" title="Schaltung bearbeiten (Bauteile platzieren & verdrahten)">
             <span class="status-dot"></span>
-            Edit-Modus
+            <span class="btn-text-full">Edit-Modus</span><span class="btn-text-short" style="display:none;">Edit</span>
           </button>
           <button id="btn-mode-sim" class="mode-btn" title="Schaltung simulieren (Interaktion mit Schaltern & Takt)">
             <span class="status-dot"></span>
-            Simulationsmodus
+            <span class="btn-text-full">Simulationsmodus</span><span class="btn-text-short" style="display:none;">Sim</span>
           </button>
         </div>
 
@@ -827,11 +892,14 @@
             <span id="sim-play-icon">&#9654;</span>
             <span id="sim-play-text">Start</span>
           </button>
-          <button id="btn-sim-step" class="btn" disabled title="Einzelschritt (+1 Tick ausführen)">
-            &#9197; +1 Tick
+          <button id="btn-sim-step-back" class="btn" disabled title="Einzelschritt zurück (-1 Tick, gedrückt halten zum kontinuierlichen Rücklauf)">
+            <span>&#9198;</span> <span class="btn-text">-1 Tick</span>
+          </button>
+          <button id="btn-sim-step" class="btn" disabled title="Einzelschritt (+1 Tick ausführen, gedrückt halten zum kontinuierlichen Vorlauf)">
+            <span>&#9197;</span> <span class="btn-text">+1 Tick</span>
           </button>
           <button id="btn-sim-reset" class="btn" disabled title="Simulationszustände und Zähler zurücksetzen">
-            &#8634; Reset
+            <span>&#8634;</span> <span class="btn-text">Reset</span>
           </button>
 
           <div class="freq-control disabled" id="freq-control-box">
@@ -858,19 +926,19 @@
         </select>
 
         <button id="btn-auto-route" class="btn" title="Alle Leitungen rechtwinklig sortieren, Überlappungen trennen und Kanäle entflechten">
-          🔀 Leitungen ordnen
+          <span>🔀</span> <span class="btn-text btn-text-full">Leitungen ordnen</span><span class="btn-text-short" style="display:none;">Ordnen</span>
         </button>
 
         <button id="btn-export" class="btn" title="Schaltung als JSON-Datei exportieren">
-          &#11015; JSON Export
+          <span>&#11015;</span> <span class="btn-text btn-text-full">JSON Export</span><span class="btn-text-short" style="display:none;">Export</span>
         </button>
         <button id="btn-import" class="btn" title="Schaltung aus JSON-Datei importieren">
-          &#11014; JSON Import
+          <span>&#11014;</span> <span class="btn-text btn-text-full">JSON Import</span><span class="btn-text-short" style="display:none;">Import</span>
         </button>
         <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
 
         <button id="btn-clear" class="btn btn-danger" title="Gesamte Arbeitsfläche leeren">
-          &#10006; Leeren
+          <span>&#10006;</span> <span class="btn-text">Leeren</span>
         </button>
       </div>
     </header>
@@ -989,7 +1057,7 @@
         <canvas id="grid-canvas"></canvas>
 
         <div id="help-hint">
-          Rechtsklick: <b>Einstellungen öffnen</b> &bull; Pan: <b>Mittelklick / Leertaste + Ziehen</b> &bull; Zoom: <b>Mausrad</b> &bull; Löschen: <b>Entf</b>
+          Strg+C / Strg+V: <b>Kopieren &amp; Einfügen</b> &bull; Strg+A: <b>Alles auswählen</b> &bull; Entf: <b>Löschen</b> &bull; Rechtsklick: <b>Optionen / Invertierung</b> &bull; Pan: <b>Leertaste</b>
         </div>
 
         <div id="zoom-controls">
@@ -1193,6 +1261,12 @@
           arr.fill(0);
         }
       }
+
+      rewind() {
+        if (this.count <= 0) return;
+        this.head = (this.head - 1 + this.capacity) % this.capacity;
+        this.count--;
+      }
     }
 
     /**
@@ -1290,7 +1364,9 @@
             break;
           case 'NOT':
             this.params = {
-              label: customParams.label ?? 'NOT'
+              label: customParams.label ?? 'NOT',
+              invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : true,
+              invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false]
             };
             break;
           case 'AND':
@@ -1298,12 +1374,18 @@
           case 'NAND':
           case 'NOR':
           case 'XOR':
-          case 'XNOR':
+          case 'XNOR': {
+            const n = Math.max(2, Math.min(8, parseInt(customParams.numInputs ?? 2, 10)));
+            const isDefaultInvertedOut = this.type === 'NAND' || this.type === 'NOR' || this.type === 'XNOR';
             this.params = {
               label: customParams.label ?? this.type,
-              numInputs: Math.max(2, Math.min(8, parseInt(customParams.numInputs ?? 2, 10)))
+              numInputs: n,
+              invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : isDefaultInvertedOut,
+              invertedInputs: Array.isArray(customParams.invertedInputs) ? Array.from({ length: n }, (_, i) => Boolean(customParams.invertedInputs[i])) : new Array(n).fill(false),
+              xorMode: customParams.xorMode === 'parity' ? 'parity' : 'exact_one'
             };
             break;
+          }
           case 'LED':
             this.params = {
               label: customParams.label ?? 'LED',
@@ -1571,33 +1653,68 @@
             break;
           }
           case 'NOT': {
-            this.nextOutputs[0] = inputValues[0] ? 0 : 1;
+            const raw0 = inputValues[0] ? 1 : 0;
+            const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
+            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
             break;
           }
           case 'AND': {
-            this.nextOutputs[0] = inputValues.every(v => v === 1) ? 1 : 0;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const base = eff.every(v => v === 1) ? 1 : 0;
+            const isOutInv = Boolean(this.params.invertedOutput);
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'OR': {
-            this.nextOutputs[0] = inputValues.some(v => v === 1) ? 1 : 0;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const base = eff.some(v => v === 1) ? 1 : 0;
+            const isOutInv = Boolean(this.params.invertedOutput);
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'NAND': {
-            this.nextOutputs[0] = inputValues.every(v => v === 1) ? 0 : 1;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const base = eff.every(v => v === 1) ? 1 : 0;
+            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
             break;
           }
           case 'NOR': {
-            this.nextOutputs[0] = inputValues.some(v => v === 1) ? 0 : 1;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const base = eff.some(v => v === 1) ? 1 : 0;
+            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
             break;
           }
           case 'XOR': {
-            const sum = inputValues.reduce((acc, v) => acc + (v ? 1 : 0), 0);
-            this.nextOutputs[0] = sum % 2;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            let base = 0;
+            if (this.params.xorMode === 'parity') {
+              base = eff.reduce((acc, v) => acc + (v ? 1 : 0), 0) % 2;
+            } else if (eff.length === 2) {
+              base = (eff[0] ^ eff[1]);
+            } else {
+              // Exact-one (=1 IEC standard)
+              base = eff.filter(v => v === 1).length === 1 ? 1 : 0;
+            }
+            const isOutInv = Boolean(this.params.invertedOutput);
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'XNOR': {
-            const sum = inputValues.reduce((acc, v) => acc + (v ? 1 : 0), 0);
-            this.nextOutputs[0] = (sum % 2) === 0 ? 1 : 0;
+            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            let base = 0;
+            if (this.params.xorMode === 'parity') {
+              base = eff.reduce((acc, v) => acc + (v ? 1 : 0), 0) % 2;
+            } else if (eff.length === 2) {
+              base = (eff[0] ^ eff[1]);
+            } else {
+              // Exact-one (=1 IEC standard)
+              base = eff.filter(v => v === 1).length === 1 ? 1 : 0;
+            }
+            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
             break;
           }
           case 'BCD_DEC': {
@@ -1819,6 +1936,12 @@
         if (!comp) return;
         const n = Math.max(2, Math.min(8, parseInt(newCount, 10)));
         comp.params.numInputs = n;
+        if (Array.isArray(comp.params.invertedInputs)) {
+          const old = comp.params.invertedInputs;
+          comp.params.invertedInputs = Array.from({ length: n }, (_, i) => Boolean(old[i]));
+        } else {
+          comp.params.invertedInputs = new Array(n).fill(false);
+        }
         comp.rebuildPins();
 
         this.wires = this.wires.filter(
@@ -1839,14 +1962,24 @@
       }
 
       syncImmediateWireLevels() {
-        for (const wire of this.wires) {
-          const src = this.getComponent(wire.fromCompId);
-          wire.level = src ? (src.outputs[wire.fromPin]?.value || 0) : 0;
-        }
-        for (const comp of this.components) {
-          for (let i = 0; i < comp.inputs.length; i++) {
-            const w = this.getWireToInput(comp.id, i);
-            comp.inputs[i].value = w ? w.level : 0;
+        // Run combinatorial relaxation passes so gates propagate live in Edit mode
+        for (let pass = 0; pass < 5; pass++) {
+          for (const wire of this.wires) {
+            const src = this.getComponent(wire.fromCompId);
+            wire.level = src ? (src.outputs[wire.fromPin]?.value || 0) : 0;
+          }
+          for (const comp of this.components) {
+            const inValues = [];
+            for (let i = 0; i < comp.inputs.length; i++) {
+              const w = this.getWireToInput(comp.id, i);
+              const val = w ? w.level : 0;
+              comp.inputs[i].value = val;
+              inValues.push(val);
+            }
+            if (['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BCD_DEC'].includes(comp.type)) {
+              comp.compute(inValues);
+              comp.commit();
+            }
           }
         }
       }
@@ -1920,6 +2053,9 @@
         this.lastFrameTime = 0;
         this.accumulator = 0;
         this.rafId = null;
+
+        this.history = [];
+        this.maxHistory = 512;
       }
 
       setMode(newMode) {
@@ -1927,6 +2063,7 @@
         this.mode = newMode;
         if (this.mode === 'edit') {
           this.pause();
+          this.history = [];
         } else {
           this.circuit.syncImmediateWireLevels();
         }
@@ -1963,6 +2100,7 @@
       reset() {
         this.pause();
         this.tickCount = 0;
+        this.history = [];
         for (const comp of this.circuit.components) {
           comp.resetState();
         }
@@ -1971,7 +2109,81 @@
         this.onUpdate();
       }
 
+      createSnapshot() {
+        const compSnapshots = [];
+        for (let i = 0; i < this.circuit.components.length; i++) {
+          const comp = this.circuit.components[i];
+          compSnapshots.push({
+            id: comp.id,
+            state: JSON.parse(JSON.stringify(comp.state || {})),
+            inputs: comp.inputs.map(p => p.value),
+            outputs: comp.outputs.map(p => p.value),
+            nextOutputs: [...comp.nextOutputs]
+          });
+        }
+        const wireSnapshots = [];
+        for (let i = 0; i < this.circuit.wires.length; i++) {
+          const w = this.circuit.wires[i];
+          wireSnapshots.push({
+            id: w.id,
+            level: w.level
+          });
+        }
+        return {
+          tickCount: this.tickCount,
+          comps: compSnapshots,
+          wires: wireSnapshots
+        };
+      }
+
+      restoreSnapshot(snap) {
+        if (!snap) return;
+        this.tickCount = snap.tickCount;
+        const compMap = new Map();
+        for (let i = 0; i < this.circuit.components.length; i++) {
+          compMap.set(this.circuit.components[i].id, this.circuit.components[i]);
+        }
+        for (const cs of snap.comps) {
+          const comp = compMap.get(cs.id);
+          if (comp) {
+            comp.state = JSON.parse(JSON.stringify(cs.state));
+            for (let i = 0; i < cs.inputs.length && i < comp.inputs.length; i++) {
+              comp.inputs[i].value = cs.inputs[i];
+            }
+            for (let i = 0; i < cs.outputs.length && i < comp.outputs.length; i++) {
+              comp.outputs[i].value = cs.outputs[i];
+            }
+            for (let i = 0; i < cs.nextOutputs.length && i < comp.nextOutputs.length; i++) {
+              comp.nextOutputs[i] = cs.nextOutputs[i];
+            }
+          }
+        }
+        const wireMap = new Map();
+        for (let i = 0; i < this.circuit.wires.length; i++) {
+          wireMap.set(this.circuit.wires[i].id, this.circuit.wires[i]);
+        }
+        for (const ws of snap.wires) {
+          const w = wireMap.get(ws.id);
+          if (w) {
+            w.level = ws.level;
+          }
+        }
+      }
+
+      stepBackTick() {
+        if (this.mode !== 'sim' || this.running || this.history.length === 0) return;
+        const snap = this.history.pop();
+        this.restoreSnapshot(snap);
+        this.ringBuffer.rewind();
+        this.onUpdate();
+      }
+
       stepTick() {
+        if (this.history.length >= this.maxHistory) {
+          this.history.shift();
+        }
+        this.history.push(this.createSnapshot());
+
         const comps = this.circuit.components;
         const wires = this.circuit.wires;
 
@@ -2819,8 +3031,7 @@
 
         if (this.isGate(type)) {
           if (this.symbolStandard === 'DIN_EN_60617') {
-            this.drawChassisBox(ctx, x, y, width, height, isSelected);
-            this.drawGateIEC(ctx, comp);
+            this.drawGateIEC(ctx, comp, isSelected);
           } else if (this.symbolStandard === 'ANSI') {
             this.drawGateShape(ctx, comp, isSelected, 'ANSI');
           } else {
@@ -2870,7 +3081,7 @@
        */
       drawGateShape(ctx, comp, isSelected, style = 'DIN_40700') {
         const { x, y, width, height, type } = comp;
-        const isInverted = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
+        const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
         const isXorType = type === 'XOR' || type === 'XNOR';
 
         const gx1 = x + 16;
@@ -2880,7 +3091,7 @@
         const cy = y + (comp.outputs[0]?.relY ?? height / 2);
         const rBubble = 3.6;
         const dBubble = rBubble * 2;
-        const bodyEnd = isInverted ? gx2 - dBubble - 2 : gx2;
+        const bodyEnd = isOutInv ? gx2 - dBubble - 2 : gx2;
 
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.55)';
@@ -2951,8 +3162,11 @@
           ctx.restore();
         }
 
-        // 3. Inversion Bubble
-        if (isInverted) {
+        // 3. Output Inversion Bubble & Lead Line
+        const outPinX = x + width;
+        const isOutHigh = comp.outputs[0]?.value === 1;
+
+        if (isOutInv) {
           const bx = bodyEnd + rBubble + 1;
           ctx.beginPath();
           ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
@@ -2963,11 +3177,7 @@
           ctx.stroke();
         }
 
-        // 4. Output Lead Line from Body/Bubble to Pin
-        const outLeadStart = isInverted ? bodyEnd + dBubble + 1 : bodyEnd;
-        const outPinX = x + width;
-        const isOutHigh = comp.outputs[0]?.value === 1;
-
+        const outLeadStart = isOutInv ? bodyEnd + dBubble + 1 : bodyEnd;
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(outLeadStart, cy);
@@ -2981,17 +3191,30 @@
         ctx.stroke();
         ctx.restore();
 
-        // 5. Input Lead Lines from Pins to Body Boundary
+        // 4. Input Lead Lines & Inversion Bubbles
         const inputBoundaryX = (isXorType) ? (gx1 - 5) : gx1;
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
           const py = y + pin.relY;
           const isHigh = pin.value === 1;
+          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
+          if (isInv) {
+            const bx = inputBoundaryX - rBubble - 1;
+            ctx.beginPath();
+            ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
+            ctx.fillStyle = '#0b0d10';
+            ctx.fill();
+            ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+
+          const inLeadEnd = isInv ? inputBoundaryX - dBubble - 1 : inputBoundaryX;
           ctx.save();
           ctx.beginPath();
           ctx.moveTo(x, py);
-          ctx.lineTo(inputBoundaryX, py);
+          ctx.lineTo(inLeadEnd, py);
           ctx.strokeStyle = isHigh ? '#00e676' : '#2e3948';
           ctx.lineWidth = isHigh ? 2.2 : 1.4;
           if (isHigh) {
@@ -3006,10 +3229,18 @@
       /**
        * Modern IEC Gate Drawing (DIN EN 60617)
        */
-      drawGateIEC(ctx, comp) {
+      drawGateIEC(ctx, comp, isSelected) {
         const { x, y, width, height, type } = comp;
+        const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
         const cx = x + width / 2;
         const cy = y + (comp.outputs[0]?.relY ?? height / 2);
+        const rBubble = 3.6;
+        const dBubble = rBubble * 2;
+
+        const gx1 = x + 18;
+        const gx2 = x + width - 18;
+        const gy1 = y + 8;
+        const gy2 = y + height - 8;
 
         const symbols = {
           NOT: '1',
@@ -3017,31 +3248,92 @@
           OR: '≥1',
           NAND: '&',
           NOR: '≥1',
-          XOR: '=1',
-          XNOR: '=1'
+          XOR: comp.params.xorMode === 'parity' ? '≠' : '=1',
+          XNOR: comp.params.xorMode === 'parity' ? '≠' : '=1'
         };
-        const isInverted = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
 
-        ctx.fillStyle = '#0f1319';
-        ctx.strokeStyle = '#263142';
-        ctx.lineWidth = 1;
-        this.roundRect(ctx, x + 20, y + 8, width - 40, height - 16, 4);
+        if (isSelected) {
+          ctx.shadowColor = 'rgba(0, 176, 255, 0.55)';
+          ctx.shadowBlur = 12;
+        } else {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+          ctx.shadowBlur = 6;
+        }
+
+        ctx.fillStyle = '#151a22';
+        ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+        ctx.lineWidth = isSelected ? 2.2 : 1.6;
+
+        this.roundRect(ctx, gx1, gy1, gx2 - gx1, gy2 - gy1, 4);
         ctx.fill();
+        ctx.shadowBlur = 0;
         ctx.stroke();
 
         ctx.fillStyle = '#e2e8f0';
         ctx.font = '700 14px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(symbols[type], cx, cy + 5);
+        ctx.fillText(symbols[type] || '&', cx, cy + 5);
 
-        if (isInverted) {
+        // Output Bubble & Lead Line
+        const outPinX = x + width;
+        const isOutHigh = comp.outputs[0]?.value === 1;
+
+        if (isOutInv) {
+          const bx = gx2 + rBubble + 1;
           ctx.beginPath();
-          ctx.arc(x + width - 16, cy, 3.5, 0, Math.PI * 2);
+          ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
           ctx.fillStyle = '#0b0d10';
           ctx.fill();
-          ctx.strokeStyle = '#00b0ff';
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = isSelected ? '#00b0ff' : '#00e676';
+          ctx.lineWidth = 1.6;
           ctx.stroke();
+        }
+
+        const outLeadStart = isOutInv ? gx2 + dBubble + 1 : gx2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(outLeadStart, cy);
+        ctx.lineTo(outPinX, cy);
+        ctx.strokeStyle = isOutHigh ? '#00e676' : '#2e3948';
+        ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
+        if (isOutHigh) {
+          ctx.shadowColor = 'rgba(0, 230, 118, 0.6)';
+          ctx.shadowBlur = 6;
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        // Input Bubbles & Lead Lines
+        for (let i = 0; i < comp.inputs.length; i++) {
+          const pin = comp.inputs[i];
+          const py = y + pin.relY;
+          const isHigh = pin.value === 1;
+          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+
+          if (isInv) {
+            const bx = gx1 - rBubble - 1;
+            ctx.beginPath();
+            ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
+            ctx.fillStyle = '#0b0d10';
+            ctx.fill();
+            ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+
+          const inLeadEnd = isInv ? gx1 - dBubble - 1 : gx1;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, py);
+          ctx.lineTo(inLeadEnd, py);
+          ctx.strokeStyle = isHigh ? '#00e676' : '#2e3948';
+          ctx.lineWidth = isHigh ? 2.2 : 1.4;
+          if (isHigh) {
+            ctx.shadowColor = 'rgba(0, 230, 118, 0.6)';
+            ctx.shadowBlur = 6;
+          }
+          ctx.stroke();
+          ctx.restore();
         }
       }
 
@@ -3955,24 +4247,101 @@
             break;
           }
 
+          case 'NOT':
           case 'AND':
           case 'OR':
           case 'NAND':
           case 'NOR':
           case 'XOR':
           case 'XNOR': {
-            this.addRangeControl(
-              'Eingangsanzahl n (2–8)',
-              comp.params.numInputs,
-              2,
-              8,
-              'Pins',
+            if (comp.type !== 'NOT') {
+              this.addRangeControl(
+                'Eingangsanzahl n (2–8)',
+                comp.params.numInputs,
+                2,
+                8,
+                'Pins',
+                isSim,
+                (val) => {
+                  this.circuit.updateGateInputCount(comp.id, parseInt(val, 10));
+                  this.render(comp.id, null);
+                  this.onChange(false);
+                }
+              );
+            }
+
+            if (comp.type === 'XOR' || comp.type === 'XNOR') {
+              this.addSelectControl(
+                'XOR-Modus für >2 Eingänge',
+                comp.params.xorMode || 'exact_one',
+                [
+                  { value: 'exact_one', label: 'Exklusiv: Genau 1 aktiv (=1 IEC)' },
+                  { value: 'parity',    label: 'Parität: Ungerade Anzahl aktiv' }
+                ],
+                isSim,
+                (val) => {
+                  comp.params.xorMode = val;
+                  this.circuit.syncImmediateWireLevels();
+                  this.onChange(false);
+                }
+              );
+            }
+
+            // Output Inversion Toggle
+            const isCurOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
+            this.addCheckboxControl(
+              'Ausgang (Y) invertieren (Negation ○)',
+              isCurOutInv,
               isSim,
-              (val) => {
-                this.circuit.updateGateInputCount(comp.id, parseInt(val, 10));
+              (checked) => {
+                comp.params.invertedOutput = checked;
+                this.circuit.syncImmediateWireLevels();
                 this.onChange(false);
               }
             );
+
+            // Input Inversion Toggles
+            const invBox = document.createElement('div');
+            invBox.className = 'prop-group';
+            const invLabel = document.createElement('label');
+            invLabel.className = 'prop-label';
+            invLabel.textContent = 'Eingänge invertieren (○):';
+            invBox.appendChild(invLabel);
+
+            const checkRow = document.createElement('div');
+            checkRow.style.display = 'flex';
+            checkRow.style.flexWrap = 'wrap';
+            checkRow.style.gap = '8px';
+            checkRow.style.marginTop = '4px';
+
+            for (let i = 0; i < comp.inputs.length; i++) {
+              const pinName = comp.inputs[i].name || `X${i+1}`;
+              const lbl = document.createElement('label');
+              lbl.style.display = 'inline-flex';
+              lbl.style.alignItems = 'center';
+              lbl.style.gap = '4px';
+              lbl.style.fontSize = '11px';
+              lbl.style.cursor = isSim ? 'not-allowed' : 'pointer';
+
+              const cb = document.createElement('input');
+              cb.type = 'checkbox';
+              cb.checked = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+              cb.disabled = isSim;
+              cb.addEventListener('change', () => {
+                if (!Array.isArray(comp.params.invertedInputs)) {
+                  comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                }
+                comp.params.invertedInputs[i] = cb.checked;
+                this.circuit.syncImmediateWireLevels();
+                this.onChange(false);
+              });
+
+              lbl.appendChild(cb);
+              lbl.appendChild(document.createTextNode(pinName));
+              checkRow.appendChild(lbl);
+            }
+            invBox.appendChild(checkRow);
+            this.container.appendChild(invBox);
             break;
           }
 
@@ -4223,6 +4592,30 @@
         this.container.appendChild(group);
       }
 
+      addCheckboxControl(label, checked, disabled, onChange) {
+        const group = document.createElement('div');
+        group.className = 'prop-group';
+        const lbl = document.createElement('label');
+        lbl.style.display = 'flex';
+        lbl.style.alignItems = 'center';
+        lbl.style.gap = '8px';
+        lbl.style.cursor = disabled ? 'not-allowed' : 'pointer';
+        lbl.style.fontSize = '12px';
+        lbl.style.fontWeight = '500';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = Boolean(checked);
+        cb.disabled = disabled;
+        cb.style.cursor = disabled ? 'not-allowed' : 'pointer';
+        cb.addEventListener('change', (e) => onChange(e.target.checked));
+
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(label));
+        group.appendChild(lbl);
+        this.container.appendChild(group);
+      }
+
       getReadableTypeName(type) {
         const names = {
           SWITCH: 'Schalter (Switch)',
@@ -4253,6 +4646,8 @@
       constructor() {
         this.ringBuffer = new RingBuffer(256);
         this.circuit = new Circuit();
+        this.clipboard = null;
+        this.lastMouseWorldPos = null;
 
         this.gridCanvas = document.getElementById('grid-canvas');
         this.analyzerCanvas = document.getElementById('analyzer-canvas');
@@ -4352,6 +4747,103 @@
         }, 10);
       }
 
+      copySelection() {
+        const selectedIds = new Set();
+        if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
+          for (const id of this.renderer.selectedCompIds) selectedIds.add(id);
+        } else if (this.renderer.selectedCompId) {
+          selectedIds.add(this.renderer.selectedCompId);
+        }
+        if (selectedIds.size === 0) return;
+
+        const comps = [];
+        for (const id of selectedIds) {
+          const c = this.circuit.getComponent(id);
+          if (c) comps.push(c.toJSON());
+        }
+
+        const wires = [];
+        for (const w of this.circuit.wires) {
+          if (selectedIds.has(w.fromCompId) && selectedIds.has(w.toCompId)) {
+            wires.push(w.toJSON());
+          }
+        }
+
+        this.clipboard = {
+          components: comps,
+          wires: wires
+        };
+      }
+
+      pasteClipboard() {
+        if (!this.clipboard || !this.clipboard.components || this.clipboard.components.length === 0) {
+          return;
+        }
+
+        let minX = Infinity;
+        let minY = Infinity;
+        for (const c of this.clipboard.components) {
+          if (c.x < minX) minX = c.x;
+          if (c.y < minY) minY = c.y;
+        }
+
+        let offsetX = 40;
+        let offsetY = 40;
+        if (this.lastMouseWorldPos) {
+          offsetX = Math.round((this.lastMouseWorldPos.x - minX) / GRID_SIZE) * GRID_SIZE;
+          offsetY = Math.round((this.lastMouseWorldPos.y - minY) / GRID_SIZE) * GRID_SIZE;
+        }
+
+        const idMap = new Map();
+        const newCompIds = [];
+
+        for (const cData of this.clipboard.components) {
+          const targetX = cData.x + offsetX;
+          const targetY = cData.y + offsetY;
+          const newComp = this.circuit.addComponent(
+            cData.type,
+            targetX,
+            targetY,
+            JSON.parse(JSON.stringify(cData.params || {}))
+          );
+          if (newComp) {
+            idMap.set(cData.id, newComp.id);
+            newCompIds.push(newComp.id);
+          }
+        }
+
+        for (const wData of this.clipboard.wires) {
+          const newFromId = idMap.get(wData.fromCompId);
+          const newToId = idMap.get(wData.toCompId);
+          if (newFromId && newToId) {
+            const waypoints = (wData.waypoints || []).map(p => ({
+              x: p.x + offsetX,
+              y: p.y + offsetY
+            }));
+            this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints);
+          }
+        }
+
+        this.circuit.syncImmediateWireLevels();
+        this.selectMulti(newCompIds);
+        this.refreshAll();
+      }
+
+      selectAll() {
+        const allIds = this.circuit.components.map(c => c.id);
+        if (allIds.length > 0) {
+          this.selectMulti(allIds);
+        }
+      }
+
+      duplicateSelection() {
+        this.copySelection();
+        const prevMouse = this.lastMouseWorldPos;
+        this.lastMouseWorldPos = null;
+        this.pasteClipboard();
+        this.lastMouseWorldPos = prevMouse;
+      }
+
       setSymbolStandard(norm) {
         if (!SYMBOL_STANDARDS[norm]) norm = 'DIN_40700';
         this.renderer.symbolStandard = norm;
@@ -4379,13 +4871,13 @@
         const iconXNOR = document.getElementById('pal-icon-XNOR');
 
         if (norm === 'DIN_EN_60617') {
-          if (iconNOT) iconNOT.textContent = '1';
+          if (iconNOT) iconNOT.textContent = '1○';
           if (iconAND) iconAND.textContent = '&';
           if (iconOR)  iconOR.textContent = '≥1';
-          if (iconNAND) iconNAND.textContent = '!&';
-          if (iconNOR)  iconNOR.textContent = '!≥1';
+          if (iconNAND) iconNAND.textContent = '&○';
+          if (iconNOR)  iconNOR.textContent = '≥1○';
           if (iconXOR)  iconXOR.textContent = '=1';
-          if (iconXNOR) iconXNOR.textContent = '!=1';
+          if (iconXNOR) iconXNOR.textContent = '=1○';
         } else if (norm === 'ANSI') {
           if (iconNOT) iconNOT.textContent = '▷○';
           if (iconAND) iconAND.textContent = 'D';
@@ -4433,11 +4925,15 @@
         sidebar.classList.toggle('sim-locked', isSim);
 
         const btnStart = document.getElementById('btn-sim-start');
+        const btnStepBack = document.getElementById('btn-sim-step-back');
         const btnStep = document.getElementById('btn-sim-step');
         const btnReset = document.getElementById('btn-sim-reset');
         const freqBox = document.getElementById('freq-control-box');
 
         btnStart.disabled = !isSim;
+        if (btnStepBack) {
+          btnStepBack.disabled = !isSim || this.engine.running || this.engine.history.length === 0;
+        }
         btnStep.disabled = !isSim || this.engine.running;
         btnReset.disabled = !isSim;
         freqBox.classList.toggle('disabled', !isSim);
@@ -4573,7 +5069,68 @@
           this.engine.toggleRun();
         });
 
-        document.getElementById('btn-sim-step').addEventListener('click', () => {
+        const attachHoldRepeat = (btn, actionFn) => {
+          if (!btn) return;
+          let timeoutId = null;
+          let intervalId = null;
+          let handledByMouse = false;
+
+          const stop = () => {
+            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+            if (intervalId) { clearInterval(intervalId); intervalId = null; }
+          };
+
+          const start = (e) => {
+            if (btn.disabled) return;
+            if (e && e.type === 'mousedown' && e.button !== 0) return;
+            stop();
+            handledByMouse = true;
+            actionFn();
+
+            timeoutId = setTimeout(() => {
+              intervalId = setInterval(() => {
+                if (btn.disabled) {
+                  stop();
+                  return;
+                }
+                actionFn();
+              }, 60);
+            }, 350);
+          };
+
+          btn.addEventListener('mousedown', start);
+          window.addEventListener('mouseup', () => {
+            stop();
+            setTimeout(() => { handledByMouse = false; }, 0);
+          });
+          btn.addEventListener('mouseleave', stop);
+          btn.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length === 1) start(e);
+          }, { passive: true });
+          window.addEventListener('touchend', () => {
+            stop();
+            setTimeout(() => { handledByMouse = false; }, 0);
+          });
+          window.addEventListener('touchcancel', stop);
+
+          btn.addEventListener('click', (e) => {
+            if (btn.disabled) return;
+            if (handledByMouse) {
+              return;
+            }
+            actionFn();
+          });
+        };
+
+        const btnStepBack = document.getElementById('btn-sim-step-back');
+        attachHoldRepeat(btnStepBack, () => {
+          if (this.engine.mode === 'sim' && !this.engine.running) {
+            this.engine.stepBackTick();
+          }
+        });
+
+        const btnStep = document.getElementById('btn-sim-step');
+        attachHoldRepeat(btnStep, () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
             this.engine.stepTick();
           }
@@ -4826,6 +5383,27 @@
 
           if (e.button !== 0) return; // Right-click handled by contextmenu listener
 
+          if (e.altKey && this.engine.mode === 'edit') {
+            const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
+            if (pinHit) {
+              const comp = this.circuit.getComponent(pinHit.compId);
+              if (comp && this.renderer.isGate(comp.type)) {
+                if (pinHit.isOutput) {
+                  comp.params.invertedOutput = !comp.params.invertedOutput;
+                } else {
+                  if (!Array.isArray(comp.params.invertedInputs)) {
+                    comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                  }
+                  comp.params.invertedInputs[pinHit.pinIndex] = !comp.params.invertedInputs[pinHit.pinIndex];
+                }
+                this.circuit.syncImmediateWireLevels();
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                return;
+              }
+            }
+          }
+
           const hitProbe = this.renderer.findProbeAt(world.x, world.y);
           if (hitProbe) {
             this.selectItem(null, null, hitProbe.id);
@@ -4982,6 +5560,7 @@
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+          this.lastMouseWorldPos = { x: world.x, y: world.y };
 
           if (this.isPanning) {
             this.renderer.panX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
@@ -5170,6 +5749,31 @@
           }
         });
 
+        canvas.addEventListener('dblclick', (e) => {
+          if (this.engine.mode !== 'edit') return;
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.renderer.screenToWorld(sx, sy);
+          const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
+          if (pinHit) {
+            const comp = this.circuit.getComponent(pinHit.compId);
+            if (comp && this.renderer.isGate(comp.type)) {
+              if (pinHit.isOutput) {
+                comp.params.invertedOutput = !comp.params.invertedOutput;
+              } else {
+                if (!Array.isArray(comp.params.invertedInputs)) {
+                  comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                }
+                comp.params.invertedInputs[pinHit.pinIndex] = !comp.params.invertedInputs[pinHit.pinIndex];
+              }
+              this.circuit.syncImmediateWireLevels();
+              this.inspector.render(comp.id, null);
+              this.refreshAll();
+            }
+          }
+        });
+
         canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
           this.hideContextMenu();
@@ -5332,6 +5936,23 @@
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
+
+          // Quick Gate Pin Inversion
+          if (this.renderer.isGate(comp.type)) {
+            const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
+            const invOutItem = document.createElement('div');
+            invOutItem.className = 'ctx-item';
+            invOutItem.innerHTML = `<span>${isOutInv ? '✅' : '⚪'}</span> <span>Ausgang invertieren (○)</span>`;
+            invOutItem.addEventListener('click', () => {
+              if (this.engine.mode === 'sim') return;
+              comp.params.invertedOutput = !isOutInv;
+              this.circuit.syncImmediateWireLevels();
+              this.inspector.render(comp.id, null);
+              this.refreshAll();
+              this.hideContextMenu();
+            });
+            menu.appendChild(invOutItem);
+          }
 
           // Gate Input Count Quick Selector
           if (this.renderer.isGate(comp.type) && comp.type !== 'NOT') {
@@ -5825,6 +6446,26 @@
         window.addEventListener('keydown', (e) => {
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
           if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') {
+            return;
+          }
+
+          const isCtrl = e.ctrlKey || e.metaKey;
+
+          if (isCtrl && e.key.toLowerCase() === 'c') {
+            e.preventDefault();
+            this.copySelection();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'v') {
+            e.preventDefault();
+            this.pasteClipboard();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            this.selectAll();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            this.duplicateSelection();
             return;
           }
 

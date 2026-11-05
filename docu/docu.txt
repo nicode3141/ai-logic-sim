@@ -5,4 +5,8 @@ md im plan mode reingeladen:
 
 hat unendlich lange (1h) reasoning betrieben und gecoded
 
-gefragt nach deutschen zeichen
+gefragt nach deutschen zeichen und kontextmenu
+
+gefragt nach mouse selection und Verkleinerung des Setting Panels
+
+Verbindungen optimiert
