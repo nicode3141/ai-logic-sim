@@ -220,6 +220,52 @@
       border-color: var(--accent-red);
     }
 
+    /* Simulation Control Deck */
+    .sim-deck {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 3px 5px;
+      gap: 4px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    #btn-sim-start {
+      min-width: 82px;
+      justify-content: center;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    #btn-sim-start.btn-primary {
+      background: rgba(0, 230, 118, 0.18);
+      border-color: rgba(0, 230, 118, 0.6);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.22);
+    }
+
+    #btn-sim-start.btn-warning {
+      background: rgba(255, 179, 0, 0.2);
+      border-color: rgba(255, 179, 0, 0.65);
+      color: var(--accent-amber);
+      box-shadow: 0 0 14px rgba(255, 179, 0, 0.3);
+    }
+
+    .btn svg, .btn-icon svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
     .freq-control {
       display: flex;
       align-items: center;
@@ -415,40 +461,53 @@
     .palette-item {
       background: var(--bg-elevated);
       border: 1px solid var(--border-dim);
-      border-radius: 6px;
-      padding: 7px 8px;
+      border-radius: 7px;
+      padding: 6px 8px;
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: grab;
-      transition: all 0.14s ease;
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .palette-item:hover {
       background: var(--bg-hover);
       border-color: var(--accent-blue);
-      transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     }
 
     .palette-item:active {
       cursor: grabbing;
+      transform: translateY(0);
     }
 
     .palette-icon {
-      width: 28px;
-      height: 22px;
-      border-radius: 4px;
-      background: var(--bg-deep);
+      width: 32px;
+      height: 26px;
+      border-radius: 5px;
+      background: linear-gradient(145deg, #161c24, #0d1117);
       border: 1px solid var(--border-bright);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
       color: var(--accent-green);
       flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .palette-icon svg {
+      width: 22px;
+      height: 18px;
+      display: block;
+    }
+
+    .palette-item:hover .palette-icon {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(0, 176, 255, 0.3);
     }
 
     .palette-name {
@@ -792,6 +851,12 @@
       transition: background 0.12s ease;
     }
 
+    .ctx-item svg, .ctx-header svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
     .ctx-item:hover {
       background: var(--bg-hover);
       color: #ffffff;
@@ -888,19 +953,22 @@
         <div class="divider"></div>
 
         <!-- Simulation Controls -->
-        <div class="toolbar-group" id="sim-controls-group">
+        <div class="toolbar-group sim-deck" id="sim-controls-group">
+          <button id="btn-sim-step-back" class="btn" disabled title="Einzelschritt zurück (-1 Tick, gedrückt halten zum kontinuierlichen Rücklauf)">
+            <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="0.8"/></svg></span>
+            <span class="btn-text">-1 Tick</span>
+          </button>
           <button id="btn-sim-start" class="btn btn-primary" disabled title="Simulation starten / pausieren (Leertaste)">
-            <span id="sim-play-icon">&#9654;</span>
+            <span id="sim-play-icon" class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
             <span id="sim-play-text">Start</span>
           </button>
-          <button id="btn-sim-step-back" class="btn" disabled title="Einzelschritt zurück (-1 Tick, gedrückt halten zum kontinuierlichen Rücklauf)">
-            <span>&#9198;</span> <span class="btn-text">-1 Tick</span>
-          </button>
           <button id="btn-sim-step" class="btn" disabled title="Einzelschritt (+1 Tick ausführen, gedrückt halten zum kontinuierlichen Vorlauf)">
-            <span>&#9197;</span> <span class="btn-text">+1 Tick</span>
+            <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
+            <span class="btn-text">+1 Tick</span>
           </button>
           <button id="btn-sim-reset" class="btn" disabled title="Simulationszustände und Zähler zurücksetzen">
-            <span>&#8634;</span> <span class="btn-text">Reset</span>
+            <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
+            <span class="btn-text">Reset</span>
           </button>
 
           <div class="freq-control disabled" id="freq-control-box">
@@ -927,19 +995,23 @@
         </select>
 
         <button id="btn-auto-route" class="btn" title="Alle Leitungen rechtwinklig sortieren, Überlappungen trennen und Kanäle entflechten">
-          <span>🔀</span> <span class="btn-text btn-text-full">Leitungen ordnen</span><span class="btn-text-short" style="display:none;">Ordnen</span>
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9v12"/><path d="M18 15a9 9 0 0 0-9-9H6"/></svg></span>
+          <span class="btn-text btn-text-full">Leitungen ordnen</span><span class="btn-text-short" style="display:none;">Ordnen</span>
         </button>
 
         <button id="btn-export" class="btn" title="Schaltung als JSON-Datei exportieren">
-          <span>&#11015;</span> <span class="btn-text btn-text-full">JSON Export</span><span class="btn-text-short" style="display:none;">Export</span>
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+          <span class="btn-text btn-text-full">JSON Export</span><span class="btn-text-short" style="display:none;">Export</span>
         </button>
         <button id="btn-import" class="btn" title="Schaltung aus JSON-Datei importieren">
-          <span>&#11014;</span> <span class="btn-text btn-text-full">JSON Import</span><span class="btn-text-short" style="display:none;">Import</span>
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+          <span class="btn-text btn-text-full">JSON Import</span><span class="btn-text-short" style="display:none;">Import</span>
         </button>
         <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
 
         <button id="btn-clear" class="btn btn-danger" title="Gesamte Arbeitsfläche leeren">
-          <span>&#10006;</span> <span class="btn-text">Leeren</span>
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+          <span class="btn-text">Leeren</span>
         </button>
       </div>
     </header>
@@ -958,15 +1030,15 @@
           <div class="category-title">Quellen (Inputs)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="SWITCH" title="Schalter (0/1 umschaltbar)">
-              <div class="palette-icon">SW</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="6"/><circle cx="8" cy="12" r="3.5" fill="currentColor"/></svg></div>
               <div class="palette-name">Schalter</div>
             </div>
             <div class="palette-item" draggable="true" data-type="BUTTON" title="Taster (1 während Mausklick)">
-              <div class="palette-icon">BTN</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V6a4 4 0 0 1 8 0v5"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor"/></svg></div>
               <div class="palette-name">Taster</div>
             </div>
             <div class="palette-item" draggable="true" data-type="CLOCK" title="Taktgeber (konfigurierbare Halbperiode)">
-              <div class="palette-icon">CLK</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 16h4V8h6v8h6V8h4"/></svg></div>
               <div class="palette-name">Taktgeber</div>
             </div>
           </div>
@@ -977,31 +1049,31 @@
           <div class="category-title">Logikgatter (Gates)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
-              <div class="palette-icon" id="pal-icon-NOT">▷○</div>
+              <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
               <div class="palette-name">NOT</div>
             </div>
             <div class="palette-item" draggable="true" data-type="AND" title="AND-Gatter (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-AND">D</div>
+              <div class="palette-icon" id="pal-icon-AND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h6a7 7 0 0 1 7 7 7 7 0 0 1-7 7H5z"/></svg></div>
               <div class="palette-name">AND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="OR" title="OR-Gatter (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-OR">⊃</div>
+              <div class="palette-icon" id="pal-icon-OR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3 3 3 11 0 14 7 0 12-2 16-7-4-5-9-7-16-7z"/></svg></div>
               <div class="palette-name">OR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NAND" title="NAND-Gatter (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-NAND">D○</div>
+              <div class="palette-icon" id="pal-icon-NAND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h5a6.5 6.5 0 0 1 6.5 6.5A6.5 6.5 0 0 1 9 18H4z"/><circle cx="18" cy="11.5" r="2"/></svg></div>
               <div class="palette-name">NAND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NOR" title="NOR-Gatter (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-NOR">⊃○</div>
+              <div class="palette-icon" id="pal-icon-NOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c2.5 2.5 2.5 10 0 13 6 0 10.5-2 14-6.5C14.5 7 10 5 4 5z"/><circle cx="19.5" cy="11.5" r="2"/></svg></div>
               <div class="palette-name">NOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XOR" title="XOR-Gatter / Ungerade Parität (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-XOR">))&gt;</div>
+              <div class="palette-icon" id="pal-icon-XOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M6 5c2.5 3 2.5 11 0 14 6.5 0 11-2 15-7-4-5-8.5-7-15-7z"/></svg></div>
               <div class="palette-name">XOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR-Gatter / Gerade Parität (2–8 Eingänge)">
-              <div class="palette-icon" id="pal-icon-XNOR">))○</div>
+              <div class="palette-icon" id="pal-icon-XNOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg></div>
               <div class="palette-name">XNOR</div>
             </div>
           </div>
@@ -1012,15 +1084,15 @@
           <div class="category-title">Anzeigen &amp; Decoder</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="LED" title="LED-Signallampe (Grün, Rot, Gelb, Blau)">
-              <div class="palette-icon">LED</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
               <div class="palette-name">Lampe (LED)</div>
             </div>
             <div class="palette-item" draggable="true" data-type="SEVEN_SEG" title="7-Segment-Anzeige (a–g, DP)">
-              <div class="palette-icon">7SEG</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 6h8M8 12h8M8 18h8M8 6v6M16 6v6M8 12v6M16 12v6" stroke-width="1.6"/></svg></div>
               <div class="palette-name">7-Segment-Anzeige</div>
             </div>
             <div class="palette-item" draggable="true" data-type="BCD_DEC" title="BCD-zu-7-Segment-Decoder (D0–D3 nach a–g)">
-              <div class="palette-icon">DEC</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h3a1.5 1.5 0 0 1 0 3H8m0 0h3.5a1.5 1.5 0 0 1 0 3H8M13 14h3M14.5 11v6"/></svg></div>
               <div class="palette-name">BCD-zu-7-Segment</div>
             </div>
           </div>
@@ -1031,11 +1103,11 @@
           <div class="category-title">Schaltwerke (Sequential)</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="COUNTER" title="4-Bit-Counter (Binär mod 16 / BCD mod 10)">
-              <div class="palette-icon">CNT</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h2v6M13 9h4v3h-4v3h4"/></svg></div>
               <div class="palette-name">4-Bit-Counter</div>
             </div>
             <div class="palette-item" draggable="true" data-type="SHIFT_REG" title="4-Bit-Schieberegister (SIPO)">
-              <div class="palette-icon">SIPO</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 12h10M14 9l3 3-3 3M10 9l3 3-3 3"/></svg></div>
               <div class="palette-name">4-Bit-Schieberegister</div>
             </div>
           </div>
@@ -1046,7 +1118,7 @@
           <div class="category-title">Analyse</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt / Signal-Clip für Leitungen (Impulsdiagramm)">
-              <div class="palette-icon">📍</div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 13 5 13s5-9 5-13a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2" fill="currentColor"/></svg></div>
               <div class="palette-name">Messpunkt (Probe)</div>
             </div>
           </div>
@@ -1058,17 +1130,18 @@
         <canvas id="grid-canvas"></canvas>
 
         <div id="help-hint">
-          Strg+C / Strg+V: <b>Kopieren &amp; Einfügen</b> &bull; Strg+A: <b>Alles auswählen</b> &bull; Entf: <b>Löschen</b> &bull; Rechtsklick: <b>Optionen / Invertierung</b> &bull; Pan: <b>Leertaste</b>
+          Strg+C / Strg+V: <b>Kopieren &amp; Einfügen</b> &bull; Strg+A: <b>Alles auswählen</b> &bull; Entf: <b>Löschen</b> &bull; Leitung: <b>Eckpunkte ziehen / Doppelklick für neuen Knick</b> &bull; Pan: <b>Leertaste</b>
         </div>
 
         <div id="zoom-controls">
-          <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen">&minus;</button>
+          <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-          <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen">+</button>
+          <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
         </div>
 
         <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 12px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
-          <span>⚙️ Eigenschaften &#9664;</span>
+          <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          <span>Eigenschaften</span>
         </button>
       </main>
 
@@ -1078,7 +1151,7 @@
         <div class="panel-header">
           <span>Eigenschaften (Inspector)</span>
           <button id="btn-inspector-toggle" class="collapse-btn" title="Inspector einklappen" style="font-size: 11px;">
-            <span>&#9654;</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
         <div id="inspector-content">
@@ -1095,7 +1168,7 @@
       <div id="analyzer-header">
         <div class="analyzer-title-group">
           <button class="collapse-btn" id="btn-analyzer-toggle" title="Impulsdiagramm ein-/ausklappen">
-            <span id="analyzer-chevron">&#9660;</span>
+            <span id="analyzer-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             <span>Impulsdiagramm (Logic Analyzer)</span>
           </button>
           <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 256 Ticks Ringpuffer)</span>
@@ -1114,7 +1187,8 @@
           </div>
 
           <button id="btn-analyzer-clear" class="btn" style="padding: 3px 9px; font-size: 11px;" title="Aufzeichnung im Ringpuffer zurücksetzen">
-            &#128465; Aufzeichnung leeren
+            <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+            <span>Aufzeichnung leeren</span>
           </button>
         </div>
       </div>
@@ -1169,6 +1243,72 @@
       '#64ffda', // Teal Mint
       '#ffff00'  // Bright Yellow
     ];
+
+    const ICONS = {
+      play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>',
+      pause: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+      stepBack: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="0.8"/></svg>',
+      stepForward: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg>',
+      reset: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>',
+      autoRoute: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9v12"/><path d="M18 15a9 9 0 0 0-9-9H6"/></svg>',
+      export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+      import: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+      trash: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+      plus: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      chevronDown: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+      chevronUp: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>',
+      chevronRight: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+      settings: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+      probe: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 13 5 13s5-9 5-13a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2" fill="currentColor"/></svg>',
+      copy: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+      zoom: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+      wrench: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+      wire: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h5l3-6 4 12 3-6h5"/></svg>',
+      waypoint: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></svg>',
+      check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      circle: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/></svg>',
+      refresh: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>'
+    };
+
+    function getGateSvgForNorm(type, norm) {
+      if (norm === 'DIN_EN_60617') {
+        switch (type) {
+          case 'NOT':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="12" height="18" rx="1"/><text x="10" y="15" font-size="10" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">1</text><circle cx="19" cy="12" r="2.2" stroke-width="1.8"/></svg>';
+          case 'AND':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="11" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&amp;</text></svg>';
+          case 'OR':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="9" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&#8805;1</text></svg>';
+          case 'NAND':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="13" height="18" rx="1"/><text x="9.5" y="15" font-size="10" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&amp;</text><circle cx="19" cy="12" r="2.2" stroke-width="1.8"/></svg>';
+          case 'NOR':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="13" height="18" rx="1"/><text x="9.5" y="15" font-size="8.5" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&#8805;1</text><circle cx="19" cy="12" r="2.2" stroke-width="1.8"/></svg>';
+          case 'XOR':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="9.5" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">=1</text></svg>';
+          case 'XNOR':
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="13" height="18" rx="1"/><text x="9.5" y="15" font-size="9" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">=1</text><circle cx="19" cy="12" r="2.2" stroke-width="1.8"/></svg>';
+        }
+      }
+      // DIN 40700 & ANSI
+      switch (type) {
+        case 'NOT':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg>';
+        case 'AND':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h6a7 7 0 0 1 7 7 7 7 0 0 1-7 7H5z"/></svg>';
+        case 'OR':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3 3 3 11 0 14 7 0 12-2 16-7-4-5-9-7-16-7z"/></svg>';
+        case 'NAND':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h5a6.5 6.5 0 0 1 6.5 6.5A6.5 6.5 0 0 1 9 18H4z"/><circle cx="18" cy="11.5" r="2"/></svg>';
+        case 'NOR':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c2.5 2.5 2.5 10 0 13 6 0 10.5-2 14-6.5C14.5 7 10 5 4 5z"/><circle cx="19.5" cy="11.5" r="2"/></svg>';
+        case 'XOR':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M6 5c2.5 3 2.5 11 0 14 6.5 0 11-2 15-7-4-5-8.5-7-15-7z"/></svg>';
+        case 'XNOR':
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg>';
+        default:
+          return '';
+      }
+    }
 
     /**
      * 7-Segment Truth Table for values 0..15
@@ -2371,6 +2511,10 @@
         this.hoveredPin = null;
         this.hoveredWireId = null;
         this.hoveredProbeId = null;
+        this.hoveredWaypoint = null;
+        this.hoveredMidpoint = null;
+        this.hoveredSegment = null;
+        this.activeWaypointDrag = null;
         this.activeWireDrag = null;
         this.selectionBox = null;
       }
@@ -2555,6 +2699,71 @@
             if (this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y) <= tolSq) {
               return w;
             }
+          }
+        }
+        return null;
+      }
+
+      findWaypointAt(worldX, worldY, radius = 9) {
+        const rSq = radius * radius;
+        const targetWires = this.selectedWireId
+          ? [this.circuit.wires.find(w => w.id === this.selectedWireId)].filter(Boolean)
+          : this.circuit.wires;
+
+        for (const wire of targetWires) {
+          const pts = this.getWirePolyline(wire);
+          if (pts.length <= 2) continue;
+          for (let i = 1; i < pts.length - 1; i++) {
+            const p = pts[i];
+            const dx = worldX - p.x;
+            const dy = worldY - p.y;
+            if (dx * dx + dy * dy <= rSq) {
+              return { wire, waypointIndex: i - 1, x: p.x, y: p.y, totalCorners: pts.length - 2 };
+            }
+          }
+        }
+        return null;
+      }
+
+      findMidpointHandleAt(worldX, worldY, radius = 8) {
+        if (!this.selectedWireId) return null;
+        const wire = this.circuit.wires.find(w => w.id === this.selectedWireId);
+        if (!wire) return null;
+        const pts = this.getWirePolyline(wire);
+        if (pts.length < 2) return null;
+
+        const rSq = radius * radius;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const pA = pts[i];
+          const pB = pts[i + 1];
+          const len = Math.hypot(pB.x - pA.x, pB.y - pA.y);
+          if (len < 22) continue;
+          const mx = (pA.x + pB.x) / 2;
+          const my = (pA.y + pB.y) / 2;
+          const dx = worldX - mx;
+          const dy = worldY - my;
+          if (dx * dx + dy * dy <= rSq) {
+            return { wire, segmentIndex: i, x: mx, y: my };
+          }
+        }
+        return null;
+      }
+
+      findWireSegmentAt(worldX, worldY, tolerance = 6) {
+        if (!this.selectedWireId) return null;
+        const wire = this.circuit.wires.find(w => w.id === this.selectedWireId);
+        if (!wire) return null;
+        const pts = this.getWirePolyline(wire);
+        if (pts.length < 2) return null;
+
+        const tolSq = tolerance * tolerance;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const pA = pts[i];
+          const pB = pts[i + 1];
+          if (this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y) <= tolSq) {
+            const isHorizontal = pA.y === pB.y;
+            const isVertical = pA.x === pB.x;
+            return { wire, segmentIndex: i, isHorizontal, isVertical, pA, pB };
           }
         }
         return null;
@@ -2936,13 +3145,98 @@
           }
           ctx.stroke();
 
-          // Draw waypoint handles if wire has custom waypoints and is selected/hovered
-          if (w.waypoints && w.waypoints.length > 0 && (isSelected || isHovered)) {
-            ctx.fillStyle = isSelected ? '#ff5252' : '#00b0ff';
-            for (const wp of w.waypoints) {
+          // Draw Interactive Waypoint Handles & Midpoint '+' Handles
+          if (isSelected && this.engine.mode === 'edit') {
+            // 1. Draw Corner Handles at pts.slice(1, -1)
+            for (let i = 1; i < pts.length - 1; i++) {
+              const wp = pts[i];
+              const wpIdx = i - 1;
+              const isHoveredWp = this.hoveredWaypoint &&
+                                  this.hoveredWaypoint.wire.id === w.id &&
+                                  this.hoveredWaypoint.waypointIndex === wpIdx;
+
+              ctx.save();
+              ctx.setLineDash([]);
+              // Glow halo
               ctx.beginPath();
-              ctx.arc(wp.x, wp.y, 4, 0, Math.PI * 2);
+              ctx.arc(wp.x, wp.y, isHoveredWp ? 9 : 7, 0, Math.PI * 2);
+              ctx.fillStyle = isHoveredWp ? 'rgba(0, 230, 118, 0.45)' : 'rgba(0, 176, 255, 0.28)';
               ctx.fill();
+
+              // Solid handle circle
+              ctx.beginPath();
+              ctx.arc(wp.x, wp.y, isHoveredWp ? 6.5 : 5, 0, Math.PI * 2);
+              ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
+              ctx.fill();
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = isHoveredWp ? '#061014' : '#00b0ff';
+              ctx.stroke();
+              ctx.restore();
+            }
+
+            // 2. Draw Midpoint '+' Handles on segments
+            for (let i = 0; i < pts.length - 1; i++) {
+              const pA = pts[i];
+              const pB = pts[i + 1];
+              const segLen = Math.hypot(pB.x - pA.x, pB.y - pA.y);
+              if (segLen < 22) continue;
+
+              const mx = (pA.x + pB.x) / 2;
+              const my = (pA.y + pB.y) / 2;
+              const isHoveredMid = this.hoveredMidpoint &&
+                                   this.hoveredMidpoint.wire.id === w.id &&
+                                   this.hoveredMidpoint.segmentIndex === i;
+
+              ctx.save();
+              ctx.setLineDash([]);
+              ctx.beginPath();
+              ctx.arc(mx, my, isHoveredMid ? 6 : 4, 0, Math.PI * 2);
+              ctx.fillStyle = isHoveredMid ? '#00e676' : 'rgba(0, 176, 255, 0.5)';
+              ctx.fill();
+              ctx.lineWidth = 1.5;
+              ctx.strokeStyle = isHoveredMid ? '#061014' : '#ffffff';
+              ctx.stroke();
+
+              if (isHoveredMid) {
+                // Draw '+' inside
+                ctx.strokeStyle = '#061014';
+                ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                ctx.moveTo(mx - 3, my); ctx.lineTo(mx + 3, my);
+                ctx.moveTo(mx, my - 3); ctx.lineTo(mx, my + 3);
+                ctx.stroke();
+              }
+              ctx.restore();
+            }
+
+            // 3. Coordinate preview while dragging a waypoint
+            if (this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id) {
+              const dragWp = w.waypoints && w.waypoints[this.activeWaypointDrag.index];
+              if (dragWp) {
+                ctx.save();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = 'rgba(0, 230, 118, 0.6)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(dragWp.x - 30, dragWp.y); ctx.lineTo(dragWp.x + 30, dragWp.y);
+                ctx.moveTo(dragWp.x, dragWp.y - 30); ctx.lineTo(dragWp.x, dragWp.y + 30);
+                ctx.stroke();
+
+                ctx.font = '10px monospace';
+                ctx.fillStyle = '#00e676';
+                ctx.fillText(`${dragWp.x}, ${dragWp.y}`, dragWp.x + 10, dragWp.y - 8);
+                ctx.restore();
+              }
+            }
+          } else if (isHovered && this.engine.mode === 'edit') {
+            // Subtle corner dots when hovering an unselected wire
+            for (let i = 1; i < pts.length - 1; i++) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(pts[i].x, pts[i].y, 3.5, 0, Math.PI * 2);
+              ctx.fillStyle = '#00b0ff';
+              ctx.fill();
+              ctx.restore();
             }
           }
 
@@ -4163,11 +4457,97 @@
           `;
           this.container.appendChild(info);
 
+          // Waypoint & Routing Section
+          const wpSection = document.createElement('div');
+          wpSection.className = 'prop-section';
+          wpSection.style.marginTop = '12px';
+
+          const wpHeader = document.createElement('div');
+          wpHeader.style.display = 'flex';
+          wpHeader.style.alignItems = 'center';
+          wpHeader.style.justifyContent = 'space-between';
+          wpHeader.style.marginBottom = '6px';
+          wpHeader.innerHTML = `
+            <span style="font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;">Eckpunkte &amp; Routing</span>
+            <span style="font-size:10px;color:var(--text-dim);">${wire.waypoints && wire.waypoints.length > 0 ? `${wire.waypoints.length} manuell` : 'Auto-Route'}</span>
+          `;
+          wpSection.appendChild(wpHeader);
+
+          // Reset to auto-route button
+          const autoBtn = document.createElement('button');
+          autoBtn.className = 'btn';
+          autoBtn.style.width = '100%';
+          autoBtn.style.marginBottom = '8px';
+          autoBtn.disabled = isSim || (!wire.waypoints || wire.waypoints.length === 0);
+          autoBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto)</span>`;
+          autoBtn.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            wire.waypoints = [];
+            wire.channelOffset = 0;
+            this.render(null, wire.id);
+            if (window.logicSimApp) window.logicSimApp.renderer.render();
+          });
+          wpSection.appendChild(autoBtn);
+
+          // List of current waypoints
+          if (wire.waypoints && wire.waypoints.length > 0) {
+            const list = document.createElement('div');
+            list.style.display = 'flex';
+            list.style.flexDirection = 'column';
+            list.style.gap = '4px';
+            list.style.marginBottom = '8px';
+
+            wire.waypoints.forEach((wp, idx) => {
+              const row = document.createElement('div');
+              row.style.display = 'flex';
+              row.style.alignItems = 'center';
+              row.style.justifyContent = 'space-between';
+              row.style.background = 'var(--bg-deep)';
+              row.style.padding = '4px 8px';
+              row.style.borderRadius = '5px';
+              row.style.fontSize = '11px';
+              row.style.border = '1px solid var(--border-dim)';
+
+              row.innerHTML = `<span><strong>#${idx + 1}:</strong> X=${wp.x}, Y=${wp.y}</span>`;
+
+              const delWpBtn = document.createElement('button');
+              delWpBtn.title = 'Eckpunkt löschen';
+              delWpBtn.style.background = 'transparent';
+              delWpBtn.style.border = 'none';
+              delWpBtn.style.color = 'var(--accent-red)';
+              delWpBtn.style.cursor = 'pointer';
+              delWpBtn.style.padding = '2px 4px';
+              delWpBtn.innerHTML = ICONS.trash;
+              delWpBtn.disabled = isSim;
+              delWpBtn.addEventListener('click', () => {
+                if (this.engine.mode === 'sim') return;
+                wire.waypoints.splice(idx, 1);
+                this.render(null, wire.id);
+                if (window.logicSimApp) window.logicSimApp.renderer.render();
+              });
+              row.appendChild(delWpBtn);
+              list.appendChild(row);
+            });
+            wpSection.appendChild(list);
+          }
+
+          // Tip
+          const tip = document.createElement('div');
+          tip.style.fontSize = '10.5px';
+          tip.style.color = 'var(--text-dim)';
+          tip.style.lineHeight = '1.4';
+          tip.style.marginBottom = '8px';
+          tip.innerHTML = `💡 <b>Tipp:</b> Ziehe die Griffe der Leitung auf dem Raster. Ziehe den <b>+</b>-Griff oder doppelklicke auf ein Segment für neue Knicke. Doppelklick auf Griff löscht ihn.`;
+          wpSection.appendChild(tip);
+
+          this.container.appendChild(wpSection);
+
           const delBtn = document.createElement('button');
           delBtn.className = 'btn btn-danger';
-          delBtn.style.marginTop = '8px';
+          delBtn.style.marginTop = '4px';
+          delBtn.style.width = '100%';
           delBtn.disabled = isSim;
-          delBtn.innerHTML = '&#128465; Leitung löschen';
+          delBtn.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
           delBtn.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             this.circuit.removeWire(wire.id);
@@ -4721,6 +5101,8 @@
 
         this.draggingComp = null;
         this.draggingProbe = null;
+        this.draggingWaypoint = null;
+        this.draggingSegment = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
 
@@ -4746,6 +5128,58 @@
           this.renderer.resize();
           this.analyzer.resize();
         }, 10);
+      }
+
+      ensureWireWaypoints(wire) {
+        if (!wire) return;
+        if (!wire.waypoints || wire.waypoints.length === 0) {
+          const pts = this.renderer.getWirePolyline(wire);
+          if (pts.length > 2) {
+            wire.waypoints = pts.slice(1, -1).map(p => ({
+              x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
+              y: Math.round(p.y / GRID_SIZE) * GRID_SIZE
+            }));
+          } else {
+            wire.waypoints = [];
+          }
+          wire.channelOffset = 0;
+        }
+      }
+
+      addWaypointToWire(wire, worldPos) {
+        if (!wire) return;
+        this.ensureWireWaypoints(wire);
+        const snapX = Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
+        const snapY = Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
+
+        const fromComp = this.circuit.getComponent(wire.fromCompId);
+        const toComp = this.circuit.getComponent(wire.toCompId);
+        if (!fromComp || !toComp) return;
+        const p1 = fromComp.getPinWorldPos(true, wire.fromPin);
+        const p2 = toComp.getPinWorldPos(false, wire.toPin);
+
+        const fullList = [p1, ...wire.waypoints, p2];
+        let bestSeg = 0;
+        let minDistSq = Infinity;
+        for (let i = 0; i < fullList.length - 1; i++) {
+          const dSq = this.renderer.distToSegmentSq(worldPos.x, worldPos.y, fullList[i].x, fullList[i].y, fullList[i + 1].x, fullList[i + 1].y);
+          if (dSq < minDistSq) {
+            minDistSq = dSq;
+            bestSeg = i;
+          }
+        }
+        wire.waypoints.splice(bestSeg, 0, { x: snapX, y: snapY });
+      }
+
+      removeWaypointFromWire(wire, index) {
+        if (!wire || !wire.waypoints) return;
+        if (index >= 0 && index < wire.waypoints.length) {
+          wire.waypoints.splice(index, 1);
+          if (this.renderer.selectedWireId === wire.id && this.inspector) {
+            this.inspector.render(null, wire.id);
+          }
+          this.renderer.render();
+        }
       }
 
       copySelection() {
@@ -4871,32 +5305,13 @@
         const iconXOR  = document.getElementById('pal-icon-XOR');
         const iconXNOR = document.getElementById('pal-icon-XNOR');
 
-        if (norm === 'DIN_EN_60617') {
-          if (iconNOT) iconNOT.textContent = '1○';
-          if (iconAND) iconAND.textContent = '&';
-          if (iconOR)  iconOR.textContent = '≥1';
-          if (iconNAND) iconNAND.textContent = '&○';
-          if (iconNOR)  iconNOR.textContent = '≥1○';
-          if (iconXOR)  iconXOR.textContent = '=1';
-          if (iconXNOR) iconXNOR.textContent = '=1○';
-        } else if (norm === 'ANSI') {
-          if (iconNOT) iconNOT.textContent = '▷○';
-          if (iconAND) iconAND.textContent = 'D';
-          if (iconOR)  iconOR.textContent = ')▶';
-          if (iconNAND) iconNAND.textContent = 'D○';
-          if (iconNOR)  iconNOR.textContent = ')▶○';
-          if (iconXOR)  iconXOR.textContent = '))▶';
-          if (iconXNOR) iconXNOR.textContent = '))▶○';
-        } else {
-          // DIN 40700 (Ursprünglich Deutsch)
-          if (iconNOT) iconNOT.textContent = '▷○';
-          if (iconAND) iconAND.textContent = 'D';
-          if (iconOR)  iconOR.textContent = '⊃';
-          if (iconNAND) iconNAND.textContent = 'D○';
-          if (iconNOR)  iconNOR.textContent = '⊃○';
-          if (iconXOR)  iconXOR.textContent = '))>';
-          if (iconXNOR) iconXNOR.textContent = '))○';
-        }
+        if (iconNOT) iconNOT.innerHTML = getGateSvgForNorm('NOT', norm);
+        if (iconAND) iconAND.innerHTML = getGateSvgForNorm('AND', norm);
+        if (iconOR)  iconOR.innerHTML  = getGateSvgForNorm('OR', norm);
+        if (iconNAND) iconNAND.innerHTML = getGateSvgForNorm('NAND', norm);
+        if (iconNOR)  iconNOR.innerHTML  = getGateSvgForNorm('NOR', norm);
+        if (iconXOR)  iconXOR.innerHTML  = getGateSvgForNorm('XOR', norm);
+        if (iconXNOR) iconXNOR.innerHTML = getGateSvgForNorm('XNOR', norm);
       }
 
       refreshAll() {
@@ -4942,11 +5357,11 @@
         const playIcon = document.getElementById('sim-play-icon');
         const playText = document.getElementById('sim-play-text');
         if (this.engine.running) {
-          playIcon.innerHTML = '&#10074;&#10074;';
+          playIcon.innerHTML = ICONS.pause;
           playText.textContent = 'Pause';
           btnStart.className = 'btn btn-warning';
         } else {
-          playIcon.innerHTML = '&#9654;';
+          playIcon.innerHTML = ICONS.play;
           playText.textContent = 'Start';
           btnStart.className = 'btn btn-primary';
         }
@@ -5496,6 +5911,46 @@
             return;
           }
 
+          // If in Edit Mode and a wire is currently selected: check corner and midpoint handles first
+          if (this.engine.mode === 'edit' && this.renderer.selectedWireId) {
+            const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
+            if (hitWp && hitWp.wire.id === this.renderer.selectedWireId) {
+              this.ensureWireWaypoints(hitWp.wire);
+              this.draggingWaypoint = { wire: hitWp.wire, index: hitWp.waypointIndex, startX: hitWp.x, startY: hitWp.y };
+              this.renderer.activeWaypointDrag = { wire: hitWp.wire, index: hitWp.waypointIndex };
+              canvas.style.cursor = 'crosshair';
+              this.renderer.render();
+              return;
+            }
+
+            const hitMid = this.renderer.findMidpointHandleAt(world.x, world.y, 8);
+            if (hitMid && hitMid.wire.id === this.renderer.selectedWireId) {
+              this.ensureWireWaypoints(hitMid.wire);
+              hitMid.wire.waypoints.splice(hitMid.segmentIndex, 0, { x: hitMid.x, y: hitMid.y });
+              this.draggingWaypoint = { wire: hitMid.wire, index: hitMid.segmentIndex, startX: hitMid.x, startY: hitMid.y };
+              this.renderer.activeWaypointDrag = { wire: hitMid.wire, index: hitMid.segmentIndex };
+              this.renderer.render();
+              if (this.inspector) this.inspector.render(null, hitMid.wire.id);
+              canvas.style.cursor = 'crosshair';
+              return;
+            }
+
+            const hitSeg = this.renderer.findWireSegmentAt(world.x, world.y, 6);
+            if (hitSeg && hitSeg.wire.id === this.renderer.selectedWireId) {
+              this.ensureWireWaypoints(hitSeg.wire);
+              this.draggingSegment = {
+                wire: hitSeg.wire,
+                segmentIndex: hitSeg.segmentIndex,
+                isHorizontal: hitSeg.isHorizontal,
+                isVertical: hitSeg.isVertical,
+                pA: hitSeg.pA,
+                pB: hitSeg.pB
+              };
+              canvas.style.cursor = hitSeg.isHorizontal ? 'row-resize' : 'col-resize';
+              return;
+            }
+          }
+
           const hitComp = this.renderer.findComponentAt(world.x, world.y);
           if (hitComp) {
             // Shift or Ctrl: toggle individual component selection
@@ -5610,6 +6065,47 @@
             return;
           }
 
+          if (this.draggingWaypoint && this.engine.mode === 'edit') {
+            const wpWire = this.draggingWaypoint.wire;
+            const idx = this.draggingWaypoint.index;
+            const nx = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            const ny = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+
+            if (wpWire.waypoints && wpWire.waypoints[idx]) {
+              wpWire.waypoints[idx].x = nx;
+              wpWire.waypoints[idx].y = ny;
+              this.renderer.render();
+              if (this.inspector) this.inspector.render(null, wpWire.id);
+            }
+            canvas.style.cursor = 'crosshair';
+            return;
+          }
+
+          if (this.draggingSegment && this.engine.mode === 'edit') {
+            const { wire, segmentIndex, isHorizontal, isVertical } = this.draggingSegment;
+            if (isHorizontal) {
+              const ny = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+              if (segmentIndex > 0 && wire.waypoints[segmentIndex - 1]) {
+                wire.waypoints[segmentIndex - 1].y = ny;
+              }
+              if (segmentIndex < wire.waypoints.length && wire.waypoints[segmentIndex]) {
+                wire.waypoints[segmentIndex].y = ny;
+              }
+            } else if (isVertical) {
+              const nx = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+              if (segmentIndex > 0 && wire.waypoints[segmentIndex - 1]) {
+                wire.waypoints[segmentIndex - 1].x = nx;
+              }
+              if (segmentIndex < wire.waypoints.length && wire.waypoints[segmentIndex]) {
+                wire.waypoints[segmentIndex].x = nx;
+              }
+            }
+            this.renderer.render();
+            if (this.inspector) this.inspector.render(null, wire.id);
+            canvas.style.cursor = isHorizontal ? 'row-resize' : 'col-resize';
+            return;
+          }
+
           if (this.draggingProbe && this.engine.mode === 'edit') {
             const wire = this.circuit.wires.find(w => w.id === this.draggingProbe.wireId);
             if (wire) {
@@ -5633,14 +6129,24 @@
           if (e.target === canvas) {
             const probe = this.renderer.findProbeAt(world.x, world.y);
             const pin = !probe ? this.renderer.findPinAt(world.x, world.y) : null;
-            const wire = (!probe && !pin) ? this.renderer.findWireAt(world.x, world.y) : null;
+            const hitWp = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
+            const hitMid = (!probe && !pin && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
+            const hitSeg = (!probe && !pin && !hitWp && !hitMid && this.engine.mode === 'edit') ? this.renderer.findWireSegmentAt(world.x, world.y, 6) : null;
+            const wire = (!probe && !pin && !hitWp && !hitMid && !hitSeg) ? this.renderer.findWireAt(world.x, world.y) : null;
+
             const prevProbe = this.renderer.hoveredProbeId;
             const prevPin = this.renderer.hoveredPin;
             const prevWire = this.renderer.hoveredWireId;
+            const prevWp = this.renderer.hoveredWaypoint;
+            const prevMid = this.renderer.hoveredMidpoint;
+            const prevSeg = this.renderer.hoveredSegment;
 
             this.renderer.hoveredProbeId = probe ? probe.id : null;
             this.renderer.hoveredPin = pin;
             this.renderer.hoveredWireId = wire ? wire.id : null;
+            this.renderer.hoveredWaypoint = hitWp;
+            this.renderer.hoveredMidpoint = hitMid;
+            this.renderer.hoveredSegment = hitSeg;
 
             if (this.spacePressed) {
               canvas.style.cursor = 'grab';
@@ -5648,6 +6154,12 @@
               canvas.style.cursor = 'pointer';
             } else if (pin && this.engine.mode === 'edit') {
               canvas.style.cursor = 'crosshair';
+            } else if (hitWp) {
+              canvas.style.cursor = 'grab';
+            } else if (hitMid) {
+              canvas.style.cursor = 'pointer';
+            } else if (hitSeg) {
+              canvas.style.cursor = hitSeg.isHorizontal ? 'row-resize' : 'col-resize';
             } else if (wire && this.engine.mode === 'edit') {
               canvas.style.cursor = 'pointer';
             } else {
@@ -5661,13 +6173,31 @@
               }
             }
 
-            if (prevProbe !== this.renderer.hoveredProbeId || prevPin !== pin || prevWire !== this.renderer.hoveredWireId) {
+            if (
+              prevProbe !== this.renderer.hoveredProbeId ||
+              prevPin !== pin ||
+              prevWire !== this.renderer.hoveredWireId ||
+              prevWp !== hitWp ||
+              prevMid !== hitMid ||
+              prevSeg !== hitSeg
+            ) {
               this.renderer.render();
             }
           }
         });
 
         window.addEventListener('mouseup', (e) => {
+          if (this.draggingWaypoint) {
+            this.draggingWaypoint = null;
+            this.renderer.activeWaypointDrag = null;
+            this.refreshAll();
+          }
+
+          if (this.draggingSegment) {
+            this.draggingSegment = null;
+            this.refreshAll();
+          }
+
           if (this.draggingProbe) {
             this.draggingProbe = null;
           }
@@ -5756,6 +6286,18 @@
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+
+          // 1. Double click on existing waypoint handle: DELETE IT!
+          const hitWp = this.renderer.findWaypointAt(world.x, world.y, 10);
+          if (hitWp) {
+            this.ensureWireWaypoints(hitWp.wire);
+            this.removeWaypointFromWire(hitWp.wire, hitWp.waypointIndex);
+            this.selectItem(null, hitWp.wire.id);
+            this.refreshAll();
+            return;
+          }
+
+          // 2. Double click on pin: toggle inversion
           const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
           if (pinHit) {
             const comp = this.circuit.getComponent(pinHit.compId);
@@ -5771,7 +6313,17 @@
               this.circuit.syncImmediateWireLevels();
               this.inspector.render(comp.id, null);
               this.refreshAll();
+              return;
             }
+          }
+
+          // 3. Double click on wire segment: ADD A WAYPOINT!
+          const hitWire = this.renderer.findWireAt(world.x, world.y, 8);
+          if (hitWire) {
+            this.addWaypointToWire(hitWire, world);
+            this.selectItem(null, hitWire.id);
+            this.refreshAll();
+            return;
           }
         });
 
@@ -5809,6 +6361,14 @@
             this.selectItem(null, null, hitProbe.id);
             this.highlightInspector();
             this.showProbeContextMenu(e.clientX, e.clientY, hitProbe);
+            return;
+          }
+
+          const hitWp = this.engine.mode === 'edit' ? this.renderer.findWaypointAt(world.x, world.y, 10) : null;
+          if (hitWp) {
+            this.selectItem(null, hitWp.wire.id);
+            this.highlightInspector();
+            this.showWaypointContextMenu(e.clientX, e.clientY, hitWp, world);
             return;
           }
 
@@ -5853,6 +6413,71 @@
         }
       }
 
+      showWaypointContextMenu(clientX, clientY, hitWp, worldPos) {
+        const menu = this.contextMenuEl;
+        menu.innerHTML = '';
+
+        const wpIdx = hitWp.waypointIndex !== undefined ? hitWp.waypointIndex : (hitWp.index || 0);
+        const posX = hitWp.x !== undefined ? hitWp.x : (hitWp.point ? hitWp.point.x : (worldPos ? worldPos.x : 0));
+        const posY = hitWp.y !== undefined ? hitWp.y : (hitWp.point ? hitWp.point.y : (worldPos ? worldPos.y : 0));
+
+        const header = document.createElement('div');
+        header.className = 'ctx-header';
+        header.innerHTML = `
+          <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.waypoint} Eckpunkt #${wpIdx + 1}</span>
+          <span style="font-size:9.5px;color:var(--text-muted);">${Math.round(posX)}, ${Math.round(posY)}</span>
+        `;
+        menu.appendChild(header);
+
+        // Delete this waypoint
+        const delWpItem = document.createElement('div');
+        delWpItem.className = 'ctx-item danger';
+        delWpItem.innerHTML = `<span>${ICONS.trash}</span> <span>Diesen Eckpunkt löschen</span>`;
+        delWpItem.addEventListener('click', () => {
+          this.removeWaypointFromWire(hitWp.wire, wpIdx);
+          this.hideContextMenu();
+        });
+        menu.appendChild(delWpItem);
+
+        const div = document.createElement('div');
+        div.className = 'ctx-divider';
+        menu.appendChild(div);
+
+        // Reset all waypoints on this wire (Auto-Route)
+        const resetWpsItem = document.createElement('div');
+        resetWpsItem.className = 'ctx-item';
+        resetWpsItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto)</span>`;
+        resetWpsItem.addEventListener('click', () => {
+          hitWp.wire.waypoints = [];
+          hitWp.wire.channelOffset = 0;
+          this.renderer.render();
+          this.inspector.render(null, hitWp.wire.id);
+          this.hideContextMenu();
+        });
+        menu.appendChild(resetWpsItem);
+
+        // Open Inspector
+        const inspectItem = document.createElement('div');
+        inspectItem.className = 'ctx-item';
+        inspectItem.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
+        inspectItem.addEventListener('click', () => {
+          this.selectItem(null, hitWp.wire.id);
+          this.highlightInspector();
+          this.hideContextMenu();
+        });
+        menu.appendChild(inspectItem);
+
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth || 210;
+        const mh = menu.offsetHeight || 160;
+        let px = clientX;
+        let py = clientY;
+        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
+        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        menu.style.left = `${Math.max(10, px)}px`;
+        menu.style.top = `${Math.max(10, py)}px`;
+      }
+
       showContextMenu(clientX, clientY, comp, wire, worldPos, multiCompIds = null) {
         const menu = this.contextMenuEl;
         menu.innerHTML = '';
@@ -5862,14 +6487,14 @@
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
-            <span>📦 Mehrfachauswahl</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.copy} Mehrfachauswahl</span>
             <span style="font-size:9.5px;color:var(--text-muted);">${multiCompIds.size} Bauteile</span>
           `;
           menu.appendChild(header);
 
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
-          openInspect.innerHTML = `<span>🔧</span> <span>Im Inspector anzeigen</span>`;
+          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
           openInspect.addEventListener('click', () => {
             this.highlightInspector();
             this.hideContextMenu();
@@ -5882,7 +6507,7 @@
 
           const dupItem = document.createElement('div');
           dupItem.className = 'ctx-item';
-          dupItem.innerHTML = `<span>📋</span> <span>${multiCompIds.size} Bauteile duplizieren</span>`;
+          dupItem.innerHTML = `<span>${ICONS.copy}</span> <span>${multiCompIds.size} Bauteile duplizieren</span>`;
           dupItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             const newIds = new Set();
@@ -5907,7 +6532,7 @@
 
           const delItem = document.createElement('div');
           delItem.className = 'ctx-item danger';
-          delItem.innerHTML = `<span>🗑️</span> <span>${multiCompIds.size} Bauteile löschen (Delete)</span>`;
+          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>${multiCompIds.size} Bauteile löschen (Delete)</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             for (const cid of multiCompIds) {
@@ -5924,14 +6549,14 @@
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
-            <span>⚙️ ${comp.params.label || comp.type}</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.settings} ${comp.params.label || comp.type}</span>
             <span style="font-size:9.5px;color:var(--text-muted);">${comp.type}</span>
           `;
           menu.appendChild(header);
 
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
-          openInspect.innerHTML = `<span>🔧</span> <span>Einstellungen im Inspector öffnen</span>`;
+          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Einstellungen im Inspector öffnen</span>`;
           openInspect.addEventListener('click', () => {
             this.highlightInspector();
             this.hideContextMenu();
@@ -5943,7 +6568,7 @@
             const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
             const invOutItem = document.createElement('div');
             invOutItem.className = 'ctx-item';
-            invOutItem.innerHTML = `<span>${isOutInv ? '✅' : '⚪'}</span> <span>Ausgang invertieren (○)</span>`;
+            invOutItem.innerHTML = `<span>${isOutInv ? ICONS.check : ICONS.circle}</span> <span>Ausgang invertieren (○)</span>`;
             invOutItem.addEventListener('click', () => {
               if (this.engine.mode === 'sim') return;
               comp.params.invertedOutput = !isOutInv;
@@ -6027,7 +6652,7 @@
             const modeItem = document.createElement('div');
             modeItem.className = 'ctx-item';
             const nextMode = comp.params.mode === 'bcd' ? 'binary' : 'bcd';
-            modeItem.innerHTML = `<span>🔄</span> <span>Modus: ${nextMode === 'bcd' ? 'Zu BCD (mod 10)' : 'Zu Binär (mod 16)'}</span>`;
+            modeItem.innerHTML = `<span>${ICONS.refresh}</span> <span>Modus: ${nextMode === 'bcd' ? 'Zu BCD (mod 10)' : 'Zu Binär (mod 16)'}</span>`;
             modeItem.addEventListener('click', () => {
               comp.params.mode = nextMode;
               if (nextMode === 'bcd' && comp.state.count >= 10) comp.state.count = 0;
@@ -6069,7 +6694,7 @@
           // Duplicate Action
           const dupItem = document.createElement('div');
           dupItem.className = 'ctx-item';
-          dupItem.innerHTML = `<span>📋</span> <span>Bauteil duplizieren</span>`;
+          dupItem.innerHTML = `<span>${ICONS.copy}</span> <span>Bauteil duplizieren</span>`;
           dupItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             const newComp = this.circuit.addComponent(
@@ -6088,7 +6713,7 @@
           // Delete Action
           const delItem = document.createElement('div');
           delItem.className = 'ctx-item danger';
-          delItem.innerHTML = `<span>🗑️</span> <span>Bauteil löschen</span>`;
+          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Bauteil löschen</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             this.circuit.removeComponent(comp.id, this.ringBuffer);
@@ -6103,34 +6728,47 @@
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
-            <span>⚡ Signalleitung</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.wire} Signalleitung</span>
             <span style="font-size:9.5px;color:var(--text-muted);">${wire.level ? 'HIGH (1)' : 'LOW (0)'}</span>
           `;
           menu.appendChild(header);
 
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
-          openInspect.innerHTML = `<span>🔧</span> <span>Leitungsinfo im Inspector</span>`;
+          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
           openInspect.addEventListener('click', () => {
             this.highlightInspector();
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
 
+          const addWpItem = document.createElement('div');
+          addWpItem.className = 'ctx-item';
+          addWpItem.innerHTML = `<span>${ICONS.plus}</span> <span>Eckpunkt hier hinzufügen</span>`;
+          addWpItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.addWaypointToWire(wire, worldPos);
+            this.renderer.render();
+            this.inspector.render(null, wire.id);
+            this.hideContextMenu();
+          });
+          menu.appendChild(addWpItem);
+
           const autoRouteWire = document.createElement('div');
           autoRouteWire.className = 'ctx-item';
-          autoRouteWire.innerHTML = `<span>🔀</span> <span>Wegpunkte zurücksetzen (Auto-Route)</span>`;
+          autoRouteWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto-Route)</span>`;
           autoRouteWire.addEventListener('click', () => {
             wire.waypoints = [];
             wire.channelOffset = 0;
             this.renderer.render();
+            this.inspector.render(null, wire.id);
             this.hideContextMenu();
           });
           menu.appendChild(autoRouteWire);
 
           const addProbeItem = document.createElement('div');
           addProbeItem.className = 'ctx-item';
-          addProbeItem.innerHTML = `<span>📍</span> <span>Messpunkt (Probe) an dieser Leitung anbringen</span>`;
+          addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt (Probe) an dieser Leitung anbringen</span>`;
           addProbeItem.addEventListener('click', () => {
             const pts = this.renderer.getWirePolyline(wire);
             const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
@@ -6149,7 +6787,7 @@
 
           const delWire = document.createElement('div');
           delWire.className = 'ctx-item danger';
-          delWire.innerHTML = `<span>🗑️</span> <span>Leitung löschen</span>`;
+          delWire.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
           delWire.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             this.circuit.removeWire(wire.id);
@@ -6254,7 +6892,7 @@
 
           const autoRouteAll = document.createElement('div');
           autoRouteAll.className = 'ctx-item';
-          autoRouteAll.innerHTML = `<span>🔀</span> <span>Alle Leitungen rechtwinklig ordnen</span>`;
+          autoRouteAll.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Alle Leitungen rechtwinklig ordnen</span>`;
           autoRouteAll.addEventListener('click', () => {
             this.autoRouteAllWires();
             this.hideContextMenu();
@@ -6263,7 +6901,7 @@
 
           const resetView = document.createElement('div');
           resetView.className = 'ctx-item';
-          resetView.innerHTML = `<span>🔍</span> <span>Ansicht zentrieren (100%)</span>`;
+          resetView.innerHTML = `<span>${ICONS.zoom}</span> <span>Ansicht zentrieren (100%)</span>`;
           resetView.addEventListener('click', () => {
             this.renderer.panX = 40;
             this.renderer.panY = 40;
@@ -6291,14 +6929,14 @@
         const header = document.createElement('div');
         header.className = 'ctx-header';
         header.innerHTML = `
-          <span>📍 Messpunkt: ${probe.name}</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.probe} Messpunkt: ${probe.name}</span>
           <span style="font-size:9.5px;color:var(--text-muted);">${probe.id}</span>
         `;
         menu.appendChild(header);
 
         const openInspect = document.createElement('div');
         openInspect.className = 'ctx-item';
-        openInspect.innerHTML = `<span>🔧</span> <span>Im Inspector öffnen</span>`;
+        openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector öffnen</span>`;
         openInspect.addEventListener('click', () => {
           this.selectItem(null, null, probe.id);
           this.highlightInspector();
@@ -6308,7 +6946,7 @@
 
         const centerCanvas = document.createElement('div');
         centerCanvas.className = 'ctx-item';
-        centerCanvas.innerHTML = `<span>🔍</span> <span>Auf Arbeitsfläche anzeigen</span>`;
+        centerCanvas.innerHTML = `<span>${ICONS.zoom}</span> <span>Auf Arbeitsfläche anzeigen</span>`;
         centerCanvas.addEventListener('click', () => {
           this.selectItem(null, null, probe.id);
           this.highlightInspector();
@@ -6358,7 +6996,7 @@
 
         const delItem = document.createElement('div');
         delItem.className = 'ctx-item danger';
-        delItem.innerHTML = `<span>🗑️</span> <span>Messpunkt entfernen</span>`;
+        delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Messpunkt entfernen</span>`;
         delItem.addEventListener('click', () => {
           this.circuit.removeProbe(probe.id, this.ringBuffer);
           this.selectItem(null, null);
@@ -6386,7 +7024,7 @@
 
         toggleBtn.addEventListener('click', () => {
           const isCollapsed = panel.classList.toggle('collapsed');
-          chevron.innerHTML = isCollapsed ? '&#9650;' : '&#9660;';
+          chevron.innerHTML = isCollapsed ? ICONS.chevronUp : ICONS.chevronDown;
           setTimeout(() => {
             this.renderer.resize();
             this.analyzer.resize();
@@ -6484,6 +7122,14 @@
             e.preventDefault();
           } else if (e.key === 'Delete' || e.key === 'Backspace') {
             if (this.engine.mode === 'edit') {
+              if (this.renderer.hoveredWaypoint) {
+                const { wire, index, waypointIndex } = this.renderer.hoveredWaypoint;
+                const wpIdx = waypointIndex !== undefined ? waypointIndex : (index || 0);
+                this.removeWaypointFromWire(wire, wpIdx);
+                this.renderer.hoveredWaypoint = null;
+                this.refreshAll();
+                return;
+              }
               if (this.renderer.selectedProbeId) {
                 this.circuit.removeProbe(this.renderer.selectedProbeId, this.ringBuffer);
                 this.selectItem(null, null);
