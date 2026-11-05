@@ -488,13 +488,50 @@
     /* 4. Right Properties Panel (Inspector) */
     #inspector {
       width: 265px;
-      min-width: 265px;
+      min-width: 140px;
+      max-width: 50vw;
       background: var(--bg-panel);
       border-left: 1px solid var(--border-dim);
       display: flex;
       flex-direction: column;
       z-index: 10;
       overflow-y: auto;
+      position: relative;
+      transition: box-shadow 0.3s ease;
+    }
+
+    #inspector.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      overflow: hidden;
+      border-left: none;
+    }
+
+    #inspector-resizer {
+      width: 6px;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -3px;
+      cursor: ew-resize;
+      background: transparent;
+      z-index: 25;
+      transition: background 0.15s ease;
+    }
+
+    #inspector-resizer:hover,
+    #inspector-resizer.resizing {
+      background: rgba(0, 176, 255, 0.5);
+    }
+
+    #inspector.highlight-pulse {
+      animation: pulseBorder 1.2s ease-in-out;
+    }
+
+    @keyframes pulseBorder {
+      0% { box-shadow: inset 0 0 0 1px rgba(0, 176, 255, 0.3), 0 0 0 0 rgba(0, 176, 255, 0.6); }
+      50% { box-shadow: inset 0 0 0 2px rgba(0, 176, 255, 0.8), 0 0 20px 4px rgba(0, 176, 255, 0.4); }
+      100% { box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent; }
     }
 
     #inspector-content {
@@ -672,6 +709,103 @@
       height: 100%;
     }
 
+    /* 6. Floating Context Menu */
+    .context-menu {
+      position: fixed;
+      z-index: 1000;
+      background: #141820;
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.12);
+      min-width: 200px;
+      max-width: 280px;
+      padding: 5px 0;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      backdrop-filter: blur(12px);
+      user-select: none;
+      animation: ctxFadeIn 0.1s ease-out;
+    }
+
+    @keyframes ctxFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .ctx-header {
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 0.3px;
+    }
+
+    .ctx-item {
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .ctx-item:hover {
+      background: var(--bg-hover);
+      color: #ffffff;
+    }
+
+    .ctx-item.danger {
+      color: var(--accent-red);
+    }
+    .ctx-item.danger:hover {
+      background: rgba(255, 82, 82, 0.18);
+    }
+
+    .ctx-divider {
+      height: 1px;
+      background: var(--border-dim);
+      margin: 4px 0;
+    }
+
+    .ctx-sub-label {
+      padding: 5px 12px 2px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+
+    .ctx-sub-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 4px 12px 6px 12px;
+      align-items: center;
+    }
+
+    .ctx-chip {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.1s ease;
+    }
+    .ctx-chip:hover, .ctx-chip.active {
+      background: var(--accent-blue-dim);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
     /* Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
@@ -736,8 +870,15 @@
         </div>
       </div>
 
-      <!-- File & Preset Actions -->
+      <!-- File & Preset Actions + Symbol Standard Switcher -->
       <div class="toolbar-group">
+        <!-- Symbol Standard Selector (Default: DIN 40700 Deutsch) -->
+        <select id="select-symbol-norm" class="select-input" title="Schaltsymbol-Norm auswählen (Standard: DIN 40700 Deutsch)">
+          <option value="DIN_40700" selected>Norm: DIN 40700 (Deutsch)</option>
+          <option value="DIN_EN_60617">Norm: DIN EN 60617 (IEC)</option>
+          <option value="ANSI">Norm: ANSI (US)</option>
+        </select>
+
         <select id="select-demo" class="select-input" title="Vorkonfigurierte Beispielschaltung laden">
           <option value="">&#9733; Demo laden...</option>
           <option value="bcd_clock">1. BCD-Digitaluhr-Ziffer (Counter + 7-Seg)</option>
@@ -791,31 +932,31 @@
           <div class="category-title">Logikgatter (Gates)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
-              <div class="palette-icon">!1</div>
+              <div class="palette-icon" id="pal-icon-NOT">▷○</div>
               <div class="palette-name">NOT</div>
             </div>
             <div class="palette-item" draggable="true" data-type="AND" title="AND-Gatter (2–8 Eingänge)">
-              <div class="palette-icon">&amp;</div>
+              <div class="palette-icon" id="pal-icon-AND">D</div>
               <div class="palette-name">AND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="OR" title="OR-Gatter (2–8 Eingänge)">
-              <div class="palette-icon">&ge;1</div>
+              <div class="palette-icon" id="pal-icon-OR">⊃</div>
               <div class="palette-name">OR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NAND" title="NAND-Gatter (2–8 Eingänge)">
-              <div class="palette-icon">!&amp;</div>
+              <div class="palette-icon" id="pal-icon-NAND">D○</div>
               <div class="palette-name">NAND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NOR" title="NOR-Gatter (2–8 Eingänge)">
-              <div class="palette-icon">!&ge;1</div>
+              <div class="palette-icon" id="pal-icon-NOR">⊃○</div>
               <div class="palette-name">NOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XOR" title="XOR-Gatter / Ungerade Parität (2–8 Eingänge)">
-              <div class="palette-icon">=1</div>
+              <div class="palette-icon" id="pal-icon-XOR">))&gt;</div>
               <div class="palette-name">XOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR-Gatter / Gerade Parität (2–8 Eingänge)">
-              <div class="palette-icon">!=1</div>
+              <div class="palette-icon" id="pal-icon-XNOR">))○</div>
               <div class="palette-name">XNOR</div>
             </div>
           </div>
@@ -877,6 +1018,10 @@
             <strong id="hud-mode" style="color: var(--accent-blue);">EDIT</strong>
           </div>
           <div class="hud-badge">
+            <span>Norm:</span>
+            <strong id="hud-norm" style="color: var(--accent-green);">DIN 40700</strong>
+          </div>
+          <div class="hud-badge">
             <span>Tick:</span>
             <strong id="hud-tick">0</strong>
           </div>
@@ -889,7 +1034,7 @@
         </div>
 
         <div id="help-hint">
-          Pan: <b>Mittelklick</b> oder <b>Leertaste + Ziehen</b> &bull; Zoom: <b>Mausrad</b> &bull; Löschen: <b>Entf / Backspace</b>
+          Rechtsklick: <b>Einstellungen öffnen</b> &bull; Pan: <b>Mittelklick / Leertaste + Ziehen</b> &bull; Zoom: <b>Mausrad</b> &bull; Löschen: <b>Entf</b>
         </div>
 
         <div id="zoom-controls">
@@ -897,16 +1042,24 @@
           <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
           <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen">+</button>
         </div>
+
+        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 12px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
+          <span>⚙️ Eigenschaften &#9664;</span>
+        </button>
       </main>
 
       <!-- 4. RIGHT INSPECTOR PANEL -->
       <aside id="inspector">
+        <div id="inspector-resizer" title="Ziehen zum Ändern der Breite (nach links/rechts)"></div>
         <div class="panel-header">
           <span>Eigenschaften (Inspector)</span>
+          <button id="btn-inspector-toggle" class="collapse-btn" title="Inspector einklappen" style="font-size: 11px;">
+            <span>&#9654;</span>
+          </button>
         </div>
         <div id="inspector-content">
           <div class="empty-inspector">
-            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus, um dessen Parameter zu konfigurieren.
+            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus (oder klicke mit rechts darauf), um dessen Einstellungen zu öffnen.
           </div>
         </div>
       </aside>
@@ -948,24 +1101,32 @@
         </div>
       </div>
     </section>
+
+    <!-- 6. FLOATING CONTEXT MENU -->
+    <div id="canvas-context-menu" class="context-menu" style="display: none;"></div>
   </div>
+
   <script>
     /**
      * ============================================================================
      * LOGICSIM PRO — SINGLE-FILE DIGITAL LOGIC SIMULATOR
      * ============================================================================
-     * Architecture:
+     * Features:
      * 1. Discrete, cycle-synchronous Two-Phase Unit-Delay Simulation (O(|V| + |E|))
-     *    - Phase 1 (Read & Compute): Reads wire states at t, computes nextOutputs for t+1
-     *    - Phase 2 (Commit & Propagate): Commits nextOutputs to outputs and wires, records Probe samples
-     * 2. Topology Invariants:
-     *    - Fan-Out >= 1 (One output pin can drive arbitrarily many input pins)
-     *    - Fan-In <= 1 (Each input pin accepts at most one connection; unconnected = 0)
-     * 3. Rising-Edge Triggering (CLK_prev === 0 && CLK_curr === 1) for Counter & Shift Register
+     * 2. Historical German Gate Symbols (DIN 40700) + Switcher to DIN EN 60617 (IEC) & ANSI (US)
+     * 3. Right-Click Interaction: Instant Inspector Open + Sleek Floating Context Menu
+     * 4. 256-Tick RingBuffer Logic Analyzer with Cursor Inspection
+     * 5. Standalone single-file HTML, zero external frameworks or CDNs
      * ============================================================================
      */
 
     const GRID_SIZE = 20;
+
+    const SYMBOL_STANDARDS = {
+      DIN_40700: 'DIN 40700 (Deutsch)',
+      DIN_EN_60617: 'DIN EN 60617 (IEC)',
+      ANSI: 'ANSI / IEEE 91 (US)'
+    };
 
     const LED_COLORS = {
       green:  { on: '#00e676', glow: 'rgba(0, 230, 118, 0.65)', off: '#143325', label: 'Grün' },
@@ -987,16 +1148,6 @@
 
     /**
      * 7-Segment Truth Table for values 0..15
-     * Segments: [a, b, c, d, e, f, g]
-     *   --a--
-     *  |     |
-     *  f     b
-     *  |     |
-     *   --g--
-     *  |     |
-     *  e     c
-     *  |     |
-     *   --d--   (DP)
      */
     const BCD_SEGMENT_TABLE = [
       [1, 1, 1, 1, 1, 1, 0], // 0
@@ -1050,7 +1201,6 @@
           this.channels.get(probeId)[writeIdx] = val ? 1 : 0;
         }
 
-        // Zero-fill any existing channels not in probeSamples
         for (const [probeId, arr] of this.channels.entries()) {
           if (!probeSamples.has(probeId)) {
             arr[writeIdx] = 0;
@@ -1097,9 +1247,9 @@
       constructor(id, fromCompId, fromPin, toCompId, toPin) {
         this.id = id;
         this.fromCompId = fromCompId;
-        this.fromPin = fromPin; // Output pin index
+        this.fromPin = fromPin;
         this.toCompId = toCompId;
-        this.toPin = toPin;     // Input pin index
+        this.toPin = toPin;
         this.level = 0;
       }
 
@@ -1115,7 +1265,7 @@
     }
 
     /**
-     * Digital Logic Component (Sources, Gates, Displays, Decoders, Sequential, Probes)
+     * Digital Logic Component
      */
     class Component {
       constructor(id, type, x, y, customParams = {}) {
@@ -1372,8 +1522,7 @@
       }
 
       /**
-       * PHASE 1 (Read & Compute):
-       * Computes nextOutputs for t + 1 from inputValues at time t
+       * PHASE 1 (Read & Compute)
        */
       compute(inputValues) {
         for (let i = 0; i < this.inputs.length; i++) {
@@ -1422,19 +1571,16 @@
             break;
           }
           case 'XOR': {
-            // Odd parity function: sum(x_i) mod 2
             const sum = inputValues.reduce((acc, v) => acc + (v ? 1 : 0), 0);
             this.nextOutputs[0] = sum % 2;
             break;
           }
           case 'XNOR': {
-            // Even parity function: !(sum(x_i) mod 2)
             const sum = inputValues.reduce((acc, v) => acc + (v ? 1 : 0), 0);
             this.nextOutputs[0] = (sum % 2) === 0 ? 1 : 0;
             break;
           }
           case 'BCD_DEC': {
-            // Weight: D3*8 + D2*4 + D1*2 + D0*1
             const d0 = inputValues[0] ? 1 : 0;
             const d1 = inputValues[1] ? 1 : 0;
             const d2 = inputValues[2] ? 1 : 0;
@@ -1448,7 +1594,6 @@
                 this.nextOutputs[i] = segs[i];
               }
             } else {
-              // Blank all segments for pseudo-tetrades 10..15 when hexMode is off
               for (let i = 0; i < 7; i++) {
                 this.nextOutputs[i] = 0;
               }
@@ -1463,21 +1608,18 @@
 
             let nextCount = this.state.count;
             if (rst === 1) {
-              // Asynchronous reset
               nextCount = 0;
             } else if (en === 1 && this.state.prevClk === 0 && clk === 1) {
-              // Rising edge on CLK with EN=1 and RST=0
               nextCount = (nextCount + 1) % modulus;
             }
 
             this.state.nextCount = nextCount;
             this.state.nextPrevClk = clk;
 
-            this.nextOutputs[0] = (nextCount >> 0) & 1; // Q0
-            this.nextOutputs[1] = (nextCount >> 1) & 1; // Q1
-            this.nextOutputs[2] = (nextCount >> 2) & 1; // Q2
-            this.nextOutputs[3] = (nextCount >> 3) & 1; // Q3
-            // Carry-Out: CO = 1 iff EN = 1 and Z = M - 1 (and not held in reset)
+            this.nextOutputs[0] = (nextCount >> 0) & 1;
+            this.nextOutputs[1] = (nextCount >> 1) & 1;
+            this.nextOutputs[2] = (nextCount >> 2) & 1;
+            this.nextOutputs[3] = (nextCount >> 3) & 1;
             this.nextOutputs[4] = (rst === 0 && en === 1 && nextCount === modulus - 1) ? 1 : 0;
             break;
           }
@@ -1488,10 +1630,8 @@
 
             let nextBits = [...this.state.bits];
             if (rst === 1) {
-              // Asynchronous reset
               nextBits = [0, 0, 0, 0];
             } else if (this.state.prevClk === 0 && clk === 1) {
-              // Rising edge shift: Q0(t+1)=DIN(t), Q1(t+1)=Q0(t), Q2(t+1)=Q1(t), Q3(t+1)=Q2(t)
               nextBits = [
                 din,
                 this.state.bits[0],
@@ -1508,17 +1648,11 @@
             }
             break;
           }
-          case 'LED':
-          case 'SEVEN_SEG':
-          case 'PROBE':
-            // Pure sink components (0 outputs)
-            break;
         }
       }
 
       /**
-       * PHASE 2 (Commit):
-       * Applies nextOutputs to outputs and updates internal sequential state
+       * PHASE 2 (Commit)
        */
       commit() {
         for (let i = 0; i < this.outputs.length; i++) {
@@ -1552,7 +1686,6 @@
 
     /**
      * Circuit Graph & Topology Manager
-     * Enforces Fan-Out >= 1 and Fan-In <= 1 invariants
      */
     class Circuit {
       constructor() {
@@ -1589,10 +1722,6 @@
         );
       }
 
-      /**
-       * Enforces Fan-In <= 1: Each input pin can have at most ONE incoming wire.
-       * Adding a new wire to an occupied input pin replaces the previous wire.
-       */
       addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null) {
         const fromComp = this.getComponent(fromCompId);
         const toComp = this.getComponent(toCompId);
@@ -1600,7 +1729,7 @@
         if (fromPin < 0 || fromPin >= fromComp.outputs.length) return null;
         if (toPin < 0 || toPin >= toComp.inputs.length) return null;
 
-        // Enforce Fan-In <= 1 by removing any existing wire on target input pin
+        // Fan-In <= 1
         this.wires = this.wires.filter(
           w => !(w.toCompId === toCompId && w.toPin === toPin)
         );
@@ -1628,10 +1757,6 @@
         return this.wires.find(w => w.toCompId === toCompId && w.toPin === toPin) || null;
       }
 
-      /**
-       * Updates gate input count n in [2, 8] and automatically deletes any wires
-       * attached to dropped pins (Pin-Index >= n).
-       */
       updateGateInputCount(compId, newCount) {
         const comp = this.getComponent(compId);
         if (!comp) return;
@@ -1639,7 +1764,6 @@
         comp.params.numInputs = n;
         comp.rebuildPins();
 
-        // Clean up wires attached to removed pins (index >= n)
         this.wires = this.wires.filter(
           w => !(w.toCompId === compId && w.toPin >= n)
         );
@@ -1705,7 +1829,7 @@
     }
 
     /**
-     * Discrete Two-Phase Unit-Delay Simulation Engine
+     * Discrete Two-Phase Simulation Engine
      */
     class SimulationEngine {
       constructor(circuit, ringBuffer, onUpdateCallback) {
@@ -1713,9 +1837,9 @@
         this.ringBuffer = ringBuffer;
         this.onUpdate = onUpdateCallback;
 
-        this.mode = 'edit'; // 'edit' | 'sim'
+        this.mode = 'edit';
         this.running = false;
-        this.frequency = 10; // Hz (1..60)
+        this.frequency = 10;
         this.tickCount = 0;
 
         this.lastFrameTime = 0;
@@ -1772,21 +1896,17 @@
         this.onUpdate();
       }
 
-      /**
-       * Executes a single discrete Two-Phase Simulation Tick in O(|V| + |E|)
-       */
       stepTick() {
         const comps = this.circuit.components;
         const wires = this.circuit.wires;
 
-        // Build fast input lookup map for O(|V| + |E|) execution
         const inputWireMap = new Map();
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
           inputWireMap.set(`${w.toCompId}:${w.toPin}`, w.level);
         }
 
-        // PHASE 1: Read current wire levels at time t & Compute nextOutputs for t + 1
+        // Phase 1: Read & Compute
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
           const inCount = comp.inputs.length;
@@ -1798,7 +1918,7 @@
           comp.compute(inputValues);
         }
 
-        // PHASE 2: Commit all nextOutputs simultaneously & Propagate to wires
+        // Phase 2: Commit & Propagate
         const compMap = new Map();
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
@@ -1812,7 +1932,6 @@
           w.level = srcComp ? (srcComp.outputs[w.fromPin]?.value || 0) : 0;
         }
 
-        // Update input pin visual states from new wire levels
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
           for (let p = 0; p < comp.inputs.length; p++) {
@@ -1829,7 +1948,6 @@
 
         this.tickCount++;
 
-        // Record sample in Logic Analyzer RingBuffer
         const probeSamples = new Map();
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
@@ -1864,11 +1982,6 @@
      * Built-in Demo Circuit Presets
      */
     const DEMO_PRESETS = {
-      /**
-       * Demo 1: BCD-Digitaluhr-Ziffer
-       * Clock -> 4-Bit-Counter (BCD) -> BCD-zu-7-Segment-Decoder -> 7-Segment-Anzeige
-       * + 5 Probes (CLK, Q0, Q1, Q2, Q3)
-       */
       bcd_clock: {
         version: 1,
         components: [
@@ -1879,8 +1992,6 @@
           { id: 'c_dec', type: 'BCD_DEC',   x: 460, y: 140, params: { label: 'BCD->7Seg', hexMode: true } },
           { id: 'c_seg', type: 'SEVEN_SEG', x: 660, y: 140, params: { label: 'Digitalziffer', color: 'green' } },
           { id: 'c_led_co', type: 'LED',    x: 460, y: 310, params: { label: 'Carry (CO)', color: 'yellow' } },
-
-          // 5 Probes for Timing Diagram
           { id: 'p_clk', type: 'PROBE',     x: 260, y: 60,  params: { name: 'CLK', color: '#00b0ff' } },
           { id: 'p_q0',  type: 'PROBE',     x: 460, y: 380, params: { name: 'Q0 (LSB)', color: '#00e676' } },
           { id: 'p_q1',  type: 'PROBE',     x: 560, y: 380, params: { name: 'Q1', color: '#ffb300' } },
@@ -1888,19 +1999,14 @@
           { id: 'p_q3',  type: 'PROBE',     x: 760, y: 380, params: { name: 'Q3 (MSB)', color: '#b388ff' } }
         ],
         wires: [
-          // Inputs to Counter
           { id: 'w1', fromCompId: 'c_clk', fromPin: 0, toCompId: 'c_cnt', toPin: 0 },
           { id: 'w2', fromCompId: 'c_en',  fromPin: 0, toCompId: 'c_cnt', toPin: 1 },
           { id: 'w3', fromCompId: 'c_rst', fromPin: 0, toCompId: 'c_cnt', toPin: 2 },
-
-          // Counter Q0..Q3 to Decoder D0..D3
           { id: 'w4', fromCompId: 'c_cnt', fromPin: 0, toCompId: 'c_dec', toPin: 0 },
           { id: 'w5', fromCompId: 'c_cnt', fromPin: 1, toCompId: 'c_dec', toPin: 1 },
           { id: 'w6', fromCompId: 'c_cnt', fromPin: 2, toCompId: 'c_dec', toPin: 2 },
           { id: 'w7', fromCompId: 'c_cnt', fromPin: 3, toCompId: 'c_dec', toPin: 3 },
           { id: 'w8', fromCompId: 'c_cnt', fromPin: 4, toCompId: 'c_led_co', toPin: 0 },
-
-          // Decoder a..g to 7-Segment Display a..g
           { id: 'w9',  fromCompId: 'c_dec', fromPin: 0, toCompId: 'c_seg', toPin: 0 },
           { id: 'w10', fromCompId: 'c_dec', fromPin: 1, toCompId: 'c_seg', toPin: 1 },
           { id: 'w11', fromCompId: 'c_dec', fromPin: 2, toCompId: 'c_seg', toPin: 2 },
@@ -1908,8 +2014,6 @@
           { id: 'w13', fromCompId: 'c_dec', fromPin: 4, toCompId: 'c_seg', toPin: 4 },
           { id: 'w14', fromCompId: 'c_dec', fromPin: 5, toCompId: 'c_seg', toPin: 5 },
           { id: 'w15', fromCompId: 'c_dec', fromPin: 6, toCompId: 'c_seg', toPin: 6 },
-
-          // Probes
           { id: 'w16', fromCompId: 'c_clk', fromPin: 0, toCompId: 'p_clk', toPin: 0 },
           { id: 'w17', fromCompId: 'c_cnt', fromPin: 0, toCompId: 'p_q0',  toPin: 0 },
           { id: 'w18', fromCompId: 'c_cnt', fromPin: 1, toCompId: 'p_q1',  toPin: 0 },
@@ -1917,12 +2021,6 @@
           { id: 'w20', fromCompId: 'c_cnt', fromPin: 3, toCompId: 'p_q3',  toPin: 0 }
         ]
       },
-
-      /**
-       * Demo 2: Lauflicht & Gatterlogik (LFSR)
-       * Clock + manual switches (DIN, RST) + 3-Input XOR feedback generator -> 4-Bit-Schieberegister
-       * with 4 colored LEDs and Probes at the outputs.
-       */
       lfsr_light: {
         version: 1,
         components: [
@@ -1931,14 +2029,10 @@
           { id: 'l_rst',  type: 'SWITCH',    x: 60,  y: 280, params: { label: 'Reset (RST)', initialValue: 0 } },
           { id: 'l_xor',  type: 'XOR',       x: 220, y: 100, params: { label: 'LFSR-XOR', numInputs: 3 } },
           { id: 'l_sipo', type: 'SHIFT_REG', x: 380, y: 160, params: { label: '4-Bit SIPO' } },
-
-          // 4 Colored LEDs
           { id: 'l_led0', type: 'LED',       x: 580, y: 100, params: { label: 'Lampe Q0', color: 'green' } },
           { id: 'l_led1', type: 'LED',       x: 580, y: 170, params: { label: 'Lampe Q1', color: 'yellow' } },
           { id: 'l_led2', type: 'LED',       x: 580, y: 240, params: { label: 'Lampe Q2', color: 'blue' } },
           { id: 'l_led3', type: 'LED',       x: 580, y: 310, params: { label: 'Lampe Q3', color: 'red' } },
-
-          // Probes for Logic Analyzer
           { id: 'lp_clk', type: 'PROBE',     x: 220, y: 360, params: { name: 'CLK', color: '#00b0ff' } },
           { id: 'lp_q0',  type: 'PROBE',     x: 700, y: 100, params: { name: 'Q0',  color: '#00e676' } },
           { id: 'lp_q1',  type: 'PROBE',     x: 700, y: 170, params: { name: 'Q1',  color: '#ffd600' } },
@@ -1946,23 +2040,16 @@
           { id: 'lp_q3',  type: 'PROBE',     x: 700, y: 310, params: { name: 'Q3',  color: '#ff5252' } }
         ],
         wires: [
-          // 3-Input XOR: Seed Switch + Feedback from Q2 and Q3
           { id: 'lw1', fromCompId: 'l_din',  fromPin: 0, toCompId: 'l_xor',  toPin: 0 },
           { id: 'lw2', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_xor',  toPin: 1 },
           { id: 'lw3', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_xor',  toPin: 2 },
-
-          // Shift Register Inputs (DIN from XOR, CLK, RST)
           { id: 'lw4', fromCompId: 'l_xor',  fromPin: 0, toCompId: 'l_sipo', toPin: 0 },
           { id: 'lw5', fromCompId: 'l_clk',  fromPin: 0, toCompId: 'l_sipo', toPin: 1 },
           { id: 'lw6', fromCompId: 'l_rst',  fromPin: 0, toCompId: 'l_sipo', toPin: 2 },
-
-          // Shift Register Outputs Q0..Q3 to 4 Colored LEDs
           { id: 'lw7',  fromCompId: 'l_sipo', fromPin: 0, toCompId: 'l_led0', toPin: 0 },
           { id: 'lw8',  fromCompId: 'l_sipo', fromPin: 1, toCompId: 'l_led1', toPin: 0 },
           { id: 'lw9',  fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_led2', toPin: 0 },
           { id: 'lw10', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_led3', toPin: 0 },
-
-          // Probes
           { id: 'lw11', fromCompId: 'l_clk',  fromPin: 0, toCompId: 'lp_clk', toPin: 0 },
           { id: 'lw12', fromCompId: 'l_sipo', fromPin: 0, toCompId: 'lp_q0',  toPin: 0 },
           { id: 'lw13', fromCompId: 'l_sipo', fromPin: 1, toCompId: 'lp_q1',  toPin: 0 },
@@ -1973,7 +2060,10 @@
     };
 
     /**
-     * Main Workspace Canvas Renderer & Hit-Testing Engine
+     * Canvas Renderer with Support for:
+     * - DIN 40700 (Ursprünglich Deutsch)
+     * - DIN EN 60617 (IEC Rechteck)
+     * - ANSI / IEEE 91 (US Distinctive Shapes)
      */
     class CanvasRenderer {
       constructor(canvas, circuit, engine) {
@@ -1982,22 +2072,29 @@
         this.circuit = circuit;
         this.engine = engine;
 
+        this.symbolStandard = 'DIN_40700'; // Default: DIN 40700 Deutsch
+
         this.panX = 40;
         this.panY = 40;
         this.zoom = 1.0;
 
-        this.selectedCompId = null;
+        this.selectedCompIds = new Set();
         this.selectedWireId = null;
-        this.hoveredPin = null; // { compId, isOutput, pinIndex, x, y }
+        this.hoveredPin = null;
         this.hoveredWireId = null;
-        this.activeWireDrag = null; // { fromCompId, isOutput, pinIndex, startX, startY, currX, currY }
+        this.activeWireDrag = null;
+        this.selectionBox = null;
       }
 
-      /**
-       * Exact Coordinate Transformations per Specification:
-       * x_world = (x_screen - pan_x) / zoom
-       * y_world = (y_screen - pan_y) / zoom
-       */
+      get selectedCompId() {
+        return this.selectedCompIds.size === 1 ? Array.from(this.selectedCompIds)[0] : null;
+      }
+
+      set selectedCompId(id) {
+        this.selectedCompIds.clear();
+        if (id) this.selectedCompIds.add(id);
+      }
+
       screenToWorld(screenX, screenY) {
         return {
           x: (screenX - this.panX) / this.zoom,
@@ -2025,22 +2122,11 @@
         const dy = y2 - y1;
         if (dx >= 20) {
           const offset = Math.max(40, Math.min(160, dx * 0.48));
-          return {
-            cp1x: x1 + offset,
-            cp1y: y1,
-            cp2x: x2 - offset,
-            cp2y: y2
-          };
+          return { cp1x: x1 + offset, cp1y: y1, cp2x: x2 - offset, cp2y: y2 };
         } else {
-          // Smooth loopback curve for feedback circuits (e.g. RS-Flip-Flop or LFSR)
           const horiz = Math.max(65, Math.abs(dx) * 0.35 + 55);
           const vertShift = dy === 0 ? -70 : Math.sign(dy) * Math.min(90, Math.abs(dy) * 0.4 + 35);
-          return {
-            cp1x: x1 + horiz,
-            cp1y: y1 + vertShift,
-            cp2x: x2 - horiz,
-            cp2y: y2 + vertShift
-          };
+          return { cp1x: x1 + horiz, cp1y: y1 + vertShift, cp2x: x2 - horiz, cp2y: y2 + vertShift };
         }
       }
 
@@ -2141,11 +2227,9 @@
         ctx.save();
         ctx.scale(dpr, dpr);
 
-        // 1. Background
         ctx.fillStyle = '#0b0d10';
         ctx.fillRect(0, 0, width, height);
 
-        // 2. Transform into World Space
         ctx.save();
         ctx.translate(this.panX, this.panY);
         ctx.scale(this.zoom, this.zoom);
@@ -2154,8 +2238,27 @@
         this.drawWires(ctx);
         this.drawActiveWireDrag(ctx);
         this.drawComponents(ctx);
+        this.drawSelectionBox(ctx);
 
         ctx.restore();
+        ctx.restore();
+      }
+
+      drawSelectionBox(ctx) {
+        if (!this.selectionBox) return;
+        const { startX, startY, currX, currY } = this.selectionBox;
+        const x = Math.min(startX, currX);
+        const y = Math.min(startY, currY);
+        const w = Math.abs(currX - startX);
+        const h = Math.abs(currY - startY);
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 176, 255, 0.14)';
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = '#00b0ff';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(x, y, w, h);
         ctx.restore();
       }
 
@@ -2258,13 +2361,46 @@
         }
       }
 
+      isGate(type) {
+        return ['NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR'].includes(type);
+      }
+
       drawSingleComponent(ctx, comp) {
-        const isSelected = comp.id === this.selectedCompId;
+        const isSelected = this.selectedCompIds.has(comp.id);
         const { x, y, width, height, type } = comp;
 
         ctx.save();
 
-        // Component Chassis Shadow & Body
+        if (this.isGate(type)) {
+          if (this.symbolStandard === 'DIN_EN_60617') {
+            this.drawChassisBox(ctx, x, y, width, height, isSelected);
+            this.drawGateIEC(ctx, comp);
+          } else if (this.symbolStandard === 'ANSI') {
+            this.drawGateShape(ctx, comp, isSelected, 'ANSI');
+          } else {
+            // Default: DIN 40700 (Ursprünglich Deutsch)
+            this.drawGateShape(ctx, comp, isSelected, 'DIN_40700');
+          }
+        } else {
+          this.drawChassisBox(ctx, x, y, width, height, isSelected);
+          this.drawComponentInterior(ctx, comp);
+        }
+
+        // Draw top label (except PROBE which renders inside)
+        if (type !== 'PROBE') {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 10.5px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
+        }
+
+        // Draw Pins & Lead lines
+        this.drawComponentPins(ctx, comp);
+
+        ctx.restore();
+      }
+
+      drawChassisBox(ctx, x, y, width, height, isSelected) {
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.5)';
           ctx.shadowBlur = 12;
@@ -2281,22 +2417,186 @@
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.stroke();
+      }
 
-        // Top Label above component (except PROBE which draws name inside)
-        if (type !== 'PROBE') {
-          ctx.fillStyle = '#94a3b8';
-          ctx.font = '600 10.5px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
+      /**
+       * Draws Gates in DIN 40700 (Historical German) or ANSI (US) Shapes
+       */
+      drawGateShape(ctx, comp, isSelected, style = 'DIN_40700') {
+        const { x, y, width, height, type } = comp;
+        const isInverted = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
+        const isXorType = type === 'XOR' || type === 'XNOR';
+
+        const gx1 = x + 16;
+        const gx2 = x + width - 16;
+        const gy1 = y + 7;
+        const gy2 = y + height - 7;
+        const cy = y + height / 2;
+        const rBubble = 3.6;
+        const dBubble = rBubble * 2;
+        const bodyEnd = isInverted ? gx2 - dBubble - 2 : gx2;
+
+        if (isSelected) {
+          ctx.shadowColor = 'rgba(0, 176, 255, 0.55)';
+          ctx.shadowBlur = 12;
+        } else {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+          ctx.shadowBlur = 6;
         }
 
-        // Draw specialized interior graphics
-        this.drawComponentInterior(ctx, comp);
+        ctx.fillStyle = '#151a22';
+        ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+        ctx.lineWidth = isSelected ? 2.2 : 1.6;
 
-        // Draw Input & Output Pins
-        this.drawComponentPins(ctx, comp);
+        // 1. Draw Body Outline
+        ctx.beginPath();
 
+        if (type === 'NOT') {
+          // Right-pointing Triangle
+          ctx.moveTo(gx1, gy1);
+          ctx.lineTo(bodyEnd, cy);
+          ctx.lineTo(gx1, gy2);
+          ctx.closePath();
+        } else if (type === 'AND' || type === 'NAND') {
+          // Semi-Ellipse / D-Form (DIN 40700 & ANSI)
+          const straightX = gx1 + (bodyEnd - gx1) * 0.38;
+          ctx.moveTo(gx1, gy1);
+          ctx.lineTo(straightX, gy1);
+          ctx.bezierCurveTo(bodyEnd, gy1, bodyEnd, gy2, straightX, gy2);
+          ctx.lineTo(gx1, gy2);
+          ctx.closePath();
+        } else if (type === 'OR' || type === 'NOR' || isXorType) {
+          if (style === 'ANSI') {
+            // ANSI Concave Curved Back
+            ctx.moveTo(gx1, gy1);
+            ctx.bezierCurveTo(gx1 + (bodyEnd - gx1) * 0.55, gy1, bodyEnd - 6, cy - 3, bodyEnd, cy);
+            ctx.bezierCurveTo(bodyEnd - 6, cy + 3, gx1 + (gx2 - gx1) * 0.55, gy2, gx1, gy2);
+            ctx.quadraticCurveTo(gx1 + 9, cy, gx1, gy1);
+            ctx.closePath();
+          } else {
+            // DIN 40700 Spitzbogen / Halbei (convex lens shape)
+            ctx.moveTo(gx1, gy1);
+            ctx.bezierCurveTo(gx1 + (bodyEnd - gx1) * 0.5, gy1 - 2, bodyEnd - 4, cy - 2, bodyEnd, cy);
+            ctx.bezierCurveTo(bodyEnd - 4, cy + 2, gx1 + (bodyEnd - gx1) * 0.5, gy2 + 2, gx1, gy2);
+            ctx.lineTo(gx1, gy1);
+            ctx.closePath();
+          }
+        }
+
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.stroke();
+
+        // 2. Extra Input Arc for XOR / XNOR
+        if (isXorType) {
+          ctx.save();
+          ctx.beginPath();
+          if (style === 'ANSI') {
+            ctx.moveTo(gx1 - 6, gy1);
+            ctx.quadraticCurveTo(gx1 + 3, cy, gx1 - 6, gy2);
+          } else {
+            // DIN 40700: Parallel input boundary arc
+            ctx.moveTo(gx1 - 5, gy1);
+            ctx.lineTo(gx1 - 5, gy2);
+          }
+          ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+          ctx.lineWidth = isSelected ? 2 : 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 3. Inversion Bubble
+        if (isInverted) {
+          const bx = bodyEnd + rBubble + 1;
+          ctx.beginPath();
+          ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
+          ctx.fillStyle = '#0b0d10';
+          ctx.fill();
+          ctx.strokeStyle = isSelected ? '#00b0ff' : '#00e676';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        }
+
+        // 4. Output Lead Line from Body/Bubble to Pin
+        const outLeadStart = isInverted ? bodyEnd + dBubble + 1 : bodyEnd;
+        const outPinX = x + width;
+        const isOutHigh = comp.outputs[0]?.value === 1;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(outLeadStart, cy);
+        ctx.lineTo(outPinX, cy);
+        ctx.strokeStyle = isOutHigh ? '#00e676' : '#2e3948';
+        ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
+        if (isOutHigh) {
+          ctx.shadowColor = 'rgba(0, 230, 118, 0.6)';
+          ctx.shadowBlur = 6;
+        }
+        ctx.stroke();
         ctx.restore();
+
+        // 5. Input Lead Lines from Pins to Body Boundary
+        const inputBoundaryX = (isXorType) ? (gx1 - 5) : gx1;
+        for (let i = 0; i < comp.inputs.length; i++) {
+          const pin = comp.inputs[i];
+          const py = y + pin.relY;
+          const isHigh = pin.value === 1;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, py);
+          ctx.lineTo(inputBoundaryX, py);
+          ctx.strokeStyle = isHigh ? '#00e676' : '#2e3948';
+          ctx.lineWidth = isHigh ? 2.2 : 1.4;
+          if (isHigh) {
+            ctx.shadowColor = 'rgba(0, 230, 118, 0.6)';
+            ctx.shadowBlur = 6;
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      /**
+       * Modern IEC Gate Drawing (DIN EN 60617)
+       */
+      drawGateIEC(ctx, comp) {
+        const { x, y, width, height, type } = comp;
+        const cx = x + width / 2;
+        const cy = y + height / 2;
+
+        const symbols = {
+          NOT: '1',
+          AND: '&',
+          OR: '≥1',
+          NAND: '&',
+          NOR: '≥1',
+          XOR: '=1',
+          XNOR: '=1'
+        };
+        const isInverted = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
+
+        ctx.fillStyle = '#0f1319';
+        ctx.strokeStyle = '#263142';
+        ctx.lineWidth = 1;
+        this.roundRect(ctx, x + 22, y + 8, width - 44, height - 16, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '700 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(symbols[type], cx, cy + 5);
+
+        if (isInverted) {
+          ctx.beginPath();
+          ctx.arc(x + width - 17, cy, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#0b0d10';
+          ctx.fill();
+          ctx.strokeStyle = '#00b0ff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       }
 
       drawComponentInterior(ctx, comp) {
@@ -2319,7 +2619,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Knob
             const knobX = isOn ? sx + swW - 10 : sx + 10;
             ctx.beginPath();
             ctx.arc(knobX, cy, 6.5, 0, Math.PI * 2);
@@ -2373,50 +2672,6 @@
             break;
           }
 
-          case 'NOT':
-          case 'AND':
-          case 'OR':
-          case 'NAND':
-          case 'NOR':
-          case 'XOR':
-          case 'XNOR': {
-            const symbols = {
-              NOT: '1',
-              AND: '&',
-              OR: '≥1',
-              NAND: '&',
-              NOR: '≥1',
-              XOR: '=1',
-              XNOR: '=1'
-            };
-            const isInverted = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
-
-            // Inner IEC Symbol Box
-            ctx.fillStyle = '#0f1319';
-            ctx.strokeStyle = '#263142';
-            ctx.lineWidth = 1;
-            this.roundRect(ctx, x + 22, y + 8, width - 44, height - 16, 4);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '700 14px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(symbols[type], cx, cy + 5);
-
-            // Inversion circle indicator near output Y
-            if (isInverted) {
-              ctx.beginPath();
-              ctx.arc(x + width - 17, cy, 3.5, 0, Math.PI * 2);
-              ctx.fillStyle = '#0b0d10';
-              ctx.fill();
-              ctx.strokeStyle = '#00b0ff';
-              ctx.lineWidth = 1.5;
-              ctx.stroke();
-            }
-            break;
-          }
-
           case 'LED': {
             const isOn = comp.inputs[0]?.value === 1;
             const cObj = LED_COLORS[comp.params.color] || LED_COLORS.green;
@@ -2459,21 +2714,13 @@
             const sw = 30;
             const sh = 44;
 
-            // Segments: a, b, c, d, e, f, g
             const segCoords = [
-              // a (top horizontal)
               { x: sx + 3, y: sy, w: sw - 6, h: 5 },
-              // b (top-right vertical)
               { x: sx + sw - 4, y: sy + 4, w: 5, h: sh - 6 },
-              // c (bottom-right vertical)
               { x: sx + sw - 4, y: sy + sh + 4, w: 5, h: sh - 6 },
-              // d (bottom horizontal)
               { x: sx + 3, y: sy + sh * 2, w: sw - 6, h: 5 },
-              // e (bottom-left vertical)
               { x: sx - 1, y: sy + sh + 4, w: 5, h: sh - 6 },
-              // f (top-left vertical)
               { x: sx - 1, y: sy + 4, w: 5, h: sh - 6 },
-              // g (middle horizontal)
               { x: sx + 3, y: sy + sh, w: sw - 6, h: 5 }
             ];
 
@@ -2493,7 +2740,6 @@
               ctx.restore();
             }
 
-            // DP (Decimal Point)
             const dpActive = vals[7] === 1;
             ctx.save();
             ctx.beginPath();
@@ -2591,19 +2837,16 @@
             const isHigh = comp.inputs[0]?.value === 1;
             const probeColor = comp.params.color || '#00e676';
 
-            // Left Color Bar
             ctx.fillStyle = probeColor;
             this.roundRect(ctx, x + 8, y + 7, 5, height - 14, 2);
             ctx.fill();
 
-            // Channel Name
             ctx.fillStyle = '#e2e8f0';
             ctx.font = '700 11px monospace';
             ctx.textAlign = 'left';
             const displayName = (comp.params.name || 'PRB').slice(0, 7);
             ctx.fillText(displayName, x + 17, cy + 4);
 
-            // Live Bit Pill
             ctx.fillStyle = isHigh ? '#00e676' : '#334155';
             ctx.font = '700 10px monospace';
             ctx.textAlign = 'right';
@@ -2614,7 +2857,6 @@
       }
 
       drawComponentPins(ctx, comp) {
-        // Input Pins (Left)
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
           const px = comp.x + pin.relX;
@@ -2627,7 +2869,6 @@
 
           this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
 
-          // Rising-edge clock triangle for CLK inputs on COUNTER & SHIFT_REG
           if (pin.name === 'CLK') {
             ctx.strokeStyle = '#64748b';
             ctx.lineWidth = 1.2;
@@ -2638,14 +2879,12 @@
             ctx.stroke();
           }
 
-          // Pin Name
           ctx.fillStyle = '#94a3b8';
           ctx.font = '500 9.5px monospace';
           ctx.textAlign = 'left';
           ctx.fillText(pin.name, px + 7, py + 3);
         }
 
-        // Output Pins (Right)
         for (let i = 0; i < comp.outputs.length; i++) {
           const pin = comp.outputs[i];
           const px = comp.x + pin.relX;
@@ -2658,7 +2897,6 @@
 
           this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
 
-          // Pin Name
           ctx.fillStyle = '#94a3b8';
           ctx.font = '500 9.5px monospace';
           ctx.textAlign = 'right';
@@ -2707,7 +2945,7 @@
     }
 
     /**
-     * Logic Analyzer / Timing Diagram (Impulsdiagramm) Renderer
+     * Logic Analyzer / Timing Diagram Renderer
      */
     class LogicAnalyzerRenderer {
       constructor(canvas, circuit, ringBuffer) {
@@ -2716,8 +2954,8 @@
         this.circuit = circuit;
         this.ringBuffer = ringBuffer;
 
-        this.pixelsPerTick = 12; // Zoomable 4..32 px/Tick
-        this.scrollRatio = 1.0;  // 0.0 (oldest) .. 1.0 (latest)
+        this.pixelsPerTick = 12;
+        this.scrollRatio = 1.0;
         this.hoverX = null;
         this.hoverY = null;
         this.gutterWidth = 135;
@@ -2808,7 +3046,6 @@
         const startOffset = Math.round(maxStartOffset * this.scrollRatio);
         const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
 
-        // 1. Time Axis Ruler Header
         ctx.fillStyle = '#10141b';
         ctx.fillRect(0, 0, width, headerH);
         ctx.strokeStyle = '#1e2633';
@@ -2822,7 +3059,6 @@
         ctx.textAlign = 'left';
         ctx.fillText('KANAL / PROBE', 10, 14);
 
-        // 2. Vertical Tick Grid & Tick Labels
         const labelInterval = this.pixelsPerTick >= 18 ? 2 : (this.pixelsPerTick >= 10 ? 5 : 10);
         for (let i = 0; i <= visibleTicks; i++) {
           const offset = startOffset + i;
@@ -2849,7 +3085,6 @@
           }
         }
 
-        // Determine Hovered Sample Offset for Measurement Cursor
         let hoveredOffset = null;
         if (this.hoverX !== null && this.hoverX >= this.gutterWidth && totalSamples > 0) {
           const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
@@ -2859,7 +3094,6 @@
           }
         }
 
-        // 3. Draw Each Probe Channel Row & Digital Square Waveform
         for (let pIdx = 0; pIdx < probes.length; pIdx++) {
           const probe = probes[pIdx];
           const rowTop = headerH + pIdx * rowH;
@@ -2869,14 +3103,12 @@
           const lowY = rowTop + rowH - 6;
           const color = probe.params.color || '#00e676';
 
-          // Row Divider
           ctx.strokeStyle = '#141922';
           ctx.beginPath();
           ctx.moveTo(0, rowTop + rowH);
           ctx.lineTo(width, rowTop + rowH);
           ctx.stroke();
 
-          // Digital Square Waveform
           if (endOffset > startOffset) {
             ctx.save();
             ctx.strokeStyle = color;
@@ -2895,7 +3127,6 @@
               } else {
                 const prevVal = this.ringBuffer.getValueAtOffset(probe.id, offset - 1);
                 if (prevVal !== val) {
-                  // Crisp vertical edge transition 0 -> 1 or 1 -> 0
                   ctx.lineTo(x0, y);
                 }
               }
@@ -2903,7 +3134,6 @@
             }
             ctx.stroke();
 
-            // Subtle shaded fill under High segments
             ctx.fillStyle = color;
             ctx.globalAlpha = 0.08;
             for (let offset = startOffset; offset < endOffset; offset++) {
@@ -2917,23 +3147,19 @@
             ctx.restore();
           }
 
-          // Left Gutter Background for Channel Label
           ctx.fillStyle = '#0e1218';
           ctx.fillRect(0, rowTop, this.gutterWidth, rowH - 1);
 
-          // Color dot
           ctx.fillStyle = color;
           ctx.beginPath();
           ctx.arc(12, rowTop + rowH / 2, 4, 0, Math.PI * 2);
           ctx.fill();
 
-          // Channel Name
           ctx.fillStyle = '#e2e8f0';
           ctx.font = '600 11px monospace';
           ctx.textAlign = 'left';
           ctx.fillText((probe.params.name || 'PRB').slice(0, 10), 22, rowTop + rowH / 2 + 4);
 
-          // Current or Hovered Binary Value Badge in Gutter
           const displayVal = hoveredOffset !== null
             ? this.ringBuffer.getValueAtOffset(probe.id, hoveredOffset)
             : (probe.inputs[0]?.value || 0);
@@ -2944,14 +3170,12 @@
           ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 10, rowTop + rowH / 2 + 4);
         }
 
-        // Gutter Vertical Border
         ctx.strokeStyle = '#222936';
         ctx.beginPath();
         ctx.moveTo(this.gutterWidth, 0);
         ctx.lineTo(this.gutterWidth, height);
         ctx.stroke();
 
-        // 4. Vertical Measurement Cursor (Hover)
         if (hoveredOffset !== null) {
           const cursorIdx = hoveredOffset - startOffset;
           const cursorX = this.gutterWidth + (cursorIdx + 0.5) * this.pixelsPerTick;
@@ -2967,7 +3191,6 @@
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Highlight sample points on each channel
           for (let pIdx = 0; pIdx < probes.length; pIdx++) {
             const probe = probes[pIdx];
             const rowTop = headerH + pIdx * rowH;
@@ -2981,7 +3204,6 @@
             ctx.fill();
           }
 
-          // Floating Tick Banner in Header
           const badgeText = `Tick t = ${tickAtCursor}`;
           ctx.font = '700 10.5px monospace';
           const tw = ctx.measureText(badgeText).width + 12;
@@ -3000,7 +3222,7 @@
     }
 
     /**
-     * Right-Hand Property Inspector Panel UI
+     * Inspector Panel UI
      */
     class InspectorUI {
       constructor(containerEl, circuit, engine, ringBuffer, onChangeCallback) {
@@ -3062,7 +3284,6 @@
           return;
         }
 
-        // 1. Component Summary Box
         const info = document.createElement('div');
         info.className = 'prop-info-box';
         info.innerHTML = `
@@ -3072,7 +3293,6 @@
         `;
         this.container.appendChild(info);
 
-        // 2. Label / Channel Name Field
         if (comp.type === 'PROBE') {
           this.addTextControl('Kanalname (Probe)', comp.params.name, isSim, (val) => {
             comp.params.name = val.trim() || 'PRB';
@@ -3085,7 +3305,6 @@
           });
         }
 
-        // 3. Component-Specific Configurable Parameters
         switch (comp.type) {
           case 'SWITCH': {
             this.addSelectControl(
@@ -3235,7 +3454,6 @@
           }
         }
 
-        // 4. Delete Component Button
         const delBtn = document.createElement('button');
         delBtn.className = 'btn btn-danger';
         delBtn.style.marginTop = '12px';
@@ -3258,10 +3476,68 @@
         }
       }
 
+      renderMulti(selectedCompIds) {
+        this.container.innerHTML = '';
+        const isSim = this.engine.mode === 'sim';
+        const comps = Array.from(selectedCompIds).map(id => this.circuit.getComponent(id)).filter(Boolean);
+
+        const info = document.createElement('div');
+        info.className = 'prop-info-box';
+        info.innerHTML = `
+          <div><strong>Mehrfachauswahl:</strong> ${comps.length} Bauteile</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            ${Array.from(new Set(comps.map(c => this.getReadableTypeName(c.type)))).join(', ')}
+          </div>
+        `;
+        this.container.appendChild(info);
+
+        const hint = document.createElement('div');
+        hint.style.fontSize = '11px';
+        hint.style.color = 'var(--text-muted)';
+        hint.style.marginTop = '4px';
+        hint.textContent = 'Tipp: Ziehe an einem der ausgewählten Bauteile, um die gesamte Gruppe synchron am Raster zu verschieben.';
+        this.container.appendChild(hint);
+
+        const dupBtn = document.createElement('button');
+        dupBtn.className = 'btn';
+        dupBtn.style.marginTop = '10px';
+        dupBtn.disabled = isSim;
+        dupBtn.innerHTML = '📋 Auswahl duplizieren';
+        dupBtn.addEventListener('click', () => {
+          if (this.engine.mode === 'sim') return;
+          const newIds = new Set();
+          for (const c of comps) {
+            const copy = this.circuit.addComponent(
+              c.type,
+              c.x + 40,
+              c.y + 40,
+              { ...c.params, label: c.params.label ? `${c.params.label}_2` : undefined }
+            );
+            newIds.add(copy.id);
+          }
+          this.onChange(false, newIds);
+        });
+        this.container.appendChild(dupBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-danger';
+        delBtn.style.marginTop = '8px';
+        delBtn.disabled = isSim;
+        delBtn.innerHTML = `🗑️ ${comps.length} Bauteile löschen`;
+        delBtn.addEventListener('click', () => {
+          if (this.engine.mode === 'sim') return;
+          for (const c of comps) {
+            this.circuit.removeComponent(c.id, this.ringBuffer);
+          }
+          this.onChange(true);
+        });
+        this.container.appendChild(delBtn);
+      }
+
       renderEmpty() {
         this.container.innerHTML = `
           <div class="empty-inspector">
-            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus, um dessen Parameter zu konfigurieren.
+            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus (oder klicke mit rechts darauf), um dessen Einstellungen zu öffnen.
           </div>
         `;
       }
@@ -3308,7 +3584,7 @@
       addRangeControl(label, currentVal, min, max, unit, disabled, onChange) {
         const group = document.createElement('div');
         group.className = 'prop-group';
-        const lbl = document.createElement('div');
+        const lbl = document.createElement('label');
         lbl.className = 'prop-label';
         const nameSpan = document.createElement('span');
         nameSpan.textContent = label;
@@ -3370,6 +3646,7 @@
         this.gridCanvas = document.getElementById('grid-canvas');
         this.analyzerCanvas = document.getElementById('analyzer-canvas');
         this.inspectorContainer = document.getElementById('inspector-content');
+        this.contextMenuEl = document.getElementById('canvas-context-menu');
 
         this.engine = new SimulationEngine(this.circuit, this.ringBuffer, () => this.onSimulationUpdate());
         this.renderer = new CanvasRenderer(this.gridCanvas, this.circuit, this.engine);
@@ -3379,43 +3656,108 @@
           this.circuit,
           this.engine,
           this.ringBuffer,
-          (clearSelection) => {
+          (clearSelection, newSelection) => {
             if (clearSelection) {
-              this.renderer.selectedCompId = null;
+              this.renderer.selectedCompIds.clear();
               this.renderer.selectedWireId = null;
               this.inspector.render(null, null);
+            } else if (newSelection) {
+              this.selectMulti(newSelection);
             }
             this.refreshAll();
           }
         );
 
-        // Interaction State
         this.isPanning = false;
         this.spacePressed = false;
         this.panStartScreen = { x: 0, y: 0 };
         this.panOrigin = { x: 0, y: 0 };
 
+        this.isSelectingBox = false;
+        this.isDraggingGroup = false;
+        this.groupDragStartWorld = { x: 0, y: 0 };
+        this.groupStartPositions = null;
+
         this.draggingComp = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
+
+        // Restore or set Default Symbol Standard: DIN 40700
+        const savedNorm = localStorage.getItem('logicsim_symbol_norm') || 'DIN_40700';
+        this.setSymbolStandard(savedNorm);
 
         this.initToolbarEvents();
         this.initPaletteEvents();
         this.initCanvasEvents();
         this.initAnalyzerEvents();
         this.initKeyboardEvents();
+        this.initContextMenuEvents();
+        this.initInspectorResizerEvents();
 
         window.addEventListener('resize', () => {
           this.renderer.resize();
           this.analyzer.resize();
         });
 
-        // Load Demo 1 (BCD Digital Clock Digit) by default on startup
         this.loadDemo('bcd_clock');
         setTimeout(() => {
           this.renderer.resize();
           this.analyzer.resize();
         }, 10);
+      }
+
+      setSymbolStandard(norm) {
+        if (!SYMBOL_STANDARDS[norm]) norm = 'DIN_40700';
+        this.renderer.symbolStandard = norm;
+        localStorage.setItem('logicsim_symbol_norm', norm);
+
+        const sel = document.getElementById('select-symbol-norm');
+        if (sel) sel.value = norm;
+
+        const hudNorm = document.getElementById('hud-norm');
+        if (hudNorm) {
+          hudNorm.textContent = norm === 'DIN_40700' ? 'DIN 40700' : (norm === 'DIN_EN_60617' ? 'DIN EN (IEC)' : 'ANSI (US)');
+        }
+
+        this.updatePaletteIcons(norm);
+        this.renderer.render();
+      }
+
+      updatePaletteIcons(norm) {
+        const iconNOT = document.getElementById('pal-icon-NOT');
+        const iconAND = document.getElementById('pal-icon-AND');
+        const iconOR  = document.getElementById('pal-icon-OR');
+        const iconNAND = document.getElementById('pal-icon-NAND');
+        const iconNOR  = document.getElementById('pal-icon-NOR');
+        const iconXOR  = document.getElementById('pal-icon-XOR');
+        const iconXNOR = document.getElementById('pal-icon-XNOR');
+
+        if (norm === 'DIN_EN_60617') {
+          if (iconNOT) iconNOT.textContent = '1';
+          if (iconAND) iconAND.textContent = '&';
+          if (iconOR)  iconOR.textContent = '≥1';
+          if (iconNAND) iconNAND.textContent = '!&';
+          if (iconNOR)  iconNOR.textContent = '!≥1';
+          if (iconXOR)  iconXOR.textContent = '=1';
+          if (iconXNOR) iconXNOR.textContent = '!=1';
+        } else if (norm === 'ANSI') {
+          if (iconNOT) iconNOT.textContent = '▷○';
+          if (iconAND) iconAND.textContent = 'D';
+          if (iconOR)  iconOR.textContent = ')▶';
+          if (iconNAND) iconNAND.textContent = 'D○';
+          if (iconNOR)  iconNOR.textContent = ')▶○';
+          if (iconXOR)  iconXOR.textContent = '))▶';
+          if (iconXNOR) iconXNOR.textContent = '))▶○';
+        } else {
+          // DIN 40700 (Ursprünglich Deutsch)
+          if (iconNOT) iconNOT.textContent = '▷○';
+          if (iconAND) iconAND.textContent = 'D';
+          if (iconOR)  iconOR.textContent = '⊃';
+          if (iconNAND) iconNAND.textContent = 'D○';
+          if (iconNOR)  iconNOR.textContent = '⊃○';
+          if (iconXOR)  iconXOR.textContent = '))>';
+          if (iconXNOR) iconXNOR.textContent = '))○';
+        }
       }
 
       refreshAll() {
@@ -3434,17 +3776,14 @@
       updateHUDAndToolbar() {
         const isSim = this.engine.mode === 'sim';
 
-        // Mode Buttons
         const btnEdit = document.getElementById('btn-mode-edit');
         const btnSim = document.getElementById('btn-mode-sim');
         btnEdit.className = 'mode-btn' + (!isSim ? ' active-edit' : '');
         btnSim.className = 'mode-btn' + (isSim ? ' active-sim' : '');
 
-        // Sidebar Lock
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('sim-locked', isSim);
 
-        // Sim Controls
         const btnStart = document.getElementById('btn-sim-start');
         const btnStep = document.getElementById('btn-sim-step');
         const btnReset = document.getElementById('btn-sim-reset');
@@ -3467,7 +3806,6 @@
           btnStart.className = 'btn btn-primary';
         }
 
-        // HUD Badges
         const hudMode = document.getElementById('hud-mode');
         hudMode.textContent = isSim ? (this.engine.running ? 'SIM (RUN)' : 'SIM (PAUSE)') : 'EDIT';
         hudMode.style.color = isSim ? 'var(--accent-green)' : 'var(--accent-blue)';
@@ -3482,6 +3820,40 @@
         this.renderer.selectedWireId = wireId;
         this.inspector.render(compId, wireId);
         this.renderer.render();
+      }
+
+      selectMulti(compIds) {
+        this.renderer.selectedCompIds = new Set(compIds);
+        this.renderer.selectedWireId = null;
+        if (this.renderer.selectedCompIds.size === 1) {
+          const firstId = Array.from(this.renderer.selectedCompIds)[0];
+          this.inspector.render(firstId, null);
+        } else if (this.renderer.selectedCompIds.size > 1) {
+          this.inspector.renderMulti(this.renderer.selectedCompIds);
+        } else {
+          this.inspector.render(null, null);
+        }
+        this.renderer.render();
+      }
+
+      highlightInspector() {
+        const inspector = document.getElementById('inspector');
+        const btnExpand = document.getElementById('btn-inspector-expand');
+        if (inspector) {
+          if (inspector.classList.contains('collapsed')) {
+            inspector.classList.remove('collapsed');
+            if (btnExpand) btnExpand.style.display = 'none';
+            this.renderer.resize();
+          }
+          inspector.classList.remove('highlight-pulse');
+          void inspector.offsetWidth; // force DOM reflow to restart animation
+          inspector.classList.add('highlight-pulse');
+          inspector.scrollTop = 0;
+          const firstInput = inspector.querySelector('input:not([type="range"]), select');
+          if (firstInput && !firstInput.disabled && typeof firstInput.focus === 'function') {
+            firstInput.focus();
+          }
+        }
       }
 
       loadDemo(demoKey) {
@@ -3531,7 +3903,13 @@
           this.engine.setFrequency(val);
         });
 
-        // Demo Selector
+        const selectNorm = document.getElementById('select-symbol-norm');
+        if (selectNorm) {
+          selectNorm.addEventListener('change', (e) => {
+            this.setSymbolStandard(e.target.value);
+          });
+        }
+
         const selectDemo = document.getElementById('select-demo');
         selectDemo.addEventListener('change', (e) => {
           if (e.target.value) {
@@ -3540,7 +3918,6 @@
           }
         });
 
-        // JSON Export
         document.getElementById('btn-export').addEventListener('click', () => {
           const jsonStr = JSON.stringify(this.circuit.toJSON(), null, 2);
           const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -3554,7 +3931,6 @@
           URL.revokeObjectURL(url);
         });
 
-        // JSON Import
         const fileInput = document.getElementById('file-import-input');
         document.getElementById('btn-import').addEventListener('click', () => {
           fileInput.click();
@@ -3579,7 +3955,6 @@
           fileInput.value = '';
         });
 
-        // Clear Workspace
         document.getElementById('btn-clear').addEventListener('click', () => {
           this.engine.pause();
           this.engine.setMode('edit');
@@ -3589,7 +3964,6 @@
           this.refreshAll();
         });
 
-        // Zoom Controls
         document.getElementById('btn-zoom-in').addEventListener('click', () => {
           this.setZoom(this.renderer.zoom * 1.15);
         });
@@ -3609,7 +3983,6 @@
         const sx = centerScreenX !== null ? centerScreenX : rect.width / 2;
         const sy = centerScreenY !== null ? centerScreenY : rect.height / 2;
 
-        // Preserve world point under cursor during zoom
         const worldBefore = this.renderer.screenToWorld(sx, sy);
         this.renderer.zoom = clamped;
         this.renderer.panX = sx - worldBefore.x * clamped;
@@ -3631,7 +4004,6 @@
             e.dataTransfer.effectAllowed = 'copy';
           });
 
-          // Click-to-place convenience in Edit mode
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
@@ -3640,6 +4012,7 @@
             const customParams = this.getDefaultParamsForNewComponent(type);
             const comp = this.circuit.addComponent(type, centerWorld.x, centerWorld.y, customParams);
             this.selectItem(comp.id, null);
+            this.highlightInspector();
             this.refreshAll();
           });
         });
@@ -3669,6 +4042,7 @@
             customParams
           );
           this.selectItem(comp.id, null);
+          this.highlightInspector();
           this.refreshAll();
         });
       }
@@ -3688,12 +4062,13 @@
         const canvas = this.gridCanvas;
 
         canvas.addEventListener('mousedown', (e) => {
+          this.hideContextMenu();
+
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
 
-          // 1. Middle Mouse Button or Space + Left Click -> Pan View
           if (e.button === 1 || (e.button === 0 && this.spacePressed)) {
             e.preventDefault();
             this.isPanning = true;
@@ -3703,9 +4078,8 @@
             return;
           }
 
-          if (e.button !== 0) return;
+          if (e.button !== 0) return; // Right-click handled by contextmenu listener
 
-          // 2. SIMULATION MODE INTERACTIONS (Locked topology, interactive sources)
           if (this.engine.mode === 'sim') {
             const clickedComp = this.renderer.findComponentAt(world.x, world.y);
             if (clickedComp) {
@@ -3740,8 +4114,7 @@
             return;
           }
 
-          // 3. EDIT MODE INTERACTIONS
-          // Check Pin Hit first (Start Wire Drag)
+          // EDIT MODE
           const hitPin = this.renderer.findPinAt(world.x, world.y);
           if (hitPin) {
             this.renderer.activeWireDrag = {
@@ -3757,9 +4130,36 @@
             return;
           }
 
-          // Check Component Hit (Select & Start Move)
           const hitComp = this.renderer.findComponentAt(world.x, world.y);
           if (hitComp) {
+            // Shift or Ctrl: toggle individual component selection
+            if (e.shiftKey || e.ctrlKey) {
+              const currentSet = new Set(this.renderer.selectedCompIds);
+              if (currentSet.has(hitComp.id)) {
+                currentSet.delete(hitComp.id);
+              } else {
+                currentSet.add(hitComp.id);
+              }
+              this.selectMulti(currentSet);
+              return;
+            }
+
+            // If already in multi-selection, initiate group drag
+            if (this.renderer.selectedCompIds.has(hitComp.id) && this.renderer.selectedCompIds.size > 1) {
+              this.isDraggingGroup = true;
+              this.groupDragStartWorld = { x: world.x, y: world.y };
+              this.groupStartPositions = new Map();
+              for (const cid of this.renderer.selectedCompIds) {
+                const comp = this.circuit.getComponent(cid);
+                if (comp) {
+                  this.groupStartPositions.set(cid, { x: comp.x, y: comp.y });
+                }
+              }
+              canvas.style.cursor = 'move';
+              return;
+            }
+
+            // Normal single component selection and drag
             this.selectItem(hitComp.id, null);
             this.draggingComp = hitComp;
             this.dragOffsetWorld = {
@@ -3770,15 +4170,24 @@
             return;
           }
 
-          // Check Wire Hit (Select Wire for Deletion)
           const hitWire = this.renderer.findWireAt(world.x, world.y);
           if (hitWire) {
             this.selectItem(null, hitWire.id);
             return;
           }
 
-          // Clicked Empty Grid
-          this.selectItem(null, null);
+          // Empty canvas click in edit mode: start box selection!
+          if (!e.shiftKey && !e.ctrlKey) {
+            this.selectItem(null, null);
+          }
+          this.isSelectingBox = true;
+          this.renderer.selectionBox = {
+            startX: world.x,
+            startY: world.y,
+            currX: world.x,
+            currY: world.y
+          };
+          this.renderer.render();
         });
 
         window.addEventListener('mousemove', (e) => {
@@ -3790,6 +4199,27 @@
           if (this.isPanning) {
             this.renderer.panX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
             this.renderer.panY = this.panOrigin.y + (e.clientY - this.panStartScreen.y);
+            this.renderer.render();
+            return;
+          }
+
+          if (this.isSelectingBox && this.renderer.selectionBox) {
+            this.renderer.selectionBox.currX = world.x;
+            this.renderer.selectionBox.currY = world.y;
+            this.renderer.render();
+            return;
+          }
+
+          if (this.isDraggingGroup && this.groupStartPositions) {
+            const dx = world.x - this.groupDragStartWorld.x;
+            const dy = world.y - this.groupDragStartWorld.y;
+            for (const [cid, pos] of this.groupStartPositions.entries()) {
+              const comp = this.circuit.getComponent(cid);
+              if (comp) {
+                comp.x = Math.round((pos.x + dx) / GRID_SIZE) * GRID_SIZE;
+                comp.y = Math.round((pos.y + dy) / GRID_SIZE) * GRID_SIZE;
+              }
+            }
             this.renderer.render();
             return;
           }
@@ -3823,7 +4253,6 @@
             return;
           }
 
-          // Hover feedback on canvas
           if (e.target === canvas) {
             const pin = this.renderer.findPinAt(world.x, world.y);
             const wire = !pin ? this.renderer.findWireAt(world.x, world.y) : null;
@@ -3862,7 +4291,6 @@
             this.gridCanvas.style.cursor = this.spacePressed ? 'grab' : 'default';
           }
 
-          // Release Momentary Push Button in Sim Mode
           if (this.activeButtonComp) {
             this.activeButtonComp.state.pressed = 0;
             this.activeButtonComp.outputs[0].value = 0;
@@ -3872,7 +4300,42 @@
             this.refreshAll();
           }
 
-          // Finish Wire Drag
+          if (this.isSelectingBox) {
+            this.isSelectingBox = false;
+            const box = this.renderer.selectionBox;
+            this.renderer.selectionBox = null;
+            if (box) {
+              const minX = Math.min(box.startX, box.currX);
+              const maxX = Math.max(box.startX, box.currX);
+              const minY = Math.min(box.startY, box.currY);
+              const maxY = Math.max(box.startY, box.currY);
+              if (maxX - minX > 4 || maxY - minY > 4) {
+                const hits = [];
+                for (const comp of this.circuit.components) {
+                  const cx2 = comp.x + comp.width;
+                  const cy2 = comp.y + comp.height;
+                  if (comp.x < maxX && cx2 > minX && comp.y < maxY && cy2 > minY) {
+                    hits.push(comp.id);
+                  }
+                }
+                if (e.shiftKey || e.ctrlKey) {
+                  const combined = new Set(this.renderer.selectedCompIds);
+                  hits.forEach(id => combined.add(id));
+                  this.selectMulti(combined);
+                } else {
+                  this.selectMulti(hits);
+                }
+              }
+            }
+            this.renderer.render();
+          }
+
+          if (this.isDraggingGroup) {
+            this.isDraggingGroup = false;
+            this.groupStartPositions = null;
+            this.gridCanvas.style.cursor = 'default';
+          }
+
           if (this.renderer.activeWireDrag) {
             const rect = canvas.getBoundingClientRect();
             const sx = e.clientX - rect.left;
@@ -3901,15 +4364,444 @@
           }
         });
 
-        // Smooth Zoom on Mouse Wheel
         canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
+          this.hideContextMenu();
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
           this.setZoom(this.renderer.zoom * factor, sx, sy);
         }, { passive: false });
+      }
+
+      /**
+       * Right-Click Interaction & Floating Context Menu
+       */
+      initContextMenuEvents() {
+        const canvas = this.gridCanvas;
+
+        canvas.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.renderer.screenToWorld(sx, sy);
+
+          const hitComp = this.renderer.findComponentAt(world.x, world.y);
+          const hitWire = !hitComp ? this.renderer.findWireAt(world.x, world.y) : null;
+
+          if (hitComp) {
+            if (this.renderer.selectedCompIds.has(hitComp.id) && this.renderer.selectedCompIds.size > 1) {
+              this.highlightInspector();
+              this.showContextMenu(e.clientX, e.clientY, null, null, world, this.renderer.selectedCompIds);
+            } else {
+              this.selectItem(hitComp.id, null);
+              this.highlightInspector();
+              this.showContextMenu(e.clientX, e.clientY, hitComp, null, world);
+            }
+          } else if (hitWire) {
+            this.selectItem(null, hitWire.id);
+            this.highlightInspector();
+            this.showContextMenu(e.clientX, e.clientY, null, hitWire, world);
+          } else {
+            this.showContextMenu(e.clientX, e.clientY, null, null, world);
+          }
+        });
+
+        window.addEventListener('mousedown', (e) => {
+          if (this.contextMenuEl && !this.contextMenuEl.contains(e.target)) {
+            this.hideContextMenu();
+          }
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.hideContextMenu();
+          }
+        });
+      }
+
+      hideContextMenu() {
+        if (this.contextMenuEl) {
+          this.contextMenuEl.style.display = 'none';
+          this.contextMenuEl.innerHTML = '';
+        }
+      }
+
+      showContextMenu(clientX, clientY, comp, wire, worldPos, multiCompIds = null) {
+        const menu = this.contextMenuEl;
+        menu.innerHTML = '';
+
+        if (multiCompIds && multiCompIds.size > 1) {
+          // --- MULTI-SELECTION CONTEXT MENU ---
+          const header = document.createElement('div');
+          header.className = 'ctx-header';
+          header.innerHTML = `
+            <span>📦 Mehrfachauswahl</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${multiCompIds.size} Bauteile</span>
+          `;
+          menu.appendChild(header);
+
+          const openInspect = document.createElement('div');
+          openInspect.className = 'ctx-item';
+          openInspect.innerHTML = `<span>🔧</span> <span>Im Inspector anzeigen</span>`;
+          openInspect.addEventListener('click', () => {
+            this.highlightInspector();
+            this.hideContextMenu();
+          });
+          menu.appendChild(openInspect);
+
+          const div = document.createElement('div');
+          div.className = 'ctx-divider';
+          menu.appendChild(div);
+
+          const dupItem = document.createElement('div');
+          dupItem.className = 'ctx-item';
+          dupItem.innerHTML = `<span>📋</span> <span>${multiCompIds.size} Bauteile duplizieren</span>`;
+          dupItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            const newIds = new Set();
+            for (const cid of multiCompIds) {
+              const c = this.circuit.getComponent(cid);
+              if (c) {
+                const copy = this.circuit.addComponent(
+                  c.type,
+                  c.x + 40,
+                  c.y + 40,
+                  { ...c.params, label: c.params.label ? `${c.params.label}_2` : undefined }
+                );
+                newIds.add(copy.id);
+              }
+            }
+            this.selectMulti(newIds);
+            this.highlightInspector();
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(dupItem);
+
+          const delItem = document.createElement('div');
+          delItem.className = 'ctx-item danger';
+          delItem.innerHTML = `<span>🗑️</span> <span>${multiCompIds.size} Bauteile löschen (Delete)</span>`;
+          delItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            for (const cid of multiCompIds) {
+              this.circuit.removeComponent(cid, this.ringBuffer);
+            }
+            this.selectItem(null, null);
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(delItem);
+
+        } else if (comp) {
+          // --- COMPONENT CONTEXT MENU ---
+          const header = document.createElement('div');
+          header.className = 'ctx-header';
+          header.innerHTML = `
+            <span>⚙️ ${comp.params.label || comp.type}</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${comp.type}</span>
+          `;
+          menu.appendChild(header);
+
+          const openInspect = document.createElement('div');
+          openInspect.className = 'ctx-item';
+          openInspect.innerHTML = `<span>🔧</span> <span>Einstellungen im Inspector öffnen</span>`;
+          openInspect.addEventListener('click', () => {
+            this.highlightInspector();
+            this.hideContextMenu();
+          });
+          menu.appendChild(openInspect);
+
+          // Gate Input Count Quick Selector
+          if (this.renderer.isGate(comp.type) && comp.type !== 'NOT') {
+            const subLabel = document.createElement('div');
+            subLabel.className = 'ctx-sub-label';
+            subLabel.textContent = 'Eingänge (n):';
+            menu.appendChild(subLabel);
+
+            const row = document.createElement('div');
+            row.className = 'ctx-sub-row';
+            [2, 3, 4, 8].forEach(cnt => {
+              const chip = document.createElement('span');
+              chip.className = 'ctx-chip' + (comp.params.numInputs === cnt ? ' active' : '');
+              chip.textContent = `${cnt}`;
+              chip.addEventListener('click', () => {
+                if (this.engine.mode === 'sim') return;
+                this.circuit.updateGateInputCount(comp.id, cnt);
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                this.hideContextMenu();
+              });
+              row.appendChild(chip);
+            });
+            menu.appendChild(row);
+          }
+
+          // Switch Toggle
+          if (comp.type === 'SWITCH') {
+            const toggleItem = document.createElement('div');
+            toggleItem.className = 'ctx-item';
+            const nextVal = comp.state.value === 1 ? 0 : 1;
+            toggleItem.innerHTML = `<span>⚡</span> <span>Umschalten auf ${nextVal}</span>`;
+            toggleItem.addEventListener('click', () => {
+              comp.state.value = nextVal;
+              comp.outputs[0].value = nextVal;
+              comp.nextOutputs[0] = nextVal;
+              this.circuit.syncImmediateWireLevels();
+              this.inspector.render(comp.id, null);
+              this.refreshAll();
+              this.hideContextMenu();
+            });
+            menu.appendChild(toggleItem);
+          }
+
+          // Clock Half-Period Quick Selector
+          if (comp.type === 'CLOCK') {
+            const subLabel = document.createElement('div');
+            subLabel.className = 'ctx-sub-label';
+            subLabel.textContent = 'Halbperiode T½:';
+            menu.appendChild(subLabel);
+
+            const row = document.createElement('div');
+            row.className = 'ctx-sub-row';
+            [1, 2, 5, 10, 20].forEach(hp => {
+              const chip = document.createElement('span');
+              chip.className = 'ctx-chip' + (comp.params.halfPeriod === hp ? ' active' : '');
+              chip.textContent = `${hp}T`;
+              chip.addEventListener('click', () => {
+                comp.params.halfPeriod = hp;
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                this.hideContextMenu();
+              });
+              row.appendChild(chip);
+            });
+            menu.appendChild(row);
+          }
+
+          // Counter Mode Toggle
+          if (comp.type === 'COUNTER') {
+            const modeItem = document.createElement('div');
+            modeItem.className = 'ctx-item';
+            const nextMode = comp.params.mode === 'bcd' ? 'binary' : 'bcd';
+            modeItem.innerHTML = `<span>🔄</span> <span>Modus: ${nextMode === 'bcd' ? 'Zu BCD (mod 10)' : 'Zu Binär (mod 16)'}</span>`;
+            modeItem.addEventListener('click', () => {
+              comp.params.mode = nextMode;
+              if (nextMode === 'bcd' && comp.state.count >= 10) comp.state.count = 0;
+              this.inspector.render(comp.id, null);
+              this.refreshAll();
+              this.hideContextMenu();
+            });
+            menu.appendChild(modeItem);
+          }
+
+          // LED Color Quick Selector
+          if (comp.type === 'LED' || comp.type === 'SEVEN_SEG') {
+            const subLabel = document.createElement('div');
+            subLabel.className = 'ctx-sub-label';
+            subLabel.textContent = 'Leuchtfarbe:';
+            menu.appendChild(subLabel);
+
+            const row = document.createElement('div');
+            row.className = 'ctx-sub-row';
+            Object.keys(LED_COLORS).forEach(cKey => {
+              const chip = document.createElement('span');
+              chip.className = 'ctx-chip' + (comp.params.color === cKey ? ' active' : '');
+              chip.textContent = LED_COLORS[cKey].label;
+              chip.addEventListener('click', () => {
+                comp.params.color = cKey;
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                this.hideContextMenu();
+              });
+              row.appendChild(chip);
+            });
+            menu.appendChild(row);
+          }
+
+          const div = document.createElement('div');
+          div.className = 'ctx-divider';
+          menu.appendChild(div);
+
+          // Duplicate Action
+          const dupItem = document.createElement('div');
+          dupItem.className = 'ctx-item';
+          dupItem.innerHTML = `<span>📋</span> <span>Bauteil duplizieren</span>`;
+          dupItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            const newComp = this.circuit.addComponent(
+              comp.type,
+              comp.x + 40,
+              comp.y + 40,
+              { ...comp.params, label: comp.params.label ? `${comp.params.label}_2` : undefined }
+            );
+            this.selectItem(newComp.id, null);
+            this.highlightInspector();
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(dupItem);
+
+          // Delete Action
+          const delItem = document.createElement('div');
+          delItem.className = 'ctx-item danger';
+          delItem.innerHTML = `<span>🗑️</span> <span>Bauteil löschen</span>`;
+          delItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.circuit.removeComponent(comp.id, this.ringBuffer);
+            this.selectItem(null, null);
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(delItem);
+
+        } else if (wire) {
+          // --- WIRE CONTEXT MENU ---
+          const header = document.createElement('div');
+          header.className = 'ctx-header';
+          header.innerHTML = `
+            <span>⚡ Signalleitung</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${wire.level ? 'HIGH (1)' : 'LOW (0)'}</span>
+          `;
+          menu.appendChild(header);
+
+          const openInspect = document.createElement('div');
+          openInspect.className = 'ctx-item';
+          openInspect.innerHTML = `<span>🔧</span> <span>Leitungsinfo im Inspector</span>`;
+          openInspect.addEventListener('click', () => {
+            this.highlightInspector();
+            this.hideContextMenu();
+          });
+          menu.appendChild(openInspect);
+
+          const delWire = document.createElement('div');
+          delWire.className = 'ctx-item danger';
+          delWire.innerHTML = `<span>🗑️</span> <span>Leitung löschen</span>`;
+          delWire.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.circuit.removeWire(wire.id);
+            this.selectItem(null, null);
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(delWire);
+
+        } else {
+          // --- EMPTY CANVAS CONTEXT MENU ---
+          const header = document.createElement('div');
+          header.className = 'ctx-header';
+          header.innerHTML = `
+            <span>Arbeitsfläche</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${Math.round(worldPos.x)}, ${Math.round(worldPos.y)}</span>
+          `;
+          menu.appendChild(header);
+
+          const subG = document.createElement('div');
+          subG.className = 'ctx-sub-label';
+          subG.textContent = 'Gatter einfügen:';
+          menu.appendChild(subG);
+
+          const gateRow = document.createElement('div');
+          gateRow.className = 'ctx-sub-row';
+          ['AND', 'OR', 'NOT', 'NAND', 'NOR', 'XOR'].forEach(gt => {
+            const chip = document.createElement('span');
+            chip.className = 'ctx-chip';
+            chip.textContent = gt;
+            chip.addEventListener('click', () => {
+              if (this.engine.mode === 'sim') return;
+              const c = this.circuit.addComponent(gt, worldPos.x - 30, worldPos.y - 20, this.getDefaultParamsForNewComponent(gt));
+              this.selectItem(c.id, null);
+              this.highlightInspector();
+              this.refreshAll();
+              this.hideContextMenu();
+            });
+            gateRow.appendChild(chip);
+          });
+          menu.appendChild(gateRow);
+
+          const subS = document.createElement('div');
+          subS.className = 'ctx-sub-label';
+          subS.textContent = 'Quellen & Anzeigen:';
+          menu.appendChild(subS);
+
+          const srcRow = document.createElement('div');
+          srcRow.className = 'ctx-sub-row';
+          [
+            { t: 'SWITCH', l: 'Schalter' },
+            { t: 'BUTTON', l: 'Taster' },
+            { t: 'CLOCK',  l: 'Takt' },
+            { t: 'LED',    l: 'LED' },
+            { t: 'PROBE',  l: 'Probe' }
+          ].forEach(item => {
+            const chip = document.createElement('span');
+            chip.className = 'ctx-chip';
+            chip.textContent = item.l;
+            chip.addEventListener('click', () => {
+              if (this.engine.mode === 'sim') return;
+              const c = this.circuit.addComponent(item.t, worldPos.x - 30, worldPos.y - 20, this.getDefaultParamsForNewComponent(item.t));
+              this.selectItem(c.id, null);
+              this.highlightInspector();
+              this.refreshAll();
+              this.hideContextMenu();
+            });
+            srcRow.appendChild(chip);
+          });
+          menu.appendChild(srcRow);
+
+          const div1 = document.createElement('div');
+          div1.className = 'ctx-divider';
+          menu.appendChild(div1);
+
+          const subNorm = document.createElement('div');
+          subNorm.className = 'ctx-sub-label';
+          subNorm.textContent = 'Symbol-Norm umschalten:';
+          menu.appendChild(subNorm);
+
+          const normRow = document.createElement('div');
+          normRow.className = 'ctx-sub-row';
+          [
+            { key: 'DIN_40700', label: 'DIN 40700' },
+            { key: 'DIN_EN_60617', label: 'IEC' },
+            { key: 'ANSI', label: 'ANSI' }
+          ].forEach(n => {
+            const chip = document.createElement('span');
+            chip.className = 'ctx-chip' + (this.renderer.symbolStandard === n.key ? ' active' : '');
+            chip.textContent = n.label;
+            chip.addEventListener('click', () => {
+              this.setSymbolStandard(n.key);
+              this.hideContextMenu();
+            });
+            normRow.appendChild(chip);
+          });
+          menu.appendChild(normRow);
+
+          const div2 = document.createElement('div');
+          div2.className = 'ctx-divider';
+          menu.appendChild(div2);
+
+          const resetView = document.createElement('div');
+          resetView.className = 'ctx-item';
+          resetView.innerHTML = `<span>🔍</span> <span>Ansicht zentrieren (100%)</span>`;
+          resetView.addEventListener('click', () => {
+            this.renderer.panX = 40;
+            this.renderer.panY = 40;
+            this.setZoom(1.0);
+            this.hideContextMenu();
+          });
+          menu.appendChild(resetView);
+        }
+
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth || 210;
+        const mh = menu.offsetHeight || 220;
+        let px = clientX;
+        let py = clientY;
+        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
+        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        menu.style.left = `${Math.max(10, px)}px`;
+        menu.style.top = `${Math.max(10, py)}px`;
       }
 
       initAnalyzerEvents() {
@@ -3927,7 +4819,6 @@
           }, 20);
         });
 
-        // Vertical Drag Resizer for Logic Analyzer Panel
         let isResizing = false;
         let startY = 0;
         let startH = 215;
@@ -3957,7 +4848,6 @@
           }
         });
 
-        // Time Zoom Slider
         const zoomSlider = document.getElementById('slider-time-zoom');
         const zoomLabel = document.getElementById('label-time-zoom');
         zoomSlider.addEventListener('input', (e) => {
@@ -3967,14 +4857,12 @@
           this.analyzer.render();
         });
 
-        // Time Scroll Slider
         const scrollSlider = document.getElementById('slider-time-scroll');
         scrollSlider.addEventListener('input', (e) => {
           this.analyzer.scrollRatio = parseInt(e.target.value, 10) / 100;
           this.analyzer.render();
         });
 
-        // Clear RingBuffer Button
         document.getElementById('btn-analyzer-clear').addEventListener('click', () => {
           this.ringBuffer.clear();
           this.analyzer.render();
@@ -3996,8 +4884,9 @@
             e.preventDefault();
           } else if (e.key === 'Delete' || e.key === 'Backspace') {
             if (this.engine.mode === 'edit') {
-              if (this.renderer.selectedCompId) {
-                this.circuit.removeComponent(this.renderer.selectedCompId, this.ringBuffer);
+              if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
+                const ids = Array.from(this.renderer.selectedCompIds);
+                ids.forEach(id => this.circuit.removeComponent(id, this.ringBuffer));
                 this.selectItem(null, null);
                 this.refreshAll();
               } else if (this.renderer.selectedWireId) {
@@ -4018,9 +4907,78 @@
           }
         });
       }
+
+      initInspectorResizerEvents() {
+        const inspector = document.getElementById('inspector');
+        const resizer = document.getElementById('inspector-resizer');
+        const btnToggle = document.getElementById('btn-inspector-toggle');
+        const btnExpand = document.getElementById('btn-inspector-expand');
+
+        if (!inspector || !resizer) return;
+
+        // Restore saved inspector width
+        const savedWidth = localStorage.getItem('logicsim_inspector_width');
+        if (savedWidth) {
+          const num = parseInt(savedWidth, 10);
+          if (num >= 140 && num <= window.innerWidth * 0.55) {
+            inspector.style.width = `${num}px`;
+          }
+        }
+
+        let isResizing = false;
+        let startX = 0;
+        let startW = 265;
+
+        resizer.addEventListener('mousedown', (e) => {
+          if (inspector.classList.contains('collapsed')) return;
+          isResizing = true;
+          startX = e.clientX;
+          startW = inspector.getBoundingClientRect().width;
+          resizer.classList.add('resizing');
+          document.body.style.cursor = 'ew-resize';
+          document.body.style.userSelect = 'none';
+          e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isResizing) return;
+          // Inspector is on right edge: moving cursor left increases inspector width
+          const dx = startX - e.clientX;
+          const maxW = Math.max(200, window.innerWidth * 0.55);
+          const newW = Math.max(140, Math.min(maxW, startW + dx));
+          inspector.style.width = `${Math.round(newW)}px`;
+          this.renderer.resize();
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('resizing');
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = '';
+            localStorage.setItem('logicsim_inspector_width', inspector.style.width);
+            this.renderer.resize();
+          }
+        });
+
+        if (btnToggle) {
+          btnToggle.addEventListener('click', () => {
+            inspector.classList.add('collapsed');
+            if (btnExpand) btnExpand.style.display = 'block';
+            this.renderer.resize();
+          });
+        }
+
+        if (btnExpand) {
+          btnExpand.addEventListener('click', () => {
+            inspector.classList.remove('collapsed');
+            btnExpand.style.display = 'none';
+            this.renderer.resize();
+          });
+        }
+      }
     }
 
-    // Boot Application on DOMContentLoaded
     window.addEventListener('DOMContentLoaded', () => {
       window.logicSimApp = new LogicSimApp();
     });

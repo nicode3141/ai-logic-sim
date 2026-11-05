@@ -2,3 +2,7 @@
 antwort:  erste prompt md
 
 md im plan mode reingeladen:
+
+hat unendlich lange (1h) reasoning betrieben und gecoded
+
+gefragt nach deutschen zeichen
