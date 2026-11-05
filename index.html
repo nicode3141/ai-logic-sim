@@ -976,8 +976,8 @@
         <div class="palette-category">
           <div class="category-title">Analyse</div>
           <div class="palette-grid single-col">
-            <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt für das Impulsdiagramm">
-              <div class="palette-icon">PRB</div>
+            <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt / Signal-Clip für Leitungen (Impulsdiagramm)">
+              <div class="palette-icon">📍</div>
               <div class="palette-name">Messpunkt (Probe)</div>
             </div>
           </div>
@@ -1223,6 +1223,29 @@
     }
 
     /**
+     * Logic Probe (Test Probe / Signal Clip attached to a Wire)
+     */
+    class Probe {
+      constructor(id, wireId, name = 'PRB', color = '#00b0ff', offsetRatio = 0.5) {
+        this.id = id;
+        this.wireId = wireId;
+        this.name = name;
+        this.color = color;
+        this.offsetRatio = Math.max(0.05, Math.min(0.95, offsetRatio));
+      }
+
+      toJSON() {
+        return {
+          id: this.id,
+          wireId: this.wireId,
+          name: this.name,
+          color: this.color,
+          offsetRatio: this.offsetRatio
+        };
+      }
+    }
+
+    /**
      * Digital Logic Component
      */
     class Component {
@@ -1232,7 +1255,7 @@
         this.x = Math.round(x / GRID_SIZE) * GRID_SIZE;
         this.y = Math.round(y / GRID_SIZE) * GRID_SIZE;
         this.width = 80;
-        this.height = 60;
+        this.height = 80;
 
         this.inputs = [];
         this.outputs = [];
@@ -1322,81 +1345,122 @@
       rebuildPins() {
         let inNames = [];
         let outNames = [];
+        let inOffsets = [];
+        let outOffsets = [];
 
         switch (this.type) {
           case 'SWITCH':
-            this.width = 76;
-            this.height = 44;
-            inNames = [];
-            outNames = ['OUT'];
-            break;
           case 'BUTTON':
-            this.width = 76;
-            this.height = 44;
-            inNames = [];
-            outNames = ['OUT'];
-            break;
           case 'CLOCK':
             this.width = 80;
-            this.height = 48;
+            this.height = 40;
             inNames = [];
-            outNames = ['CLK'];
+            outNames = [this.type === 'CLOCK' ? 'CLK' : 'OUT'];
+            outOffsets = [20];
             break;
+
+          case 'LED':
+            this.width = 60;
+            this.height = 40;
+            inNames = ['IN'];
+            inOffsets = [20];
+            outNames = [];
+            break;
+
           case 'NOT':
-            this.width = 76;
-            this.height = 48;
+            this.width = 80;
+            this.height = 40;
             inNames = ['X1'];
+            inOffsets = [20];
             outNames = ['Y'];
+            outOffsets = [20];
             break;
+
           case 'AND':
           case 'OR':
           case 'NAND':
           case 'NOR':
           case 'XOR':
           case 'XNOR': {
-            const n = this.params.numInputs;
-            this.width = 84;
-            this.height = Math.max(52, 20 + n * 16);
+            const n = Math.max(2, Math.min(8, parseInt(this.params.numInputs ?? 2, 10)));
+            this.width = 80;
             for (let i = 1; i <= n; i++) {
               inNames.push(`X${i}`);
             }
             outNames = ['Y'];
+
+            if (n === 2) {
+              this.height = 80;
+              inOffsets = [20, 60];
+              outOffsets = [40];
+            } else if (n === 3) {
+              this.height = 80;
+              inOffsets = [20, 40, 60];
+              outOffsets = [40];
+            } else if (n === 4) {
+              this.height = 120;
+              inOffsets = [20, 40, 80, 100];
+              outOffsets = [60];
+            } else if (n === 5) {
+              this.height = 120;
+              inOffsets = [20, 40, 60, 80, 100];
+              outOffsets = [60];
+            } else if (n === 6) {
+              this.height = 160;
+              inOffsets = [20, 40, 60, 100, 120, 140];
+              outOffsets = [80];
+            } else if (n === 7) {
+              this.height = 160;
+              inOffsets = [20, 40, 60, 80, 100, 120, 140];
+              outOffsets = [80];
+            } else { // 8
+              this.height = 200;
+              inOffsets = [20, 40, 60, 80, 120, 140, 160, 180];
+              outOffsets = [100];
+            }
             break;
           }
-          case 'LED':
-            this.width = 68;
-            this.height = 48;
-            inNames = ['IN'];
-            outNames = [];
-            break;
-          case 'SEVEN_SEG':
-            this.width = 96;
-            this.height = 148;
-            inNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'DP'];
-            outNames = [];
-            break;
-          case 'BCD_DEC':
-            this.width = 104;
-            this.height = 136;
-            inNames = ['D0', 'D1', 'D2', 'D3'];
-            outNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-            break;
+
           case 'COUNTER':
-            this.width = 108;
-            this.height = 112;
+            this.width = 120;
+            this.height = 120;
             inNames = ['CLK', 'EN', 'RST'];
+            inOffsets = [20, 60, 100];
             outNames = ['Q0', 'Q1', 'Q2', 'Q3', 'CO'];
+            outOffsets = [20, 40, 60, 80, 100];
             break;
+
           case 'SHIFT_REG':
-            this.width = 108;
-            this.height = 98;
+            this.width = 120;
+            this.height = 120;
             inNames = ['DIN', 'CLK', 'RST'];
+            inOffsets = [20, 60, 100];
             outNames = ['Q0', 'Q1', 'Q2', 'Q3'];
+            outOffsets = [20, 40, 80, 100];
             break;
+
+          case 'BCD_DEC':
+            this.width = 120;
+            this.height = 160;
+            inNames = ['D0', 'D1', 'D2', 'D3'];
+            inOffsets = [40, 60, 80, 100];
+            outNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+            outOffsets = [20, 40, 60, 80, 100, 120, 140];
+            break;
+
+          case 'SEVEN_SEG':
+            this.width = 100;
+            this.height = 180;
+            inNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'DP'];
+            inOffsets = [20, 40, 60, 80, 100, 120, 140, 160];
+            outNames = [];
+            break;
+
           case 'PROBE':
-            this.width = 76;
-            this.height = 36;
+            this.width = 80;
+            this.height = 40;
             inNames = ['IN'];
+            inOffsets = [20];
             outNames = [];
             break;
         }
@@ -1408,7 +1472,7 @@
           name,
           index: idx,
           relX: 0,
-          relY: this.computePinRelY(idx, inNames.length),
+          relY: inOffsets[idx] !== undefined ? inOffsets[idx] : this.computePinRelY(idx, inNames.length),
           value: prevInVals[idx] ?? 0
         }));
 
@@ -1416,7 +1480,7 @@
           name,
           index: idx,
           relX: this.width,
-          relY: this.computePinRelY(idx, outNames.length),
+          relY: outOffsets[idx] !== undefined ? outOffsets[idx] : this.computePinRelY(idx, outNames.length),
           value: prevOutVals[idx] ?? 0
         }));
 
@@ -1424,11 +1488,9 @@
       }
 
       computePinRelY(index, total) {
-        if (total === 1) return this.height / 2;
-        const topPad = 16;
-        const botPad = 16;
-        const span = this.height - topPad - botPad;
-        return topPad + (span * index) / (total - 1);
+        if (total === 1) return Math.round((this.height / 2) / GRID_SIZE) * GRID_SIZE;
+        const step = Math.floor(this.height / (total + 1) / GRID_SIZE) * GRID_SIZE;
+        return (index + 1) * Math.max(GRID_SIZE, step);
       }
 
       getPinWorldPos(isOutput, pinIndex) {
@@ -1649,6 +1711,7 @@
       constructor() {
         this.components = [];
         this.wires = [];
+        this.probes = [];
         this.nextId = 1;
       }
 
@@ -1675,9 +1738,12 @@
           ringBuffer.removeChannel(comp.id);
         }
         this.components.splice(idx, 1);
-        this.wires = this.wires.filter(
-          w => w.fromCompId !== compId && w.toCompId !== compId
+        const removedWires = this.wires.filter(
+          w => w.fromCompId === compId || w.toCompId === compId
         );
+        for (const w of removedWires) {
+          this.removeWire(w.id, ringBuffer);
+        }
       }
 
       addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null, waypoints = []) {
@@ -1700,7 +1766,13 @@
         return wire;
       }
 
-      removeWire(wireId) {
+      removeWire(wireId, ringBuffer = null) {
+        // Remove attached probes cleanly
+        const attachedProbes = this.probes.filter(p => p.wireId === wireId);
+        for (const p of attachedProbes) {
+          this.removeProbe(p.id, ringBuffer);
+        }
+
         const wire = this.wires.find(w => w.id === wireId);
         if (wire) {
           const toComp = this.getComponent(wire.toCompId);
@@ -1709,6 +1781,33 @@
           }
         }
         this.wires = this.wires.filter(w => w.id !== wireId);
+      }
+
+      addProbe(wireId, params = {}) {
+        const wire = this.wires.find(w => w.id === wireId);
+        if (!wire) return null;
+        const id = params.id || this.generateId('prb');
+        const count = this.probes.length;
+        const color = params.color || PROBE_PALETTE[count % PROBE_PALETTE.length];
+        const name = params.name || `CH${count + 1}`;
+        const offsetRatio = params.offsetRatio !== undefined ? params.offsetRatio : 0.5;
+        const probe = new Probe(id, wireId, name, color, offsetRatio);
+        this.probes.push(probe);
+        return probe;
+      }
+
+      removeProbe(probeId, ringBuffer = null) {
+        const idx = this.probes.findIndex(p => p.id === probeId);
+        if (idx !== -1) {
+          this.probes.splice(idx, 1);
+        }
+        if (ringBuffer) {
+          ringBuffer.removeChannel(probeId);
+        }
+      }
+
+      getProbe(probeId) {
+        return this.probes.find(p => p.id === probeId) || null;
       }
 
       getWireToInput(toCompId, toPin) {
@@ -1728,12 +1827,13 @@
       }
 
       getProbes() {
-        return this.components.filter(c => c.type === 'PROBE');
+        return this.probes;
       }
 
       clear(ringBuffer = null) {
         this.components = [];
         this.wires = [];
+        this.probes = [];
         this.nextId = 1;
         if (ringBuffer) ringBuffer.clear();
       }
@@ -1755,7 +1855,8 @@
         return {
           version: 1,
           components: this.components.map(c => c.toJSON()),
-          wires: this.wires.map(w => w.toJSON())
+          wires: this.wires.map(w => w.toJSON()),
+          probes: this.probes.map(p => p.toJSON())
         };
       }
 
@@ -1773,12 +1874,28 @@
 
         for (const cData of data.components) {
           maxNum = Math.max(maxNum, extractNum(cData.id) + 1);
+          if (cData.type === 'PROBE') continue; // Handled as wire tap
           this.addComponent(cData.type, cData.x, cData.y, cData.params || {}, cData.id);
         }
 
         for (const wData of data.wires) {
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
+          if (!this.getComponent(wData.fromCompId) || !this.getComponent(wData.toCompId)) {
+            continue;
+          }
           this.addWire(wData.fromCompId, wData.fromPin, wData.toCompId, wData.toPin, wData.id, wData.waypoints || []);
+        }
+
+        if (data.probes && Array.isArray(data.probes)) {
+          for (const pData of data.probes) {
+            maxNum = Math.max(maxNum, extractNum(pData.id) + 1);
+            this.addProbe(pData.wireId, {
+              id: pData.id,
+              name: pData.name,
+              color: pData.color,
+              offsetRatio: pData.offsetRatio
+            });
+          }
         }
 
         this.nextId = maxNum + 1;
@@ -1907,6 +2024,11 @@
         this.tickCount++;
 
         const probeSamples = new Map();
+        for (let i = 0; i < this.circuit.probes.length; i++) {
+          const probe = this.circuit.probes[i];
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          probeSamples.set(probe.id, wire ? wire.level : 0);
+        }
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
           if (comp.type === 'PROBE') {
@@ -1943,18 +2065,13 @@
       bcd_clock: {
         version: 1,
         components: [
-          { id: 'c_clk', type: 'CLOCK',     x: 80,  y: 120, params: { label: 'Taktgeber', halfPeriod: 2 } },
-          { id: 'c_en',  type: 'SWITCH',    x: 80,  y: 200, params: { label: 'Enable (EN)', initialValue: 1 } },
-          { id: 'c_rst', type: 'BUTTON',    x: 80,  y: 280, params: { label: 'Reset (RST)' } },
-          { id: 'c_cnt', type: 'COUNTER',   x: 260, y: 160, params: { label: 'BCD-Counter', mode: 'bcd' } },
-          { id: 'c_dec', type: 'BCD_DEC',   x: 460, y: 140, params: { label: 'BCD->7Seg', hexMode: true } },
-          { id: 'c_seg', type: 'SEVEN_SEG', x: 660, y: 140, params: { label: 'Digitalziffer', color: 'green' } },
-          { id: 'c_led_co', type: 'LED',    x: 460, y: 310, params: { label: 'Carry (CO)', color: 'yellow' } },
-          { id: 'p_clk', type: 'PROBE',     x: 260, y: 60,  params: { name: 'CLK', color: '#00b0ff' } },
-          { id: 'p_q0',  type: 'PROBE',     x: 460, y: 380, params: { name: 'Q0 (LSB)', color: '#00e676' } },
-          { id: 'p_q1',  type: 'PROBE',     x: 560, y: 380, params: { name: 'Q1', color: '#ffb300' } },
-          { id: 'p_q2',  type: 'PROBE',     x: 660, y: 380, params: { name: 'Q2', color: '#ff4081' } },
-          { id: 'p_q3',  type: 'PROBE',     x: 760, y: 380, params: { name: 'Q3 (MSB)', color: '#b388ff' } }
+          { id: 'c_clk', type: 'CLOCK',     x: 80,  y: 140, params: { label: 'Taktgeber', halfPeriod: 2 } },
+          { id: 'c_en',  type: 'SWITCH',    x: 80,  y: 180, params: { label: 'Enable (EN)', initialValue: 1 } },
+          { id: 'c_rst', type: 'BUTTON',    x: 80,  y: 220, params: { label: 'Reset (RST)' } },
+          { id: 'c_cnt', type: 'COUNTER',   x: 260, y: 140, params: { label: 'BCD-Counter', mode: 'bcd' } },
+          { id: 'c_dec', type: 'BCD_DEC',   x: 480, y: 120, params: { label: 'BCD->7Seg', hexMode: true } },
+          { id: 'c_seg', type: 'SEVEN_SEG', x: 700, y: 120, params: { label: 'Digitalziffer', color: 'green' } },
+          { id: 'c_led_co', type: 'LED',    x: 480, y: 220, params: { label: 'Carry (CO)', color: 'yellow' } }
         ],
         wires: [
           { id: 'w1', fromCompId: 'c_clk', fromPin: 0, toCompId: 'c_cnt', toPin: 0 },
@@ -1971,31 +2088,28 @@
           { id: 'w12', fromCompId: 'c_dec', fromPin: 3, toCompId: 'c_seg', toPin: 3 },
           { id: 'w13', fromCompId: 'c_dec', fromPin: 4, toCompId: 'c_seg', toPin: 4 },
           { id: 'w14', fromCompId: 'c_dec', fromPin: 5, toCompId: 'c_seg', toPin: 5 },
-          { id: 'w15', fromCompId: 'c_dec', fromPin: 6, toCompId: 'c_seg', toPin: 6 },
-          { id: 'w16', fromCompId: 'c_clk', fromPin: 0, toCompId: 'p_clk', toPin: 0 },
-          { id: 'w17', fromCompId: 'c_cnt', fromPin: 0, toCompId: 'p_q0',  toPin: 0 },
-          { id: 'w18', fromCompId: 'c_cnt', fromPin: 1, toCompId: 'p_q1',  toPin: 0 },
-          { id: 'w19', fromCompId: 'c_cnt', fromPin: 2, toCompId: 'p_q2',  toPin: 0 },
-          { id: 'w20', fromCompId: 'c_cnt', fromPin: 3, toCompId: 'p_q3',  toPin: 0 }
+          { id: 'w15', fromCompId: 'c_dec', fromPin: 6, toCompId: 'c_seg', toPin: 6 }
+        ],
+        probes: [
+          { id: 'p_clk', wireId: 'w1', name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'p_q0',  wireId: 'w4', name: 'Q0 (LSB)', color: '#00e676', offsetRatio: 0.35 },
+          { id: 'p_q1',  wireId: 'w5', name: 'Q1', color: '#ffb300', offsetRatio: 0.5 },
+          { id: 'p_q2',  wireId: 'w6', name: 'Q2', color: '#ff4081', offsetRatio: 0.65 },
+          { id: 'p_q3',  wireId: 'w7', name: 'Q3 (MSB)', color: '#b388ff', offsetRatio: 0.8 }
         ]
       },
       lfsr_light: {
         version: 1,
         components: [
           { id: 'l_din',  type: 'SWITCH',    x: 60,  y: 80,  params: { label: 'Seed (DIN)', initialValue: 1 } },
-          { id: 'l_clk',  type: 'CLOCK',     x: 60,  y: 200, params: { label: 'System-Takt', halfPeriod: 2 } },
-          { id: 'l_rst',  type: 'SWITCH',    x: 60,  y: 280, params: { label: 'Reset (RST)', initialValue: 0 } },
-          { id: 'l_xor',  type: 'XOR',       x: 220, y: 100, params: { label: 'LFSR-XOR', numInputs: 3 } },
-          { id: 'l_sipo', type: 'SHIFT_REG', x: 380, y: 160, params: { label: '4-Bit SIPO' } },
-          { id: 'l_led0', type: 'LED',       x: 580, y: 100, params: { label: 'Lampe Q0', color: 'green' } },
-          { id: 'l_led1', type: 'LED',       x: 580, y: 170, params: { label: 'Lampe Q1', color: 'yellow' } },
-          { id: 'l_led2', type: 'LED',       x: 580, y: 240, params: { label: 'Lampe Q2', color: 'blue' } },
-          { id: 'l_led3', type: 'LED',       x: 580, y: 310, params: { label: 'Lampe Q3', color: 'red' } },
-          { id: 'lp_clk', type: 'PROBE',     x: 220, y: 360, params: { name: 'CLK', color: '#00b0ff' } },
-          { id: 'lp_q0',  type: 'PROBE',     x: 700, y: 100, params: { name: 'Q0',  color: '#00e676' } },
-          { id: 'lp_q1',  type: 'PROBE',     x: 700, y: 170, params: { name: 'Q1',  color: '#ffd600' } },
-          { id: 'lp_q2',  type: 'PROBE',     x: 700, y: 240, params: { name: 'Q2',  color: '#00b0ff' } },
-          { id: 'lp_q3',  type: 'PROBE',     x: 700, y: 310, params: { name: 'Q3',  color: '#ff5252' } }
+          { id: 'l_clk',  type: 'CLOCK',     x: 60,  y: 180, params: { label: 'System-Takt', halfPeriod: 2 } },
+          { id: 'l_rst',  type: 'SWITCH',    x: 60,  y: 260, params: { label: 'Reset (RST)', initialValue: 0 } },
+          { id: 'l_xor',  type: 'XOR',       x: 220, y: 80,  params: { label: 'LFSR-XOR', numInputs: 3 } },
+          { id: 'l_sipo', type: 'SHIFT_REG', x: 400, y: 140, params: { label: '4-Bit SIPO' } },
+          { id: 'l_led0', type: 'LED',       x: 620, y: 140, params: { label: 'Lampe Q0', color: 'green' } },
+          { id: 'l_led1', type: 'LED',       x: 620, y: 180, params: { label: 'Lampe Q1', color: 'yellow' } },
+          { id: 'l_led2', type: 'LED',       x: 620, y: 220, params: { label: 'Lampe Q2', color: 'blue' } },
+          { id: 'l_led3', type: 'LED',       x: 620, y: 260, params: { label: 'Lampe Q3', color: 'red' } }
         ],
         wires: [
           { id: 'lw1', fromCompId: 'l_din',  fromPin: 0, toCompId: 'l_xor',  toPin: 0 },
@@ -2007,12 +2121,14 @@
           { id: 'lw7',  fromCompId: 'l_sipo', fromPin: 0, toCompId: 'l_led0', toPin: 0 },
           { id: 'lw8',  fromCompId: 'l_sipo', fromPin: 1, toCompId: 'l_led1', toPin: 0 },
           { id: 'lw9',  fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_led2', toPin: 0 },
-          { id: 'lw10', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_led3', toPin: 0 },
-          { id: 'lw11', fromCompId: 'l_clk',  fromPin: 0, toCompId: 'lp_clk', toPin: 0 },
-          { id: 'lw12', fromCompId: 'l_sipo', fromPin: 0, toCompId: 'lp_q0',  toPin: 0 },
-          { id: 'lw13', fromCompId: 'l_sipo', fromPin: 1, toCompId: 'lp_q1',  toPin: 0 },
-          { id: 'lw14', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'lp_q2',  toPin: 0 },
-          { id: 'lw15', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'lp_q3',  toPin: 0 }
+          { id: 'lw10', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_led3', toPin: 0 }
+        ],
+        probes: [
+          { id: 'lp_clk', wireId: 'lw5', name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'lp_q0',  wireId: 'lw7', name: 'Q0',  color: '#00e676', offsetRatio: 0.4 },
+          { id: 'lp_q1',  wireId: 'lw8', name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
+          { id: 'lp_q2',  wireId: 'lw9', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.6 },
+          { id: 'lp_q3',  wireId: 'lw10', name: 'Q3', color: '#ff5252', offsetRatio: 0.7 }
         ]
       }
     };
@@ -2038,8 +2154,10 @@
 
         this.selectedCompIds = new Set();
         this.selectedWireId = null;
+        this.selectedProbeId = null;
         this.hoveredPin = null;
         this.hoveredWireId = null;
+        this.hoveredProbeId = null;
         this.activeWireDrag = null;
         this.selectionBox = null;
       }
@@ -2112,7 +2230,9 @@
 
         if (x2 >= x1 + 20) {
           let midX = Math.round(((x1 + x2) / 2) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
-          midX = Math.max(x1 + 10, Math.min(x2 - 10, midX));
+          if (x2 > x1 + 20) {
+            midX = Math.max(x1 + 20, Math.min(x2 - 20, midX));
+          }
           if (y1 === y2 && !channelOffset) {
             pts.push({ x: x2, y: y2 });
           } else {
@@ -2237,6 +2357,197 @@
         return (px - projX) * (px - projX) + (py - projY) * (py - projY);
       }
 
+      getPointAlongPolyline(pts, ratio = 0.5) {
+        if (!pts || pts.length === 0) return null;
+        if (pts.length === 1) return { x: pts[0].x, y: pts[0].y };
+
+        let totalLen = 0;
+        const segLens = [];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const dx = pts[i + 1].x - pts[i].x;
+          const dy = pts[i + 1].y - pts[i].y;
+          const len = Math.hypot(dx, dy);
+          segLens.push(len);
+          totalLen += len;
+        }
+
+        if (totalLen === 0) return { x: pts[0].x, y: pts[0].y };
+
+        const targetDist = Math.max(0.02, Math.min(0.98, ratio)) * totalLen;
+        let accum = 0;
+        for (let i = 0; i < segLens.length; i++) {
+          const len = segLens[i];
+          if (accum + len >= targetDist || i === segLens.length - 1) {
+            const segRatio = len > 0 ? (targetDist - accum) / len : 0;
+            return {
+              x: pts[i].x + (pts[i + 1].x - pts[i].x) * segRatio,
+              y: pts[i].y + (pts[i + 1].y - pts[i].y) * segRatio
+            };
+          }
+          accum += len;
+        }
+        return { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
+      }
+
+      getProjectedRatioOnPolyline(pts, worldPos) {
+        if (!pts || pts.length < 2) return 0.5;
+        let totalLen = 0;
+        const segLens = [];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const len = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+          segLens.push(len);
+          totalLen += len;
+        }
+        if (totalLen === 0) return 0.5;
+
+        let bestDistSq = Infinity;
+        let bestDistAlong = 0;
+        let accum = 0;
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const A = pts[i];
+          const B = pts[i + 1];
+          const len = segLens[i];
+          if (len === 0) continue;
+
+          const dx = B.x - A.x;
+          const dy = B.y - A.y;
+          const t = Math.max(0, Math.min(1, ((worldPos.x - A.x) * dx + (worldPos.y - A.y) * dy) / (len * len)));
+          const projX = A.x + t * dx;
+          const projY = A.y + t * dy;
+          const dSq = (worldPos.x - projX) ** 2 + (worldPos.y - projY) ** 2;
+
+          if (dSq < bestDistSq) {
+            bestDistSq = dSq;
+            bestDistAlong = accum + t * len;
+          }
+          accum += len;
+        }
+
+        const ratio = bestDistAlong / totalLen;
+        return Math.max(0.05, Math.min(0.95, ratio));
+      }
+
+      findProbeAt(worldX, worldY) {
+        const probes = this.circuit.getProbes();
+        const badgeW = 68;
+        const badgeH = 20;
+
+        for (let i = probes.length - 1; i >= 0; i--) {
+          const probe = probes[i];
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          if (!wire) continue;
+          const pts = this.getWirePolyline(wire);
+          const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
+          if (!pos) continue;
+
+          // Check clip circle
+          const dx = worldX - pos.x;
+          const dy = worldY - pos.y;
+          if (dx * dx + dy * dy <= 80) {
+            return probe;
+          }
+
+          // Check badge rectangle
+          const bx = Math.round(pos.x - badgeW / 2);
+          const by = Math.round(pos.y - 28);
+          if (worldX >= bx && worldX <= bx + badgeW && worldY >= by && worldY <= by + badgeH) {
+            return probe;
+          }
+        }
+        return null;
+      }
+
+      drawProbes(ctx) {
+        const probes = this.circuit.getProbes();
+        if (!probes || probes.length === 0) return;
+
+        for (const probe of probes) {
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          if (!wire) continue;
+
+          const pts = this.getWirePolyline(wire);
+          if (pts.length < 2) continue;
+
+          const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
+          if (!pos) continue;
+
+          const isSelected = this.selectedProbeId === probe.id;
+          const isHovered = this.hoveredProbeId === probe.id;
+          const isHigh = wire.level === 1;
+          const probeColor = probe.color || '#00e676';
+
+          ctx.save();
+
+          const badgeW = 68;
+          const badgeH = 20;
+          const bx = Math.round(pos.x - badgeW / 2);
+          const by = Math.round(pos.y - 28);
+
+          // 1. Leader line from clip to badge
+          ctx.beginPath();
+          ctx.moveTo(pos.x, pos.y);
+          ctx.lineTo(pos.x, by + badgeH);
+          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? probeColor : '#475569');
+          ctx.lineWidth = isSelected ? 2 : 1.2;
+          ctx.setLineDash([2, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // 2. Wire Clip Pin
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = probeColor;
+          if (isSelected) {
+            ctx.shadowColor = '#00b0ff';
+            ctx.shadowBlur = 10;
+          } else if (isHigh) {
+            ctx.shadowColor = probeColor;
+            ctx.shadowBlur = 6;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+
+          // 3. Probe Tag Badge
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : '#334155');
+          ctx.lineWidth = isSelected ? 2 : 1.2;
+          if (isSelected) {
+            ctx.shadowColor = 'rgba(0, 176, 255, 0.45)';
+            ctx.shadowBlur = 8;
+          }
+          this.roundRect(ctx, bx, by, badgeW, badgeH, 4);
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Left Color Accent Pill
+          ctx.fillStyle = probeColor;
+          this.roundRect(ctx, bx + 3, by + 4, 3.5, badgeH - 8, 1.5);
+          ctx.fill();
+
+          // Probe Name
+          ctx.fillStyle = '#f1f5f9';
+          ctx.font = '600 9.5px monospace';
+          ctx.textAlign = 'left';
+          const nameStr = (probe.name || 'PRB').slice(0, 6);
+          ctx.fillText(nameStr, bx + 10, by + 13.5);
+
+          // Digital Level (1 / 0)
+          ctx.fillStyle = isHigh ? '#00e676' : '#64748b';
+          ctx.font = '700 10.5px monospace';
+          ctx.textAlign = 'right';
+          ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 6, by + 14);
+
+          ctx.restore();
+        }
+      }
+
       render() {
         const ctx = this.ctx;
         const dpr = window.devicePixelRatio || 1;
@@ -2257,6 +2568,7 @@
         this.drawWires(ctx);
         this.drawActiveWireDrag(ctx);
         this.drawComponents(ctx);
+        this.drawProbes(ctx);
         this.drawSelectionBox(ctx);
 
         ctx.restore();
@@ -2563,9 +2875,9 @@
 
         const gx1 = x + 16;
         const gx2 = x + width - 16;
-        const gy1 = y + 7;
-        const gy2 = y + height - 7;
-        const cy = y + height / 2;
+        const gy1 = y + 8;
+        const gy2 = y + height - 8;
+        const cy = y + (comp.outputs[0]?.relY ?? height / 2);
         const rBubble = 3.6;
         const dBubble = rBubble * 2;
         const bodyEnd = isInverted ? gx2 - dBubble - 2 : gx2;
@@ -2697,7 +3009,7 @@
       drawGateIEC(ctx, comp) {
         const { x, y, width, height, type } = comp;
         const cx = x + width / 2;
-        const cy = y + height / 2;
+        const cy = y + (comp.outputs[0]?.relY ?? height / 2);
 
         const symbols = {
           NOT: '1',
@@ -2713,7 +3025,7 @@
         ctx.fillStyle = '#0f1319';
         ctx.strokeStyle = '#263142';
         ctx.lineWidth = 1;
-        this.roundRect(ctx, x + 22, y + 8, width - 44, height - 16, 4);
+        this.roundRect(ctx, x + 20, y + 8, width - 40, height - 16, 4);
         ctx.fill();
         ctx.stroke();
 
@@ -2724,7 +3036,7 @@
 
         if (isInverted) {
           ctx.beginPath();
-          ctx.arc(x + width - 17, cy, 3.5, 0, Math.PI * 2);
+          ctx.arc(x + width - 16, cy, 3.5, 0, Math.PI * 2);
           ctx.fillStyle = '#0b0d10';
           ctx.fill();
           ctx.strokeStyle = '#00b0ff';
@@ -3082,17 +3394,18 @@
      * Logic Analyzer / Timing Diagram Renderer
      */
     class LogicAnalyzerRenderer {
-      constructor(canvas, circuit, ringBuffer) {
+      constructor(canvas, circuit, ringBuffer, callbacks = {}) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.circuit = circuit;
         this.ringBuffer = ringBuffer;
+        this.callbacks = callbacks;
 
         this.pixelsPerTick = 12;
         this.scrollRatio = 1.0;
         this.hoverX = null;
         this.hoverY = null;
-        this.gutterWidth = 135;
+        this.gutterWidth = 155;
 
         this.setupEvents();
       }
@@ -3102,13 +3415,72 @@
           const rect = this.canvas.getBoundingClientRect();
           this.hoverX = e.clientX - rect.left;
           this.hoverY = e.clientY - rect.top;
+
+          if (this.hoverX <= this.gutterWidth) {
+            this.canvas.style.cursor = 'pointer';
+          } else {
+            this.canvas.style.cursor = 'crosshair';
+          }
           this.render();
         });
 
         this.canvas.addEventListener('mouseleave', () => {
           this.hoverX = null;
           this.hoverY = null;
+          this.canvas.style.cursor = 'default';
           this.render();
+        });
+
+        this.canvas.addEventListener('click', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+
+          const probes = this.circuit.getProbes();
+          const headerH = 22;
+          const availH = Math.max(40, this.canvas.height / (window.devicePixelRatio || 1) - headerH);
+          const rowH = Math.max(26, Math.min(44, Math.floor(availH / (probes.length || 1))));
+
+          for (let pIdx = 0; pIdx < probes.length; pIdx++) {
+            const probe = probes[pIdx];
+            const rowTop = headerH + pIdx * rowH;
+            const btnX = this.gutterWidth - 22;
+            const btnY = rowTop + (rowH - 16) / 2;
+
+            if (mx >= btnX && mx <= btnX + 16 && my >= btnY && my <= btnY + 16) {
+              if (this.callbacks?.onRemoveProbe) {
+                this.callbacks.onRemoveProbe(probe.id);
+              }
+              return;
+            } else if (mx <= this.gutterWidth && my >= rowTop && my < rowTop + rowH) {
+              if (this.callbacks?.onSelectProbe) {
+                this.callbacks.onSelectProbe(probe.id);
+              }
+              return;
+            }
+          }
+        });
+
+        this.canvas.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          const rect = this.canvas.getBoundingClientRect();
+          const my = e.clientY - rect.top;
+
+          const probes = this.circuit.getProbes();
+          const headerH = 22;
+          const availH = Math.max(40, this.canvas.height / (window.devicePixelRatio || 1) - headerH);
+          const rowH = Math.max(26, Math.min(44, Math.floor(availH / (probes.length || 1))));
+
+          for (let pIdx = 0; pIdx < probes.length; pIdx++) {
+            const probe = probes[pIdx];
+            const rowTop = headerH + pIdx * rowH;
+            if (my >= rowTop && my < rowTop + rowH) {
+              if (this.callbacks?.onContextMenu) {
+                this.callbacks.onContextMenu(e.clientX, e.clientY, probe);
+              }
+              return;
+            }
+          }
         });
 
         this.canvas.addEventListener('wheel', (e) => {
@@ -3128,6 +3500,20 @@
           }
           this.render();
         }, { passive: false });
+      }
+
+      roundRect(ctx, x, y, w, h, r = 4) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
       }
 
       resize() {
@@ -3161,7 +3547,7 @@
           ctx.font = '12px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(
-            'Platziere Messpunkte (Probes) auf dem Arbeitsraster, um deren digitale Signalverläufe hier aufzuzeichnen.',
+            'Bringe Messpunkte (Probes) an Leitungen an, um deren digitale Signalverläufe hier aufzuzeichnen.',
             width / 2,
             height / 2
           );
@@ -3235,7 +3621,8 @@
 
           const highY = rowTop + 6;
           const lowY = rowTop + rowH - 6;
-          const color = probe.params.color || '#00e676';
+          const color = probe.color || probe.params?.color || '#00e676';
+          const probeName = probe.name || probe.params?.name || 'PRB';
 
           ctx.strokeStyle = '#141922';
           ctx.beginPath();
@@ -3292,16 +3679,37 @@
           ctx.fillStyle = '#e2e8f0';
           ctx.font = '600 11px monospace';
           ctx.textAlign = 'left';
-          ctx.fillText((probe.params.name || 'PRB').slice(0, 10), 22, rowTop + rowH / 2 + 4);
+          ctx.fillText(probeName.slice(0, 9), 22, rowTop + rowH / 2 + 4);
 
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const currentVal = wire ? wire.level : (probe.inputs ? probe.inputs[0]?.value : 0);
           const displayVal = hoveredOffset !== null
             ? this.ringBuffer.getValueAtOffset(probe.id, hoveredOffset)
-            : (probe.inputs[0]?.value || 0);
+            : (currentVal || 0);
 
           ctx.fillStyle = displayVal === 1 ? '#00e676' : '#64748b';
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'right';
-          ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 10, rowTop + rowH / 2 + 4);
+          ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 28, rowTop + rowH / 2 + 4);
+
+          // Delete button [✕]
+          const btnX = this.gutterWidth - 22;
+          const btnY = rowTop + (rowH - 16) / 2;
+          const isBtnHovered = this.hoverX !== null &&
+                               this.hoverX >= btnX && this.hoverX <= btnX + 16 &&
+                               this.hoverY >= btnY && this.hoverY <= btnY + 16;
+
+          if (isBtnHovered) {
+            ctx.fillStyle = '#ff5252';
+            this.roundRect(ctx, btnX, btnY, 16, 16, 3);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = '#475569';
+          }
+          ctx.font = '700 11px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('✕', btnX + 8, btnY + 12);
         }
 
         ctx.strokeStyle = '#222936';
@@ -3367,9 +3775,78 @@
         this.onChange = onChangeCallback;
       }
 
-      render(selectedCompId, selectedWireId) {
+      render(selectedCompId, selectedWireId, selectedProbeId = null) {
         this.container.innerHTML = '';
         const isSim = this.engine.mode === 'sim';
+
+        if (selectedProbeId) {
+          const probe = this.circuit.getProbe(selectedProbeId);
+          if (!probe) {
+            this.renderEmpty();
+            return;
+          }
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const fromComp = wire ? this.circuit.getComponent(wire.fromCompId) : null;
+          const toComp = wire ? this.circuit.getComponent(wire.toCompId) : null;
+
+          const info = document.createElement('div');
+          info.className = 'prop-info-box';
+          info.innerHTML = `
+            <div><strong>Typ:</strong> Messpunkt (Logic Probe)</div>
+            <div><strong>ID:</strong> ${probe.id}</div>
+            <div><strong>Leitung:</strong> ${probe.wireId} (${fromComp?.params.label || wire?.fromCompId || '?'} &rarr; ${toComp?.params.label || wire?.toCompId || '?'})</div>
+            <div><strong>Signalpegel:</strong> <span style="color:${(wire && wire.level) ? '#00e676' : '#94a3b8'};font-weight:700;">${wire ? wire.level : 0} (${(wire && wire.level) ? 'HIGH' : 'LOW'})</span></div>
+          `;
+          this.container.appendChild(info);
+
+          this.addTextControl('Kanalname (Probe)', probe.name, isSim, (val) => {
+            probe.name = val.trim() || 'PRB';
+            this.onChange(false);
+          });
+
+          const colorWrap = document.createElement('div');
+          colorWrap.className = 'prop-group';
+          const label = document.createElement('label');
+          label.textContent = 'Signalfarbe:';
+          colorWrap.appendChild(label);
+
+          const chipRow = document.createElement('div');
+          chipRow.style.display = 'flex';
+          chipRow.style.gap = '6px';
+          chipRow.style.marginTop = '4px';
+
+          for (const hex of PROBE_PALETTE) {
+            const chip = document.createElement('div');
+            chip.style.width = '22px';
+            chip.style.height = '22px';
+            chip.style.borderRadius = '50%';
+            chip.style.backgroundColor = hex;
+            chip.style.cursor = 'pointer';
+            chip.style.border = probe.color === hex ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.2)';
+            chip.addEventListener('click', () => {
+              probe.color = hex;
+              this.render(null, null, probe.id);
+              this.onChange(false);
+            });
+            chipRow.appendChild(chip);
+          }
+          colorWrap.appendChild(chipRow);
+          this.container.appendChild(colorWrap);
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-danger';
+          delBtn.style.marginTop = '12px';
+          delBtn.disabled = isSim;
+          delBtn.innerHTML = '&#128465; Messpunkt entfernen';
+          delBtn.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.circuit.removeProbe(probe.id, this.ringBuffer);
+            this.renderEmpty();
+            this.onChange(true);
+          });
+          this.container.appendChild(delBtn);
+          return;
+        }
 
         if (selectedWireId) {
           const wire = this.circuit.wires.find(w => w.id === selectedWireId);
@@ -3784,7 +4261,40 @@
 
         this.engine = new SimulationEngine(this.circuit, this.ringBuffer, () => this.onSimulationUpdate());
         this.renderer = new CanvasRenderer(this.gridCanvas, this.circuit, this.engine);
-        this.analyzer = new LogicAnalyzerRenderer(this.analyzerCanvas, this.circuit, this.ringBuffer);
+        this.analyzer = new LogicAnalyzerRenderer(
+          this.analyzerCanvas,
+          this.circuit,
+          this.ringBuffer,
+          {
+            onRemoveProbe: (probeId) => {
+              this.circuit.removeProbe(probeId, this.ringBuffer);
+              if (this.renderer.selectedProbeId === probeId) {
+                this.selectItem(null, null);
+              }
+              this.refreshAll();
+            },
+            onSelectProbe: (probeId) => {
+              this.selectItem(null, null, probeId);
+              this.highlightInspector();
+              const probe = this.circuit.getProbe(probeId);
+              if (probe) {
+                const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+                if (wire) {
+                  const pts = this.renderer.getWirePolyline(wire);
+                  const pos = this.renderer.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
+                  if (pos) {
+                    this.renderer.panX = this.gridCanvas.width / 2 - pos.x * this.renderer.zoom;
+                    this.renderer.panY = this.gridCanvas.height / 2 - pos.y * this.renderer.zoom;
+                    this.renderer.render();
+                  }
+                }
+              }
+            },
+            onContextMenu: (clientX, clientY, probe) => {
+              this.showProbeContextMenu(clientX, clientY, probe);
+            }
+          }
+        );
         this.inspector = new InspectorUI(
           this.inspectorContainer,
           this.circuit,
@@ -3794,6 +4304,7 @@
             if (clearSelection) {
               this.renderer.selectedCompIds.clear();
               this.renderer.selectedWireId = null;
+              this.renderer.selectedProbeId = null;
               this.inspector.render(null, null);
             } else if (newSelection) {
               this.selectMulti(newSelection);
@@ -3813,6 +4324,7 @@
         this.groupStartPositions = null;
 
         this.draggingComp = null;
+        this.draggingProbe = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
 
@@ -3904,6 +4416,8 @@
         this.refreshAll();
         if (this.renderer.selectedWireId) {
           this.inspector.render(null, this.renderer.selectedWireId);
+        } else if (this.renderer.selectedProbeId) {
+          this.inspector.render(null, null, this.renderer.selectedProbeId);
         }
       }
 
@@ -3954,16 +4468,18 @@
         if (hudWire) hudWire.textContent = String(this.circuit.wires.length);
       }
 
-      selectItem(compId, wireId) {
+      selectItem(compId, wireId, probeId = null) {
         this.renderer.selectedCompId = compId;
         this.renderer.selectedWireId = wireId;
-        this.inspector.render(compId, wireId);
+        this.renderer.selectedProbeId = probeId;
+        this.inspector.render(compId, wireId, probeId);
         this.renderer.render();
       }
 
       selectMulti(compIds) {
         this.renderer.selectedCompIds = new Set(compIds);
         this.renderer.selectedWireId = null;
+        this.renderer.selectedProbeId = null;
         if (this.renderer.selectedCompIds.size === 1) {
           const firstId = Array.from(this.renderer.selectedCompIds)[0];
           this.inspector.render(firstId, null);
@@ -3973,6 +4489,38 @@
           this.inspector.render(null, null);
         }
         this.renderer.render();
+      }
+
+      showToast(message) {
+        let toast = document.getElementById('sim-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'sim-toast';
+          toast.style.position = 'fixed';
+          toast.style.bottom = '160px';
+          toast.style.left = '50%';
+          toast.style.transform = 'translateX(-50%)';
+          toast.style.backgroundColor = '#1e293b';
+          toast.style.color = '#e2e8f0';
+          toast.style.padding = '8px 16px';
+          toast.style.borderRadius = '6px';
+          toast.style.border = '1px solid #00b0ff';
+          toast.style.boxShadow = '0 8px 24px rgba(0,0,0,0.6)';
+          toast.style.fontSize = '12px';
+          toast.style.fontWeight = '600';
+          toast.style.zIndex = '999999';
+          toast.style.pointerEvents = 'none';
+          toast.style.transition = 'opacity 0.3s ease';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.style.opacity = '1';
+        toast.style.display = 'block';
+        clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => { toast.style.display = 'none'; }, 300);
+        }, 2500);
       }
 
       highlightInspector() {
@@ -4154,6 +4702,25 @@
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
+            if (type === 'PROBE') {
+              let targetWire = null;
+              if (this.renderer.selectedWireId) {
+                targetWire = this.circuit.wires.find(w => w.id === this.renderer.selectedWireId);
+              } else if (this.circuit.wires.length > 0) {
+                targetWire = this.circuit.wires[0];
+              }
+              if (targetWire) {
+                const probe = this.circuit.addProbe(targetWire.id, this.getDefaultParamsForNewComponent('PROBE'));
+                if (probe) {
+                  this.selectItem(null, null, probe.id);
+                  this.highlightInspector();
+                  this.refreshAll();
+                }
+              } else {
+                this.showToast('📍 Erstelle zuerst eine Leitung oder ziehe den Messpunkt auf eine Leitung.');
+              }
+              return;
+            }
             const rect = this.gridCanvas.getBoundingClientRect();
             const centerWorld = this.renderer.screenToWorld(rect.width / 2 - 40, rect.height / 2 - 30);
             const customParams = this.getDefaultParamsForNewComponent(type);
@@ -4180,6 +4747,38 @@
           const screenX = e.clientX - rect.left;
           const screenY = e.clientY - rect.top;
           const worldPos = this.renderer.screenToWorld(screenX, screenY);
+
+          if (type === 'PROBE') {
+            const hitWire = this.renderer.findWireAt(worldPos.x, worldPos.y, 25);
+            let targetWire = hitWire;
+            if (!targetWire) {
+              let minDistSq = 50 * 50;
+              for (const w of this.circuit.wires) {
+                const pts = this.renderer.getWirePolyline(w);
+                for (let i = 0; i < pts.length - 1; i++) {
+                  const dSq = this.renderer.distToSegmentSq(worldPos.x, worldPos.y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+                  if (dSq < minDistSq) {
+                    minDistSq = dSq;
+                    targetWire = w;
+                  }
+                }
+              }
+            }
+            if (targetWire) {
+              const pts = this.renderer.getWirePolyline(targetWire);
+              const ratio = this.renderer.getProjectedRatioOnPolyline(pts, worldPos);
+              const params = { ...this.getDefaultParamsForNewComponent('PROBE'), offsetRatio: ratio };
+              const probe = this.circuit.addProbe(targetWire.id, params);
+              if (probe) {
+                this.selectItem(null, null, probe.id);
+                this.highlightInspector();
+                this.refreshAll();
+              }
+              return;
+            }
+            this.showToast('📍 Ziehe den Messpunkt direkt auf eine Leitung.');
+            return;
+          }
 
           const customParams = this.getDefaultParamsForNewComponent(type);
           const comp = this.circuit.addComponent(
@@ -4226,6 +4825,16 @@
           }
 
           if (e.button !== 0) return; // Right-click handled by contextmenu listener
+
+          const hitProbe = this.renderer.findProbeAt(world.x, world.y);
+          if (hitProbe) {
+            this.selectItem(null, null, hitProbe.id);
+            this.highlightInspector();
+            if (this.engine.mode === 'edit') {
+              this.draggingProbe = hitProbe;
+            }
+            return;
+          }
 
           if (this.engine.mode === 'sim') {
             const clickedComp = this.renderer.findComponentAt(world.x, world.y);
@@ -4421,6 +5030,16 @@
             return;
           }
 
+          if (this.draggingProbe && this.engine.mode === 'edit') {
+            const wire = this.circuit.wires.find(w => w.id === this.draggingProbe.wireId);
+            if (wire) {
+              const pts = this.renderer.getWirePolyline(wire);
+              this.draggingProbe.offsetRatio = this.renderer.getProjectedRatioOnPolyline(pts, world);
+              this.renderer.render();
+            }
+            return;
+          }
+
           if (this.draggingComp && this.engine.mode === 'edit') {
             const rawX = world.x - this.dragOffsetWorld.x;
             const rawY = world.y - this.dragOffsetWorld.y;
@@ -4432,16 +5051,21 @@
           }
 
           if (e.target === canvas) {
-            const pin = this.renderer.findPinAt(world.x, world.y);
-            const wire = !pin ? this.renderer.findWireAt(world.x, world.y) : null;
+            const probe = this.renderer.findProbeAt(world.x, world.y);
+            const pin = !probe ? this.renderer.findPinAt(world.x, world.y) : null;
+            const wire = (!probe && !pin) ? this.renderer.findWireAt(world.x, world.y) : null;
+            const prevProbe = this.renderer.hoveredProbeId;
             const prevPin = this.renderer.hoveredPin;
             const prevWire = this.renderer.hoveredWireId;
 
+            this.renderer.hoveredProbeId = probe ? probe.id : null;
             this.renderer.hoveredPin = pin;
             this.renderer.hoveredWireId = wire ? wire.id : null;
 
             if (this.spacePressed) {
               canvas.style.cursor = 'grab';
+            } else if (probe) {
+              canvas.style.cursor = 'pointer';
             } else if (pin && this.engine.mode === 'edit') {
               canvas.style.cursor = 'crosshair';
             } else if (wire && this.engine.mode === 'edit') {
@@ -4457,13 +5081,17 @@
               }
             }
 
-            if (prevPin !== pin || prevWire !== this.renderer.hoveredWireId) {
+            if (prevProbe !== this.renderer.hoveredProbeId || prevPin !== pin || prevWire !== this.renderer.hoveredWireId) {
               this.renderer.render();
             }
           }
         });
 
         window.addEventListener('mouseup', (e) => {
+          if (this.draggingProbe) {
+            this.draggingProbe = null;
+          }
+
           if (this.isPanning) {
             this.isPanning = false;
             this.gridCanvas.style.cursor = this.spacePressed ? 'grab' : 'default';
@@ -4570,6 +5198,14 @@
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+
+          const hitProbe = this.renderer.findProbeAt(world.x, world.y);
+          if (hitProbe) {
+            this.selectItem(null, null, hitProbe.id);
+            this.highlightInspector();
+            this.showProbeContextMenu(e.clientX, e.clientY, hitProbe);
+            return;
+          }
 
           const hitComp = this.renderer.findComponentAt(world.x, world.y);
           const hitWire = !hitComp ? this.renderer.findWireAt(world.x, world.y) : null;
@@ -4870,6 +5506,25 @@
           });
           menu.appendChild(autoRouteWire);
 
+          const addProbeItem = document.createElement('div');
+          addProbeItem.className = 'ctx-item';
+          addProbeItem.innerHTML = `<span>📍</span> <span>Messpunkt (Probe) an dieser Leitung anbringen</span>`;
+          addProbeItem.addEventListener('click', () => {
+            const pts = this.renderer.getWirePolyline(wire);
+            const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
+            const probe = this.circuit.addProbe(wire.id, {
+              ...this.getDefaultParamsForNewComponent('PROBE'),
+              offsetRatio: ratio
+            });
+            if (probe) {
+              this.selectItem(null, null, probe.id);
+              this.highlightInspector();
+              this.refreshAll();
+            }
+            this.hideContextMenu();
+          });
+          menu.appendChild(addProbeItem);
+
           const delWire = document.createElement('div');
           delWire.className = 'ctx-item danger';
           delWire.innerHTML = `<span>🗑️</span> <span>Leitung löschen</span>`;
@@ -5007,6 +5662,100 @@
         menu.style.top = `${Math.max(10, py)}px`;
       }
 
+      showProbeContextMenu(clientX, clientY, probe) {
+        const menu = this.contextMenuEl;
+        menu.innerHTML = '';
+
+        const header = document.createElement('div');
+        header.className = 'ctx-header';
+        header.innerHTML = `
+          <span>📍 Messpunkt: ${probe.name}</span>
+          <span style="font-size:9.5px;color:var(--text-muted);">${probe.id}</span>
+        `;
+        menu.appendChild(header);
+
+        const openInspect = document.createElement('div');
+        openInspect.className = 'ctx-item';
+        openInspect.innerHTML = `<span>🔧</span> <span>Im Inspector öffnen</span>`;
+        openInspect.addEventListener('click', () => {
+          this.selectItem(null, null, probe.id);
+          this.highlightInspector();
+          this.hideContextMenu();
+        });
+        menu.appendChild(openInspect);
+
+        const centerCanvas = document.createElement('div');
+        centerCanvas.className = 'ctx-item';
+        centerCanvas.innerHTML = `<span>🔍</span> <span>Auf Arbeitsfläche anzeigen</span>`;
+        centerCanvas.addEventListener('click', () => {
+          this.selectItem(null, null, probe.id);
+          this.highlightInspector();
+          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          if (wire) {
+            const pts = this.renderer.getWirePolyline(wire);
+            const pos = this.renderer.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
+            if (pos) {
+              this.renderer.panX = this.gridCanvas.width / 2 - pos.x * this.renderer.zoom;
+              this.renderer.panY = this.gridCanvas.height / 2 - pos.y * this.renderer.zoom;
+              this.renderer.render();
+            }
+          }
+          this.hideContextMenu();
+        });
+        menu.appendChild(centerCanvas);
+
+        const subLabel = document.createElement('div');
+        subLabel.className = 'ctx-sub-label';
+        subLabel.textContent = 'Signalfarbe:';
+        menu.appendChild(subLabel);
+
+        const colorRow = document.createElement('div');
+        colorRow.className = 'ctx-sub-row';
+        for (const col of PROBE_PALETTE) {
+          const chip = document.createElement('span');
+          chip.className = 'ctx-chip' + (probe.color === col ? ' active' : '');
+          chip.style.backgroundColor = col;
+          chip.style.width = '18px';
+          chip.style.height = '18px';
+          chip.style.padding = '0';
+          chip.style.borderRadius = '50%';
+          chip.style.border = probe.color === col ? '2px solid white' : '1px solid rgba(255,255,255,0.3)';
+          chip.addEventListener('click', () => {
+            probe.color = col;
+            this.inspector.render(null, null, probe.id);
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          colorRow.appendChild(chip);
+        }
+        menu.appendChild(colorRow);
+
+        const div = document.createElement('div');
+        div.className = 'ctx-divider';
+        menu.appendChild(div);
+
+        const delItem = document.createElement('div');
+        delItem.className = 'ctx-item danger';
+        delItem.innerHTML = `<span>🗑️</span> <span>Messpunkt entfernen</span>`;
+        delItem.addEventListener('click', () => {
+          this.circuit.removeProbe(probe.id, this.ringBuffer);
+          this.selectItem(null, null);
+          this.refreshAll();
+          this.hideContextMenu();
+        });
+        menu.appendChild(delItem);
+
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth || 210;
+        const mh = menu.offsetHeight || 220;
+        let px = clientX;
+        let py = clientY;
+        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
+        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        menu.style.left = `${Math.max(10, px)}px`;
+        menu.style.top = `${Math.max(10, py)}px`;
+      }
+
       initAnalyzerEvents() {
         const panel = document.getElementById('analyzer-panel');
         const toggleBtn = document.getElementById('btn-analyzer-toggle');
@@ -5093,13 +5842,17 @@
             e.preventDefault();
           } else if (e.key === 'Delete' || e.key === 'Backspace') {
             if (this.engine.mode === 'edit') {
-              if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
+              if (this.renderer.selectedProbeId) {
+                this.circuit.removeProbe(this.renderer.selectedProbeId, this.ringBuffer);
+                this.selectItem(null, null);
+                this.refreshAll();
+              } else if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
                 const ids = Array.from(this.renderer.selectedCompIds);
                 ids.forEach(id => this.circuit.removeComponent(id, this.ringBuffer));
                 this.selectItem(null, null);
                 this.refreshAll();
               } else if (this.renderer.selectedWireId) {
-                this.circuit.removeWire(this.renderer.selectedWireId);
+                this.circuit.removeWire(this.renderer.selectedWireId, this.ringBuffer);
                 this.selectItem(null, null);
                 this.refreshAll();
               }
@@ -5237,7 +5990,7 @@
           const step = GRID_SIZE; // 20px track separation
           for (let i = 0; i < count; i++) {
             const offset = (i - (count - 1) / 2) * step;
-            group[i].wire.channelOffset = Math.round(offset);
+            group[i].wire.channelOffset = Math.round(offset / GRID_SIZE) * GRID_SIZE;
           }
         }
 
