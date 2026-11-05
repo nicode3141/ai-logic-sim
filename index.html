@@ -525,9 +525,11 @@
       position: relative;
       background: var(--bg-deep);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    #grid-canvas {
+    #grid-canvas, #grid-canvas-right {
       display: block;
       width: 100%;
       height: 100%;
@@ -1513,69 +1515,499 @@
       color: var(--text-dim);
       font-size: 10.5px;
     }
+
+    /* Top Desktop Menubar */
+    .app-menubar {
+      height: 32px;
+      min-height: 32px;
+      background: #0d1117;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 10px;
+      z-index: 30;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    .menubar-brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-main);
+      padding-right: 10px;
+      border-right: 1px solid var(--border-dim);
+    }
+    .menubar-brand .brand-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+    .menubar-menus {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .menubar-item {
+      position: relative;
+    }
+    .menubar-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.1s, color 0.1s;
+    }
+    .menubar-btn:hover, .menubar-btn.active {
+      background: var(--bg-hover);
+      color: #fff;
+    }
+    .menubar-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
+      z-index: 1000;
+      background: #141820;
+      border: 1px solid var(--border-bright);
+      border-radius: 7px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      min-width: 220px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      backdrop-filter: blur(14px);
+      animation: ctxFadeIn 0.12s ease-out;
+    }
+    .menu-shortcut {
+      margin-left: auto;
+      font-size: 10.5px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      padding-left: 12px;
+    }
+    .norm-check {
+      display: inline-block;
+      width: 14px;
+      color: var(--accent-green);
+      font-weight: bold;
+    }
+
+    /* Tab Bar */
+    .tabs-bar {
+      height: 34px;
+      min-height: 34px;
+      background: #0f131a;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 4px;
+      user-select: none;
+      z-index: 10;
+      overflow-x: auto;
+      overflow-y: hidden;
+      box-sizing: border-box;
+    }
+    .tabs-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+    }
+    .tab-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      height: 28px;
+      padding: 0 10px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dim);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      white-space: nowrap;
+    }
+    .tab-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+    .tab-item.active {
+      background: #19202a;
+      border-color: var(--border-bright);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 -2px 0 var(--accent-blue) inset;
+    }
+    .tab-title {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      outline: none;
+    }
+    .tab-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: all 0.12s;
+    }
+    .tab-close-btn:hover {
+      background: rgba(255, 82, 82, 0.25);
+      color: var(--accent-red);
+    }
+    .tab-add-btn {
+      background: transparent;
+      border: 1px dashed var(--border-dim);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      height: 26px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+    }
+    .tab-add-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text-main);
+    }
+
+    /* Workspace & Split-Screen */
+    .canvas-workspace {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .canvas-pane {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+    }
+    #canvas-pane-left {
+      width: 100%;
+      flex-shrink: 0;
+    }
+    #canvas-pane-right {
+      flex: 1;
+      border-left: 1px solid var(--border-bright);
+    }
+    .canvas-splitter {
+      width: 6px;
+      background: var(--border-dim);
+      cursor: col-resize;
+      position: relative;
+      transition: background 0.15s;
+      z-index: 15;
+      flex-shrink: 0;
+    }
+    .canvas-splitter:hover, .canvas-splitter.active {
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(0, 176, 255, 0.6);
+    }
+    .splitter-handle {
+      position: absolute;
+      top: 50%;
+      left: 1px;
+      width: 4px;
+      height: 32px;
+      background: var(--text-dim);
+      border-radius: 2px;
+      transform: translateY(-50%);
+    }
+    .pane-header {
+      height: 28px;
+      min-height: 28px;
+      background: #11151c;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 5;
+      box-sizing: border-box;
+    }
+    .pane-badge {
+      background: var(--accent-blue-dim);
+      color: var(--accent-blue);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .select-pane-tab {
+      padding: 2px 6px;
+      font-size: 11px;
+      height: 22px;
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+    }
+    .hud-norm-badge {
+      padding: 4px 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+    .hud-norm-badge:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent-blue);
+    }
   </style>
 </head>
 <body>
   <div id="app">
-    <!-- 1. TOP TOOLBAR -->
-    <header id="toolbar">
-      <div class="toolbar-group">
-        <div class="brand-dropdown-container">
-          <button id="btn-app-menu" class="brand-btn" title="Hauptmenü öffnen (LogicSim Pro)">
-            <div class="brand-icon">&amp;</div>
-            <span>LogicSim Pro</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div id="app-dropdown-menu" class="app-dropdown-menu" style="display: none;">
-            <div class="app-menu-header">LogicSim Pro Menü</div>
+    <!-- 1. TOP DESKTOP KOPFMENÜ (MENÜLEISTE) -->
+    <nav id="app-menubar" class="app-menubar">
+      <!-- App Brand & Title -->
+      <div class="menubar-brand">
+        <div class="brand-icon">&amp;</div>
+        <span>LogicSim Pro</span>
+      </div>
+
+      <!-- Menubar items -->
+      <div class="menubar-menus">
+        <!-- Datei -->
+        <div class="menubar-item" data-menu="file">
+          <button class="menubar-btn" id="mbtn-file">Datei</button>
+          <div class="menubar-dropdown" id="mdropdown-file" style="display: none;">
             <button class="app-menu-item" id="menu-item-new">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span>Neu (Arbeitsfläche leeren)</span>
+              <span>Neu (Leeren)</span>
+              <span class="menu-shortcut">Strg+N</span>
             </button>
             <button class="app-menu-item" id="menu-item-open">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <span>Öffnen... (JSON Import)</span>
+              <span class="menu-shortcut">Strg+O</span>
             </button>
             <button class="app-menu-item" id="menu-item-save">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               <span>Speichern... (JSON Export)</span>
+              <span class="menu-shortcut">Strg+S</span>
             </button>
             <button class="app-menu-item" id="menu-item-export-png">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               <span>Bild exportieren (PNG)</span>
             </button>
             <div class="app-menu-divider"></div>
-            <button class="app-menu-item" id="menu-item-truth-table">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-              <span>Wahrheitstabelle (Strg+T)</span>
-            </button>
-            <button class="app-menu-item" id="menu-item-bool-synth">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg>
-              <span>Boolesche Schaltalgebra (Strg+B)</span>
-            </button>
-            <button class="app-menu-item" id="menu-item-layout">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/></svg>
-              <span>Schaltung sauber anordnen</span>
-            </button>
-            <div class="app-menu-divider"></div>
-            <button class="app-menu-item" id="menu-item-settings">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              <span>Einstellungen (Farben, Normen, Optionen)...</span>
+            <button class="app-menu-item" id="menu-item-clear">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-red);"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span style="color: var(--accent-red);">Arbeitsfläche leeren</span>
             </button>
           </div>
         </div>
 
-        <div class="divider"></div>
+        <!-- Bearbeiten -->
+        <div class="menubar-item" data-menu="edit">
+          <button class="menubar-btn" id="mbtn-edit">Bearbeiten</button>
+          <div class="menubar-dropdown" id="mdropdown-edit" style="display: none;">
+            <button class="app-menu-item" id="menu-item-undo">
+              <span style="font-size:14px; width:14px;">↶</span>
+              <span>Rückgängig</span>
+              <span class="menu-shortcut">Strg+Z</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-redo">
+              <span style="font-size:14px; width:14px;">↷</span>
+              <span>Wiederholen</span>
+              <span class="menu-shortcut">Strg+Y</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-select-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/></svg>
+              <span>Alles auswählen</span>
+              <span class="menu-shortcut">Strg+A</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-copy">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Kopieren</span>
+              <span class="menu-shortcut">Strg+C</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-paste">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+              <span>Einfügen</span>
+              <span class="menu-shortcut">Strg+V</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-duplicate">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span>Duplizieren</span>
+              <span class="menu-shortcut">Strg+D</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-delete">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Löschen</span>
+              <span class="menu-shortcut">Entf</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-layout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/></svg>
+              <span>Schaltung sauber anordnen</span>
+            </button>
+          </div>
+        </div>
 
+        <!-- Ansicht -->
+        <div class="menubar-item" data-menu="view">
+          <button class="menubar-btn" id="mbtn-view">Ansicht</button>
+          <div class="menubar-dropdown" id="mdropdown-view" style="display: none;">
+            <button class="app-menu-item" id="menu-item-single-view">
+              <span class="norm-check" id="check-view-single">✓</span>
+              <span>Einzelansicht (Standard)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-split-screen">
+              <span class="norm-check" id="check-view-split">&nbsp;</span>
+              <span>Split-Screen (Nebeneinander)</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-zoom-in">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              <span>Hineinzoomen</span>
+              <span class="menu-shortcut">+</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-zoom-out">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              <span>Herauszoomen</span>
+              <span class="menu-shortcut">-</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-zoom-reset">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span>Ansicht zentrieren (100%)</span>
+              <span class="menu-shortcut">0</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-toggle-analyzer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span>Impulsdiagramm (Logic Analyzer)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-toggle-inspector">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+              <span>Eigenschaften (Inspector)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Analyse -->
+        <div class="menubar-item" data-menu="analysis">
+          <button class="menubar-btn" id="mbtn-analysis">Analyse</button>
+          <div class="menubar-dropdown" id="mdropdown-analysis" style="display: none;">
+            <button class="app-menu-item" id="menu-item-truth-table">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+              <span>Wahrheitstabelle (Truth Table)...</span>
+              <span class="menu-shortcut">Strg+T</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-bool-synth">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg>
+              <span>Boolesche Schaltalgebra &amp; Synthese...</span>
+              <span class="menu-shortcut">Strg+B</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Norm -->
+        <div class="menubar-item" data-menu="norm">
+          <button class="menubar-btn" id="mbtn-norm">Norm</button>
+          <div class="menubar-dropdown" id="mdropdown-norm" style="display: none;">
+            <button class="app-menu-item" id="menu-norm-din40700">
+              <span class="norm-check" id="check-norm-din40700">✓</span>
+              <span>DIN 40700 (Deutsch / Ursprünglich)</span>
+            </button>
+            <button class="app-menu-item" id="menu-norm-din60617">
+              <span class="norm-check" id="check-norm-din60617">&nbsp;</span>
+              <span>DIN EN 60617 (IEC / International)</span>
+            </button>
+            <button class="app-menu-item" id="menu-norm-ansi">
+              <span class="norm-check" id="check-norm-ansi">&nbsp;</span>
+              <span>ANSI / IEEE (US-Formen)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Demos -->
+        <div class="menubar-item" data-menu="demos">
+          <button class="menubar-btn" id="mbtn-demos">Demos</button>
+          <div class="menubar-dropdown" id="mdropdown-demos" style="display: none; min-width: 290px;">
+            <button class="app-menu-item" data-demo="bcd_clock">1. BCD-Digitaluhr-Ziffer (Counter + 7-Seg)</button>
+            <button class="app-menu-item" data-demo="lfsr_light">2. Lauflicht &amp; Gatterlogik (LFSR + XOR)</button>
+            <button class="app-menu-item" data-demo="full_adder">3. 1-Bit Volladdierer (Full Adder)</button>
+            <button class="app-menu-item" data-demo="sr_latch">4. RS-Flipflop / Bistabile Kippstufe (NOR-Latch)</button>
+            <button class="app-menu-item" data-demo="mux_2to1">5. 2-zu-1 Multiplexer (Datenselektor)</button>
+            <button class="app-menu-item" data-demo="binary_counter_4bit">6. 4-Bit Binärzähler mit LED-Balkenanzeige</button>
+            <div class="app-menu-divider"></div>
+            <div class="app-menu-header">Flip-Flop Demonstrationen</div>
+            <button class="app-menu-item" data-demo="jk_counter">7. 3-Bit Binärzähler (JK-Flipflops mit Toggle)</button>
+            <button class="app-menu-item" data-demo="d_shift_reg">8. 3-Bit Schieberegister (D-Flipflops)</button>
+            <button class="app-menu-item" data-demo="t_divider">9. Takt-Frequenzteiler (T-Flipflop f/2 &amp; f/4)</button>
+          </div>
+        </div>
+
+        <!-- Einstellungen -->
+        <div class="menubar-item">
+          <button class="menubar-btn" id="mbtn-settings">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Einstellungen</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 2. TOOLBAR (SCHNELLE AKTIONEN OHNE REDUNDANZEN) -->
+    <header id="toolbar">
+      <div class="toolbar-group">
         <!-- Mode Toggle -->
         <div class="mode-switch" role="group" aria-label="Betriebsmodus">
           <button id="btn-mode-edit" class="mode-btn active-edit" title="Schaltung bearbeiten (Bauteile platzieren & verdrahten)">
             <span class="status-dot"></span>
-            <span class="btn-text-full">Edit-Modus</span><span class="btn-text-short" style="display:none;">Edit</span>
+            <span class="btn-text-full">Edit-Modus</span>
           </button>
           <button id="btn-mode-sim" class="mode-btn" title="Schaltung simulieren (Interaktion mit Schaltern & Takt)">
             <span class="status-dot"></span>
-            <span class="btn-text-full">Simulationsmodus</span><span class="btn-text-short" style="display:none;">Sim</span>
+            <span class="btn-text-full">Simulationsmodus</span>
           </button>
         </div>
 
@@ -1608,61 +2040,36 @@
         </div>
       </div>
 
-      <!-- File & Preset Actions + Symbol Standard Switcher -->
+      <!-- Right Action Tools (Entfernung aller gedoppelten Buttons!) -->
       <div class="toolbar-group">
-        <!-- Symbol Standard Selector (Default: DIN 40700 Deutsch) -->
-        <select id="select-symbol-norm" class="select-input" title="Schaltsymbol-Norm auswählen (Standard: DIN 40700 Deutsch)">
-          <option value="DIN_40700" selected>Norm: DIN 40700 (Deutsch)</option>
-          <option value="DIN_EN_60617">Norm: DIN EN 60617 (IEC)</option>
-          <option value="ANSI">Norm: ANSI (US)</option>
-        </select>
-
-        <select id="select-demo" class="select-input" title="Vorkonfigurierte Beispielschaltung laden">
-          <option value="">&#9733; Demo laden...</option>
-          <option value="bcd_clock">1. BCD-Digitaluhr-Ziffer (Counter + 7-Seg)</option>
-          <option value="lfsr_light">2. Lauflicht &amp; Gatterlogik (LFSR + XOR)</option>
-          <option value="full_adder">3. 1-Bit Volladdierer (Full Adder: A, B, Cin &rarr; S, Cout)</option>
-          <option value="sr_latch">4. RS-Flipflop / Bistabile Kippstufe (NOR-Latch)</option>
-          <option value="mux_2to1">5. 2-zu-1 Multiplexer (Datenselektor mit Steuerleitung)</option>
-          <option value="binary_counter_4bit">6. 4-Bit Bin&auml;rz&auml;hler mit LED-Balkenanzeige</option>
-        </select>
-
-        <button id="btn-auto-route" class="btn" title="Schaltung und alle Gatter logisch von links nach rechts anordnen und Leitungen sauber verlegen">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><line x1="12" y1="12" x2="12" y2="15"/></svg></span>
-          <span class="btn-text btn-text-full">Schaltung anordnen</span><span class="btn-text-short" style="display:none;">Anordnen</span>
+        <button id="btn-quick-undo" class="btn" title="Rückgängig (Strg+Z)">
+          <span class="btn-icon" style="font-size:13px;">↶</span>
+          <span>Undo</span>
+        </button>
+        <button id="btn-quick-redo" class="btn" title="Wiederholen (Strg+Y)">
+          <span class="btn-icon" style="font-size:13px;">↷</span>
+          <span>Redo</span>
         </button>
 
         <div class="divider"></div>
 
-        <button id="btn-truth-table" class="btn" title="Wahrheitstabelle (Truth Table) der Schaltung berechnen und anzeigen (Strg+T)">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
-          <span class="btn-text btn-text-full">Wahrheitstabelle</span><span class="btn-text-short" style="display:none;">Tabelle</span>
+        <button id="btn-auto-route" class="btn" title="Schaltung und alle Gatter logisch von links nach rechts anordnen und Leitungen sauber verlegen">
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><line x1="12" y1="12" x2="12" y2="15"/></svg></span>
+          <span>Anordnen</span>
         </button>
 
-        <button id="btn-bool-synth" class="btn" title="Booleschen Term / Schaltalgebra eingeben und in Gatter-Schaltung umwandeln (Strg+B)">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg></span>
-          <span class="btn-text btn-text-full">Boolescher Term</span><span class="btn-text-short" style="display:none;">Term</span>
+        <button id="btn-toggle-split" class="btn" title="Split-Screen Ansicht umschalten (Zwei Schaltungen nebeneinander)">
+          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
+          <span id="split-btn-text">Split-Screen</span>
         </button>
 
-        <button id="btn-export" class="btn" title="Schaltung als JSON-Datei exportieren">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-          <span class="btn-text btn-text-full">JSON Export</span><span class="btn-text-short" style="display:none;">Export</span>
-        </button>
-        <button id="btn-import" class="btn" title="Schaltung aus JSON-Datei importieren">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-          <span class="btn-text btn-text-full">JSON Import</span><span class="btn-text-short" style="display:none;">Import</span>
-        </button>
+        <div class="divider"></div>
+
+        <div class="hud-norm-badge" id="hud-norm-badge" title="Aktive Symbol-Norm (Klicken zum Umschalten)">
+          <span id="hud-norm">DIN 40700</span>
+        </div>
+
         <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
-
-        <button id="btn-open-settings" class="btn" title="Einstellungen öffnen (Farben, Normen, Edit-Mode Interaktion)">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="btn-text btn-text-full">Einstellungen</span>
-        </button>
-
-        <button id="btn-clear" class="btn btn-danger" title="Gesamte Arbeitsfläche leeren">
-          <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
-          <span class="btn-text">Leeren</span>
-        </button>
       </div>
     </header>
 
@@ -1779,6 +2186,33 @@
           </div>
         </div>
 
+        <!-- Flip-Flops & Speicher -->
+        <div class="palette-category">
+          <div class="category-title">Flip-Flops &amp; Speicher</div>
+          <div class="palette-grid">
+            <div class="palette-item" draggable="true" data-type="SR_FF" title="SR-Flipflop / Bistabile Kippstufe (S, CLK, R / Q, Q̅)">
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">SR</text><polyline points="4 10 7 12 4 14"/></svg></div>
+              <div class="palette-name">SR-FF</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="D_FF" title="D-Flipflop / Datenspeicher (D, CLK / Q, Q̅)">
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">D-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
+              <div class="palette-name">D-FF</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="JK_FF" title="JK-Flipflop / Universal Master-Slave (J, CLK, K / Q, Q̅ mit Toggle)">
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">JK</text><polyline points="4 10 7 12 4 14"/></svg></div>
+              <div class="palette-name">JK-FF</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="T_FF" title="T-Flipflop / Toggle &amp; Frequenzteiler (T, CLK / Q, Q̅)">
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">T-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
+              <div class="palette-name">T-FF</div>
+            </div>
+            <div class="palette-item" draggable="true" data-type="D_LATCH" title="D-Latch / Pegelgesteuerter Speicher (D, EN / Q, Q̅)">
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="6.5" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">LATCH</text></svg></div>
+              <div class="palette-name">D-Latch</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Analyse -->
         <div class="palette-category">
           <div class="category-title">Analyse</div>
@@ -1793,19 +2227,61 @@
 
       <!-- 3. CENTRAL CANVAS WORKSPACE -->
       <main id="canvas-container">
-        <canvas id="grid-canvas"></canvas>
-
-        <div id="help-hint">
-          Strg+C / Strg+V: <b>Kopieren &amp; Einfügen</b> &bull; Strg+A: <b>Alles auswählen</b> &bull; Entf: <b>Löschen</b> &bull; Leitung: <b>Eckpunkte ziehen / Doppelklick für neuen Knick</b> &bull; Pan: <b>Leertaste</b>
+        <!-- Tab Bar -->
+        <div id="tabs-bar" class="tabs-bar">
+          <div id="tabs-container" class="tabs-container"></div>
+          <button id="btn-new-tab" class="tab-add-btn" title="Neuen Schaltungs-Tab hinzufügen (+)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Neuer Tab</span>
+          </button>
         </div>
 
-        <div id="zoom-controls">
-          <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-          <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <!-- Dual-Pane Workspace (Supports Single & Split-Screen) -->
+        <div id="canvas-workspace" class="canvas-workspace">
+          <!-- Left Pane -->
+          <div id="canvas-pane-left" class="canvas-pane">
+            <div class="pane-header" id="pane-header-left" style="display: none;">
+              <span class="pane-title" id="pane-title-left">Schaltung 1 (Links)</span>
+              <span class="pane-badge">Fokus</span>
+            </div>
+            <canvas id="grid-canvas"></canvas>
+
+            <div id="help-hint">
+              Strg+C / Strg+V: <b>Kopieren &amp; Einfügen</b> &bull; Strg+A: <b>Alles auswählen</b> &bull; Entf: <b>Löschen</b> &bull; Leitung: <b>Eckpunkte ziehen / Doppelklick für neuen Knick</b> &bull; Pan: <b>Leertaste</b>
+            </div>
+
+            <div id="zoom-controls">
+              <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
+              <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
+
+          <!-- Draggable Splitter -->
+          <div id="canvas-splitter" class="canvas-splitter" style="display: none;">
+            <div class="splitter-handle"></div>
+          </div>
+
+          <!-- Right Pane (Split-Screen) -->
+          <div id="canvas-pane-right" class="canvas-pane" style="display: none;">
+            <div class="pane-header" id="pane-header-right">
+              <span class="pane-title" id="pane-title-right">Rechte Schaltung</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <select id="select-pane-right-tab" class="select-pane-tab" title="Schaltungs-Tab für rechte Ansicht wählen"></select>
+                <button id="btn-close-split" class="tab-close-btn" title="Split-Screen schließen">✕</button>
+              </div>
+            </div>
+            <canvas id="grid-canvas-right"></canvas>
+
+            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: rgba(18, 22, 28, 0.85); padding: 4px; border-radius: 6px; border: 1px solid var(--border-dim); backdrop-filter: blur(8px);">
+              <button class="zoom-btn" id="btn-zoom-out-right" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <button class="zoom-btn" id="btn-zoom-reset-right" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
+              <button class="zoom-btn" id="btn-zoom-in-right" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
         </div>
 
-        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 12px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
+        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 44px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
           <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
           <span>Eigenschaften</span>
         </button>
@@ -2552,6 +3028,40 @@
               label: customParams.label ?? 'SIPO-4'
             };
             break;
+          case 'SR_FF':
+            this.params = {
+              label: customParams.label ?? 'SR-FF',
+              trigger: customParams.trigger ?? 'rising',
+              initialValue: customParams.initialValue ? 1 : 0
+            };
+            break;
+          case 'D_FF':
+            this.params = {
+              label: customParams.label ?? 'D-FF',
+              trigger: customParams.trigger ?? 'rising',
+              initialValue: customParams.initialValue ? 1 : 0
+            };
+            break;
+          case 'JK_FF':
+            this.params = {
+              label: customParams.label ?? 'JK-FF',
+              trigger: customParams.trigger ?? 'rising',
+              initialValue: customParams.initialValue ? 1 : 0
+            };
+            break;
+          case 'T_FF':
+            this.params = {
+              label: customParams.label ?? 'T-FF',
+              trigger: customParams.trigger ?? 'rising',
+              initialValue: customParams.initialValue ? 1 : 0
+            };
+            break;
+          case 'D_LATCH':
+            this.params = {
+              label: customParams.label ?? 'D-Latch',
+              initialValue: customParams.initialValue ? 1 : 0
+            };
+            break;
           case 'PROBE':
             this.params = {
               name: customParams.name ?? 'PRB',
@@ -2685,6 +3195,51 @@
             outOffsets = [20, 40, 80, 100];
             break;
 
+          case 'SR_FF':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['S', 'CLK', 'R'];
+            inOffsets = [20, 40, 60];
+            outNames = ['Q', '!Q'];
+            outOffsets = [20, 60];
+            break;
+
+          case 'D_FF':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['D', 'CLK'];
+            inOffsets = [20, 60];
+            outNames = ['Q', '!Q'];
+            outOffsets = [20, 60];
+            break;
+
+          case 'JK_FF':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['J', 'CLK', 'K'];
+            inOffsets = [20, 40, 60];
+            outNames = ['Q', '!Q'];
+            outOffsets = [20, 60];
+            break;
+
+          case 'T_FF':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['T', 'CLK'];
+            inOffsets = [20, 60];
+            outNames = ['Q', '!Q'];
+            outOffsets = [20, 60];
+            break;
+
+          case 'D_LATCH':
+            this.width = 80;
+            this.height = 80;
+            inNames = ['D', 'EN'];
+            inOffsets = [20, 60];
+            outNames = ['Q', '!Q'];
+            outOffsets = [20, 60];
+            break;
+
           case 'BCD_DEC':
             this.width = 120;
             this.height = 160;
@@ -2781,6 +3336,27 @@
           case 'SHIFT_REG':
             this.state = { bits: [0, 0, 0, 0], prevClk: 0 };
             break;
+          case 'SR_FF':
+          case 'D_FF':
+          case 'JK_FF':
+          case 'T_FF': {
+            const initQ = this.params.initialValue ? 1 : 0;
+            this.state = { q: initQ, lastClk: 0 };
+            this.outputs[0].value = initQ;
+            this.outputs[1].value = initQ === 1 ? 0 : 1;
+            this.nextOutputs[0] = initQ;
+            this.nextOutputs[1] = initQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'D_LATCH': {
+            const initQ = this.params.initialValue ? 1 : 0;
+            this.state = { q: initQ };
+            this.outputs[0].value = initQ;
+            this.outputs[1].value = initQ === 1 ? 0 : 1;
+            this.nextOutputs[0] = initQ;
+            this.nextOutputs[1] = initQ === 1 ? 0 : 1;
+            break;
+          }
           default:
             this.state = {};
             break;
@@ -2974,6 +3550,86 @@
             }
             break;
           }
+          case 'SR_FF': {
+            const s   = inputValues[0] ? 1 : 0;
+            const clk = inputValues[1] ? 1 : 0;
+            const r   = inputValues[2] ? 1 : 0;
+            const trig = this.params.trigger || 'rising';
+            const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (trig === 'falling' ? (clk === 0 && this.state.lastClk === 1) : true);
+            this.state.nextLastClk = clk;
+            let nextQ = this.state.q ?? 0;
+            if (isEdge) {
+              if (s === 1 && r === 0) {
+                nextQ = 1;
+              } else if (s === 0 && r === 1) {
+                nextQ = 0;
+              } else if (s === 1 && r === 1) {
+                nextQ = 0;
+              }
+            }
+            this.state.nextQ = nextQ;
+            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[1] = (s === 1 && r === 1 && isEdge) ? 0 : (nextQ === 1 ? 0 : 1);
+            break;
+          }
+          case 'D_FF': {
+            const d   = inputValues[0] ? 1 : 0;
+            const clk = inputValues[1] ? 1 : 0;
+            const trig = this.params.trigger || 'rising';
+            const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
+            this.state.nextLastClk = clk;
+            const nextQ = isEdge ? d : (this.state.q ?? 0);
+            this.state.nextQ = nextQ;
+            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'JK_FF': {
+            const j   = inputValues[0] ? 1 : 0;
+            const clk = inputValues[1] ? 1 : 0;
+            const k   = inputValues[2] ? 1 : 0;
+            const trig = this.params.trigger || 'rising';
+            const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
+            this.state.nextLastClk = clk;
+            let nextQ = this.state.q ?? 0;
+            if (isEdge) {
+              if (j === 1 && k === 0) {
+                nextQ = 1;
+              } else if (j === 0 && k === 1) {
+                nextQ = 0;
+              } else if (j === 1 && k === 1) {
+                nextQ = nextQ === 1 ? 0 : 1; // Master-Slave Toggle
+              }
+            }
+            this.state.nextQ = nextQ;
+            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'T_FF': {
+            const t   = inputValues[0] ? 1 : 0;
+            const clk = inputValues[1] ? 1 : 0;
+            const trig = this.params.trigger || 'rising';
+            const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
+            this.state.nextLastClk = clk;
+            let nextQ = this.state.q ?? 0;
+            if (isEdge && t === 1) {
+              nextQ = nextQ === 1 ? 0 : 1; // Frequency Divider / Toggle
+            }
+            this.state.nextQ = nextQ;
+            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'D_LATCH': {
+            const d  = inputValues[0] ? 1 : 0;
+            const en = inputValues[1] ? 1 : 0;
+            const nextQ = en === 1 ? d : (this.state.q ?? 0);
+            this.state.nextQ = nextQ;
+            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
+            break;
+          }
         }
       }
 
@@ -2996,6 +3652,13 @@
         } else if (this.type === 'SHIFT_REG' && this.state.nextBits !== undefined) {
           this.state.bits = this.state.nextBits;
           this.state.prevClk = this.state.nextPrevClk;
+        }
+
+        if (this.state.nextQ !== undefined) {
+          this.state.q = this.state.nextQ;
+        }
+        if (this.state.nextLastClk !== undefined) {
+          this.state.lastClk = this.state.nextLastClk;
         }
       }
 
@@ -3231,6 +3894,7 @@
     class SimulationEngine {
       constructor(circuit, ringBuffer, onUpdateCallback) {
         this.circuit = circuit;
+        this.secondaryCircuit = null;
         this.ringBuffer = ringBuffer;
         this.onUpdate = onUpdateCallback;
 
@@ -3367,14 +4031,10 @@
         this.onUpdate();
       }
 
-      stepTick() {
-        if (this.history.length >= this.maxHistory) {
-          this.history.shift();
-        }
-        this.history.push(this.createSnapshot());
-
-        const comps = this.circuit.components;
-        const wires = this.circuit.wires;
+      stepCircuit(circuit) {
+        if (!circuit) return;
+        const comps = circuit.components;
+        const wires = circuit.wires;
 
         const inputWireMap = new Map();
         for (let i = 0; i < wires.length; i++) {
@@ -3421,6 +4081,18 @@
             dstComp.inputs[w.toPin].value = w.level;
           }
         }
+      }
+
+      stepTick() {
+        if (this.history.length >= this.maxHistory) {
+          this.history.shift();
+        }
+        this.history.push(this.createSnapshot());
+
+        this.stepCircuit(this.circuit);
+        if (this.secondaryCircuit) {
+          this.stepCircuit(this.secondaryCircuit);
+        }
 
         this.tickCount++;
 
@@ -3430,8 +4102,8 @@
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
           probeSamples.set(probe.id, wire ? wire.level : 0);
         }
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
+        for (let i = 0; i < this.circuit.components.length; i++) {
+          const comp = this.circuit.components[i];
           if (comp.type === 'PROBE') {
             probeSamples.set(comp.id, comp.inputs[0]?.value || 0);
           }
@@ -3651,6 +4323,94 @@
           { id: 'bcp_q1',  wireId: 'bcw5', name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
           { id: 'bcp_q2',  wireId: 'bcw6', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.5 },
           { id: 'bcp_q3',  wireId: 'bcw7', name: 'Q3',  color: '#ff5252', offsetRatio: 0.5 }
+        ]
+      },
+      jk_counter: {
+        version: 1,
+        components: [
+          { id: 'jk_clk',  type: 'CLOCK',  x: 60,  y: 140, params: { label: 'Takt (CLK)', halfPeriod: 2 } },
+          { id: 'jk_hi',   type: 'SWITCH', x: 60,  y: 60,  params: { label: 'High (J=K=1)', initialValue: 1 } },
+          { id: 'jk_ff0',  type: 'JK_FF',  x: 220, y: 100, params: { label: 'Bit 0 (LSB)', trigger: 'falling' } },
+          { id: 'jk_ff1',  type: 'JK_FF',  x: 420, y: 100, params: { label: 'Bit 1', trigger: 'falling' } },
+          { id: 'jk_ff2',  type: 'JK_FF',  x: 620, y: 100, params: { label: 'Bit 2 (MSB)', trigger: 'falling' } },
+          { id: 'jk_l0',   type: 'LED',    x: 340, y: 220, params: { label: 'Q0 (LSB)', color: 'green' } },
+          { id: 'jk_l1',   type: 'LED',    x: 540, y: 220, params: { label: 'Q1', color: 'yellow' } },
+          { id: 'jk_l2',   type: 'LED',    x: 740, y: 220, params: { label: 'Q2 (MSB)', color: 'blue' } }
+        ],
+        wires: [
+          { id: 'jkw_j0', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff0', toPin: 0 },
+          { id: 'jkw_k0', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff0', toPin: 2 },
+          { id: 'jkw_c0', fromCompId: 'jk_clk', fromPin: 0, toCompId: 'jk_ff0', toPin: 1 },
+          { id: 'jkw_j1', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff1', toPin: 0 },
+          { id: 'jkw_k1', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff1', toPin: 2 },
+          { id: 'jkw_c1', fromCompId: 'jk_ff0', fromPin: 0, toCompId: 'jk_ff1', toPin: 1 },
+          { id: 'jkw_j2', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff2', toPin: 0 },
+          { id: 'jkw_k2', fromCompId: 'jk_hi',  fromPin: 0, toCompId: 'jk_ff2', toPin: 2 },
+          { id: 'jkw_c2', fromCompId: 'jk_ff1', fromPin: 0, toCompId: 'jk_ff2', toPin: 1 },
+          { id: 'jkw_out0', fromCompId: 'jk_ff0', fromPin: 0, toCompId: 'jk_l0', toPin: 0 },
+          { id: 'jkw_out1', fromCompId: 'jk_ff1', fromPin: 0, toCompId: 'jk_l1', toPin: 0 },
+          { id: 'jkw_out2', fromCompId: 'jk_ff2', fromPin: 0, toCompId: 'jk_l2', toPin: 0 }
+        ],
+        probes: [
+          { id: 'jkp_clk', wireId: 'jkw_c0',   name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'jkp_q0',  wireId: 'jkw_out0', name: 'Q0',  color: '#00e676', offsetRatio: 0.5 },
+          { id: 'jkp_q1',  wireId: 'jkw_out1', name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
+          { id: 'jkp_q2',  wireId: 'jkw_out2', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.5 }
+        ]
+      },
+      d_shift_reg: {
+        version: 1,
+        components: [
+          { id: 'd_din', type: 'SWITCH', x: 60,  y: 80,  params: { label: 'Daten-In (DIN)', initialValue: 1 } },
+          { id: 'd_clk', type: 'CLOCK',  x: 60,  y: 180, params: { label: 'Takt (CLK)', halfPeriod: 3 } },
+          { id: 'd_ff0', type: 'D_FF',   x: 220, y: 100, params: { label: 'Stufe 0' } },
+          { id: 'd_ff1', type: 'D_FF',   x: 420, y: 100, params: { label: 'Stufe 1' } },
+          { id: 'd_ff2', type: 'D_FF',   x: 620, y: 100, params: { label: 'Stufe 2' } },
+          { id: 'd_l0',  type: 'LED',    x: 340, y: 220, params: { label: 'Q0', color: 'green' } },
+          { id: 'd_l1',  type: 'LED',    x: 540, y: 220, params: { label: 'Q1', color: 'yellow' } },
+          { id: 'd_l2',  type: 'LED',    x: 740, y: 220, params: { label: 'Q2', color: 'red' } }
+        ],
+        wires: [
+          { id: 'dw_din', fromCompId: 'd_din', fromPin: 0, toCompId: 'd_ff0', toPin: 0 },
+          { id: 'dw_c0',  fromCompId: 'd_clk', fromPin: 0, toCompId: 'd_ff0', toPin: 1 },
+          { id: 'dw_c1',  fromCompId: 'd_clk', fromPin: 0, toCompId: 'd_ff1', toPin: 1 },
+          { id: 'dw_c2',  fromCompId: 'd_clk', fromPin: 0, toCompId: 'd_ff2', toPin: 1 },
+          { id: 'dw_q0_d1', fromCompId: 'd_ff0', fromPin: 0, toCompId: 'd_ff1', toPin: 0 },
+          { id: 'dw_q1_d2', fromCompId: 'd_ff1', fromPin: 0, toCompId: 'd_ff2', toPin: 0 },
+          { id: 'dw_l0', fromCompId: 'd_ff0', fromPin: 0, toCompId: 'd_l0', toPin: 0 },
+          { id: 'dw_l1', fromCompId: 'd_ff1', fromPin: 0, toCompId: 'd_l1', toPin: 0 },
+          { id: 'dw_l2', fromCompId: 'd_ff2', fromPin: 0, toCompId: 'd_l2', toPin: 0 }
+        ],
+        probes: [
+          { id: 'dp_din', wireId: 'dw_din', name: 'DIN', color: '#ff5252', offsetRatio: 0.5 },
+          { id: 'dp_clk', wireId: 'dw_c0',  name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'dp_q0',  wireId: 'dw_l0',  name: 'Q0',  color: '#00e676', offsetRatio: 0.5 },
+          { id: 'dp_q1',  wireId: 'dw_l1',  name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
+          { id: 'dp_q2',  wireId: 'dw_l2',  name: 'Q2',  color: '#ff4081', offsetRatio: 0.5 }
+        ]
+      },
+      t_divider: {
+        version: 1,
+        components: [
+          { id: 't_clk', type: 'CLOCK',  x: 80,  y: 120, params: { label: 'Master-CLK (f)', halfPeriod: 2 } },
+          { id: 't_hi',  type: 'SWITCH', x: 80,  y: 200, params: { label: 'T=1 (Toggle)', initialValue: 1 } },
+          { id: 't_ff0', type: 'T_FF',   x: 260, y: 120, params: { label: 'T-FF (f / 2)' } },
+          { id: 't_ff1', type: 'T_FF',   x: 480, y: 120, params: { label: 'T-FF (f / 4)' } },
+          { id: 't_l0',  type: 'LED',    x: 400, y: 220, params: { label: 'f / 2', color: 'green' } },
+          { id: 't_l1',  type: 'LED',    x: 620, y: 220, params: { label: 'f / 4', color: 'blue' } }
+        ],
+        wires: [
+          { id: 'tw_c0',  fromCompId: 't_clk', fromPin: 0, toCompId: 't_ff0', toPin: 1 },
+          { id: 'tw_t0',  fromCompId: 't_hi',  fromPin: 0, toCompId: 't_ff0', toPin: 0 },
+          { id: 'tw_t1',  fromCompId: 't_hi',  fromPin: 0, toCompId: 't_ff1', toPin: 0 },
+          { id: 'tw_c1',  fromCompId: 't_ff0', fromPin: 0, toCompId: 't_ff1', toPin: 1 },
+          { id: 'tw_l0',  fromCompId: 't_ff0', fromPin: 0, toCompId: 't_l0',  toPin: 0 },
+          { id: 'tw_l1',  fromCompId: 't_ff1', fromPin: 0, toCompId: 't_l1',  toPin: 0 }
+        ],
+        probes: [
+          { id: 'tp_clk', wireId: 'tw_c0', name: 'f (CLK)', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'tp_q0',  wireId: 'tw_l0', name: 'f / 2',   color: '#00e676', offsetRatio: 0.5 },
+          { id: 'tp_q1',  wireId: 'tw_l1', name: 'f / 4',   color: '#b388ff', offsetRatio: 0.5 }
         ]
       }
     };
@@ -5183,6 +5943,43 @@
             break;
           }
 
+          case 'SR_FF':
+          case 'D_FF':
+          case 'JK_FF':
+          case 'T_FF':
+          case 'D_LATCH': {
+            const q = comp.state.q ?? 0;
+            const names = {
+              SR_FF: 'SR-FF',
+              D_FF: 'D-FF',
+              JK_FF: 'JK-FF',
+              T_FF: 'T-FF',
+              D_LATCH: 'D-LATCH'
+            };
+            const ffName = names[type] || 'FF';
+
+            ctx.fillStyle = '#0c1015';
+            ctx.strokeStyle = '#263244';
+            this.roundRect(ctx, cx - 22, cy - 22, 44, 44, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '700 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(ffName, cx, cy - 7);
+
+            ctx.fillStyle = q === 1 ? '#00e676' : '#64748b';
+            ctx.font = '700 13px monospace';
+            ctx.fillText(`Q=${q}`, cx, cy + 8);
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '500 8px monospace';
+            const trigLabel = comp.params.trigger === 'falling' ? 'CLK: ↓' : (comp.params.trigger === 'transparent' ? 'STATIC' : 'CLK: ↑');
+            ctx.fillText(type === 'D_LATCH' ? 'LEVEL' : trigLabel, cx, cy + 18);
+            break;
+          }
+
           case 'PROBE': {
             const isHigh = comp.inputs[0]?.value === 1;
             const probeColor = comp.params.color || '#00e676';
@@ -5257,12 +6054,26 @@
 
           // Do NOT draw redundant output labels like 'Y' on gates
           if (!isGateComp && pin.name) {
-            const isInv = Boolean(comp.params.invertedOutput);
+            const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
+            const isNegatedQ = isFF && pin.name === '!Q';
+            const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
+
+            if (isNegatedQ) {
+              ctx.beginPath();
+              ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
+              ctx.fillStyle = '#0b0d10';
+              ctx.fill();
+              ctx.strokeStyle = '#64748b';
+              ctx.lineWidth = 1.3;
+              ctx.stroke();
+            }
+
             const textOffsetX = isInv ? 15 : 7;
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 9.5px monospace';
             ctx.textAlign = 'right';
-            ctx.fillText(pin.name, px - textOffsetX, py + 3);
+            const displayName = isNegatedQ ? 'Q̅' : pin.name;
+            ctx.fillText(displayName, px - textOffsetX, py + 3);
           }
         }
       }
@@ -6448,6 +7259,74 @@
             break;
           }
 
+          case 'SR_FF':
+          case 'D_FF':
+          case 'JK_FF':
+          case 'T_FF': {
+            const trigOptions = [
+              { value: 'rising',  label: 'Steigende Taktflanke (↑)' },
+              { value: 'falling', label: 'Fallende Taktflanke (↓)' }
+            ];
+            if (comp.type === 'SR_FF') {
+              trigOptions.push({ value: 'transparent', label: 'Pegelgesteuert (Transparent / Ohne Takt)' });
+            }
+            this.addSelectControl(
+              'Takt-Flankensteuerung',
+              comp.params.trigger || 'rising',
+              trigOptions,
+              isSim,
+              (val) => {
+                comp.params.trigger = val;
+                this.onChange(false);
+              }
+            );
+            this.addSelectControl(
+              'Initialer Zustand (Q beim Reset)',
+              String(comp.params.initialValue ?? 0),
+              [
+                { value: '0', label: '0 (Reset / Low)' },
+                { value: '1', label: '1 (Set / High)' }
+              ],
+              isSim,
+              (val) => {
+                const bit = parseInt(val, 10) ? 1 : 0;
+                comp.params.initialValue = bit;
+                comp.state.q = bit;
+                comp.outputs[0].value = bit;
+                comp.outputs[1].value = bit === 1 ? 0 : 1;
+                comp.nextOutputs[0] = bit;
+                comp.nextOutputs[1] = bit === 1 ? 0 : 1;
+                this.circuit.syncImmediateWireLevels();
+                this.onChange(false);
+              }
+            );
+            break;
+          }
+
+          case 'D_LATCH': {
+            this.addSelectControl(
+              'Initialer Zustand (Q beim Reset)',
+              String(comp.params.initialValue ?? 0),
+              [
+                { value: '0', label: '0 (Reset / Low)' },
+                { value: '1', label: '1 (Set / High)' }
+              ],
+              isSim,
+              (val) => {
+                const bit = parseInt(val, 10) ? 1 : 0;
+                comp.params.initialValue = bit;
+                comp.state.q = bit;
+                comp.outputs[0].value = bit;
+                comp.outputs[1].value = bit === 1 ? 0 : 1;
+                comp.nextOutputs[0] = bit;
+                comp.nextOutputs[1] = bit === 1 ? 0 : 1;
+                this.circuit.syncImmediateWireLevels();
+                this.onChange(false);
+              }
+            );
+            break;
+          }
+
           case 'PROBE': {
             const group = document.createElement('div');
             group.className = 'prop-group';
@@ -6667,6 +7546,11 @@
           BCD_DEC: 'BCD-zu-7-Segment-Decoder',
           COUNTER: '4-Bit-Counter',
           SHIFT_REG: '4-Bit-Schieberegister (SIPO)',
+          SR_FF: 'SR-Flipflop (Bistabile Kippstufe)',
+          D_FF: 'D-Flipflop (Edge-Triggered)',
+          JK_FF: 'JK-Flipflop (Master-Slave mit Toggle)',
+          T_FF: 'T-Flipflop (Toggle / Frequenzteiler)',
+          D_LATCH: 'D-Latch (Pegelgesteuerter Speicher)',
           PROBE: 'Messpunkt (Logic Probe)'
         };
         return names[type] || type;
@@ -7450,6 +8334,23 @@
     }
 
     /**
+     * Session state for an individual circuit tab
+     */
+    class TabSession {
+      constructor(id, title, circuit = null, ringBuffer = null) {
+        this.id = id;
+        this.title = title || 'Schaltung';
+        this.circuit = circuit || new Circuit();
+        this.ringBuffer = ringBuffer || new RingBuffer(256);
+        this.undoStack = [];
+        this.redoStack = [];
+        this.panX = 40;
+        this.panY = 40;
+        this.zoom = 1.0;
+      }
+    }
+
+    /**
      * Main Application Controller & User Interaction Manager
      */
     class LogicSimApp {
@@ -7459,13 +8360,26 @@
         this.clipboard = null;
         this.lastMouseWorldPos = null;
 
+        // Multi-Tab & Split-Screen Architecture
+        this.tabs = [];
+        this.tabCounter = 1;
+        const initialTab = new TabSession('tab_1', 'Schaltung 1', this.circuit, this.ringBuffer);
+        this.tabs.push(initialTab);
+        this.activeTabId = 'tab_1';
+        this.rightTabId = null;
+        this.splitScreenMode = false;
+        this.activePane = 'left'; // 'left' or 'right'
+
         this.gridCanvas = document.getElementById('grid-canvas');
+        this.gridCanvasRight = document.getElementById('grid-canvas-right');
         this.analyzerCanvas = document.getElementById('analyzer-canvas');
         this.inspectorContainer = document.getElementById('inspector-content');
         this.contextMenuEl = document.getElementById('canvas-context-menu');
 
         this.engine = new SimulationEngine(this.circuit, this.ringBuffer, () => this.onSimulationUpdate());
         this.renderer = new CanvasRenderer(this.gridCanvas, this.circuit, this.engine);
+        this.rendererRight = new CanvasRenderer(this.gridCanvasRight, null, this.engine);
+
         this.analyzer = new LogicAnalyzerRenderer(
           this.analyzerCanvas,
           this.circuit,
@@ -7524,12 +8438,7 @@
               return;
             }
             if (clearSelection === 'delete') {
-              const compIds = Array.from(this.renderer.selectedCompIds || []);
-              const wireIds = Array.from(this.renderer.selectedWireIds || []);
-              wireIds.forEach(wid => this.circuit.removeWire(wid, this.ringBuffer));
-              compIds.forEach(cid => this.circuit.removeComponent(cid, this.ringBuffer));
-              this.selectItem(null, null);
-              this.refreshAll();
+              this.deleteSelection();
               return;
             }
             if (clearSelection) {
@@ -7577,10 +8486,13 @@
 
         this.currentTruthTableData = null;
 
-        this.initAppMenuEvents();
+        this.initMenubarEvents();
+        this.initTabsEvents();
+        this.initSplitScreenEvents();
         this.initToolbarEvents();
         this.initPaletteEvents();
         this.initCanvasEvents();
+        this.initRightCanvasEvents();
         this.initAnalyzerEvents();
         this.initKeyboardEvents();
         this.initContextMenuEvents();
@@ -7590,17 +8502,637 @@
 
         window.addEventListener('resize', () => {
           this.renderer.resize();
+          if (this.splitScreenMode && this.rendererRight) {
+            this.rendererRight.resize();
+          }
           this.analyzer.resize();
         });
 
-        const restored = this.loadCircuitFromStorage();
+        const restored = this.loadTabsFromStorage() || this.loadCircuitFromStorage();
         if (!restored) {
           this.loadDemo('bcd_clock');
         }
+
+        this.renderTabsBar();
+        this.updateSplitSelectOptions();
+        this.updateUndoRedoUI();
+
         setTimeout(() => {
           this.renderer.resize();
+          if (this.splitScreenMode && this.rendererRight) {
+            this.rendererRight.resize();
+          }
           this.analyzer.resize();
         }, 10);
+      }
+
+      // ----------------------------------------------------
+      // Multi-Tab & Split-Screen Architecture
+      // ----------------------------------------------------
+
+      getActiveTab() {
+        return this.tabs.find(t => t.id === this.activeTabId) || this.tabs[0];
+      }
+
+      getRightTab() {
+        if (!this.rightTabId) return null;
+        return this.tabs.find(t => t.id === this.rightTabId) || null;
+      }
+
+      getPaneTab(pane = 'left') {
+        return pane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab();
+      }
+
+      getPaneRenderer(pane = 'left') {
+        return pane === 'right' ? this.rendererRight : this.renderer;
+      }
+
+      setActivePane(pane) {
+        this.activePane = pane;
+        const bLeft = document.getElementById('pane-badge-left');
+        const bRight = document.getElementById('pane-badge-right');
+        if (bLeft) bLeft.style.display = (pane === 'left' ? 'inline-block' : 'none');
+        if (bRight) bRight.style.display = (pane === 'right' ? 'inline-block' : 'none');
+        this.updateUndoRedoUI();
+      }
+
+      createNewTab(title = null, circuitData = null, activate = true) {
+        this.tabCounter++;
+        const id = 'tab_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        const tabTitle = title || `Schaltung ${this.tabCounter}`;
+        const newTab = new TabSession(id, tabTitle);
+        if (circuitData) {
+          newTab.circuit.fromJSON(circuitData, newTab.ringBuffer);
+        }
+        this.tabs.push(newTab);
+        if (activate) {
+          this.switchTab(id);
+        } else {
+          this.renderTabsBar();
+          this.updateSplitSelectOptions();
+        }
+        this.saveTabsToStorage();
+        this.showToast(`➕ Neuer Tab "${tabTitle}" erstellt`);
+        return newTab;
+      }
+
+      switchTab(tabId) {
+        if (this.activeTabId === tabId && this.circuit === this.getActiveTab()?.circuit) return;
+        const currentTab = this.getActiveTab();
+        if (currentTab) {
+          currentTab.panX = this.renderer.panX;
+          currentTab.panY = this.renderer.panY;
+          currentTab.zoom = this.renderer.zoom;
+        }
+        const nextTab = this.tabs.find(t => t.id === tabId);
+        if (!nextTab) return;
+        this.activeTabId = tabId;
+        this.circuit = nextTab.circuit;
+        this.ringBuffer = nextTab.ringBuffer;
+        this.engine.circuit = this.circuit;
+        this.engine.ringBuffer = this.ringBuffer;
+        this.renderer.circuit = this.circuit;
+        this.renderer.panX = nextTab.panX ?? 40;
+        this.renderer.panY = nextTab.panY ?? 40;
+        this.renderer.zoom = nextTab.zoom ?? 1.0;
+        this.renderer.selectedCompId = null;
+        this.renderer.selectedWireId = null;
+        this.renderer.selectedCompIds.clear();
+        this.renderer.selectedWireIds.clear();
+        this.renderer.selectedProbeId = null;
+        this.analyzer.circuit = this.circuit;
+        this.analyzer.ringBuffer = this.ringBuffer;
+        this.inspector.circuit = this.circuit;
+        this.inspector.ringBuffer = this.ringBuffer;
+        this.setActivePane('left');
+
+        const titleLeft = document.getElementById('pane-title-left');
+        if (titleLeft) titleLeft.textContent = `${nextTab.title} (Links)`;
+
+        this.renderTabsBar();
+        this.updateSplitSelectOptions();
+        this.refreshAll();
+        this.updateUndoRedoUI();
+        this.saveTabsToStorage();
+      }
+
+      closeTab(tabId) {
+        if (this.tabs.length <= 1) {
+          this.clearCurrentCircuit();
+          return;
+        }
+        const idx = this.tabs.findIndex(t => t.id === tabId);
+        if (idx === -1) return;
+        const closedTab = this.tabs[idx];
+        this.tabs.splice(idx, 1);
+
+        if (this.activeTabId === tabId) {
+          const nextIdx = Math.max(0, idx - 1);
+          this.switchTab(this.tabs[nextIdx].id);
+        }
+        if (this.rightTabId === tabId) {
+          const other = this.tabs.find(t => t.id !== this.activeTabId);
+          if (other) {
+            this.setRightPaneTab(other.id);
+          } else {
+            this.toggleSplitScreen(false);
+          }
+        }
+        this.renderTabsBar();
+        this.updateSplitSelectOptions();
+        this.saveTabsToStorage();
+        this.showToast(`Tab "${closedTab.title}" geschlossen`);
+      }
+
+      renameTab(tabId, newTitle) {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        const trimmed = (newTitle || '').trim();
+        if (trimmed) {
+          tab.title = trimmed;
+          this.renderTabsBar();
+          this.updateSplitSelectOptions();
+          if (this.activeTabId === tabId) {
+            const titleLeft = document.getElementById('pane-title-left');
+            if (titleLeft) titleLeft.textContent = `${tab.title} (Links)`;
+          }
+          if (this.rightTabId === tabId) {
+            const titleRight = document.getElementById('pane-title-right');
+            if (titleRight) titleRight.textContent = `${tab.title} (Rechts)`;
+          }
+          this.saveTabsToStorage();
+        }
+      }
+
+      renderTabsBar() {
+        const container = document.getElementById('tabs-container');
+        if (!container) return;
+        container.innerHTML = '';
+        this.tabs.forEach(tab => {
+          const tabEl = document.createElement('div');
+          tabEl.className = 'tab-item' + (tab.id === this.activeTabId ? ' active' : '') + (this.splitScreenMode && tab.id === this.rightTabId ? ' split-active' : '');
+          tabEl.title = 'Klicken zum Aktivieren, Doppelklick zum Umbenennen';
+
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'tab-item-title';
+          titleSpan.textContent = tab.title;
+
+          titleSpan.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            const currentText = tab.title;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'tab-item-input';
+            input.style.width = Math.max(60, currentText.length * 8 + 12) + 'px';
+            titleSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            const commit = () => {
+              this.renameTab(tab.id, input.value || currentText);
+            };
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', (ke) => {
+              if (ke.key === 'Enter') {
+                input.blur();
+              } else if (ke.key === 'Escape') {
+                input.value = currentText;
+                input.blur();
+              }
+            });
+          });
+
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'tab-close-btn';
+          closeBtn.innerHTML = '✕';
+          closeBtn.title = 'Tab schließen';
+          closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closeTab(tab.id);
+          });
+
+          tabEl.appendChild(titleSpan);
+          tabEl.appendChild(closeBtn);
+
+          tabEl.addEventListener('click', () => {
+            this.switchTab(tab.id);
+          });
+
+          container.appendChild(tabEl);
+        });
+      }
+
+      initTabsEvents() {
+        const btnNew = document.getElementById('btn-new-tab');
+        if (btnNew) {
+          btnNew.addEventListener('click', () => {
+            this.createNewTab();
+          });
+        }
+      }
+
+      toggleSplitScreen(forceState = null) {
+        const nextState = forceState !== null ? forceState : !this.splitScreenMode;
+        if (this.splitScreenMode === nextState) return;
+        this.splitScreenMode = nextState;
+
+        const splitter = document.getElementById('canvas-splitter');
+        const paneRight = document.getElementById('canvas-pane-right');
+        const paneLeft = document.getElementById('canvas-pane-left');
+        const headerLeft = document.getElementById('pane-header-left');
+        const btnToggle = document.getElementById('btn-toggle-split');
+        const checkSingle = document.getElementById('check-view-single');
+        const checkSplit = document.getElementById('check-view-split');
+
+        if (this.splitScreenMode) {
+          if (this.tabs.length < 2) {
+            const t2 = this.createNewTab('Schaltung 2', null, false);
+            this.rightTabId = t2.id;
+          } else if (!this.rightTabId || this.rightTabId === this.activeTabId) {
+            const other = this.tabs.find(t => t.id !== this.activeTabId);
+            this.rightTabId = other ? other.id : this.tabs[0].id;
+          }
+
+          if (splitter) splitter.style.display = 'flex';
+          if (paneRight) paneRight.style.display = 'flex';
+          if (headerLeft) headerLeft.style.display = 'flex';
+          if (paneLeft) paneLeft.style.width = '50%';
+
+          const rTab = this.getRightTab();
+          if (rTab) {
+            this.rendererRight.circuit = rTab.circuit;
+            this.rendererRight.panX = rTab.panX ?? 40;
+            this.rendererRight.panY = rTab.panY ?? 40;
+            this.rendererRight.zoom = rTab.zoom ?? 1.0;
+            this.engine.secondaryCircuit = rTab.circuit;
+          }
+
+          if (btnToggle) btnToggle.classList.add('active');
+          if (checkSingle) checkSingle.innerHTML = '&nbsp;';
+          if (checkSplit) checkSplit.innerHTML = '✓';
+
+          const titleLeft = document.getElementById('pane-title-left');
+          if (titleLeft) titleLeft.textContent = `${this.getActiveTab().title} (Links)`;
+          const titleRight = document.getElementById('pane-title-right');
+          if (titleRight && rTab) titleRight.textContent = `${rTab.title} (Rechts)`;
+
+          this.showToast('Split-Screen Modus aktiviert (Zwei Schaltungen nebeneinander)');
+        } else {
+          if (splitter) splitter.style.display = 'none';
+          if (paneRight) paneRight.style.display = 'none';
+          if (headerLeft) headerLeft.style.display = 'none';
+          if (paneLeft) paneLeft.style.width = '100%';
+
+          this.engine.secondaryCircuit = null;
+          this.setActivePane('left');
+
+          if (btnToggle) btnToggle.classList.remove('active');
+          if (checkSingle) checkSingle.innerHTML = '✓';
+          if (checkSplit) checkSplit.innerHTML = '&nbsp;';
+
+          this.showToast('Einzelansicht wiederhergestellt');
+        }
+
+        this.renderTabsBar();
+        this.updateSplitSelectOptions();
+        this.saveTabsToStorage();
+        setTimeout(() => {
+          this.renderer.resize();
+          if (this.splitScreenMode) {
+            this.rendererRight.resize();
+          }
+        }, 30);
+      }
+
+      setRightPaneTab(tabId) {
+        this.rightTabId = tabId;
+        const rTab = this.getRightTab();
+        if (rTab) {
+          this.rendererRight.circuit = rTab.circuit;
+          this.rendererRight.panX = rTab.panX ?? 40;
+          this.rendererRight.panY = rTab.panY ?? 40;
+          this.rendererRight.zoom = rTab.zoom ?? 1.0;
+          this.engine.secondaryCircuit = rTab.circuit;
+          const titleRight = document.getElementById('pane-title-right');
+          if (titleRight) titleRight.textContent = `${rTab.title} (Rechts)`;
+          this.rendererRight.render();
+        }
+        this.renderTabsBar();
+        this.updateSplitSelectOptions();
+        this.saveTabsToStorage();
+      }
+
+      updateSplitSelectOptions() {
+        const sel = document.getElementById('select-pane-right-tab');
+        if (!sel) return;
+        sel.innerHTML = '';
+        this.tabs.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.title + (t.id === this.activeTabId ? ' (Aktiv Links)' : '');
+          if (t.id === this.rightTabId) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      }
+
+      initSplitScreenEvents() {
+        const splitter = document.getElementById('canvas-splitter');
+        const container = document.getElementById('canvas-workspace');
+        const paneLeft = document.getElementById('canvas-pane-left');
+        const btnToggleSplit = document.getElementById('btn-toggle-split');
+        const btnCloseSplit = document.getElementById('btn-close-split');
+        const selectPaneRight = document.getElementById('select-pane-right-tab');
+
+        if (btnToggleSplit) {
+          btnToggleSplit.addEventListener('click', () => {
+            this.toggleSplitScreen();
+          });
+        }
+
+        if (btnCloseSplit) {
+          btnCloseSplit.addEventListener('click', () => {
+            this.toggleSplitScreen(false);
+          });
+        }
+
+        if (selectPaneRight) {
+          selectPaneRight.addEventListener('change', (e) => {
+            this.setRightPaneTab(e.target.value);
+          });
+        }
+
+        let isDraggingSplitter = false;
+        splitter?.addEventListener('mousedown', (e) => {
+          isDraggingSplitter = true;
+          splitter.classList.add('dragging');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isDraggingSplitter) return;
+          const rect = container.getBoundingClientRect();
+          const pct = Math.min(80, Math.max(20, ((e.clientX - rect.left) / rect.width) * 100));
+          paneLeft.style.width = pct + '%';
+          this.renderer.resize();
+          this.rendererRight.resize();
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isDraggingSplitter) {
+            isDraggingSplitter = false;
+            splitter.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            this.renderer.resize();
+            this.rendererRight.resize();
+          }
+        });
+
+        document.getElementById('btn-zoom-in-right')?.addEventListener('click', () => {
+          this.setZoomRight(this.rendererRight.zoom * 1.15);
+        });
+        document.getElementById('btn-zoom-out-right')?.addEventListener('click', () => {
+          this.setZoomRight(this.rendererRight.zoom / 1.15);
+        });
+        document.getElementById('btn-zoom-reset-right')?.addEventListener('click', () => {
+          this.rendererRight.panX = 40;
+          this.rendererRight.panY = 40;
+          this.setZoomRight(1.0);
+        });
+      }
+
+      setZoomRight(newZoom) {
+        const clamped = Math.max(0.35, Math.min(2.5, newZoom));
+        this.rendererRight.zoom = clamped;
+        const btn = document.getElementById('btn-zoom-reset-right');
+        if (btn) btn.textContent = `${Math.round(clamped * 100)}%`;
+        this.rendererRight.render();
+      }
+
+      // ----------------------------------------------------
+      // History & Undo / Redo
+      // ----------------------------------------------------
+
+      pushHistory(targetTab = null) {
+        const tab = targetTab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
+        if (!tab || !tab.circuit) return;
+        const snapshot = JSON.stringify(tab.circuit.toJSON());
+        if (tab.undoStack.length > 0 && tab.undoStack[tab.undoStack.length - 1] === snapshot) {
+          return;
+        }
+        tab.undoStack.push(snapshot);
+        if (tab.undoStack.length > 50) {
+          tab.undoStack.shift();
+        }
+        tab.redoStack = [];
+        this.updateUndoRedoUI();
+      }
+
+      undo(targetTab = null) {
+        const tab = targetTab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
+        if (!tab || tab.undoStack.length === 0) return;
+        const currentState = JSON.stringify(tab.circuit.toJSON());
+        tab.redoStack.push(currentState);
+        const prevState = tab.undoStack.pop();
+        tab.circuit.fromJSON(JSON.parse(prevState), tab.ringBuffer);
+        this.selectItem(null, null);
+        this.refreshAll();
+        if (this.splitScreenMode && this.rendererRight) {
+          this.rendererRight.render();
+        }
+        this.updateUndoRedoUI();
+        this.showToast('↶ Rückgängig ausgeführt');
+      }
+
+      redo(targetTab = null) {
+        const tab = targetTab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
+        if (!tab || tab.redoStack.length === 0) return;
+        const currentState = JSON.stringify(tab.circuit.toJSON());
+        tab.undoStack.push(currentState);
+        const nextState = tab.redoStack.pop();
+        tab.circuit.fromJSON(JSON.parse(nextState), tab.ringBuffer);
+        this.selectItem(null, null);
+        this.refreshAll();
+        if (this.splitScreenMode && this.rendererRight) {
+          this.rendererRight.render();
+        }
+        this.updateUndoRedoUI();
+        this.showToast('↷ Wiederholen ausgeführt');
+      }
+
+      updateUndoRedoUI() {
+        const tab = this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab();
+        const canUndo = tab && tab.undoStack.length > 0;
+        const canRedo = tab && tab.redoStack.length > 0;
+        const btnUndo = document.getElementById('btn-quick-undo');
+        const btnRedo = document.getElementById('btn-quick-redo');
+        if (btnUndo) btnUndo.disabled = !canUndo;
+        if (btnRedo) btnRedo.disabled = !canRedo;
+      }
+
+      deleteSelection(tab = null, rend = null) {
+        const targetTab = tab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
+        const targetRend = rend || this.getPaneRenderer(this.activePane);
+        if (!targetTab || !targetRend) return;
+
+        this.pushHistory(targetTab);
+
+        if (targetRend.selectedProbeId) {
+          targetTab.circuit.removeProbe(targetRend.selectedProbeId, targetTab.ringBuffer);
+          this.selectItem(null, null);
+          this.refreshAll();
+          return;
+        }
+
+        const hasComps = targetRend.selectedCompIds && targetRend.selectedCompIds.size > 0;
+        const hasWires = targetRend.selectedWireIds && targetRend.selectedWireIds.size > 0;
+        if (targetRend.selectedCompId || targetRend.selectedWireId || hasComps || hasWires) {
+          if (targetRend.selectedCompId) {
+            targetTab.circuit.removeComponent(targetRend.selectedCompId, targetTab.ringBuffer);
+          }
+          if (targetRend.selectedWireId) {
+            targetTab.circuit.removeWire(targetRend.selectedWireId, targetTab.ringBuffer);
+          }
+          if (hasWires) {
+            const wireIds = Array.from(targetRend.selectedWireIds);
+            wireIds.forEach(id => targetTab.circuit.removeWire(id, targetTab.ringBuffer));
+          }
+          if (hasComps) {
+            const compIds = Array.from(targetRend.selectedCompIds);
+            compIds.forEach(id => targetTab.circuit.removeComponent(id, targetTab.ringBuffer));
+          }
+          this.selectItem(null, null);
+          this.refreshAll();
+        }
+      }
+
+      // ----------------------------------------------------
+      // Tabs & Circuit Storage Persistence
+      // ----------------------------------------------------
+
+      saveTabsToStorage() {
+        if (!this.autoSaveCircuit) return;
+        try {
+          const tabData = this.tabs.map(t => ({
+            id: t.id,
+            title: t.title,
+            circuit: t.circuit.toJSON(),
+            panX: t.panX,
+            panY: t.panY,
+            zoom: t.zoom
+          }));
+          localStorage.setItem('logicsim_tabs', JSON.stringify({
+            tabs: tabData,
+            activeTabId: this.activeTabId,
+            splitScreenMode: this.splitScreenMode,
+            rightTabId: this.rightTabId
+          }));
+        } catch (e) {
+          console.warn('Could not save tabs to storage:', e);
+        }
+      }
+
+      loadTabsFromStorage() {
+        if (!this.autoSaveCircuit) return false;
+        try {
+          const raw = localStorage.getItem('logicsim_tabs');
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data || !Array.isArray(data.tabs) || data.tabs.length === 0) return false;
+
+          this.tabs = [];
+          data.tabs.forEach((td, idx) => {
+            const tab = new TabSession(td.id || `tab_${idx + 1}`, td.title || `Schaltung ${idx + 1}`);
+            if (td.circuit) {
+              tab.circuit.fromJSON(td.circuit, tab.ringBuffer);
+            }
+            tab.panX = td.panX ?? 40;
+            tab.panY = td.panY ?? 40;
+            tab.zoom = td.zoom ?? 1.0;
+            this.tabs.push(tab);
+          });
+
+          this.tabCounter = this.tabs.length;
+          const targetActiveId = data.activeTabId && this.tabs.some(t => t.id === data.activeTabId) ? data.activeTabId : this.tabs[0].id;
+          this.switchTab(targetActiveId);
+
+          if (data.splitScreenMode && this.tabs.length >= 2) {
+            this.rightTabId = data.rightTabId && this.tabs.some(t => t.id === data.rightTabId && t.id !== targetActiveId) ? data.rightTabId : this.tabs.find(t => t.id !== targetActiveId).id;
+            this.toggleSplitScreen(true);
+          }
+          return true;
+        } catch (e) {
+          console.warn('Could not load tabs from storage:', e);
+          return false;
+        }
+      }
+
+      // ----------------------------------------------------
+      // File Import / Export Operations
+      // ----------------------------------------------------
+
+      exportCircuitJSON() {
+        const tab = this.getPaneTab(this.activePane);
+        const jsonStr = JSON.stringify(tab.circuit.toJSON(), null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const safeTitle = (tab.title || 'schaltung').replace(/[^a-zA-Z0-9_-]/g, '_');
+        a.download = `logicsim_${safeTitle}_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast(`💾 Schaltung "${tab.title}" als JSON gespeichert!`);
+      }
+
+      importCircuitJSON() {
+        const fileInput = document.getElementById('file-import-input');
+        if (fileInput) fileInput.click();
+      }
+
+      handleFileImport(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            const tab = this.getPaneTab(this.activePane);
+            this.pushHistory(tab);
+            this.engine.pause();
+            this.engine.tickCount = 0;
+            tab.circuit.fromJSON(parsed, tab.ringBuffer);
+            this.selectItem(null, null);
+            this.refreshAll();
+            if (this.splitScreenMode && this.rendererRight) {
+              this.rendererRight.render();
+            }
+            this.saveTabsToStorage();
+            this.showToast(`📂 Schaltung "${file.name}" erfolgreich geladen!`);
+          } catch (err) {
+            alert('Fehler beim Laden der JSON-Datei: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      clearCurrentCircuit() {
+        const tab = this.getPaneTab(this.activePane);
+        this.pushHistory(tab);
+        this.engine.pause();
+        this.engine.setMode('edit');
+        this.engine.tickCount = 0;
+        tab.circuit.clear(tab.ringBuffer);
+        this.selectItem(null, null);
+        this.refreshAll();
+        if (this.splitScreenMode && this.rendererRight) {
+          this.rendererRight.render();
+        }
+        this.saveTabsToStorage();
+        this.showToast(`🗑️ Schaltung "${tab.title}" geleert`);
       }
 
       ensureWireWaypoints(wire) {
@@ -8108,87 +9640,46 @@
           this.engine.setFrequency(val);
         });
 
-        const selectNorm = document.getElementById('select-symbol-norm');
-        if (selectNorm) {
-          selectNorm.addEventListener('change', (e) => {
-            this.setSymbolStandard(e.target.value);
-          });
+        const btnUndo = document.getElementById('btn-quick-undo');
+        if (btnUndo) {
+          btnUndo.addEventListener('click', () => this.undo());
         }
 
-        const selectDemo = document.getElementById('select-demo');
-        selectDemo.addEventListener('change', (e) => {
-          if (e.target.value) {
-            this.loadDemo(e.target.value);
-            e.target.value = '';
-          }
-        });
+        const btnRedo = document.getElementById('btn-quick-redo');
+        if (btnRedo) {
+          btnRedo.addEventListener('click', () => this.redo());
+        }
 
         const btnAutoRoute = document.getElementById('btn-auto-route');
         if (btnAutoRoute) {
-          btnAutoRoute.addEventListener('click', () => {
-            this.autoLayoutCircuit();
-          });
+          btnAutoRoute.addEventListener('click', () => this.autoLayoutCircuit());
         }
 
-        const btnTruthTable = document.getElementById('btn-truth-table');
-        if (btnTruthTable) {
-          btnTruthTable.addEventListener('click', () => {
-            this.openTruthTableModal();
-          });
+        const btnToggleSplit = document.getElementById('btn-toggle-split');
+        if (btnToggleSplit) {
+          btnToggleSplit.addEventListener('click', () => this.toggleSplitScreen());
         }
 
-        const btnBoolSynth = document.getElementById('btn-bool-synth');
-        if (btnBoolSynth) {
-          btnBoolSynth.addEventListener('click', () => {
-            this.openBoolSynthModal();
+        const hudNormBadge = document.getElementById('hud-norm-badge');
+        if (hudNormBadge) {
+          hudNormBadge.addEventListener('click', () => {
+            const norms = ['DIN_40700', 'DIN_EN_60617', 'ANSI'];
+            const curIdx = norms.indexOf(this.renderer.symbolStandard);
+            const nextNorm = norms[(curIdx + 1) % norms.length];
+            this.setSymbolStandard(nextNorm);
+            this.saveSettings();
           });
         }
-
-        document.getElementById('btn-export').addEventListener('click', () => {
-          const jsonStr = JSON.stringify(this.circuit.toJSON(), null, 2);
-          const blob = new Blob([jsonStr], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `logicsim_schaltung_${Date.now()}.json`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        });
 
         const fileInput = document.getElementById('file-import-input');
-        document.getElementById('btn-import').addEventListener('click', () => {
-          fileInput.click();
-        });
-        fileInput.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            try {
-              const parsed = JSON.parse(ev.target.result);
-              this.engine.pause();
-              this.engine.tickCount = 0;
-              this.circuit.fromJSON(parsed, this.ringBuffer);
-              this.selectItem(null, null);
-              this.refreshAll();
-            } catch (err) {
-              alert('Fehler beim Laden der JSON-Datei: ' + err.message);
-            }
-          };
-          reader.readAsText(file);
-          fileInput.value = '';
-        });
-
-        document.getElementById('btn-clear').addEventListener('click', () => {
-          this.engine.pause();
-          this.engine.setMode('edit');
-          this.engine.tickCount = 0;
-          this.circuit.clear(this.ringBuffer);
-          this.selectItem(null, null);
-          this.refreshAll();
-        });
+        if (fileInput) {
+          fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            this.handleFileImport(file);
+            fileInput.value = '';
+          });
+        }
 
         document.getElementById('btn-zoom-in').addEventListener('click', () => {
           this.setZoom(this.renderer.zoom * 1.15);
@@ -8283,32 +9774,43 @@
           });
         });
 
-        this.gridCanvas.addEventListener('dragover', (e) => {
+        this.attachPaletteDrop(this.gridCanvas, () => this.getActiveTab(), () => this.renderer);
+      }
+
+      attachPaletteDrop(canvas, getTargetTab, getRenderer) {
+        if (!canvas) return;
+        canvas.addEventListener('dragover', (e) => {
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
         });
 
-        this.gridCanvas.addEventListener('drop', (e) => {
+        canvas.addEventListener('drop', (e) => {
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
           const type = e.dataTransfer.getData('text/plain');
           if (!type) return;
 
-          const rect = this.gridCanvas.getBoundingClientRect();
+          const tab = getTargetTab();
+          const renderer = getRenderer();
+          if (!tab || !renderer) return;
+
+          this.pushHistory(tab);
+
+          const rect = canvas.getBoundingClientRect();
           const screenX = e.clientX - rect.left;
           const screenY = e.clientY - rect.top;
-          const worldPos = this.renderer.screenToWorld(screenX, screenY);
+          const worldPos = renderer.screenToWorld(screenX, screenY);
 
           if (type === 'PROBE') {
-            const hitWire = this.renderer.findWireAt(worldPos.x, worldPos.y, 25);
+            const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 25);
             let targetWire = hitWire;
             if (!targetWire) {
               let minDistSq = 50 * 50;
-              for (const w of this.circuit.wires) {
-                const pts = this.renderer.getWirePolyline(w);
+              for (const w of tab.circuit.wires) {
+                const pts = renderer.getWirePolyline(w);
                 for (let i = 0; i < pts.length - 1; i++) {
-                  const dSq = this.renderer.distToSegmentSq(worldPos.x, worldPos.y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+                  const dSq = renderer.distToSegmentSq(worldPos.x, worldPos.y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
                   if (dSq < minDistSq) {
                     minDistSq = dSq;
                     targetWire = w;
@@ -8317,13 +9819,17 @@
               }
             }
             if (targetWire) {
-              const pts = this.renderer.getWirePolyline(targetWire);
-              const ratio = this.renderer.getProjectedRatioOnPolyline(pts, worldPos);
-              const params = { ...this.getDefaultParamsForNewComponent('PROBE'), offsetRatio: ratio };
-              const probe = this.circuit.addProbe(targetWire.id, params);
+              const pts = renderer.getWirePolyline(targetWire);
+              const ratio = renderer.getProjectedRatioOnPolyline(pts, worldPos);
+              const probeIdx = tab.circuit.getProbes().length;
+              const params = {
+                name: `CH${probeIdx + 1}`,
+                color: PROBE_PALETTE[probeIdx % PROBE_PALETTE.length],
+                offsetRatio: ratio
+              };
+              const probe = tab.circuit.addProbe(targetWire.id, params);
               if (probe) {
-                this.selectItem(null, null, probe.id);
-                this.highlightInspector();
+                renderer.selectedProbeId = probe.id;
                 this.refreshAll();
               }
               return;
@@ -8333,9 +9839,9 @@
           }
 
           if (type === 'NEGATOR') {
-            const pinHit = this.renderer.findPinAt(worldPos.x, worldPos.y, 22);
+            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 22);
             if (pinHit) {
-              const comp = this.circuit.getComponent(pinHit.compId);
+              const comp = tab.circuit.getComponent(pinHit.compId);
               if (comp) {
                 if (pinHit.isOutput) {
                   comp.params.invertedOutput = !comp.params.invertedOutput;
@@ -8347,35 +9853,34 @@
                   comp.params.invertedInputs[pinHit.pinIndex] = !comp.params.invertedInputs[pinHit.pinIndex];
                   this.showToast(`○ Eingang ${pinHit.name || ('X' + (pinHit.pinIndex + 1))} von ${comp.params.label || comp.type} ${comp.params.invertedInputs[pinHit.pinIndex] ? 'negiert (○)' : 'normal'}`);
                 }
-                this.circuit.syncImmediateWireLevels();
-                this.selectItem(comp.id, null);
-                this.inspector.render(comp.id, null);
-                this.refreshAll();
+                tab.circuit.syncImmediateWireLevels();
+                renderer.render();
                 return;
               }
             }
-            const comp = this.circuit.addComponent(
+            const comp = tab.circuit.addComponent(
               'NOT',
               worldPos.x - 40,
               worldPos.y - 20,
               this.getDefaultParamsForNewComponent('NOT')
             );
-            this.showToast('○ Invertierer (NOT-Gatter) platziert. Tipp: Ziehe den Negator direkt auf einen Pin zum Negieren.');
-            this.selectItem(comp.id, null);
-            this.highlightInspector();
-            this.refreshAll();
+            this.showToast('○ Invertierer (NOT-Gatter) platziert.');
+            renderer.render();
             return;
           }
 
           const customParams = this.getDefaultParamsForNewComponent(type);
-          const comp = this.circuit.addComponent(
+          const comp = tab.circuit.addComponent(
             type,
             worldPos.x - 40,
             worldPos.y - 25,
             customParams
           );
-          this.selectItem(comp.id, null);
-          this.highlightInspector();
+          renderer.render();
+          if (canvas === this.gridCanvas) {
+            this.selectItem(comp.id, null);
+            this.highlightInspector();
+          }
           this.refreshAll();
         });
       }
@@ -9011,6 +10516,193 @@
           const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
           this.setZoom(this.renderer.zoom * factor, sx, sy);
         }, { passive: false });
+      }
+
+      /**
+       * Split-Screen: Secondary (Right) Canvas Interaction Manager
+       */
+      initRightCanvasEvents() {
+        const canvas = this.gridCanvasRight;
+        if (!canvas) return;
+
+        let isPanningRight = false;
+        let panStartScreenRight = { x: 0, y: 0 };
+        let panOriginRight = { x: 0, y: 0 };
+        let draggingCompRight = null;
+        let dragOffsetWorldRight = { x: 0, y: 0 };
+        let compMouseDownPosRight = null;
+        let activeButtonCompRight = null;
+
+        canvas.addEventListener('mousedown', (e) => {
+          this.setActivePane('right');
+          const rTab = this.getRightTab();
+          if (!rTab) return;
+
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.rendererRight.screenToWorld(sx, sy);
+
+          if (e.button === 1 || (e.button === 0 && this.spacePressed)) {
+            e.preventDefault();
+            isPanningRight = true;
+            panStartScreenRight = { x: e.clientX, y: e.clientY };
+            panOriginRight = { x: this.rendererRight.panX, y: this.rendererRight.panY };
+            canvas.style.cursor = 'grabbing';
+            return;
+          }
+
+          if (e.button !== 0) return;
+
+          if (this.engine.mode === 'sim') {
+            const clickedComp = this.rendererRight.findComponentAt(world.x, world.y);
+            if (clickedComp) {
+              if (clickedComp.type === 'SWITCH') {
+                clickedComp.state.value = clickedComp.state.value === 1 ? 0 : 1;
+                clickedComp.outputs[0].value = clickedComp.state.value;
+                clickedComp.nextOutputs[0] = clickedComp.state.value;
+                rTab.circuit.syncImmediateWireLevels();
+                this.rendererRight.render();
+                return;
+              }
+              if (clickedComp.type === 'BUTTON') {
+                clickedComp.state.pressed = 1;
+                clickedComp.outputs[0].value = 1;
+                clickedComp.nextOutputs[0] = 1;
+                activeButtonCompRight = clickedComp;
+                rTab.circuit.syncImmediateWireLevels();
+                this.rendererRight.render();
+                return;
+              }
+              this.rendererRight.selectedCompId = clickedComp.id;
+              this.rendererRight.render();
+              return;
+            }
+            const clickedWire = this.rendererRight.findWireAt(world.x, world.y);
+            if (clickedWire) {
+              this.rendererRight.selectedWireId = clickedWire.id;
+              this.rendererRight.render();
+              return;
+            }
+            this.rendererRight.selectedCompId = null;
+            this.rendererRight.selectedWireId = null;
+            this.rendererRight.render();
+            return;
+          }
+
+          // Edit mode
+          const hitComp = this.rendererRight.findComponentAt(world.x, world.y);
+          if (hitComp) {
+            this.pushHistory(rTab);
+            this.rendererRight.selectedCompId = hitComp.id;
+            this.rendererRight.selectedWireId = null;
+            draggingCompRight = hitComp;
+            dragOffsetWorldRight = { x: world.x - hitComp.x, y: world.y - hitComp.y };
+            compMouseDownPosRight = { compId: hitComp.id, origX: hitComp.x, origY: hitComp.y };
+            if (this.allowEditModeInteraction && hitComp.type === 'BUTTON') {
+              hitComp.state.pressed = 1;
+              hitComp.outputs[0].value = 1;
+              hitComp.nextOutputs[0] = 1;
+              activeButtonCompRight = hitComp;
+              rTab.circuit.syncImmediateWireLevels();
+            }
+            canvas.style.cursor = 'move';
+            this.rendererRight.render();
+            return;
+          }
+
+          const hitWire = this.rendererRight.findWireAt(world.x, world.y);
+          if (hitWire) {
+            this.rendererRight.selectedWireId = hitWire.id;
+            this.rendererRight.selectedCompId = null;
+            this.rendererRight.render();
+            return;
+          }
+
+          this.rendererRight.selectedCompId = null;
+          this.rendererRight.selectedWireId = null;
+          this.rendererRight.render();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!this.splitScreenMode) return;
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.rendererRight.screenToWorld(sx, sy);
+
+          if (isPanningRight) {
+            this.rendererRight.panX = panOriginRight.x + (e.clientX - panStartScreenRight.x);
+            this.rendererRight.panY = panOriginRight.y + (e.clientY - panStartScreenRight.y);
+            this.rendererRight.render();
+            return;
+          }
+
+          if (draggingCompRight) {
+            const rawX = world.x - dragOffsetWorldRight.x;
+            const rawY = world.y - dragOffsetWorldRight.y;
+            draggingCompRight.x = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
+            draggingCompRight.y = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+            this.rendererRight.render();
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isPanningRight) {
+            isPanningRight = false;
+            canvas.style.cursor = 'default';
+          }
+          if (activeButtonCompRight) {
+            activeButtonCompRight.state.pressed = 0;
+            activeButtonCompRight.outputs[0].value = 0;
+            activeButtonCompRight.nextOutputs[0] = 0;
+            const rTab = this.getRightTab();
+            if (rTab) rTab.circuit.syncImmediateWireLevels();
+            activeButtonCompRight = null;
+            this.rendererRight.render();
+          }
+          if (draggingCompRight) {
+            const rTab = this.getRightTab();
+            if (compMouseDownPosRight && (compMouseDownPosRight.origX !== draggingCompRight.x || compMouseDownPosRight.origY !== draggingCompRight.y)) {
+              if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
+                // Was dragged, keep position
+              }
+            } else if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
+              // Clicked without dragging: toggle switch!
+              draggingCompRight.params.state = draggingCompRight.params.state === 1 ? 0 : 1;
+              if (rTab) rTab.circuit.syncImmediateWireLevels();
+            }
+            draggingCompRight = null;
+            compMouseDownPosRight = null;
+            canvas.style.cursor = 'default';
+            this.rendererRight.render();
+          }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+          this.setZoomRight(this.rendererRight.zoom * zoomFactor);
+        }, { passive: false });
+
+        // Double click to add waypoint on right wire
+        canvas.addEventListener('dblclick', (e) => {
+          const rTab = this.getRightTab();
+          if (!rTab || this.engine.mode === 'sim') return;
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.rendererRight.screenToWorld(sx, sy);
+          const hitWire = this.rendererRight.findWireAt(world.x, world.y, 16);
+          if (hitWire) {
+            this.pushHistory(rTab);
+            this.addWaypointToWire(hitWire, world, this.rendererRight, rTab.circuit);
+            this.rendererRight.render();
+          }
+        });
+
+        // Palette drop support
+        this.attachPaletteDrop(canvas, () => this.getRightTab(), () => this.rendererRight);
       }
 
       /**
@@ -9858,6 +11550,36 @@
 
           const isCtrl = e.ctrlKey || e.metaKey;
 
+          if (isCtrl && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) {
+              this.redo();
+            } else {
+              this.undo();
+            }
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            this.redo();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'n') {
+            e.preventDefault();
+            this.createNewTab();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'w') {
+            e.preventDefault();
+            this.closeTab(this.activeTabId);
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            this.exportCircuitJSON();
+            return;
+          } else if (isCtrl && e.key.toLowerCase() === 'o') {
+            e.preventDefault();
+            this.importCircuitJSON();
+            return;
+          }
+
           if (isCtrl && e.key.toLowerCase() === 't') {
             e.preventDefault();
             this.openTruthTableModal();
@@ -9909,27 +11631,7 @@
                 this.refreshAll();
                 return;
               }
-              if (this.renderer.selectedProbeId) {
-                this.circuit.removeProbe(this.renderer.selectedProbeId, this.ringBuffer);
-                this.selectItem(null, null);
-                this.refreshAll();
-                return;
-              }
-              const hasComps = this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0;
-              const hasWires = this.renderer.selectedWireIds && this.renderer.selectedWireIds.size > 0;
-              if (hasComps || hasWires) {
-                if (hasWires) {
-                  const wireIds = Array.from(this.renderer.selectedWireIds);
-                  wireIds.forEach(id => this.circuit.removeWire(id, this.ringBuffer));
-                }
-                if (hasComps) {
-                  const compIds = Array.from(this.renderer.selectedCompIds);
-                  compIds.forEach(id => this.circuit.removeComponent(id, this.ringBuffer));
-                }
-                this.selectItem(null, null);
-                this.refreshAll();
-                return;
-              }
+              this.deleteSelection();
             }
           }
         });
@@ -10121,7 +11823,7 @@
           const inStack = new Set();
           const backEdges = new Set();
 
-          const isSequentialType = (type) => type === 'SHIFT_REG' || type === 'COUNTER';
+          const isSequentialType = (type) => type === 'SHIFT_REG' || type === 'COUNTER' || ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(type);
 
           // 1. Detect 2-cycles with sequential feedback awareness:
           for (const u of sub) {
@@ -11087,60 +12789,193 @@
         modalBackdrop.style.display = 'flex';
       }
 
-      initAppMenuEvents() {
-        const brandBtn = document.getElementById('btn-app-menu');
-        const dropdown = document.getElementById('app-dropdown-menu');
-        if (!brandBtn || !dropdown) return;
+      initMenubarEvents() {
+        const menuItems = document.querySelectorAll('.menubar-item[data-menu]');
+        let openMenuKey = null;
 
-        brandBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const isShown = dropdown.style.display !== 'none';
-          dropdown.style.display = isShown ? 'none' : 'flex';
+        const closeAllMenus = () => {
+          document.querySelectorAll('.menubar-dropdown').forEach(dd => dd.style.display = 'none');
+          menuItems.forEach(mi => mi.classList.remove('active'));
+          openMenuKey = null;
+        };
+
+        const openMenu = (key) => {
+          closeAllMenus();
+          const target = document.querySelector(`.menubar-item[data-menu="${key}"]`);
+          const dd = document.getElementById(`mdropdown-${key}`);
+          if (target && dd) {
+            target.classList.add('active');
+            dd.style.display = 'flex';
+            openMenuKey = key;
+          }
+        };
+
+        menuItems.forEach(mi => {
+          const key = mi.getAttribute('data-menu');
+          const btn = mi.querySelector('.menubar-btn');
+          if (!btn) return;
+
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (openMenuKey === key) {
+              closeAllMenus();
+            } else {
+              openMenu(key);
+            }
+          });
+
+          mi.addEventListener('mouseenter', () => {
+            if (openMenuKey && openMenuKey !== key) {
+              openMenu(key);
+            }
+          });
         });
 
+        // Close dropdowns when clicking outside
         window.addEventListener('click', (e) => {
-          if (!dropdown.contains(e.target) && e.target !== brandBtn && !brandBtn.contains(e.target)) {
-            dropdown.style.display = 'none';
+          if (!e.target.closest('.menubar-item')) {
+            closeAllMenus();
           }
         });
 
+        // Close dropdowns on Escape
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && openMenuKey) {
+            closeAllMenus();
+          }
+        });
+
+        // 1. Datei (File)
         document.getElementById('menu-item-new')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
-          document.getElementById('btn-clear')?.click();
+          closeAllMenus();
+          this.createNewTab();
         });
-
         document.getElementById('menu-item-open')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
-          document.getElementById('btn-import')?.click();
+          closeAllMenus();
+          this.importCircuitJSON();
         });
-
         document.getElementById('menu-item-save')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
-          document.getElementById('btn-export')?.click();
+          closeAllMenus();
+          this.exportCircuitJSON();
         });
-
         document.getElementById('menu-item-export-png')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
+          closeAllMenus();
           this.exportCanvasAsPNG();
         });
-
-        document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
-          this.openTruthTableModal();
+        document.getElementById('menu-item-clear')?.addEventListener('click', () => {
+          closeAllMenus();
+          if (confirm('Möchtest du die Schaltung wirklich leeren?')) {
+            this.clearCurrentCircuit();
+          }
         });
 
-        document.getElementById('menu-item-bool-synth')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
-          this.openBoolSynthModal();
+        // 2. Bearbeiten (Edit)
+        document.getElementById('menu-item-undo')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.undo();
         });
-
+        document.getElementById('menu-item-redo')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.redo();
+        });
+        document.getElementById('menu-item-select-all')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.selectAll();
+        });
+        document.getElementById('menu-item-copy')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.copySelection();
+        });
+        document.getElementById('menu-item-paste')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.pasteClipboard();
+        });
+        document.getElementById('menu-item-duplicate')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.duplicateSelection();
+        });
+        document.getElementById('menu-item-delete')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.deleteSelection();
+        });
         document.getElementById('menu-item-layout')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
+          closeAllMenus();
           this.autoLayoutCircuit();
         });
 
-        document.getElementById('menu-item-settings')?.addEventListener('click', () => {
-          dropdown.style.display = 'none';
+        // 3. Ansicht (View)
+        document.getElementById('menu-item-single-view')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.toggleSplitScreen(false);
+        });
+        document.getElementById('menu-item-split-screen')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.toggleSplitScreen(true);
+        });
+        document.getElementById('menu-item-zoom-in')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setZoom(this.renderer.zoom * 1.15);
+        });
+        document.getElementById('menu-item-zoom-out')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setZoom(this.renderer.zoom / 1.15);
+        });
+        document.getElementById('menu-item-zoom-reset')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.renderer.panX = 40;
+          this.renderer.panY = 40;
+          this.setZoom(1.0);
+        });
+        document.getElementById('menu-item-toggle-analyzer')?.addEventListener('click', () => {
+          closeAllMenus();
+          const p = document.getElementById('analyzer-panel');
+          if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
+        });
+        document.getElementById('menu-item-toggle-inspector')?.addEventListener('click', () => {
+          closeAllMenus();
+          const p = document.getElementById('inspector-panel');
+          if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
+        });
+
+        // 4. Analyse
+        document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.openTruthTableModal();
+        });
+        document.getElementById('menu-item-bool-synth')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.openBoolSynthModal();
+        });
+
+        // 5. Norm
+        document.getElementById('menu-norm-din40700')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setSymbolStandard('DIN_40700');
+          this.saveSettings();
+        });
+        document.getElementById('menu-norm-din60617')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setSymbolStandard('DIN_EN_60617');
+          this.saveSettings();
+        });
+        document.getElementById('menu-norm-ansi')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setSymbolStandard('ANSI');
+          this.saveSettings();
+        });
+
+        // 6. Demos
+        document.querySelectorAll('#mdropdown-demos [data-demo]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            closeAllMenus();
+            const demoKey = btn.getAttribute('data-demo');
+            if (demoKey) this.loadDemo(demoKey);
+          });
+        });
+
+        // 7. Einstellungen
+        document.getElementById('mbtn-settings')?.addEventListener('click', () => {
+          closeAllMenus();
           this.openSettingsModal();
         });
       }
