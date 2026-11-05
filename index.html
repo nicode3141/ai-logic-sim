@@ -992,6 +992,10 @@
           <option value="">&#9733; Demo laden...</option>
           <option value="bcd_clock">1. BCD-Digitaluhr-Ziffer (Counter + 7-Seg)</option>
           <option value="lfsr_light">2. Lauflicht &amp; Gatterlogik (LFSR + XOR)</option>
+          <option value="full_adder">3. 1-Bit Volladdierer (Full Adder: A, B, Cin &rarr; S, Cout)</option>
+          <option value="sr_latch">4. RS-Flipflop / Bistabile Kippstufe (NOR-Latch)</option>
+          <option value="mux_2to1">5. 2-zu-1 Multiplexer (Datenselektor mit Steuerleitung)</option>
+          <option value="binary_counter_4bit">6. 4-Bit Bin&auml;rz&auml;hler mit LED-Balkenanzeige</option>
         </select>
 
         <button id="btn-auto-route" class="btn" title="Schaltung und alle Gatter logisch von links nach rechts anordnen und Leitungen sauber verlegen">
@@ -1048,6 +1052,10 @@
         <div class="palette-category">
           <div class="category-title">Logikgatter (Gates)</div>
           <div class="palette-grid">
+            <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negationspunkt (○): Auf Pin eines Gatters ziehen zum Invertieren">
+              <div class="palette-icon" id="pal-icon-NEGATOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="8" y2="12"/><circle cx="12" cy="12" r="3.5" fill="#151a22"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
+              <div class="palette-name">Negator (○)</div>
+            </div>
             <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
               <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
               <div class="palette-name">NOT</div>
@@ -2460,29 +2468,150 @@
           { id: 'l_rst',  type: 'SWITCH',    x: 60,  y: 260, params: { label: 'Reset (RST)', initialValue: 0 } },
           { id: 'l_xor',  type: 'XOR',       x: 220, y: 80,  params: { label: 'LFSR-XOR', numInputs: 3 } },
           { id: 'l_sipo', type: 'SHIFT_REG', x: 400, y: 140, params: { label: '4-Bit SIPO' } },
-          { id: 'l_led0', type: 'LED',       x: 620, y: 140, params: { label: 'Lampe Q0', color: 'green' } },
-          { id: 'l_led1', type: 'LED',       x: 620, y: 180, params: { label: 'Lampe Q1', color: 'yellow' } },
-          { id: 'l_led2', type: 'LED',       x: 620, y: 220, params: { label: 'Lampe Q2', color: 'blue' } },
-          { id: 'l_led3', type: 'LED',       x: 620, y: 260, params: { label: 'Lampe Q3', color: 'red' } }
+          { id: 'l_led0', type: 'LED',       x: 640, y: 140, params: { label: 'Lampe Q0', color: 'green' } },
+          { id: 'l_led1', type: 'LED',       x: 640, y: 180, params: { label: 'Lampe Q1', color: 'yellow' } },
+          { id: 'l_led2', type: 'LED',       x: 640, y: 240, params: { label: 'Lampe Q2', color: 'blue' } },
+          { id: 'l_led3', type: 'LED',       x: 640, y: 300, params: { label: 'Lampe Q3', color: 'red' } }
         ],
         wires: [
           { id: 'lw1', fromCompId: 'l_din',  fromPin: 0, toCompId: 'l_xor',  toPin: 0 },
-          { id: 'lw2', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_xor',  toPin: 1 },
-          { id: 'lw3', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_xor',  toPin: 2 },
+          { id: 'lw2', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_xor',  toPin: 1, waypoints: [{ x: 570, y: 220 }, { x: 570, y: 260 }, { x: 720, y: 260 }, { x: 720, y: 400 }, { x: 180, y: 400 }, { x: 180, y: 120 }] },
+          { id: 'lw3', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_xor',  toPin: 2, waypoints: [{ x: 540, y: 240 }, { x: 540, y: 320 }, { x: 700, y: 320 }, { x: 700, y: 370 }, { x: 200, y: 370 }, { x: 200, y: 140 }] },
           { id: 'lw4', fromCompId: 'l_xor',  fromPin: 0, toCompId: 'l_sipo', toPin: 0 },
           { id: 'lw5', fromCompId: 'l_clk',  fromPin: 0, toCompId: 'l_sipo', toPin: 1 },
           { id: 'lw6', fromCompId: 'l_rst',  fromPin: 0, toCompId: 'l_sipo', toPin: 2 },
           { id: 'lw7',  fromCompId: 'l_sipo', fromPin: 0, toCompId: 'l_led0', toPin: 0 },
           { id: 'lw8',  fromCompId: 'l_sipo', fromPin: 1, toCompId: 'l_led1', toPin: 0 },
-          { id: 'lw9',  fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_led2', toPin: 0 },
-          { id: 'lw10', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_led3', toPin: 0 }
+          { id: 'lw9',  fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_led2', toPin: 0, waypoints: [{ x: 570, y: 220 }, { x: 570, y: 260 }] },
+          { id: 'lw10', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_led3', toPin: 0, waypoints: [{ x: 540, y: 240 }, { x: 540, y: 320 }] }
         ],
         probes: [
           { id: 'lp_clk', wireId: 'lw5', name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
           { id: 'lp_q0',  wireId: 'lw7', name: 'Q0',  color: '#00e676', offsetRatio: 0.4 },
           { id: 'lp_q1',  wireId: 'lw8', name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
-          { id: 'lp_q2',  wireId: 'lw9', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.6 },
-          { id: 'lp_q3',  wireId: 'lw10', name: 'Q3', color: '#ff5252', offsetRatio: 0.7 }
+          { id: 'lp_q2',  wireId: 'lw9', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.75 },
+          { id: 'lp_q3',  wireId: 'lw10', name: 'Q3', color: '#ff5252', offsetRatio: 0.75 }
+        ]
+      },
+      full_adder: {
+        version: 1,
+        components: [
+          { id: 'fa_a',    type: 'SWITCH', x: 60,  y: 80,  params: { label: 'Eingang A', initialValue: 1 } },
+          { id: 'fa_b',    type: 'SWITCH', x: 60,  y: 160, params: { label: 'Eingang B', initialValue: 1 } },
+          { id: 'fa_cin',  type: 'SWITCH', x: 60,  y: 260, params: { label: 'Carry-In (Cin)', initialValue: 0 } },
+          { id: 'fa_xor1', type: 'XOR',    x: 220, y: 100, params: { label: 'XOR-1 (A⊕B)', numInputs: 2 } },
+          { id: 'fa_xor2', type: 'XOR',    x: 420, y: 100, params: { label: 'XOR-2 (Summe)', numInputs: 2 } },
+          { id: 'fa_and1', type: 'AND',    x: 220, y: 220, params: { label: 'AND-1 (A·B)', numInputs: 2 } },
+          { id: 'fa_and2', type: 'AND',    x: 420, y: 220, params: { label: 'AND-2', numInputs: 2 } },
+          { id: 'fa_or',   type: 'OR',     x: 600, y: 220, params: { label: 'OR (Cout)', numInputs: 2 } },
+          { id: 'fa_led_s',  type: 'LED',  x: 600, y: 100, params: { label: 'Summe (S)', color: 'green' } },
+          { id: 'fa_led_co', type: 'LED',  x: 760, y: 220, params: { label: 'Carry-Out (Cout)', color: 'red' } }
+        ],
+        wires: [
+          { id: 'faw1', fromCompId: 'fa_a', fromPin: 0, toCompId: 'fa_xor1', toPin: 0 },
+          { id: 'faw2', fromCompId: 'fa_b', fromPin: 0, toCompId: 'fa_xor1', toPin: 1 },
+          { id: 'faw3', fromCompId: 'fa_a', fromPin: 0, toCompId: 'fa_and1', toPin: 0 },
+          { id: 'faw4', fromCompId: 'fa_b', fromPin: 0, toCompId: 'fa_and1', toPin: 1 },
+          { id: 'faw5', fromCompId: 'fa_xor1', fromPin: 0, toCompId: 'fa_xor2', toPin: 0 },
+          { id: 'faw6', fromCompId: 'fa_xor1', fromPin: 0, toCompId: 'fa_and2', toPin: 1 },
+          { id: 'faw7', fromCompId: 'fa_cin', fromPin: 0, toCompId: 'fa_xor2', toPin: 1 },
+          { id: 'faw8', fromCompId: 'fa_cin', fromPin: 0, toCompId: 'fa_and2', toPin: 0 },
+          { id: 'faw9', fromCompId: 'fa_xor2', fromPin: 0, toCompId: 'fa_led_s', toPin: 0 },
+          { id: 'faw10', fromCompId: 'fa_and1', fromPin: 0, toCompId: 'fa_or', toPin: 1 },
+          { id: 'faw11', fromCompId: 'fa_and2', fromPin: 0, toCompId: 'fa_or', toPin: 0 },
+          { id: 'faw12', fromCompId: 'fa_or', fromPin: 0, toCompId: 'fa_led_co', toPin: 0 }
+        ],
+        probes: [
+          { id: 'fap_a',   wireId: 'faw1', name: 'A',    color: '#00b0ff', offsetRatio: 0.4 },
+          { id: 'fap_b',   wireId: 'faw2', name: 'B',    color: '#ffd600', offsetRatio: 0.5 },
+          { id: 'fap_cin', wireId: 'faw7', name: 'Cin',  color: '#ff4081', offsetRatio: 0.35 },
+          { id: 'fap_s',   wireId: 'faw9', name: 'S',    color: '#00e676', offsetRatio: 0.5 },
+          { id: 'fap_co',  wireId: 'faw12', name: 'Cout', color: '#ff5252', offsetRatio: 0.5 }
+        ]
+      },
+      sr_latch: {
+        version: 1,
+        components: [
+          { id: 'sr_r', type: 'BUTTON', x: 80,  y: 80,  params: { label: 'Reset (R)' } },
+          { id: 'sr_s', type: 'BUTTON', x: 80,  y: 220, params: { label: 'Set (S)' } },
+          { id: 'sr_nor1', type: 'NOR', x: 260, y: 80,  params: { label: 'NOR-1', numInputs: 2 } },
+          { id: 'sr_nor2', type: 'NOR', x: 260, y: 220, params: { label: 'NOR-2', numInputs: 2 } },
+          { id: 'sr_led_q',  type: 'LED', x: 480, y: 80,  params: { label: 'Ausgang Q', color: 'green' } },
+          { id: 'sr_led_qn', type: 'LED', x: 480, y: 220, params: { label: 'Ausgang /Q', color: 'red' } }
+        ],
+        wires: [
+          { id: 'srw1', fromCompId: 'sr_r', fromPin: 0, toCompId: 'sr_nor1', toPin: 0 },
+          { id: 'srw2', fromCompId: 'sr_s', fromPin: 0, toCompId: 'sr_nor2', toPin: 1 },
+          { id: 'srw3', fromCompId: 'sr_nor1', fromPin: 0, toCompId: 'sr_led_q', toPin: 0 },
+          { id: 'srw4', fromCompId: 'sr_nor2', fromPin: 0, toCompId: 'sr_led_qn', toPin: 0 },
+          { id: 'srw5', fromCompId: 'sr_nor1', fromPin: 0, toCompId: 'sr_nor2', toPin: 0, waypoints: [{ x: 380, y: 100 }, { x: 380, y: 170 }, { x: 220, y: 170 }, { x: 220, y: 230 }] },
+          { id: 'srw6', fromCompId: 'sr_nor2', fromPin: 0, toCompId: 'sr_nor1', toPin: 1, waypoints: [{ x: 400, y: 240 }, { x: 400, y: 190 }, { x: 200, y: 190 }, { x: 200, y: 120 }] }
+        ],
+        probes: [
+          { id: 'srp_r',  wireId: 'srw1', name: 'R',  color: '#ff5252', offsetRatio: 0.5 },
+          { id: 'srp_s',  wireId: 'srw2', name: 'S',  color: '#00e676', offsetRatio: 0.5 },
+          { id: 'srp_q',  wireId: 'srw3', name: 'Q',  color: '#00b0ff', offsetRatio: 0.4 },
+          { id: 'srp_qn', wireId: 'srw4', name: '/Q', color: '#ffb300', offsetRatio: 0.4 }
+        ]
+      },
+      mux_2to1: {
+        version: 1,
+        components: [
+          { id: 'mx_d0',  type: 'SWITCH', x: 80,  y: 80,  params: { label: 'Daten D0', initialValue: 1 } },
+          { id: 'mx_d1',  type: 'SWITCH', x: 80,  y: 180, params: { label: 'Daten D1', initialValue: 0 } },
+          { id: 'mx_sel', type: 'SWITCH', x: 80,  y: 280, params: { label: 'Select (S)', initialValue: 0 } },
+          { id: 'mx_not', type: 'NOT',    x: 240, y: 280, params: { label: 'NOT (S)' } },
+          { id: 'mx_and0', type: 'AND',   x: 400, y: 90,  params: { label: 'AND-0 (D0·!S)', numInputs: 2 } },
+          { id: 'mx_and1', type: 'AND',   x: 400, y: 200, params: { label: 'AND-1 (D1·S)', numInputs: 2 } },
+          { id: 'mx_or',   type: 'OR',    x: 580, y: 140, params: { label: 'OR', numInputs: 2 } },
+          { id: 'mx_led',  type: 'LED',   x: 740, y: 140, params: { label: 'Ausgang (Y)', color: 'blue' } }
+        ],
+        wires: [
+          { id: 'mxw1', fromCompId: 'mx_d0',  fromPin: 0, toCompId: 'mx_and0', toPin: 0 },
+          { id: 'mxw2', fromCompId: 'mx_d1',  fromPin: 0, toCompId: 'mx_and1', toPin: 0 },
+          { id: 'mxw3', fromCompId: 'mx_sel', fromPin: 0, toCompId: 'mx_not',  toPin: 0 },
+          { id: 'mxw4', fromCompId: 'mx_not', fromPin: 0, toCompId: 'mx_and0', toPin: 1 },
+          { id: 'mxw5', fromCompId: 'mx_sel', fromPin: 0, toCompId: 'mx_and1', toPin: 1 },
+          { id: 'mxw6', fromCompId: 'mx_and0', fromPin: 0, toCompId: 'mx_or',   toPin: 0 },
+          { id: 'mxw7', fromCompId: 'mx_and1', fromPin: 0, toCompId: 'mx_or',   toPin: 1 },
+          { id: 'mxw8', fromCompId: 'mx_or',   fromPin: 0, toCompId: 'mx_led',  toPin: 0 }
+        ],
+        probes: [
+          { id: 'mxp_d0',  wireId: 'mxw1', name: 'D0',  color: '#00e676', offsetRatio: 0.4 },
+          { id: 'mxp_d1',  wireId: 'mxw2', name: 'D1',  color: '#ffd600', offsetRatio: 0.4 },
+          { id: 'mxp_sel', wireId: 'mxw3', name: 'SEL', color: '#00b0ff', offsetRatio: 0.4 },
+          { id: 'mxp_y',   wireId: 'mxw8', name: 'Y',   color: '#b388ff', offsetRatio: 0.5 }
+        ]
+      },
+      binary_counter_4bit: {
+        version: 1,
+        components: [
+          { id: 'bc_clk', type: 'CLOCK',   x: 80,  y: 100, params: { label: 'Takt (CLK)', halfPeriod: 2 } },
+          { id: 'bc_en',  type: 'SWITCH',  x: 80,  y: 180, params: { label: 'Enable (EN)', initialValue: 1 } },
+          { id: 'bc_rst', type: 'BUTTON',  x: 80,  y: 260, params: { label: 'Reset (RST)' } },
+          { id: 'bc_cnt', type: 'COUNTER', x: 260, y: 120, params: { label: '4-Bit Binärzähler', mode: 'binary' } },
+          { id: 'bc_l0',  type: 'LED',     x: 500, y: 100, params: { label: 'Bit 0 (LSB)', color: 'green' } },
+          { id: 'bc_l1',  type: 'LED',     x: 500, y: 160, params: { label: 'Bit 1', color: 'yellow' } },
+          { id: 'bc_l2',  type: 'LED',     x: 500, y: 220, params: { label: 'Bit 2', color: 'blue' } },
+          { id: 'bc_l3',  type: 'LED',     x: 500, y: 280, params: { label: 'Bit 3 (MSB)', color: 'red' } },
+          { id: 'bc_lco', type: 'LED',     x: 500, y: 340, params: { label: 'Carry (CO)', color: 'yellow' } }
+        ],
+        wires: [
+          { id: 'bcw1', fromCompId: 'bc_clk', fromPin: 0, toCompId: 'bc_cnt', toPin: 0 },
+          { id: 'bcw2', fromCompId: 'bc_en',  fromPin: 0, toCompId: 'bc_cnt', toPin: 1 },
+          { id: 'bcw3', fromCompId: 'bc_rst', fromPin: 0, toCompId: 'bc_cnt', toPin: 2 },
+          { id: 'bcw4', fromCompId: 'bc_cnt', fromPin: 0, toCompId: 'bc_l0',  toPin: 0 },
+          { id: 'bcw5', fromCompId: 'bc_cnt', fromPin: 1, toCompId: 'bc_l1',  toPin: 0 },
+          { id: 'bcw6', fromCompId: 'bc_cnt', fromPin: 2, toCompId: 'bc_l2',  toPin: 0 },
+          { id: 'bcw7', fromCompId: 'bc_cnt', fromPin: 3, toCompId: 'bc_l3',  toPin: 0 },
+          { id: 'bcw8', fromCompId: 'bc_cnt', fromPin: 4, toCompId: 'bc_lco', toPin: 0 }
+        ],
+        probes: [
+          { id: 'bcp_clk', wireId: 'bcw1', name: 'CLK', color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'bcp_q0',  wireId: 'bcw4', name: 'Q0',  color: '#00e676', offsetRatio: 0.5 },
+          { id: 'bcp_q1',  wireId: 'bcw5', name: 'Q1',  color: '#ffd600', offsetRatio: 0.5 },
+          { id: 'bcp_q2',  wireId: 'bcw6', name: 'Q2',  color: '#00b0ff', offsetRatio: 0.5 },
+          { id: 'bcp_q3',  wireId: 'bcw7', name: 'Q3',  color: '#ff5252', offsetRatio: 0.5 }
         ]
       }
     };
@@ -2818,19 +2947,11 @@
             }
           }
 
-          // If wires branch immediately at the pin p0 or no intermediate turn was on a segment
-          if (candidatePoints.size === 0) {
-            const kKey = `${Math.round(p0.x)},${Math.round(p0.y)}`;
-            candidatePoints.set(kKey, {
-              x: p0.x,
-              y: p0.y,
-              level: group[0].wire.level,
-              isSelected: group.some(e => this.selectedWireIds.has(e.wire.id) || e.wire.id === this.selectedWireId)
-            });
-          }
-
+          // Only add candidate points that are true wire branches (not redundant pin terminals)
           for (const cp of candidatePoints.values()) {
-            junctions.push(cp);
+            if (Math.hypot(cp.x - p0.x, cp.y - p0.y) >= 4) {
+              junctions.push(cp);
+            }
           }
         }
 
@@ -2989,8 +3110,6 @@
 
       findProbeAt(worldX, worldY) {
         const probes = this.circuit.getProbes();
-        const badgeW = 68;
-        const badgeH = 20;
 
         for (let i = probes.length - 1; i >= 0; i--) {
           const probe = probes[i];
@@ -3000,16 +3119,20 @@
           const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
           if (!pos) continue;
 
+          const nameStr = (probe.name || 'PRB').slice(0, 5);
+          const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
+          const badgeH = 14;
+
           // Check clip circle
           const dx = worldX - pos.x;
           const dy = worldY - pos.y;
-          if (dx * dx + dy * dy <= 80) {
+          if (dx * dx + dy * dy <= 60) {
             return probe;
           }
 
           // Check badge rectangle
           const bx = Math.round(pos.x - badgeW / 2);
-          const by = Math.round(pos.y - 28);
+          const by = Math.round(pos.y - 17);
           if (worldX >= bx && worldX <= bx + badgeW && worldY >= by && worldY <= by + badgeH) {
             return probe;
           }
@@ -3039,70 +3162,68 @@
 
           ctx.save();
 
-          const badgeW = 68;
-          const badgeH = 20;
+          const nameStr = (probe.name || 'PRB').slice(0, 5);
+          const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
+          const badgeH = 14;
           const bx = Math.round(pos.x - badgeW / 2);
-          const by = Math.round(pos.y - 28);
+          const by = Math.round(pos.y - 17);
 
           // 1. Leader line from clip to badge
           ctx.beginPath();
           ctx.moveTo(pos.x, pos.y);
           ctx.lineTo(pos.x, by + badgeH);
           ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? probeColor : '#475569');
-          ctx.lineWidth = isSelected ? 2 : 1.2;
-          ctx.setLineDash([2, 2]);
+          ctx.lineWidth = isSelected ? 1.5 : 1.0;
           ctx.stroke();
-          ctx.setLineDash([]);
 
           // 2. Wire Clip Pin
           ctx.beginPath();
-          ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
+          ctx.arc(pos.x, pos.y, 3.2, 0, Math.PI * 2);
           ctx.fillStyle = probeColor;
           if (isSelected) {
             ctx.shadowColor = '#00b0ff';
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 8;
           } else if (isHigh) {
             ctx.shadowColor = probeColor;
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = 5;
           }
           ctx.fill();
           ctx.shadowBlur = 0;
 
           ctx.beginPath();
-          ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+          ctx.arc(pos.x, pos.y, 1.2, 0, Math.PI * 2);
           ctx.fillStyle = '#ffffff';
           ctx.fill();
 
-          // 3. Probe Tag Badge
+          // 3. Compact Low-Profile Probe Badge
           ctx.fillStyle = '#0f172a';
-          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : '#334155');
-          ctx.lineWidth = isSelected ? 2 : 1.2;
+          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : '#2d3748');
+          ctx.lineWidth = isSelected ? 1.6 : 1.0;
           if (isSelected) {
-            ctx.shadowColor = 'rgba(0, 176, 255, 0.45)';
-            ctx.shadowBlur = 8;
+            ctx.shadowColor = 'rgba(0, 176, 255, 0.4)';
+            ctx.shadowBlur = 6;
           }
-          this.roundRect(ctx, bx, by, badgeW, badgeH, 4);
+          this.roundRect(ctx, bx, by, badgeW, badgeH, 3);
           ctx.fill();
           ctx.stroke();
           ctx.shadowBlur = 0;
 
-          // Left Color Accent Pill
+          // Left Color Accent Bar
           ctx.fillStyle = probeColor;
-          this.roundRect(ctx, bx + 3, by + 4, 3.5, badgeH - 8, 1.5);
+          this.roundRect(ctx, bx + 2.5, by + 2.5, 2.5, badgeH - 5, 1);
           ctx.fill();
 
           // Probe Name
           ctx.fillStyle = '#f1f5f9';
-          ctx.font = '600 9.5px monospace';
+          ctx.font = '600 8.5px monospace';
           ctx.textAlign = 'left';
-          const nameStr = (probe.name || 'PRB').slice(0, 6);
-          ctx.fillText(nameStr, bx + 10, by + 13.5);
+          ctx.fillText(nameStr, bx + 7.5, by + 10);
 
           // Digital Level (1 / 0)
           ctx.fillStyle = isHigh ? '#00e676' : '#64748b';
-          ctx.font = '700 10.5px monospace';
+          ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
-          ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 6, by + 14);
+          ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 4.5, by + 10.5);
 
           ctx.restore();
         }
@@ -3388,24 +3509,24 @@
           const isHigh = junc.level === 1;
           const isSel = junc.isSelected;
 
-          const dotRadius = isSel ? 5.5 : 4.5;
-          const fillColor = isSel ? '#ff5252' : (isHigh ? '#00e676' : '#64748b');
+          const dotRadius = isSel ? 4.8 : 4.0;
+          const fillColor = isSel ? '#00b0ff' : (isHigh ? '#00e676' : '#475569');
 
-          // Glow halo
-          ctx.beginPath();
-          ctx.arc(junc.x, junc.y, dotRadius + 3, 0, Math.PI * 2);
-          ctx.fillStyle = isSel
-            ? 'rgba(255, 82, 82, 0.4)'
-            : (isHigh ? 'rgba(0, 230, 118, 0.45)' : 'rgba(100, 116, 139, 0.25)');
-          ctx.fill();
+          // Subtle glow ONLY when signal is HIGH or selected (never murky gray halo)
+          if (isHigh || isSel) {
+            ctx.shadowColor = isSel ? 'rgba(0, 176, 255, 0.6)' : 'rgba(0, 230, 118, 0.6)';
+            ctx.shadowBlur = 6;
+          }
 
-          // Solid inner dot with dark border
+          // Crisp solid junction dot with high-contrast border
           ctx.beginPath();
           ctx.arc(junc.x, junc.y, dotRadius, 0, Math.PI * 2);
           ctx.fillStyle = fillColor;
           ctx.fill();
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = '#0b0f19';
+          ctx.shadowBlur = 0;
+
+          ctx.lineWidth = 1.4;
+          ctx.strokeStyle = '#080b10';
           ctx.stroke();
           ctx.restore();
         }
@@ -4035,6 +4156,8 @@
       }
 
       drawComponentPins(ctx, comp) {
+        const isGateComp = this.isGate(comp.type);
+
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
           const px = comp.x + pin.relX;
@@ -4057,10 +4180,16 @@
             ctx.stroke();
           }
 
-          ctx.fillStyle = '#94a3b8';
-          ctx.font = '500 9.5px monospace';
-          ctx.textAlign = 'left';
-          ctx.fillText(pin.name, px + 7, py + 3);
+          // Do NOT draw redundant pin labels like 'X1', 'X2' on logic gates (prevents clutter over negation bubbles)
+          // For ICs (Counter, SIPO, etc.): render pin name with offset if inverted
+          if (!isGateComp && pin.name) {
+            const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+            const textOffsetX = isInv ? 15 : 7;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 9.5px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(pin.name, px + textOffsetX, py + 3);
+          }
         }
 
         for (let i = 0; i < comp.outputs.length; i++) {
@@ -4075,10 +4204,15 @@
 
           this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
 
-          ctx.fillStyle = '#94a3b8';
-          ctx.font = '500 9.5px monospace';
-          ctx.textAlign = 'right';
-          ctx.fillText(pin.name, px - 7, py + 3);
+          // Do NOT draw redundant output labels like 'Y' on gates
+          if (!isGateComp && pin.name) {
+            const isInv = Boolean(comp.params.invertedOutput);
+            const textOffsetX = isInv ? 15 : 7;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 9.5px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(pin.name, px - textOffsetX, py + 3);
+          }
         }
       }
 
@@ -5663,7 +5797,10 @@
         this.engine.tickCount = 0;
         this.circuit.fromJSON(preset, this.ringBuffer);
         this.selectItem(null, null);
-        this.autoRouteAllWires();
+        const hasCustomWaypoints = preset.wires && preset.wires.some(w => (w.waypoints && w.waypoints.length > 0) || w.channelOffset !== undefined);
+        if (!hasCustomWaypoints) {
+          this.autoRouteAllWires();
+        }
         this.renderer.panX = 30;
         this.renderer.panY = 20;
         this.renderer.zoom = 1.0;
@@ -5895,6 +6032,27 @@
               }
               return;
             }
+            if (type === 'NEGATOR') {
+              if (this.renderer.selectedCompId) {
+                const comp = this.circuit.getComponent(this.renderer.selectedCompId);
+                if (comp) {
+                  comp.params.invertedOutput = !comp.params.invertedOutput;
+                  this.circuit.syncImmediateWireLevels();
+                  this.inspector.render(comp.id, null);
+                  this.refreshAll();
+                  this.showToast(`○ Ausgang von ${comp.params.label || comp.type} ${comp.params.invertedOutput ? 'negiert (○)' : 'normal'}`);
+                  return;
+                }
+              }
+              const rect = this.gridCanvas.getBoundingClientRect();
+              const centerWorld = this.renderer.screenToWorld(rect.width / 2 - 40, rect.height / 2 - 20);
+              const comp = this.circuit.addComponent('NOT', centerWorld.x, centerWorld.y, this.getDefaultParamsForNewComponent('NOT'));
+              this.selectItem(comp.id, null);
+              this.highlightInspector();
+              this.refreshAll();
+              this.showToast('○ Invertierer platziert. Ziehe den Negator auf einen Pin zum Invertieren.');
+              return;
+            }
             const rect = this.gridCanvas.getBoundingClientRect();
             const centerWorld = this.renderer.screenToWorld(rect.width / 2 - 40, rect.height / 2 - 30);
             const customParams = this.getDefaultParamsForNewComponent(type);
@@ -5951,6 +6109,41 @@
               return;
             }
             this.showToast('📍 Ziehe den Messpunkt direkt auf eine Leitung.');
+            return;
+          }
+
+          if (type === 'NEGATOR') {
+            const pinHit = this.renderer.findPinAt(worldPos.x, worldPos.y, 22);
+            if (pinHit) {
+              const comp = this.circuit.getComponent(pinHit.compId);
+              if (comp) {
+                if (pinHit.isOutput) {
+                  comp.params.invertedOutput = !comp.params.invertedOutput;
+                  this.showToast(`○ Ausgang ${pinHit.name || 'Y'} von ${comp.params.label || comp.type} ${comp.params.invertedOutput ? 'negiert (○)' : 'normal'}`);
+                } else {
+                  if (!Array.isArray(comp.params.invertedInputs)) {
+                    comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                  }
+                  comp.params.invertedInputs[pinHit.pinIndex] = !comp.params.invertedInputs[pinHit.pinIndex];
+                  this.showToast(`○ Eingang ${pinHit.name || ('X' + (pinHit.pinIndex + 1))} von ${comp.params.label || comp.type} ${comp.params.invertedInputs[pinHit.pinIndex] ? 'negiert (○)' : 'normal'}`);
+                }
+                this.circuit.syncImmediateWireLevels();
+                this.selectItem(comp.id, null);
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                return;
+              }
+            }
+            const comp = this.circuit.addComponent(
+              'NOT',
+              worldPos.x - 40,
+              worldPos.y - 20,
+              this.getDefaultParamsForNewComponent('NOT')
+            );
+            this.showToast('○ Invertierer (NOT-Gatter) platziert. Tipp: Ziehe den Negator direkt auf einen Pin zum Negieren.');
+            this.selectItem(comp.id, null);
+            this.highlightInspector();
+            this.refreshAll();
             return;
           }
 
@@ -6816,6 +7009,36 @@
               this.hideContextMenu();
             });
             menu.appendChild(invOutItem);
+
+            if (comp.inputs && comp.inputs.length > 0) {
+              const inInvLabel = document.createElement('div');
+              inInvLabel.className = 'ctx-sub-label';
+              inInvLabel.textContent = 'Eingänge invertieren (○):';
+              menu.appendChild(inInvLabel);
+
+              const inInvRow = document.createElement('div');
+              inInvRow.className = 'ctx-sub-row';
+              for (let i = 0; i < comp.inputs.length; i++) {
+                const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+                const chip = document.createElement('span');
+                chip.className = 'ctx-chip' + (isInv ? ' active' : '');
+                chip.textContent = `○ X${i + 1}`;
+                chip.title = `Eingang X${i + 1} ${isInv ? 'ent-negieren' : 'negieren'}`;
+                chip.addEventListener('click', () => {
+                  if (this.engine.mode === 'sim') return;
+                  if (!Array.isArray(comp.params.invertedInputs)) {
+                    comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                  }
+                  comp.params.invertedInputs[i] = !isInv;
+                  this.circuit.syncImmediateWireLevels();
+                  this.inspector.render(comp.id, null);
+                  this.refreshAll();
+                  this.hideContextMenu();
+                });
+                inInvRow.appendChild(chip);
+              }
+              menu.appendChild(inInvRow);
+            }
           }
 
           // Gate Input Count Quick Selector
