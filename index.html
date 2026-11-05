@@ -2507,7 +2507,8 @@
         this.zoom = 1.0;
 
         this.selectedCompIds = new Set();
-        this.selectedWireId = null;
+        this.selectedWireIds = new Set();
+        this._primaryWireId = null;
         this.selectedProbeId = null;
         this.hoveredPin = null;
         this.hoveredWireId = null;
@@ -2527,6 +2528,16 @@
       set selectedCompId(id) {
         this.selectedCompIds.clear();
         if (id) this.selectedCompIds.add(id);
+      }
+
+      get selectedWireId() {
+        return this.selectedWireIds.size === 1 ? Array.from(this.selectedWireIds)[0] : (this._primaryWireId || null);
+      }
+
+      set selectedWireId(id) {
+        this.selectedWireIds.clear();
+        if (id) this.selectedWireIds.add(id);
+        this._primaryWireId = id;
       }
 
       screenToWorld(screenX, screenY) {
@@ -2691,6 +2702,7 @@
         return null;
       }
 
+
       findComponentAt(worldX, worldY) {
         for (let i = this.circuit.components.length - 1; i >= 0; i--) {
           const c = this.circuit.components[i];
@@ -2705,6 +2717,7 @@
         }
         return null;
       }
+
 
       findWireAt(worldX, worldY, tolerance = 7) {
         const tolSq = tolerance * tolerance;
@@ -2723,6 +2736,107 @@
         }
         return null;
       }
+
+      isWireIntersectingBox(pts, minX, minY, maxX, maxY) {
+        if (!pts || pts.length < 2) return false;
+
+        for (const p of pts) {
+          if (p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY) {
+            return true;
+          }
+        }
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+
+          if (p1.y === p2.y) {
+            const segMinX = Math.min(p1.x, p2.x);
+            const segMaxX = Math.max(p1.x, p2.x);
+            if (p1.y >= minY && p1.y <= maxY && segMaxX >= minX && segMinX <= maxX) {
+              return true;
+            }
+          } else if (p1.x === p2.x) {
+            const segMinY = Math.min(p1.y, p2.y);
+            const segMaxY = Math.max(p1.y, p2.y);
+            if (p1.x >= minX && p1.x <= maxX && segMaxY >= minY && segMinY <= maxY) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      findWireJunctions(wireEntries) {
+        if (!wireEntries || wireEntries.length === 0) return [];
+
+        const junctions = [];
+        const pinGroups = new Map();
+
+        for (const entry of wireEntries) {
+          const w = entry.wire;
+          const key = `${w.fromCompId}:${w.fromPin}`;
+          if (!pinGroups.has(key)) pinGroups.set(key, []);
+          pinGroups.get(key).push(entry);
+        }
+
+        for (const [key, group] of pinGroups.entries()) {
+          if (group.length < 2) continue;
+
+          const p0 = group[0].pts[0];
+          const candidatePoints = new Map();
+
+          // Check if any wire's turn point lies on a segment of another wire in this net
+          for (let i = 0; i < group.length; i++) {
+            for (let j = 0; j < group.length; j++) {
+              if (i === j) continue;
+              const pts1 = group[i].pts;
+              const pts2 = group[j].pts;
+              // Check each vertex of pts1 (excluding p0 and the last destination pin)
+              for (let k = 1; k < pts1.length - 1; k++) {
+                const pt = pts1[k];
+                for (let m = 0; m < pts2.length - 1; m++) {
+                  const sA = pts2[m];
+                  const sB = pts2[m + 1];
+                  const minX = Math.min(sA.x, sB.x) - 0.5;
+                  const maxX = Math.max(sA.x, sB.x) + 0.5;
+                  const minY = Math.min(sA.y, sB.y) - 0.5;
+                  const maxY = Math.max(sA.y, sB.y) + 0.5;
+                  if (pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY) {
+                    const kKey = `${Math.round(pt.x)},${Math.round(pt.y)}`;
+                    if (!candidatePoints.has(kKey)) {
+                      candidatePoints.set(kKey, {
+                        x: pt.x,
+                        y: pt.y,
+                        level: group[0].wire.level,
+                        isSelected: group.some(e => this.selectedWireIds.has(e.wire.id) || e.wire.id === this.selectedWireId)
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // If wires branch immediately at the pin p0 or no intermediate turn was on a segment
+          if (candidatePoints.size === 0) {
+            const kKey = `${Math.round(p0.x)},${Math.round(p0.y)}`;
+            candidatePoints.set(kKey, {
+              x: p0.x,
+              y: p0.y,
+              level: group[0].wire.level,
+              isSelected: group.some(e => this.selectedWireIds.has(e.wire.id) || e.wire.id === this.selectedWireId)
+            });
+          }
+
+          for (const cp of candidatePoints.values()) {
+            junctions.push(cp);
+          }
+        }
+
+        return junctions;
+      }
+
 
       findWaypointAt(worldX, worldY, radius = 9) {
         const rSq = radius * radius;
@@ -2744,6 +2858,7 @@
         }
         return null;
       }
+
 
       findMidpointHandleAt(worldX, worldY, radius = 8) {
         if (!this.selectedWireId) return null;
@@ -2769,6 +2884,7 @@
         return null;
       }
 
+
       findWireSegmentAt(worldX, worldY, tolerance = 6) {
         if (!this.selectedWireId) return null;
         const wire = this.circuit.wires.find(w => w.id === this.selectedWireId);
@@ -2788,6 +2904,7 @@
         }
         return null;
       }
+
 
       distToSegmentSq(px, py, x1, y1, x2, y2) {
         const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
@@ -2899,6 +3016,7 @@
         }
         return null;
       }
+
 
       drawProbes(ctx) {
         const probes = this.circuit.getProbes();
@@ -3094,7 +3212,7 @@
         // 2. Draw each wire orthogonally with crossing jumper arcs
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
-          const isSelected = w.id === this.selectedWireId;
+          const isSelected = this.selectedWireIds.has(w.id) || w.id === this.selectedWireId;
           const isHovered = w.id === this.hoveredWireId;
           const isHigh = w.level === 1;
 
@@ -3166,7 +3284,7 @@
           ctx.stroke();
 
           // Draw Interactive Waypoint Handles & Midpoint '+' Handles
-          if (isSelected && this.engine.mode === 'edit') {
+          if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
             // 1. Draw Corner Handles at pts.slice(1, -1)
             for (let i = 1; i < pts.length - 1; i++) {
               const wp = pts[i];
@@ -3263,26 +3381,33 @@
           ctx.restore();
         }
 
-        // 3. Draw Junction Dots at branches (where multiple wires share an output pin)
-        const outputPinCounts = new Map();
-        for (const w of this.circuit.wires) {
-          const key = `${w.fromCompId}_${w.fromPin}`;
-          outputPinCounts.set(key, (outputPinCounts.get(key) || 0) + 1);
-        }
-        for (const [key, count] of outputPinCounts.entries()) {
-          if (count > 1) {
-            const [compId, pinStr] = key.split('_');
-            const comp = this.circuit.getComponent(compId);
-            if (comp) {
-              const pos = comp.getPinWorldPos(true, parseInt(pinStr, 10));
-              ctx.save();
-              ctx.fillStyle = comp.outputs[parseInt(pinStr, 10)]?.value === 1 ? '#00e676' : '#546e7a';
-              ctx.beginPath();
-              ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.restore();
-            }
-          }
+        // 3. Draw Junction Dots at branches (Gabelungspunkte wo Verbindungen sich abzweigen)
+        const junctions = this.findWireJunctions(wireEntries);
+        for (const junc of junctions) {
+          ctx.save();
+          const isHigh = junc.level === 1;
+          const isSel = junc.isSelected;
+
+          const dotRadius = isSel ? 5.5 : 4.5;
+          const fillColor = isSel ? '#ff5252' : (isHigh ? '#00e676' : '#64748b');
+
+          // Glow halo
+          ctx.beginPath();
+          ctx.arc(junc.x, junc.y, dotRadius + 3, 0, Math.PI * 2);
+          ctx.fillStyle = isSel
+            ? 'rgba(255, 82, 82, 0.4)'
+            : (isHigh ? 'rgba(0, 230, 118, 0.45)' : 'rgba(100, 116, 139, 0.25)');
+          ctx.fill();
+
+          // Solid inner dot with dark border
+          ctx.beginPath();
+          ctx.arc(junc.x, junc.y, dotRadius, 0, Math.PI * 2);
+          ctx.fillStyle = fillColor;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#0b0f19';
+          ctx.stroke();
+          ctx.restore();
         }
       }
 
@@ -4857,18 +4982,19 @@
         }
       }
 
-      renderMulti(selectedCompIds) {
+      renderMulti(selectedCompIds, selectedWireIds = new Set()) {
         this.container.innerHTML = '';
         const isSim = this.engine.mode === 'sim';
         const comps = Array.from(selectedCompIds).map(id => this.circuit.getComponent(id)).filter(Boolean);
+        const wires = Array.from(selectedWireIds).map(id => this.circuit.wires.find(w => w.id === id)).filter(Boolean);
 
         const info = document.createElement('div');
         info.className = 'prop-info-box';
         info.innerHTML = `
-          <div><strong>Mehrfachauswahl:</strong> ${comps.length} Bauteile</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+          <div><strong>Mehrfachauswahl:</strong> ${comps.length} Bauteil(e), ${wires.length} Leitung(en)</div>
+          ${comps.length > 0 ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
             ${Array.from(new Set(comps.map(c => this.getReadableTypeName(c.type)))).join(', ')}
-          </div>
+          </div>` : ''}
         `;
         this.container.appendChild(info);
 
@@ -4876,27 +5002,17 @@
         hint.style.fontSize = '11px';
         hint.style.color = 'var(--text-muted)';
         hint.style.marginTop = '4px';
-        hint.textContent = 'Tipp: Ziehe an einem der ausgewählten Bauteile, um die gesamte Gruppe synchron am Raster zu verschieben.';
+        hint.textContent = 'Tipp: Strg+C / Strg+V zum Kopieren & Einfügen, Strg+D zum Duplizieren, Entf zum Löschen.';
         this.container.appendChild(hint);
 
         const dupBtn = document.createElement('button');
         dupBtn.className = 'btn';
         dupBtn.style.marginTop = '10px';
         dupBtn.disabled = isSim;
-        dupBtn.innerHTML = '📋 Auswahl duplizieren';
+        dupBtn.innerHTML = '📋 Auswahl duplizieren (Strg+D)';
         dupBtn.addEventListener('click', () => {
           if (this.engine.mode === 'sim') return;
-          const newIds = new Set();
-          for (const c of comps) {
-            const copy = this.circuit.addComponent(
-              c.type,
-              c.x + 40,
-              c.y + 40,
-              { ...c.params, label: c.params.label ? `${c.params.label}_2` : undefined }
-            );
-            newIds.add(copy.id);
-          }
-          this.onChange(false, newIds);
+          this.onChange('duplicate');
         });
         this.container.appendChild(dupBtn);
 
@@ -4904,13 +5020,10 @@
         delBtn.className = 'btn btn-danger';
         delBtn.style.marginTop = '8px';
         delBtn.disabled = isSim;
-        delBtn.innerHTML = `🗑️ ${comps.length} Bauteile löschen`;
+        delBtn.innerHTML = `🗑️ Auswahl löschen (${comps.length + wires.length} Elemente)`;
         delBtn.addEventListener('click', () => {
           if (this.engine.mode === 'sim') return;
-          for (const c of comps) {
-            this.circuit.removeComponent(c.id, this.ringBuffer);
-          }
-          this.onChange(true);
+          this.onChange('delete');
         });
         this.container.appendChild(delBtn);
       }
@@ -5097,9 +5210,22 @@
           this.engine,
           this.ringBuffer,
           (clearSelection, newSelection) => {
+            if (clearSelection === 'duplicate') {
+              this.duplicateSelection();
+              return;
+            }
+            if (clearSelection === 'delete') {
+              const compIds = Array.from(this.renderer.selectedCompIds || []);
+              const wireIds = Array.from(this.renderer.selectedWireIds || []);
+              wireIds.forEach(wid => this.circuit.removeWire(wid, this.ringBuffer));
+              compIds.forEach(cid => this.circuit.removeComponent(cid, this.ringBuffer));
+              this.selectItem(null, null);
+              this.refreshAll();
+              return;
+            }
             if (clearSelection) {
               this.renderer.selectedCompIds.clear();
-              this.renderer.selectedWireId = null;
+              this.renderer.selectedWireIds.clear();
               this.renderer.selectedProbeId = null;
               this.inspector.render(null, null);
             } else if (newSelection) {
@@ -5118,6 +5244,7 @@
         this.isDraggingGroup = false;
         this.groupDragStartWorld = { x: 0, y: 0 };
         this.groupStartPositions = null;
+        this.groupWireStartWaypoints = null;
 
         this.draggingComp = null;
         this.draggingProbe = null;
@@ -5203,24 +5330,42 @@
       }
 
       copySelection() {
-        const selectedIds = new Set();
-        if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
-          for (const id of this.renderer.selectedCompIds) selectedIds.add(id);
-        } else if (this.renderer.selectedCompId) {
-          selectedIds.add(this.renderer.selectedCompId);
+        const selectedCompIds = new Set(this.renderer.selectedCompIds || []);
+        if (this.renderer.selectedCompId) selectedCompIds.add(this.renderer.selectedCompId);
+
+        const selectedWireIds = new Set(this.renderer.selectedWireIds || []);
+        if (this.renderer.selectedWireId) selectedWireIds.add(this.renderer.selectedWireId);
+
+        // If only wires were selected, include their terminal components so the connected gates copy too
+        if (selectedWireIds.size > 0 && selectedCompIds.size === 0) {
+          for (const wid of selectedWireIds) {
+            const w = this.circuit.wires.find(wire => wire.id === wid);
+            if (w) {
+              selectedCompIds.add(w.fromCompId);
+              selectedCompIds.add(w.toCompId);
+            }
+          }
         }
-        if (selectedIds.size === 0) return;
+
+        if (selectedCompIds.size === 0 && selectedWireIds.size === 0) return;
 
         const comps = [];
-        for (const id of selectedIds) {
+        for (const id of selectedCompIds) {
           const c = this.circuit.getComponent(id);
           if (c) comps.push(c.toJSON());
         }
 
         const wires = [];
+        const addedWireIds = new Set();
         for (const w of this.circuit.wires) {
-          if (selectedIds.has(w.fromCompId) && selectedIds.has(w.toCompId)) {
-            wires.push(w.toJSON());
+          if (
+            (selectedCompIds.has(w.fromCompId) && selectedCompIds.has(w.toCompId)) ||
+            (selectedWireIds.has(w.id) && selectedCompIds.has(w.fromCompId) && selectedCompIds.has(w.toCompId))
+          ) {
+            if (!addedWireIds.has(w.id)) {
+              addedWireIds.add(w.id);
+              wires.push(w.toJSON());
+            }
           }
         }
 
@@ -5267,6 +5412,7 @@
           }
         }
 
+        const newWireIds = [];
         for (const wData of this.clipboard.wires) {
           const newFromId = idMap.get(wData.fromCompId);
           const newToId = idMap.get(wData.toCompId);
@@ -5275,19 +5421,24 @@
               x: p.x + offsetX,
               y: p.y + offsetY
             }));
-            this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints);
+            const newWire = this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints);
+            if (newWire) {
+              newWire.channelOffset = wData.channelOffset || 0;
+              newWireIds.push(newWire.id);
+            }
           }
         }
 
         this.circuit.syncImmediateWireLevels();
-        this.selectMulti(newCompIds);
+        this.selectMulti(newCompIds, newWireIds);
         this.refreshAll();
       }
 
       selectAll() {
-        const allIds = this.circuit.components.map(c => c.id);
-        if (allIds.length > 0) {
-          this.selectMulti(allIds);
+        const allCompIds = this.circuit.components.map(c => c.id);
+        const allWireIds = this.circuit.wires.map(w => w.id);
+        if (allCompIds.length > 0 || allWireIds.length > 0) {
+          this.selectMulti(allCompIds, allWireIds);
         }
       }
 
@@ -5408,15 +5559,22 @@
         this.renderer.render();
       }
 
-      selectMulti(compIds) {
-        this.renderer.selectedCompIds = new Set(compIds);
-        this.renderer.selectedWireId = null;
+      selectMulti(compIds = [], wireIds = []) {
+        this.renderer.selectedCompIds = new Set(compIds || []);
+        this.renderer.selectedWireIds = new Set(wireIds || []);
         this.renderer.selectedProbeId = null;
-        if (this.renderer.selectedCompIds.size === 1) {
+
+        const totalComps = this.renderer.selectedCompIds.size;
+        const totalWires = this.renderer.selectedWireIds.size;
+
+        if (totalComps === 1 && totalWires === 0) {
           const firstId = Array.from(this.renderer.selectedCompIds)[0];
           this.inspector.render(firstId, null);
-        } else if (this.renderer.selectedCompIds.size > 1) {
-          this.inspector.renderMulti(this.renderer.selectedCompIds);
+        } else if (totalComps === 0 && totalWires === 1) {
+          const firstWireId = Array.from(this.renderer.selectedWireIds)[0];
+          this.inspector.render(null, firstWireId);
+        } else if (totalComps > 0 || totalWires > 0) {
+          this.inspector.renderMulti(this.renderer.selectedCompIds, this.renderer.selectedWireIds);
         } else {
           this.inspector.render(null, null);
         }
@@ -5453,6 +5611,29 @@
           toast.style.opacity = '0';
           setTimeout(() => { toast.style.display = 'none'; }, 300);
         }, 2500);
+      }
+
+      startGroupDrag(world) {
+        this.isDraggingGroup = true;
+        this.groupDragStartWorld = { x: world.x, y: world.y };
+        this.groupStartPositions = new Map();
+        for (const cid of this.renderer.selectedCompIds) {
+          const comp = this.circuit.getComponent(cid);
+          if (comp) {
+            this.groupStartPositions.set(cid, { x: comp.x, y: comp.y });
+          }
+        }
+        this.groupWireStartWaypoints = new Map();
+        for (const wire of this.circuit.wires) {
+          const fromSel = this.renderer.selectedCompIds.has(wire.fromCompId);
+          const toSel = this.renderer.selectedCompIds.has(wire.toCompId);
+          const wireSel = this.renderer.selectedWireIds.has(wire.id);
+          if ((fromSel && toSel) || wireSel) {
+            if (wire.waypoints && wire.waypoints.length > 0) {
+              this.groupWireStartWaypoints.set(wire.id, wire.waypoints.map(p => ({ x: p.x, y: p.y })));
+            }
+          }
+        }
       }
 
       highlightInspector() {
@@ -5981,21 +6162,14 @@
               } else {
                 currentSet.add(hitComp.id);
               }
-              this.selectMulti(currentSet);
+              this.selectMulti(currentSet, this.renderer.selectedWireIds);
               return;
             }
 
             // If already in multi-selection, initiate group drag
-            if (this.renderer.selectedCompIds.has(hitComp.id) && this.renderer.selectedCompIds.size > 1) {
-              this.isDraggingGroup = true;
-              this.groupDragStartWorld = { x: world.x, y: world.y };
-              this.groupStartPositions = new Map();
-              for (const cid of this.renderer.selectedCompIds) {
-                const comp = this.circuit.getComponent(cid);
-                if (comp) {
-                  this.groupStartPositions.set(cid, { x: comp.x, y: comp.y });
-                }
-              }
+            const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
+            if (this.renderer.selectedCompIds.has(hitComp.id) && totalSel > 1) {
+              this.startGroupDrag(world);
               canvas.style.cursor = 'move';
               return;
             }
@@ -6013,6 +6187,25 @@
 
           const hitWire = this.renderer.findWireAt(world.x, world.y);
           if (hitWire) {
+            if (e.shiftKey || e.ctrlKey) {
+              const currentWires = new Set(this.renderer.selectedWireIds);
+              if (currentWires.has(hitWire.id)) {
+                currentWires.delete(hitWire.id);
+              } else {
+                currentWires.add(hitWire.id);
+              }
+              this.selectMulti(this.renderer.selectedCompIds, currentWires);
+              return;
+            }
+
+            // If already in multi-selection, initiate group drag
+            const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
+            if (this.renderer.selectedWireIds.has(hitWire.id) && totalSel > 1) {
+              this.startGroupDrag(world);
+              canvas.style.cursor = 'move';
+              return;
+            }
+
             this.selectItem(null, hitWire.id);
             return;
           }
@@ -6055,11 +6248,25 @@
           if (this.isDraggingGroup && this.groupStartPositions) {
             const dx = world.x - this.groupDragStartWorld.x;
             const dy = world.y - this.groupDragStartWorld.y;
+            const snapDx = Math.round(dx / GRID_SIZE) * GRID_SIZE;
+            const snapDy = Math.round(dy / GRID_SIZE) * GRID_SIZE;
+
             for (const [cid, pos] of this.groupStartPositions.entries()) {
               const comp = this.circuit.getComponent(cid);
               if (comp) {
-                comp.x = Math.round((pos.x + dx) / GRID_SIZE) * GRID_SIZE;
-                comp.y = Math.round((pos.y + dy) / GRID_SIZE) * GRID_SIZE;
+                comp.x = pos.x + snapDx;
+                comp.y = pos.y + snapDy;
+              }
+            }
+            if (this.groupWireStartWaypoints) {
+              for (const [wid, origWps] of this.groupWireStartWaypoints.entries()) {
+                const wire = this.circuit.wires.find(w => w.id === wid);
+                if (wire && origWps) {
+                  wire.waypoints = origWps.map(p => ({
+                    x: p.x + snapDx,
+                    y: p.y + snapDy
+                  }));
+                }
               }
             }
             this.renderer.render();
@@ -6246,20 +6453,29 @@
               const minY = Math.min(box.startY, box.currY);
               const maxY = Math.max(box.startY, box.currY);
               if (maxX - minX > 4 || maxY - minY > 4) {
-                const hits = [];
+                const compHits = [];
                 for (const comp of this.circuit.components) {
                   const cx2 = comp.x + comp.width;
                   const cy2 = comp.y + comp.height;
                   if (comp.x < maxX && cx2 > minX && comp.y < maxY && cy2 > minY) {
-                    hits.push(comp.id);
+                    compHits.push(comp.id);
+                  }
+                }
+                const wireHits = [];
+                for (const wire of this.circuit.wires) {
+                  const pts = this.renderer.getWirePolyline(wire);
+                  if (this.renderer.isWireIntersectingBox(pts, minX, minY, maxX, maxY)) {
+                    wireHits.push(wire.id);
                   }
                 }
                 if (e.shiftKey || e.ctrlKey) {
-                  const combined = new Set(this.renderer.selectedCompIds);
-                  hits.forEach(id => combined.add(id));
-                  this.selectMulti(combined);
+                  const combinedComps = new Set(this.renderer.selectedCompIds);
+                  compHits.forEach(id => combinedComps.add(id));
+                  const combinedWires = new Set(this.renderer.selectedWireIds);
+                  wireHits.forEach(id => combinedWires.add(id));
+                  this.selectMulti(combinedComps, combinedWires);
                 } else {
-                  this.selectMulti(hits);
+                  this.selectMulti(compHits, wireHits);
                 }
               }
             }
@@ -6269,6 +6485,7 @@
           if (this.isDraggingGroup) {
             this.isDraggingGroup = false;
             this.groupStartPositions = null;
+            this.groupWireStartWaypoints = null;
             this.gridCanvas.style.cursor = 'default';
           }
 
@@ -6395,19 +6612,28 @@
           const hitComp = this.renderer.findComponentAt(world.x, world.y);
           const hitWire = !hitComp ? this.renderer.findWireAt(world.x, world.y) : null;
 
+          const selComps = this.renderer.selectedCompIds || new Set();
+          const selWires = this.renderer.selectedWireIds || new Set();
+          const totalSel = selComps.size + selWires.size;
+
           if (hitComp) {
-            if (this.renderer.selectedCompIds.has(hitComp.id) && this.renderer.selectedCompIds.size > 1) {
+            if (selComps.has(hitComp.id) && totalSel > 1) {
               this.highlightInspector();
-              this.showContextMenu(e.clientX, e.clientY, null, null, world, this.renderer.selectedCompIds);
+              this.showContextMenu(e.clientX, e.clientY, null, null, world, true);
             } else {
               this.selectItem(hitComp.id, null);
               this.highlightInspector();
               this.showContextMenu(e.clientX, e.clientY, hitComp, null, world);
             }
           } else if (hitWire) {
-            this.selectItem(null, hitWire.id);
-            this.highlightInspector();
-            this.showContextMenu(e.clientX, e.clientY, null, hitWire, world);
+            if (selWires.has(hitWire.id) && totalSel > 1) {
+              this.highlightInspector();
+              this.showContextMenu(e.clientX, e.clientY, null, null, world, true);
+            } else {
+              this.selectItem(null, hitWire.id);
+              this.highlightInspector();
+              this.showContextMenu(e.clientX, e.clientY, null, hitWire, world);
+            }
           } else {
             this.showContextMenu(e.clientX, e.clientY, null, null, world);
           }
@@ -6498,17 +6724,21 @@
         menu.style.top = `${Math.max(10, py)}px`;
       }
 
-      showContextMenu(clientX, clientY, comp, wire, worldPos, multiCompIds = null) {
+      showContextMenu(clientX, clientY, comp, wire, worldPos, isMulti = false) {
         const menu = this.contextMenuEl;
         menu.innerHTML = '';
 
-        if (multiCompIds && multiCompIds.size > 1) {
+        const selComps = this.renderer.selectedCompIds || new Set();
+        const selWires = this.renderer.selectedWireIds || new Set();
+        const totalSel = selComps.size + selWires.size;
+
+        if (isMulti || (totalSel > 1 && ((comp && selComps.has(comp.id)) || (wire && selWires.has(wire.id))))) {
           // --- MULTI-SELECTION CONTEXT MENU ---
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
             <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.copy} Mehrfachauswahl</span>
-            <span style="font-size:9.5px;color:var(--text-muted);">${multiCompIds.size} Bauteile</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${selComps.size} Bauteil(e), ${selWires.size} Leitung(en)</span>
           `;
           menu.appendChild(header);
 
@@ -6527,23 +6757,10 @@
 
           const dupItem = document.createElement('div');
           dupItem.className = 'ctx-item';
-          dupItem.innerHTML = `<span>${ICONS.copy}</span> <span>${multiCompIds.size} Bauteile duplizieren</span>`;
+          dupItem.innerHTML = `<span>${ICONS.copy}</span> <span>Auswahl duplizieren (Strg+D)</span>`;
           dupItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
-            const newIds = new Set();
-            for (const cid of multiCompIds) {
-              const c = this.circuit.getComponent(cid);
-              if (c) {
-                const copy = this.circuit.addComponent(
-                  c.type,
-                  c.x + 40,
-                  c.y + 40,
-                  { ...c.params, label: c.params.label ? `${c.params.label}_2` : undefined }
-                );
-                newIds.add(copy.id);
-              }
-            }
-            this.selectMulti(newIds);
+            this.duplicateSelection();
             this.highlightInspector();
             this.refreshAll();
             this.hideContextMenu();
@@ -6552,12 +6769,13 @@
 
           const delItem = document.createElement('div');
           delItem.className = 'ctx-item danger';
-          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>${multiCompIds.size} Bauteile löschen (Delete)</span>`;
+          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Auswahl löschen (Delete)</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
-            for (const cid of multiCompIds) {
-              this.circuit.removeComponent(cid, this.ringBuffer);
-            }
+            const wireIds = Array.from(selWires);
+            const compIds = Array.from(selComps);
+            wireIds.forEach(wid => this.circuit.removeWire(wid, this.ringBuffer));
+            compIds.forEach(cid => this.circuit.removeComponent(cid, this.ringBuffer));
             this.selectItem(null, null);
             this.refreshAll();
             this.hideContextMenu();
@@ -7163,15 +7381,22 @@
                 this.circuit.removeProbe(this.renderer.selectedProbeId, this.ringBuffer);
                 this.selectItem(null, null);
                 this.refreshAll();
-              } else if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0) {
-                const ids = Array.from(this.renderer.selectedCompIds);
-                ids.forEach(id => this.circuit.removeComponent(id, this.ringBuffer));
+                return;
+              }
+              const hasComps = this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0;
+              const hasWires = this.renderer.selectedWireIds && this.renderer.selectedWireIds.size > 0;
+              if (hasComps || hasWires) {
+                if (hasWires) {
+                  const wireIds = Array.from(this.renderer.selectedWireIds);
+                  wireIds.forEach(id => this.circuit.removeWire(id, this.ringBuffer));
+                }
+                if (hasComps) {
+                  const compIds = Array.from(this.renderer.selectedCompIds);
+                  compIds.forEach(id => this.circuit.removeComponent(id, this.ringBuffer));
+                }
                 this.selectItem(null, null);
                 this.refreshAll();
-              } else if (this.renderer.selectedWireId) {
-                this.circuit.removeWire(this.renderer.selectedWireId, this.ringBuffer);
-                this.selectItem(null, null);
-                this.refreshAll();
+                return;
               }
             }
           }
@@ -7884,8 +8109,14 @@
           if (numTracks > 1) {
             const step = GRID_SIZE; // 20px track spacing
             for (const item of group) {
-              const offset = (item.trackIndex - (numTracks - 1) / 2) * step;
-              item.wire.channelOffset = Math.round(offset / GRID_SIZE) * GRID_SIZE;
+              const trackOffset = (item.trackIndex - (numTracks - 1) / 2) * step;
+              const trackX = channelKey + Math.round(trackOffset / GRID_SIZE) * GRID_SIZE;
+              let defaultMid = (item.p1.x + item.p2.x) / 2;
+              if (item.p2.x - item.p1.x > 200) {
+                defaultMid = (item.p1.y < item.p2.y) ? (item.p1.x + 80) : (item.p2.x - 80);
+              }
+              const defaultMidSnap = Math.round(defaultMid / GRID_SIZE) * GRID_SIZE;
+              item.wire.channelOffset = trackX - defaultMidSnap;
             }
           }
         }
