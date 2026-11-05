@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
-    :root {
+    :root, [data-theme="modern"] {
       --bg-deep: #0b0d10;
       --bg-panel: #12161c;
       --bg-panel-alt: #171c24;
@@ -26,8 +26,156 @@
       --accent-red-dim: rgba(255, 82, 82, 0.16);
       --wire-low: #2b3a4a;
       --wire-high: #00e676;
+      --btn-radius: 4px;
+      --card-radius: 6px;
+      --control-radius: 4px;
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
+    }
+
+    [data-theme="pitch_black"] {
+      --bg-deep: #000000;
+      --bg-panel: #09090b;
+      --bg-panel-alt: #121215;
+      --bg-elevated: #18181b;
+      --bg-hover: #27272a;
+      --border-dim: #27272a;
+      --border-bright: #3f3f46;
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --accent-green: #00e676;
+      --accent-green-dim: rgba(0, 230, 118, 0.12);
+      --accent-blue: #00b0ff;
+      --accent-blue-dim: rgba(0, 176, 255, 0.12);
+      --wire-low: #27272a;
+      --wire-high: #00e676;
+      --btn-radius: 2px;
+      --card-radius: 3px;
+      --control-radius: 2px;
+    }
+
+    [data-theme="pitch_black"] .sim-deck,
+    [data-theme="pitch_black"] .mode-switch,
+    [data-theme="pitch_black"] .btn,
+    [data-theme="pitch_black"] .logic-modal,
+    [data-theme="pitch_black"] .brand-icon {
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    [data-theme="java_swing"] {
+      --bg-deep: #d4d0c8;
+      --bg-panel: #ece9d8;
+      --bg-panel-alt: #e4dfd3;
+      --bg-elevated: #ece9d8;
+      --bg-hover: #dfdbcb;
+      --border-dim: #99958c;
+      --border-bright: #7a766e;
+      --text-main: #000000;
+      --text-muted: #262626;
+      --text-dim: #444444;
+      --accent-green: #008000;
+      --accent-green-dim: rgba(0, 128, 0, 0.15);
+      --accent-blue: #000080;
+      --accent-blue-dim: rgba(0, 0, 128, 0.15);
+      --wire-low: #475569;
+      --wire-high: #008000;
+      --btn-radius: 0px;
+      --card-radius: 0px;
+      --control-radius: 0px;
+      --font-sans: 'Segoe UI', Tahoma, Arial, sans-serif;
+    }
+
+    [data-theme="java_swing"] .btn,
+    [data-theme="java_swing"] .menubar-btn,
+    [data-theme="java_swing"] .mode-btn,
+    [data-theme="java_swing"] .tab-item,
+    [data-theme="java_swing"] .palette-item,
+    [data-theme="java_swing"] .select-input,
+    [data-theme="java_swing"] .norm-card,
+    [data-theme="java_swing"] .theme-card,
+    [data-theme="java_swing"] .color-swatch-btn {
+      border-radius: 0px !important;
+      border: 1px solid #808080 !important;
+      background: #ece9d8 !important;
+      color: #000000 !important;
+      box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
+    }
+
+    [data-theme="java_swing"] .btn:active,
+    [data-theme="java_swing"] .mode-btn.active-edit,
+    [data-theme="java_swing"] .mode-btn.active-sim,
+    [data-theme="java_swing"] .tab-item.active,
+    [data-theme="java_swing"] .norm-card.active,
+    [data-theme="java_swing"] .theme-card.active {
+      box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
+      background: #dfdacb !important;
+      border-color: #555555 !important;
+    }
+
+    [data-theme="java_swing"] .sim-deck,
+    [data-theme="java_swing"] .mode-switch,
+    [data-theme="java_swing"] .freq-control,
+    [data-theme="java_swing"] .menubar-dropdown,
+    [data-theme="java_swing"] .logic-modal,
+    [data-theme="java_swing"] .brand-icon,
+    [data-theme="java_swing"] .panel-header {
+      border-radius: 0px !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="java_swing"] .brand-icon {
+      background: #000080 !important;
+      color: #ffffff !important;
+    }
+
+    [data-theme="blueprint"] {
+      --bg-deep: #071527;
+      --bg-panel: #0b1d3a;
+      --bg-panel-alt: #0f284e;
+      --bg-elevated: #143261;
+      --bg-hover: #1c427d;
+      --border-dim: #1e3a66;
+      --border-bright: #2d5592;
+      --text-main: #f0f9ff;
+      --text-muted: #93c5fd;
+      --text-dim: #60a5fa;
+      --accent-blue: #38bdf8;
+      --accent-blue-dim: rgba(56, 189, 248, 0.2);
+      --wire-low: #1e3a66;
+      --wire-high: #38bdf8;
+      --btn-radius: 3px;
+      --card-radius: 4px;
+      --control-radius: 3px;
+    }
+
+    [data-theme="light_cad"] {
+      --bg-deep: #f1f5f9;
+      --bg-panel: #ffffff;
+      --bg-panel-alt: #f8fafc;
+      --bg-elevated: #e2e8f0;
+      --bg-hover: #cbd5e1;
+      --border-dim: #e2e8f0;
+      --border-bright: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+      --accent-green: #059669;
+      --accent-green-dim: rgba(5, 150, 105, 0.14);
+      --accent-blue: #0284c7;
+      --accent-blue-dim: rgba(2, 132, 199, 0.14);
+      --wire-low: #64748b;
+      --wire-high: #059669;
+      --btn-radius: 4px;
+      --card-radius: 6px;
+      --control-radius: 4px;
+    }
+
+    [data-theme="light_cad"] .menubar-btn:hover,
+    [data-theme="light_cad"] .app-menu-item:hover {
+      background: #e2e8f0 !important;
+      color: #0f172a !important;
     }
 
     * {
@@ -95,7 +243,7 @@
     .brand-icon {
       width: 26px;
       height: 26px;
-      border-radius: 6px;
+      border-radius: var(--control-radius);
       background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
       display: flex;
       align-items: center;
@@ -118,8 +266,8 @@
     .mode-switch {
       display: inline-flex;
       background: var(--bg-deep);
-      padding: 3px;
-      border-radius: 7px;
+      padding: 2px;
+      border-radius: var(--control-radius);
       border: 1px solid var(--border-dim);
     }
 
@@ -127,10 +275,10 @@
       border: none;
       background: transparent;
       color: var(--text-muted);
-      padding: 5px 12px;
+      padding: 4px 11px;
       font-size: 12px;
       font-weight: 600;
-      border-radius: 5px;
+      border-radius: var(--btn-radius);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -167,7 +315,7 @@
       border: 1px solid var(--border-bright);
       color: var(--text-main);
       padding: 5px 10px;
-      border-radius: 6px;
+      border-radius: var(--btn-radius);
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
@@ -226,8 +374,8 @@
       align-items: center;
       background: var(--bg-deep);
       border: 1px solid var(--border-bright);
-      border-radius: 8px;
-      padding: 3px 5px;
+      border-radius: var(--control-radius);
+      padding: 2px 4px;
       gap: 4px;
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
     }
@@ -272,7 +420,7 @@
       gap: 7px;
       background: var(--bg-deep);
       padding: 4px 10px;
-      border-radius: 6px;
+      border-radius: var(--control-radius);
       border: 1px solid var(--border-dim);
     }
 
@@ -322,7 +470,7 @@
       border: 1px solid var(--border-bright);
       color: var(--text-main);
       padding: 5px 8px;
-      border-radius: 6px;
+      border-radius: var(--control-radius);
       font-size: 12px;
       outline: none;
       cursor: pointer;
@@ -461,7 +609,7 @@
     .palette-item {
       background: var(--bg-elevated);
       border: 1px solid var(--border-dim);
-      border-radius: 7px;
+      border-radius: var(--card-radius);
       padding: 6px 8px;
       display: flex;
       align-items: center;
@@ -487,7 +635,7 @@
     .palette-icon {
       width: 32px;
       height: 26px;
-      border-radius: 5px;
+      border-radius: var(--control-radius);
       background: linear-gradient(145deg, #161c24, #0d1117);
       border: 1px solid var(--border-bright);
       display: flex;
@@ -546,7 +694,7 @@
       gap: 4px;
       background: rgba(18, 22, 28, 0.9);
       padding: 4px;
-      border-radius: 7px;
+      border-radius: var(--control-radius);
       border: 1px solid var(--border-bright);
     }
 
@@ -556,7 +704,7 @@
       color: var(--text-main);
       width: 26px;
       height: 26px;
-      border-radius: 5px;
+      border-radius: var(--btn-radius);
       cursor: pointer;
       font-family: var(--font-mono);
       font-weight: 700;
@@ -1417,7 +1565,7 @@
     .norm-card {
       background: var(--bg-deep);
       border: 1px solid var(--border-dim);
-      border-radius: 6px;
+      border-radius: var(--card-radius);
       padding: 10px;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -1444,12 +1592,161 @@
     .norm-card-title {
       font-size: 12px;
       font-weight: 700;
-      color: #fff;
+      color: var(--text-main);
     }
     .norm-card-desc {
       font-size: 10.5px;
       color: var(--text-dim);
       line-height: 1.35;
+    }
+
+    /* Workbench Theme Cards */
+    .theme-card-group {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .theme-card-group {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .theme-card {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--card-radius);
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .theme-card:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-hover);
+    }
+    .theme-card.active {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px var(--accent-blue);
+      background: var(--accent-blue-dim);
+    }
+    .theme-card-preview {
+      width: 100%;
+      height: 38px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 3px;
+      display: flex;
+      flex-direction: column;
+    }
+    .theme-preview-modern {
+      background: #0d1117;
+      border-color: #30363d;
+    }
+    .theme-preview-modern .theme-preview-topbar {
+      height: 9px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .theme-preview-modern .theme-preview-gate {
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 16px;
+      height: 14px;
+      background: #151a22;
+      border: 1px solid #334155;
+      border-radius: 3px;
+    }
+    .theme-preview-pitch-black {
+      background: #000000;
+      border-color: #27272a;
+    }
+    .theme-preview-pitch-black .theme-preview-topbar {
+      height: 9px;
+      background: #09090b;
+      border-bottom: 1px solid #27272a;
+    }
+    .theme-preview-pitch-black .theme-preview-gate {
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 16px;
+      height: 14px;
+      background: #09090b;
+      border: 1px solid #3f3f46;
+      border-radius: 2px;
+    }
+    .theme-preview-java-swing {
+      background: #ffffff;
+      border: 1px solid #7a766e;
+    }
+    .theme-preview-java-swing .theme-preview-topbar {
+      height: 9px;
+      background: #ece9d8;
+      border-bottom: 1px solid #808080;
+      box-shadow: inset 1px 1px #fff;
+    }
+    .theme-preview-java-swing .theme-preview-gate {
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 16px;
+      height: 14px;
+      background: #faf8f0;
+      border: 1px solid #000000;
+      border-radius: 0px;
+    }
+    .theme-preview-blueprint {
+      background: #071527;
+      border-color: #1e3a66;
+    }
+    .theme-preview-blueprint .theme-preview-topbar {
+      height: 9px;
+      background: #0b1d3a;
+      border-bottom: 1px solid #1e3a66;
+    }
+    .theme-preview-blueprint .theme-preview-gate {
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 16px;
+      height: 14px;
+      background: #0c233f;
+      border: 1px solid #38bdf8;
+      border-radius: 3px;
+    }
+    .theme-preview-light-cad {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+    .theme-preview-light-cad .theme-preview-topbar {
+      height: 9px;
+      background: #ffffff;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .theme-preview-light-cad .theme-preview-gate {
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 16px;
+      height: 14px;
+      background: #ffffff;
+      border: 1px solid #334155;
+      border-radius: 4px;
+    }
+    .theme-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .theme-card-desc {
+      font-size: 9.5px;
+      color: var(--text-dim);
+      line-height: 1.3;
     }
     .settings-checkbox-label {
       display: flex;
@@ -1624,7 +1921,7 @@
       background: var(--bg-panel);
       border: 1px solid var(--border-dim);
       border-bottom: none;
-      border-radius: 6px 6px 0 0;
+      border-radius: var(--btn-radius) var(--btn-radius) 0 0;
       color: var(--text-muted);
       font-size: 11.5px;
       font-weight: 500;
@@ -1916,6 +2213,28 @@
             <button class="app-menu-item" id="menu-item-toggle-inspector">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
               <span>Eigenschaften (Inspector)</span>
+            </button>
+            <div class="app-menu-divider"></div>
+            <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
+            <button class="app-menu-item" data-theme-btn="modern">
+              <span class="norm-check" id="check-theme-modern">✓</span>
+              <span>Modern Dark (CAD Slate)</span>
+            </button>
+            <button class="app-menu-item" data-theme-btn="pitch_black">
+              <span class="norm-check" id="check-theme-pitch_black">&nbsp;</span>
+              <span>Pitch Black (OLED)</span>
+            </button>
+            <button class="app-menu-item" data-theme-btn="java_swing">
+              <span class="norm-check" id="check-theme-java_swing">&nbsp;</span>
+              <span>Java Swing Classic (Retro 90s)</span>
+            </button>
+            <button class="app-menu-item" data-theme-btn="blueprint">
+              <span class="norm-check" id="check-theme-blueprint">&nbsp;</span>
+              <span>Nordic Blueprint (Technik-Papier)</span>
+            </button>
+            <button class="app-menu-item" data-theme-btn="light_cad">
+              <span class="norm-check" id="check-theme-light_cad">&nbsp;</span>
+              <span>Clean Light (Ingenieurs-Weiß)</span>
             </button>
           </div>
         </div>
@@ -2603,16 +2922,57 @@
             </div>
           </div>
 
-          <!-- 4. Hintergrund-Design -->
+          <!-- 4. Workbench-Design & Themes -->
           <div class="settings-section">
-            <div class="settings-section-title">Arbeitsflächen-Thema:</div>
-            <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
-              <select id="settings-canvas-theme" class="select-input" style="flex: 1;">
-                <option value="tech_dots" selected>Dark Tech (Elektronik-Raster mit Glow)</option>
-                <option value="deep_black">OLED Pure Black (Hoher Kontrast, tiefschwarz)</option>
-                <option value="blueprint">Ingenieur Blueprint (Dezentes dunkles Blau-Raster)</option>
-              </select>
+            <div class="settings-section-title">Erscheinungsbild &amp; Workbench-Design:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Wähle dein bevorzugtes CAD-Erscheinungsbild von modernem OLED-Dunkel bis retro Java Swing:</div>
+            <div class="theme-card-group" id="settings-theme-cards">
+              <div class="theme-card active" data-theme="modern">
+                <div class="theme-card-preview theme-preview-modern">
+                  <div class="theme-preview-topbar"></div>
+                  <div class="theme-preview-gate"></div>
+                </div>
+                <div class="theme-card-title">Modern Dark</div>
+                <div class="theme-card-desc">Schnittiges CAD Slate mit dezentem Kontrast.</div>
+              </div>
+              <div class="theme-card" data-theme="pitch_black">
+                <div class="theme-card-preview theme-preview-pitch-black">
+                  <div class="theme-preview-topbar"></div>
+                  <div class="theme-preview-gate"></div>
+                </div>
+                <div class="theme-card-title">Pitch Black</div>
+                <div class="theme-card-desc">Reines OLED #000000, 2px Kanten, kein Glow.</div>
+              </div>
+              <div class="theme-card" data-theme="java_swing">
+                <div class="theme-card-preview theme-preview-java-swing">
+                  <div class="theme-preview-topbar"></div>
+                  <div class="theme-preview-gate"></div>
+                </div>
+                <div class="theme-card-title">Java Swing</div>
+                <div class="theme-card-desc">Retro 90s Workbench, 3D-Relief, 0px Kanten, weißes Papier.</div>
+              </div>
+              <div class="theme-card" data-theme="blueprint">
+                <div class="theme-card-preview theme-preview-blueprint">
+                  <div class="theme-preview-topbar"></div>
+                  <div class="theme-preview-gate"></div>
+                </div>
+                <div class="theme-card-title">Nordic Blueprint</div>
+                <div class="theme-card-desc">Technisches Marineblau mit feinem Reißbrett-Raster.</div>
+              </div>
+              <div class="theme-card" data-theme="light_cad">
+                <div class="theme-card-preview theme-preview-light-cad">
+                  <div class="theme-preview-topbar"></div>
+                  <div class="theme-preview-gate"></div>
+                </div>
+                <div class="theme-card-title">Clean Light</div>
+                <div class="theme-card-desc">Helles Labor-Design mit klaren Konturen.</div>
+              </div>
             </div>
+            <select id="settings-canvas-theme" style="display: none;">
+              <option value="tech_dots" selected>tech_dots</option>
+              <option value="deep_black">deep_black</option>
+              <option value="blueprint">blueprint</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -4437,6 +4797,7 @@
         this.highSignalColor = '#00e676';
         this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
         this.canvasTheme = 'tech_dots';
+        this.appTheme = 'modern';
 
         this.panX = 40;
         this.panY = 40;
@@ -4455,6 +4816,87 @@
         this.activeWaypointDrag = null;
         this.activeWireDrag = null;
         this.selectionBox = null;
+      }
+
+      getThemePalette() {
+        switch (this.appTheme) {
+          case 'pitch_black':
+            return {
+              bg: '#000000',
+              gridDot: '#222225',
+              gridMajor: '#333338',
+              gateFill: '#09090b',
+              gateStroke: '#3f3f46',
+              chassisFill: '#09090b',
+              chassisStroke: '#27272a',
+              wireLow: '#27272a',
+              textLabel: '#a1a1aa',
+              leadLine: '#27272a',
+              shadowBlur: 0,
+              boxRadius: 2
+            };
+          case 'java_swing':
+            return {
+              bg: '#ffffff',
+              gridDot: '#c4c0b8',
+              gridMajor: '#99958c',
+              gateFill: '#faf8f0',
+              gateStroke: '#000000',
+              chassisFill: '#ece9d8',
+              chassisStroke: '#000000',
+              wireLow: '#475569',
+              textLabel: '#000000',
+              leadLine: '#000000',
+              shadowBlur: 0,
+              boxRadius: 0
+            };
+          case 'blueprint':
+            return {
+              bg: '#071527',
+              gridDot: '#173b66',
+              gridMajor: '#255994',
+              gateFill: '#0c233f',
+              gateStroke: '#38bdf8',
+              chassisFill: '#0c233f',
+              chassisStroke: '#1e4976',
+              wireLow: '#1e3a66',
+              textLabel: '#93c5fd',
+              leadLine: '#1e3a66',
+              shadowBlur: 3,
+              boxRadius: 3
+            };
+          case 'light_cad':
+            return {
+              bg: '#f8fafc',
+              gridDot: '#cbd5e1',
+              gridMajor: '#94a3b8',
+              gateFill: '#ffffff',
+              gateStroke: '#334155',
+              chassisFill: '#ffffff',
+              chassisStroke: '#94a3b8',
+              wireLow: '#64748b',
+              textLabel: '#1e293b',
+              leadLine: '#64748b',
+              shadowBlur: 0,
+              boxRadius: 4
+            };
+          case 'modern':
+          default:
+            return {
+              bg: '#0d1117',
+              gridDot: '#1e2633',
+              gridMajor: '#2e3b4e',
+              gateFill: '#151a22',
+              gateStroke: '#334155',
+              chassisFill: '#151a22',
+              chassisStroke: '#2e3948',
+              wireLow: '#2d3d4f',
+              textLabel: '#94a3b8',
+              leadLine: '#2e3948',
+              shadowBlur: 6,
+              boxRadius: 4
+            };
+        }
       }
 
       get selectedCompId() {
@@ -4491,7 +4933,8 @@
       }
 
       resize() {
-        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const parent = this.canvas && this.canvas.parentElement;
+        const rect = parent ? parent.getBoundingClientRect() : { width: 1200, height: 800 };
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
         this.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
@@ -5045,14 +5488,14 @@
         ctx.save();
         ctx.scale(dpr, dpr);
 
-        if (this.canvasTheme === 'deep_black') {
-          ctx.fillStyle = '#020406';
-        } else if (this.canvasTheme === 'blueprint') {
-          ctx.fillStyle = '#07111e';
-        } else {
-          ctx.fillStyle = '#0b0d10';
-        }
+        const pal = this.getThemePalette();
+        ctx.fillStyle = pal.bg;
         ctx.fillRect(0, 0, width, height);
+
+        if (!this.circuit) {
+          ctx.restore();
+          return;
+        }
 
         ctx.save();
         ctx.translate(this.panX, this.panY);
@@ -5099,17 +5542,17 @@
         const startY = Math.floor(topLeft.y / step) * step;
         const endY = Math.ceil(botRight.y / step) * step;
 
-        ctx.fillStyle = '#1e2633';
+        const pal = this.getThemePalette();
         const dotSize = 1.6 / Math.sqrt(this.zoom);
 
         for (let x = startX; x <= endX; x += step) {
           for (let y = startY; y <= endY; y += step) {
             const isMajor = (x % (step * 5) === 0) && (y % (step * 5) === 0);
             if (isMajor) {
-              ctx.fillStyle = '#2e3b4e';
+              ctx.fillStyle = pal.gridMajor;
               ctx.fillRect(x - dotSize, y - dotSize, dotSize * 2, dotSize * 2);
-              ctx.fillStyle = '#1e2633';
             } else {
+              ctx.fillStyle = pal.gridDot;
               ctx.fillRect(x - dotSize * 0.6, y - dotSize * 0.6, dotSize * 1.2, dotSize * 1.2);
             }
           }
@@ -5144,6 +5587,7 @@
         }
 
         // 2. Draw each wire orthogonally with crossing jumper arcs
+        const pal = this.getThemePalette();
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
           const isSelected = this.selectedWireIds.has(w.id) || w.id === this.selectedWireId;
@@ -5163,9 +5607,9 @@
             ctx.strokeStyle = this.highSignalColor || '#00e676';
             ctx.lineWidth = 2.8;
             ctx.shadowColor = this.highSignalGlow || 'rgba(0, 230, 118, 0.65)';
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 8;
           } else {
-            ctx.strokeStyle = '#2d3d4f';
+            ctx.strokeStyle = pal.wireLow;
             ctx.lineWidth = 2.2;
           }
 
@@ -5418,8 +5862,9 @@
         }
 
         // Draw top label (except PROBE which renders inside)
+        const pal = this.getThemePalette();
         if (type !== 'PROBE') {
-          ctx.fillStyle = '#94a3b8';
+          ctx.fillStyle = pal.textLabel;
           ctx.font = '600 10.5px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
@@ -5432,19 +5877,20 @@
       }
 
       drawChassisBox(ctx, x, y, width, height, isSelected) {
+        const pal = this.getThemePalette();
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.5)';
           ctx.shadowBlur = 12;
         } else {
           ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = pal.shadowBlur;
         }
 
-        ctx.fillStyle = '#151a22';
-        ctx.strokeStyle = isSelected ? '#00b0ff' : '#2e3948';
+        ctx.fillStyle = pal.chassisFill;
+        ctx.strokeStyle = isSelected ? '#00b0ff' : pal.chassisStroke;
         ctx.lineWidth = isSelected ? 2 : 1.5;
 
-        this.roundRect(ctx, x, y, width, height, 6);
+        this.roundRect(ctx, x, y, width, height, pal.boxRadius);
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.stroke();
@@ -5472,16 +5918,17 @@
         const highColor = this.highSignalColor || '#00e676';
         const highGlow = this.highSignalGlow || 'rgba(0, 230, 118, 0.6)';
 
+        const pal = this.getThemePalette();
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.55)';
           ctx.shadowBlur = 12;
         } else {
           ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = pal.shadowBlur;
         }
 
-        ctx.fillStyle = '#151a22';
-        ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+        ctx.fillStyle = pal.gateFill;
+        ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
         ctx.lineWidth = isSelected ? 2.2 : 1.6;
 
         // 1. Draw Body Outline
@@ -5549,7 +5996,7 @@
           const bx = bodyEnd + rBubble + 1;
           ctx.beginPath();
           ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
-          ctx.fillStyle = '#0b0d10';
+          ctx.fillStyle = pal.bg;
           ctx.fill();
           ctx.strokeStyle = isSelected ? '#00b0ff' : highColor;
           ctx.lineWidth = 1.6;
@@ -5562,11 +6009,11 @@
           ctx.beginPath();
           ctx.moveTo(outLeadStart, cy);
           ctx.lineTo(outPinX, cy);
-          ctx.strokeStyle = isOutHigh ? highColor : '#2e3948';
+          ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
           ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
           if (isOutHigh) {
             ctx.shadowColor = highGlow;
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
           }
           ctx.stroke();
           ctx.restore();
@@ -5584,9 +6031,9 @@
             const bx = inputBoundaryX - rBubble - 1;
             ctx.beginPath();
             ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
-            ctx.fillStyle = '#0b0d10';
+            ctx.fillStyle = pal.bg;
             ctx.fill();
-            ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+            ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
             ctx.lineWidth = 1.5;
             ctx.stroke();
           }
@@ -5603,11 +6050,11 @@
             ctx.beginPath();
             ctx.moveTo(x, py);
             ctx.lineTo(inLeadEnd, py);
-            ctx.strokeStyle = isHigh ? highColor : '#2e3948';
+            ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
             ctx.lineWidth = isHigh ? 2.2 : 1.4;
             if (isHigh) {
               ctx.shadowColor = highGlow;
-              ctx.shadowBlur = 6;
+              ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
             }
             ctx.stroke();
             ctx.restore();
@@ -5636,24 +6083,25 @@
         const highColor = this.highSignalColor || '#00e676';
         const highGlow = this.highSignalGlow || 'rgba(0, 230, 118, 0.6)';
 
+        const pal = this.getThemePalette();
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.55)';
           ctx.shadowBlur = 12;
         } else {
           ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = pal.shadowBlur;
         }
 
-        ctx.fillStyle = '#151a22';
-        ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+        ctx.fillStyle = pal.gateFill;
+        ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
         ctx.lineWidth = isSelected ? 2.2 : 1.6;
 
-        this.roundRect(ctx, gx1, gy1, gx2 - gx1, gy2 - gy1, 4);
+        this.roundRect(ctx, gx1, gy1, gx2 - gx1, gy2 - gy1, pal.boxRadius);
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.stroke();
 
-        ctx.fillStyle = '#e2e8f0';
+        ctx.fillStyle = pal.textLabel;
         ctx.font = '700 14px monospace';
         ctx.textAlign = 'center';
         const sym = GATE_IEC_SYMBOLS[type] || (type.startsWith('X') ? (comp.params.xorMode === 'parity' ? '≠' : '=1') : '&');
@@ -5667,7 +6115,7 @@
           const bx = gx2 + rBubble + 1;
           ctx.beginPath();
           ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
-          ctx.fillStyle = '#0b0d10';
+          ctx.fillStyle = pal.bg;
           ctx.fill();
           ctx.strokeStyle = isSelected ? '#00b0ff' : highColor;
           ctx.lineWidth = 1.6;
@@ -5680,11 +6128,11 @@
           ctx.beginPath();
           ctx.moveTo(outLeadStart, cy);
           ctx.lineTo(outPinX, cy);
-          ctx.strokeStyle = isOutHigh ? highColor : '#2e3948';
+          ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
           ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
           if (isOutHigh) {
             ctx.shadowColor = highGlow;
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
           }
           ctx.stroke();
           ctx.restore();
@@ -5701,9 +6149,9 @@
             const bx = gx1 - rBubble - 1;
             ctx.beginPath();
             ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
-            ctx.fillStyle = '#0b0d10';
+            ctx.fillStyle = pal.bg;
             ctx.fill();
-            ctx.strokeStyle = isSelected ? '#00b0ff' : '#334155';
+            ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
             ctx.lineWidth = 1.5;
             ctx.stroke();
           }
@@ -5714,11 +6162,11 @@
             ctx.beginPath();
             ctx.moveTo(x, py);
             ctx.lineTo(inLeadEnd, py);
-            ctx.strokeStyle = isHigh ? highColor : '#2e3948';
+            ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
             ctx.lineWidth = isHigh ? 2.2 : 1.4;
             if (isHigh) {
               ctx.shadowColor = highGlow;
-              ctx.shadowBlur = 6;
+              ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
             }
             ctx.stroke();
             ctx.restore();
@@ -6000,18 +6448,19 @@
           case 'PROBE': {
             const isHigh = comp.inputs[0]?.value === 1;
             const probeColor = comp.params.color || '#00e676';
+            const pal = this.getThemePalette();
 
             ctx.fillStyle = probeColor;
             this.roundRect(ctx, x + 8, y + 7, 5, height - 14, 2);
             ctx.fill();
 
-            ctx.fillStyle = '#e2e8f0';
+            ctx.fillStyle = pal.textLabel;
             ctx.font = '700 11px monospace';
             ctx.textAlign = 'left';
             const displayName = (comp.params.name || 'PRB').slice(0, 7);
             ctx.fillText(displayName, x + 17, cy + 4);
 
-            ctx.fillStyle = isHigh ? '#00e676' : '#334155';
+            ctx.fillStyle = isHigh ? '#00e676' : pal.wireLow;
             ctx.font = '700 10px monospace';
             ctx.textAlign = 'right';
             ctx.fillText(isHigh ? '1' : '0', x + width - 7, cy + 3.5);
@@ -6022,6 +6471,7 @@
 
       drawComponentPins(ctx, comp) {
         const isGateComp = this.isGate(comp.type);
+        const pal = this.getThemePalette();
 
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
@@ -6050,7 +6500,7 @@
           if (!isGateComp && pin.name) {
             const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
             const textOffsetX = isInv ? 15 : 7;
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = pal.textLabel;
             ctx.font = '500 9.5px monospace';
             ctx.textAlign = 'left';
             ctx.fillText(pin.name, px + textOffsetX, py + 3);
@@ -6078,15 +6528,15 @@
             if (isNegatedQ) {
               ctx.beginPath();
               ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
-              ctx.fillStyle = '#0b0d10';
+              ctx.fillStyle = pal.bg;
               ctx.fill();
-              ctx.strokeStyle = '#64748b';
+              ctx.strokeStyle = pal.wireLow;
               ctx.lineWidth = 1.3;
               ctx.stroke();
             }
 
             const textOffsetX = isInv ? 15 : 7;
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = pal.textLabel;
             ctx.font = '500 9.5px monospace';
             ctx.textAlign = 'right';
             const displayName = isNegatedQ ? 'Q̅' : pin.name;
@@ -6103,6 +6553,7 @@
 
         const highColor = this.highSignalColor || '#00e676';
         const highGlow = this.highSignalGlow || 'rgba(0, 230, 118, 0.65)';
+        const pal = this.getThemePalette();
 
         if (isHovered) {
           ctx.fillStyle = '#00b0ff';
@@ -6111,19 +6562,25 @@
         } else if (isHigh) {
           ctx.fillStyle = highColor;
           ctx.shadowColor = highGlow;
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
         } else {
-          ctx.fillStyle = '#1e293b';
+          ctx.fillStyle = (this.appTheme === 'java_swing') ? '#ffffff' : (this.appTheme === 'light_cad' ? '#e2e8f0' : '#1e293b');
         }
         ctx.fill();
 
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = isHovered ? '#ffffff' : (isHigh ? highColor : '#64748b');
+        ctx.strokeStyle = isHovered ? '#ffffff' : (isHigh ? highColor : pal.wireLow);
         ctx.stroke();
         ctx.restore();
       }
 
       roundRect(ctx, x, y, w, h, r) {
+        if (!r || r <= 0) {
+          ctx.beginPath();
+          ctx.rect(x, y, w, h);
+          ctx.closePath();
+          return;
+        }
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + w - r, y);
@@ -6148,6 +6605,7 @@
         this.circuit = circuit;
         this.ringBuffer = ringBuffer;
         this.callbacks = callbacks;
+        this.appTheme = 'modern';
 
         this.pixelsPerTick = 12;
         this.scrollRatio = 1.0;
@@ -6503,7 +6961,8 @@
       }
 
       resize() {
-        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const parent = this.canvas && this.canvas.parentElement;
+        const rect = parent ? parent.getBoundingClientRect() : { width: 1200, height: 800 };
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
         this.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
@@ -6519,7 +6978,15 @@
         ctx.save();
         ctx.scale(dpr, dpr);
 
-        ctx.fillStyle = '#080a0d';
+        const isLight = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
+        const isOled = this.appTheme === 'pitch_black';
+        const isBlue = this.appTheme === 'blueprint';
+        const bgColor = isLight ? (this.appTheme === 'java_swing' ? '#ffffff' : '#f8fafc') : (isOled ? '#000000' : (isBlue ? '#071527' : '#080a0d'));
+        const headerBg = isLight ? '#ece9d8' : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#10141b'));
+        const textColor = isLight ? '#000000' : (isBlue ? '#93c5fd' : '#94a3b8');
+        const gridBorder = isLight ? '#808080' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#1e2633'));
+
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
 
         const probes = this.circuit.getProbes();
@@ -6529,7 +6996,7 @@
         }
 
         if (probes.length === 0) {
-          ctx.fillStyle = '#64748b';
+          ctx.fillStyle = textColor;
           ctx.font = '12px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(
@@ -6560,15 +7027,15 @@
         }
         const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
 
-        ctx.fillStyle = '#10141b';
+        ctx.fillStyle = headerBg;
         ctx.fillRect(0, 0, width, headerH);
-        ctx.strokeStyle = '#1e2633';
+        ctx.strokeStyle = gridBorder;
         ctx.beginPath();
         ctx.moveTo(0, headerH);
         ctx.lineTo(width, headerH);
         ctx.stroke();
 
-        ctx.fillStyle = '#64748b';
+        ctx.fillStyle = textColor;
         ctx.font = '600 10px monospace';
         ctx.textAlign = 'left';
         ctx.fillText('KANAL / PROBE', 10, 14);
@@ -8512,6 +8979,7 @@
         this.highSignalColor = '#00e676';
         this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
         this.canvasTheme = 'tech_dots';
+        this.appTheme = 'modern';
         this.autoSaveCircuit = true;
 
         this.loadSettings();
@@ -8519,6 +8987,10 @@
         // Restore or set Default Symbol Standard: DIN 40700
         const savedNorm = localStorage.getItem('logicsim_symbol_norm') || 'DIN_40700';
         this.setSymbolStandard(savedNorm);
+
+        // Restore or set Default Workbench Theme: modern
+        const savedTheme = localStorage.getItem('logicsim_theme') || this.appTheme || 'modern';
+        this.setAppTheme(savedTheme);
 
         this.currentTruthTableData = null;
 
@@ -9364,6 +9836,10 @@
 
         this.updatePaletteIcons(norm);
         this.renderer.render();
+        if (this.rendererRight) {
+          this.rendererRight.symbolStandard = norm;
+          this.rendererRight.render();
+        }
       }
 
       updatePaletteIcons(norm) {
@@ -12990,6 +13466,17 @@
           if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
         });
 
+        // Theme buttons in View menu
+        document.querySelectorAll('#mdropdown-view [data-theme-btn]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            closeAllMenus();
+            const t = btn.getAttribute('data-theme-btn');
+            if (t) {
+              this.setAppTheme(t);
+            }
+          });
+        });
+
         // 4. Analyse
         document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
           closeAllMenus();
@@ -13098,13 +13585,22 @@
           });
         }
 
-        // 5. Canvas Theme
+        // 5. Workbench Theme Cards
+        const themeCards = document.querySelectorAll('#settings-theme-cards .theme-card');
+        themeCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const theme = card.getAttribute('data-theme');
+            if (theme) {
+              this.setAppTheme(theme);
+            }
+          });
+        });
+
+        // Backward compatibility select
         const selectTheme = document.getElementById('settings-canvas-theme');
         if (selectTheme) {
-          selectTheme.value = this.canvasTheme;
           selectTheme.addEventListener('change', (e) => {
             this.setCanvasTheme(e.target.value);
-            this.saveSettings();
           });
         }
 
@@ -13114,9 +13610,9 @@
           btnReset.addEventListener('click', () => {
             this.setHighSignalColor('#00e676');
             this.setSymbolStandard('DIN_40700');
+            this.setAppTheme('modern');
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
-            this.setCanvasTheme('tech_dots');
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
             this.saveSettings();
@@ -13160,18 +13656,49 @@
         }
 
         this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
         this.analyzer.render();
+      }
+
+      setAppTheme(theme) {
+        if (!theme) theme = 'modern';
+        this.appTheme = theme;
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.setAttribute) {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        // Update view menu checkmarks
+        const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
+        themeKeys.forEach(t => {
+          const chk = document.getElementById(`check-theme-${t}`);
+          if (chk) chk.innerHTML = (t === theme) ? '✓' : '&nbsp;';
+
+          const card = document.querySelector(`#settings-theme-cards .theme-card[data-theme="${t}"]`);
+          if (card) card.classList.toggle('active', t === theme);
+        });
+
+        if (this.renderer) {
+          this.renderer.appTheme = theme;
+          this.renderer.render();
+        }
+        if (this.rendererRight) {
+          this.rendererRight.appTheme = theme;
+          this.rendererRight.render();
+        }
+        if (this.analyzer) {
+          this.analyzer.appTheme = theme;
+          this.analyzer.render();
+        }
+
+        this.saveSettings();
       }
 
       setCanvasTheme(theme) {
         if (!theme) theme = 'tech_dots';
         this.canvasTheme = theme;
-        this.renderer.canvasTheme = theme;
-
-        const select = document.getElementById('settings-canvas-theme');
-        if (select) select.value = theme;
-
-        this.renderer.render();
+        if (theme === 'deep_black') this.setAppTheme('pitch_black');
+        else if (theme === 'blueprint') this.setAppTheme('blueprint');
+        else this.setAppTheme('modern');
       }
 
       loadSettings() {
@@ -13182,8 +13709,16 @@
             if (s.highSignalColor) this.setHighSignalColor(s.highSignalColor);
             if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
-            if (s.canvasTheme) this.setCanvasTheme(s.canvasTheme);
+            if (s.symbolStandard) this.setSymbolStandard(s.symbolStandard);
+            if (s.appTheme) this.setAppTheme(s.appTheme);
+            else if (s.canvasTheme) {
+              if (s.canvasTheme === 'deep_black') this.setAppTheme('pitch_black');
+              else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint');
+              else this.setAppTheme('modern');
+            }
           }
+          const storedTheme = localStorage.getItem('logicsim_theme');
+          if (storedTheme) this.setAppTheme(storedTheme);
         } catch (e) {
           console.warn('Could not load settings:', e);
         }
@@ -13195,9 +13730,12 @@
             highSignalColor: this.highSignalColor,
             allowEditModeInteraction: this.allowEditModeInteraction,
             autoSaveCircuit: this.autoSaveCircuit,
-            canvasTheme: this.canvasTheme
+            canvasTheme: this.canvasTheme,
+            appTheme: this.appTheme,
+            symbolStandard: this.symbolStandard
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
+          localStorage.setItem('logicsim_theme', this.appTheme);
         } catch (e) {
           console.warn('Could not save settings:', e);
         }
