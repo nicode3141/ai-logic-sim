@@ -2880,13 +2880,9 @@
         <div class="palette-category">
           <div class="category-title">Logikgatter (Gates)</div>
           <div class="palette-grid">
-            <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negationspunkt (○): Auf Pin eines Gatters ziehen zum Invertieren">
-              <div class="palette-icon" id="pal-icon-NEGATOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="8" y2="12"/><circle cx="12" cy="12" r="3.5" fill="#151a22"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
-              <div class="palette-name">Negator (○)</div>
-            </div>
-            <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
+            <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer / Negation: Auf Pin ziehen zum Negieren (○) oder auf Canvas platzieren">
               <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
-              <div class="palette-name">NOT</div>
+              <div class="palette-name">NOT (○)</div>
             </div>
             <div class="palette-item" draggable="true" data-type="AND" title="AND-Gatter (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-AND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h6a7 7 0 0 1 7 7 7 7 0 0 1-7 7H5z"/></svg></div>
@@ -7482,12 +7478,67 @@
         const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
         const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
         const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
-        if (this.loopRange && totalSamples > 0) {
-          const bracketCenter = (this.loopRange.inOffset + this.loopRange.outOffset) / 2;
-          const targetStart = Math.round(bracketCenter - visibleTicks / 2);
-          return Math.max(0, Math.min(maxStartOffset, targetStart));
+        if (maxStartOffset === 0) return 0;
+
+        if (typeof this.scrollOffset === 'number') {
+          this.scrollOffset = Math.max(0, Math.min(maxStartOffset, this.scrollOffset));
+          return this.scrollOffset;
         }
-        return Math.round(maxStartOffset * this.scrollRatio);
+
+        const ratio = (typeof this.scrollRatio === 'number') ? this.scrollRatio : 1.0;
+        return Math.round(maxStartOffset * ratio);
+      }
+
+      startBracketAutoScroll(direction) {
+        if (this.bracketAutoScrollTimer && this.bracketAutoScrollDir === direction) return;
+        this.stopBracketAutoScroll();
+        this.bracketAutoScrollDir = direction;
+        this.bracketAutoScrollTimer = setInterval(() => {
+          if (!this.activeBracketDrag || !this.loopRange) {
+            this.stopBracketAutoScroll();
+            return;
+          }
+          const totalSamples = this.ringBuffer.count;
+          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+          if (maxStartOffset <= 0) return;
+
+          const cur = this.getStartOffset();
+          const step = this.bracketAutoScrollDir * 2;
+          const nextStart = Math.max(0, Math.min(maxStartOffset, cur + step));
+          if (nextStart === cur && (this.bracketAutoScrollDir < 0 && cur === 0 || this.bracketAutoScrollDir > 0 && cur === maxStartOffset)) {
+            return;
+          }
+
+          this.scrollOffset = nextStart;
+          this.scrollRatio = maxStartOffset > 0 ? this.scrollOffset / maxStartOffset : 1.0;
+          const scrollSlider = document.getElementById('slider-time-scroll');
+          if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+
+          if (typeof this.lastBracketDragMx === 'number') {
+            const relIdx = Math.round((this.lastBracketDragMx - this.gutterWidth) / this.pixelsPerTick);
+            if (this.activeBracketDrag === 'in') {
+              this.loopRange.inOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, nextStart + relIdx));
+            } else if (this.activeBracketDrag === 'out') {
+              this.loopRange.outOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, nextStart + relIdx));
+            } else if (this.activeBracketDrag === 'bar' && typeof this.bracketDragSpan === 'number') {
+              const newIn = Math.max(0, Math.min(totalSamples - 1 - this.bracketDragSpan, nextStart + relIdx - (this.bracketDragAnchorRel || 0)));
+              this.loopRange.inOffset = newIn;
+              this.loopRange.outOffset = newIn + this.bracketDragSpan;
+            }
+            this.updateLoopUi();
+          }
+          this.render();
+        }, 35);
+      }
+
+      stopBracketAutoScroll() {
+        if (this.bracketAutoScrollTimer) {
+          clearInterval(this.bracketAutoScrollTimer);
+          this.bracketAutoScrollTimer = null;
+        }
+        this.bracketAutoScrollDir = 0;
       }
 
       setupEvents() {
@@ -7498,22 +7549,6 @@
 
           const totalSamples = this.ringBuffer.count;
           const startOffset = this.getStartOffset();
-
-          if (this.activeBracketDrag === 'in' && this.loopRange) {
-            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
-            this.loopRange.inOffset = targetOffset;
-            this.updateLoopUi();
-            this.render();
-            return;
-          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
-            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
-            this.loopRange.outOffset = targetOffset;
-            this.updateLoopUi();
-            this.render();
-            return;
-          }
 
           if (this.isScrubbing && totalSamples > 0) {
             const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
@@ -7526,11 +7561,12 @@
           if (this.hoverX <= this.gutterWidth) {
             this.canvas.style.cursor = 'pointer';
           } else if (this.hoverY <= 22 && this.loopRange) {
-            // Check if hovering near bracket handles in ruler
             const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
             const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
-            if (Math.abs(this.hoverX - inX) <= 6 || Math.abs(this.hoverX - outX) <= 6) {
+            if (Math.abs(this.hoverX - inX) <= 7 || Math.abs(this.hoverX - outX) <= 7) {
               this.canvas.style.cursor = 'ew-resize';
+            } else if (this.hoverX > inX && this.hoverX < outX) {
+              this.canvas.style.cursor = 'grab';
             } else {
               this.canvas.style.cursor = 'crosshair';
             }
@@ -7556,11 +7592,20 @@
             if (my <= 22 && this.loopRange) {
               const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
               const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
-              if (Math.abs(mx - inX) <= 7) {
+              if (Math.abs(mx - inX) <= 8) {
                 this.activeBracketDrag = 'in';
+                this.lastBracketDragMx = mx;
                 return;
-              } else if (Math.abs(mx - outX) <= 7) {
+              } else if (Math.abs(mx - outX) <= 8) {
                 this.activeBracketDrag = 'out';
+                this.lastBracketDragMx = mx;
+                return;
+              } else if (mx > inX && mx < outX) {
+                this.activeBracketDrag = 'bar';
+                this.lastBracketDragMx = mx;
+                this.bracketDragSpan = this.loopRange.outOffset - this.loopRange.inOffset;
+                const clickRel = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
+                this.bracketDragAnchorRel = clickRel - (this.loopRange.inOffset - startOffset);
                 return;
               }
             }
@@ -7583,17 +7628,30 @@
           const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
           const startOffset = this.getStartOffset();
 
-          if (this.activeBracketDrag === 'in' && this.loopRange) {
+          if (this.activeBracketDrag && this.loopRange) {
+            this.lastBracketDragMx = mx;
             const relIdx = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
-            this.loopRange.inOffset = targetOffset;
-            this.updateLoopUi();
-            this.render();
-            return;
-          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
-            const relIdx = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
-            this.loopRange.outOffset = targetOffset;
+
+            if (this.activeBracketDrag === 'in') {
+              this.loopRange.inOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
+            } else if (this.activeBracketDrag === 'out') {
+              this.loopRange.outOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
+            } else if (this.activeBracketDrag === 'bar' && typeof this.bracketDragSpan === 'number') {
+              const newIn = Math.max(0, Math.min(totalSamples - 1 - this.bracketDragSpan, startOffset + relIdx - (this.bracketDragAnchorRel || 0)));
+              this.loopRange.inOffset = newIn;
+              this.loopRange.outOffset = newIn + this.bracketDragSpan;
+            }
+
+            // Auto-scroll when dragging near or outside edges
+            const edgeMargin = 40;
+            if (mx < this.gutterWidth + edgeMargin) {
+              this.startBracketAutoScroll(-1);
+            } else if (mx > this.gutterWidth + plotW - edgeMargin) {
+              this.startBracketAutoScroll(1);
+            } else {
+              this.stopBracketAutoScroll();
+            }
+
             this.updateLoopUi();
             this.render();
             return;
@@ -7608,6 +7666,7 @@
         });
 
         window.addEventListener('mouseup', () => {
+          this.stopBracketAutoScroll();
           this.isScrubbing = false;
           this.activeBracketDrag = null;
         });
@@ -7675,7 +7734,7 @@
 
         this.canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
-          if (e.ctrlKey || e.shiftKey) {
+          if (e.ctrlKey) {
             const delta = e.deltaY < 0 ? 2 : -2;
             this.pixelsPerTick = Math.max(4, Math.min(32, this.pixelsPerTick + delta));
             const zoomSlider = document.getElementById('slider-time-zoom');
@@ -7683,10 +7742,19 @@
             if (zoomSlider) zoomSlider.value = this.pixelsPerTick;
             if (zoomLabel) zoomLabel.textContent = `${this.pixelsPerTick} px/T`;
           } else {
-            const step = e.deltaY > 0 ? 0.06 : -0.06;
-            this.scrollRatio = Math.max(0, Math.min(1, this.scrollRatio + step));
-            const scrollSlider = document.getElementById('slider-time-scroll');
-            if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+            const totalSamples = this.ringBuffer.count;
+            const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+            const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+            const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+            if (maxStartOffset > 0) {
+              const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+              const tickStep = Math.max(1, Math.round(Math.abs(delta) / 12)) * (delta > 0 ? 3 : -3);
+              const currentStart = this.getStartOffset();
+              this.scrollOffset = Math.max(0, Math.min(maxStartOffset, currentStart + tickStep));
+              this.scrollRatio = this.scrollOffset / maxStartOffset;
+              const scrollSlider = document.getElementById('slider-time-scroll');
+              if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+            }
           }
           this.render();
         }, { passive: false });
@@ -8753,8 +8821,10 @@
                 'Pins',
                 isSim,
                 (val) => {
-                  this.circuit.updateGateInputCount(comp.id, parseInt(val, 10));
-                  this.render(comp.id, null);
+                  const newCount = parseInt(val, 10);
+                  if (comp.params.numInputs === newCount) return;
+                  this.circuit.updateGateInputCount(comp.id, newCount);
+                  this.updateGateInversionCheckboxes(comp, isSim);
                   this.onChange(false);
                 }
               );
@@ -8821,6 +8891,7 @@
             invBox.appendChild(invLabel);
 
             const checkRow = document.createElement('div');
+            checkRow.id = 'prop-row-inv-inputs';
             checkRow.style.display = 'flex';
             checkRow.style.flexWrap = 'wrap';
             checkRow.style.gap = '8px';
@@ -9129,6 +9200,38 @@
         this.container.appendChild(group);
       }
 
+      updateGateInversionCheckboxes(comp, isSim) {
+        const checkRow = document.getElementById('prop-row-inv-inputs');
+        if (!checkRow) return;
+        checkRow.innerHTML = '';
+        for (let i = 0; i < comp.inputs.length; i++) {
+          const pinName = comp.inputs[i].name || `X${i+1}`;
+          const lbl = document.createElement('label');
+          lbl.style.display = 'inline-flex';
+          lbl.style.alignItems = 'center';
+          lbl.style.gap = '4px';
+          lbl.style.fontSize = '11px';
+          lbl.style.cursor = isSim ? 'not-allowed' : 'pointer';
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+          cb.disabled = isSim;
+          cb.addEventListener('change', () => {
+            if (!Array.isArray(comp.params.invertedInputs)) {
+              comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+            }
+            comp.params.invertedInputs[i] = cb.checked;
+            this.circuit.syncImmediateWireLevels();
+            this.onChange(false);
+          });
+
+          lbl.appendChild(cb);
+          lbl.appendChild(document.createTextNode(pinName));
+          checkRow.appendChild(lbl);
+        }
+      }
+
       addRangeControl(label, currentVal, min, max, unit, disabled, onChange) {
         const group = document.createElement('div');
         group.className = 'prop-group';
@@ -9139,6 +9242,8 @@
         const valSpan = document.createElement('span');
         valSpan.style.fontFamily = 'var(--font-mono)';
         valSpan.style.color = 'var(--accent-green)';
+        valSpan.style.cursor = disabled ? 'default' : 'pointer';
+        valSpan.title = disabled ? '' : 'Klicken für direkte Zahleneingabe';
         valSpan.textContent = `${currentVal} ${unit}`;
         lbl.appendChild(nameSpan);
         lbl.appendChild(valSpan);
@@ -9150,14 +9255,52 @@
         slider.value = currentVal;
         slider.disabled = disabled;
         slider.style.marginTop = '4px';
+
         slider.addEventListener('input', (e) => {
           valSpan.textContent = `${e.target.value} ${unit}`;
           onChange(e.target.value);
         });
-        attachSliderHoldRepeat(slider, (val) => {
-          valSpan.textContent = `${val} ${unit}`;
-          onChange(val);
-        });
+        attachSliderHoldRepeat(slider);
+
+        if (!disabled) {
+          valSpan.addEventListener('click', () => {
+            if (valSpan.querySelector('input')) return;
+            const current = parseFloat(slider.value);
+            const numInput = document.createElement('input');
+            numInput.type = 'number';
+            numInput.min = min;
+            numInput.max = max;
+            numInput.value = current;
+            numInput.style.width = '48px';
+            numInput.style.fontSize = '11px';
+            numInput.style.fontFamily = 'var(--font-mono)';
+            numInput.style.padding = '1px 3px';
+            numInput.style.background = 'var(--bg-deep)';
+            numInput.style.color = 'var(--accent-green)';
+            numInput.style.border = '1px solid var(--border-bright)';
+            numInput.style.borderRadius = '3px';
+
+            valSpan.innerHTML = '';
+            valSpan.appendChild(numInput);
+            numInput.focus();
+            numInput.select();
+
+            const applyNum = () => {
+              const parsed = parseInt(numInput.value, 10);
+              const val = Math.max(min, Math.min(max, isNaN(parsed) ? current : parsed));
+              slider.value = val;
+              valSpan.textContent = `${val} ${unit}`;
+              slider.dispatchEvent(new Event('input', { bubbles: true }));
+              slider.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            numInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') applyNum();
+              else if (e.key === 'Escape') valSpan.textContent = `${slider.value} ${unit}`;
+            });
+            numInput.addEventListener('blur', applyNum);
+          });
+        }
 
         group.appendChild(lbl);
         group.appendChild(slider);
@@ -11417,27 +11560,7 @@
               }
               return;
             }
-            if (type === 'NEGATOR') {
-              if (this.renderer.selectedCompId) {
-                const comp = this.circuit.getComponent(this.renderer.selectedCompId);
-                if (comp) {
-                  comp.params.invertedOutput = !comp.params.invertedOutput;
-                  this.circuit.syncImmediateWireLevels();
-                  this.inspector.render(comp.id, null);
-                  this.refreshAll();
-                  this.showToast(`○ Ausgang von ${comp.params.label || comp.type} ${comp.params.invertedOutput ? 'negiert (○)' : 'normal'}`);
-                  return;
-                }
-              }
-              const rect = this.gridCanvas.getBoundingClientRect();
-              const centerWorld = this.renderer.screenToWorld(rect.width / 2 - 40, rect.height / 2 - 20);
-              const comp = this.circuit.addComponent('NOT', centerWorld.x, centerWorld.y, this.getDefaultParamsForNewComponent('NOT'));
-              this.selectItem(comp.id, null);
-              this.highlightInspector();
-              this.refreshAll();
-              this.showToast('○ Invertierer platziert. Ziehe den Negator auf einen Pin zum Invertieren.');
-              return;
-            }
+
             const rect = this.gridCanvas.getBoundingClientRect();
             const centerWorld = this.renderer.screenToWorld(rect.width / 2 - 40, rect.height / 2 - 30);
             const customParams = this.getDefaultParamsForNewComponent(type);
@@ -11457,6 +11580,26 @@
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
+          const rect = canvas.getBoundingClientRect();
+          const screenX = e.clientX - rect.left;
+          const screenY = e.clientY - rect.top;
+          const renderer = getRenderer();
+          if (renderer) {
+            const worldPos = renderer.screenToWorld(screenX, screenY);
+            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 24);
+            if (pinHit !== renderer.hoveredPin) {
+              renderer.hoveredPin = pinHit;
+              renderer.render();
+            }
+          }
+        });
+
+        canvas.addEventListener('dragleave', () => {
+          const renderer = getRenderer();
+          if (renderer && renderer.hoveredPin) {
+            renderer.hoveredPin = null;
+            renderer.render();
+          }
         });
 
         canvas.addEventListener('drop', (e) => {
@@ -11512,8 +11655,8 @@
             return;
           }
 
-          if (type === 'NEGATOR') {
-            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 22);
+          if (type === 'NOT') {
+            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 24);
             if (pinHit) {
               const comp = tab.circuit.getComponent(pinHit.compId);
               if (comp) {
@@ -11528,7 +11671,9 @@
                   this.showToast(`○ Eingang ${pinHit.name || ('X' + (pinHit.pinIndex + 1))} von ${comp.params.label || comp.type} ${comp.params.invertedInputs[pinHit.pinIndex] ? 'negiert (○)' : 'normal'}`);
                 }
                 tab.circuit.syncImmediateWireLevels();
+                renderer.hoveredPin = null;
                 renderer.render();
+                if (this.inspector) this.inspector.render(comp.id, null);
                 return;
               }
             }
@@ -11539,7 +11684,13 @@
               this.getDefaultParamsForNewComponent('NOT')
             );
             this.showToast('○ Invertierer (NOT-Gatter) platziert.');
+            if (canvas === this.gridCanvas) {
+              this.selectItem(comp.id, null);
+              this.highlightInspector();
+            }
+            renderer.hoveredPin = null;
             renderer.render();
+            this.refreshAll();
             return;
           }
 
