@@ -63,6 +63,55 @@
       box-shadow: none !important;
       text-shadow: none !important;
     }
+    [data-theme="pitch_black"] .app-menubar {
+      background: #000000 !important;
+      border-bottom: 1px solid #27272a !important;
+    }
+    [data-theme="pitch_black"] .menubar-btn {
+      color: #ffffff !important;
+    }
+    [data-theme="pitch_black"] .menubar-btn:hover,
+    [data-theme="pitch_black"] .menubar-btn.active {
+      background: #18181b !important;
+      color: #ffffff !important;
+      border-color: #3f3f46 !important;
+    }
+    [data-theme="pitch_black"] .menubar-dropdown,
+    [data-theme="pitch_black"] .app-dropdown-menu,
+    [data-theme="pitch_black"] .context-menu {
+      background: #09090b !important;
+      border: 1px solid #3f3f46 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95) !important;
+      color: #ffffff !important;
+    }
+    [data-theme="pitch_black"] .app-menu-item,
+    [data-theme="pitch_black"] .ctx-item {
+      color: #ffffff !important;
+    }
+    [data-theme="pitch_black"] .app-menu-item:hover,
+    [data-theme="pitch_black"] .ctx-item:hover {
+      background: #27272a !important;
+      color: #00e676 !important;
+    }
+    [data-theme="pitch_black"] .app-menu-header,
+    [data-theme="pitch_black"] .ctx-header,
+    [data-theme="pitch_black"] .ctx-sub-label {
+      color: #d4d4d8 !important;
+    }
+    [data-theme="pitch_black"] .tabs-bar {
+      background: #000000 !important;
+      border-bottom: 1px solid #27272a !important;
+    }
+    [data-theme="pitch_black"] .tab-item {
+      background: #09090b !important;
+      border-color: #27272a !important;
+      color: #a1a1aa !important;
+    }
+    [data-theme="pitch_black"] .tab-item.active {
+      background: #000000 !important;
+      border-color: #3f3f46 !important;
+      color: #ffffff !important;
+    }
 
     [data-theme="java_swing"] {
       --bg-deep: #d4d0c8;
@@ -117,8 +166,6 @@
     [data-theme="java_swing"] .sim-deck,
     [data-theme="java_swing"] .mode-switch,
     [data-theme="java_swing"] .freq-control,
-    [data-theme="java_swing"] .menubar-dropdown,
-    [data-theme="java_swing"] .logic-modal,
     [data-theme="java_swing"] .brand-icon,
     [data-theme="java_swing"] .panel-header {
       border-radius: 0px !important;
@@ -128,6 +175,132 @@
     [data-theme="java_swing"] .brand-icon {
       background: #000080 !important;
       color: #ffffff !important;
+    }
+
+    [data-theme="java_swing"] .app-menubar {
+      background: #ece9d8 !important;
+      border-bottom: 1px solid #808080 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .menubar-brand {
+      color: #000000 !important;
+      border-right-color: #808080 !important;
+    }
+    [data-theme="java_swing"] .menubar-btn {
+      background: #ece9d8 !important;
+      color: #000000 !important;
+      border: 1px solid #808080 !important;
+      border-radius: 0px !important;
+      box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
+    }
+    [data-theme="java_swing"] .menubar-btn:hover {
+      background: #dfdacb !important;
+      border-color: #555555 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .menubar-btn.active {
+      background: #dfdacb !important;
+      border-color: #555555 !important;
+      box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .menubar-dropdown,
+    [data-theme="java_swing"] .app-dropdown-menu,
+    [data-theme="java_swing"] .context-menu {
+      background: #ece9d8 !important;
+      border: 2px outset #ffffff !important;
+      box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4) !important;
+      border-radius: 0px !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .app-menu-item,
+    [data-theme="java_swing"] .ctx-item {
+      color: #000000 !important;
+      border-radius: 0px !important;
+      background: transparent !important;
+      font-size: 11.5px !important;
+    }
+    [data-theme="java_swing"] .app-menu-item:hover,
+    [data-theme="java_swing"] .ctx-item:hover {
+      background: #000080 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .app-menu-item:hover .menu-shortcut,
+    [data-theme="java_swing"] .app-menu-item:hover .norm-check {
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .app-menu-header,
+    [data-theme="java_swing"] .ctx-header,
+    [data-theme="java_swing"] .ctx-sub-label {
+      color: #000000 !important;
+      font-weight: 700 !important;
+      border-bottom-color: #808080 !important;
+    }
+    [data-theme="java_swing"] .app-menu-divider,
+    [data-theme="java_swing"] .ctx-divider {
+      background: #808080 !important;
+    }
+    [data-theme="java_swing"] .menu-shortcut {
+      color: #555555 !important;
+    }
+    [data-theme="java_swing"] .tabs-bar {
+      background: #d4d0c8 !important;
+      border-bottom: 1px solid #808080 !important;
+    }
+    [data-theme="java_swing"] .tab-item {
+      background: #ece9d8 !important;
+      border: 1px solid #808080 !important;
+      border-bottom: none !important;
+      color: #000000 !important;
+      border-radius: 0px !important;
+      box-shadow: inset 1px 1px #ffffff, inset -1px 0 #808080 !important;
+    }
+    [data-theme="java_swing"] .tab-item.active {
+      background: #ffffff !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+      box-shadow: inset 1px 1px #ffffff, inset -1px 0 #808080 !important;
+    }
+    [data-theme="java_swing"] .pane-header {
+      background: #ece9d8 !important;
+      border-bottom: 1px solid #808080 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .pane-header span {
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] #analyzer-header {
+      background: #ece9d8 !important;
+      border-bottom: 1px solid #808080 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .collapse-btn {
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .palette-icon {
+      background: #ffffff !important;
+      border: 1px solid #808080 !important;
+      color: #000080 !important;
+      border-radius: 0px !important;
+      box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
+    }
+    [data-theme="java_swing"] .zoom-btn {
+      background: #ece9d8 !important;
+      border: 1px solid #808080 !important;
+      color: #000000 !important;
+      border-radius: 0px !important;
+      box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
+    }
+    [data-theme="java_swing"] #zoom-controls {
+      background: #ece9d8 !important;
+      border: 1px solid #808080 !important;
+      border-radius: 0px !important;
+    }
+    [data-theme="java_swing"] .logic-modal {
+      border-radius: 0px !important;
+      border: 2px outset #ffffff !important;
+      background: #ece9d8 !important;
+      box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.45) !important;
     }
 
     [data-theme="blueprint"] {
@@ -149,13 +322,62 @@
       --card-radius: 4px;
       --control-radius: 3px;
     }
+    [data-theme="blueprint"] .app-menubar {
+      background: #071527 !important;
+      border-bottom: 1px solid #1e497d !important;
+    }
+    [data-theme="blueprint"] .menubar-btn {
+      color: #ffffff !important;
+    }
+    [data-theme="blueprint"] .menubar-btn:hover,
+    [data-theme="blueprint"] .menubar-btn.active {
+      background: #132e59 !important;
+      color: #38bdf8 !important;
+      border-color: #2f6bb5 !important;
+    }
+    [data-theme="blueprint"] .menubar-dropdown,
+    [data-theme="blueprint"] .app-dropdown-menu,
+    [data-theme="blueprint"] .context-menu {
+      background: #0b1d3a !important;
+      border: 1px solid #2f6bb5 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+      color: #ffffff !important;
+    }
+    [data-theme="blueprint"] .app-menu-item,
+    [data-theme="blueprint"] .ctx-item {
+      color: #ffffff !important;
+    }
+    [data-theme="blueprint"] .app-menu-item:hover,
+    [data-theme="blueprint"] .ctx-item:hover {
+      background: #143261 !important;
+      color: #38bdf8 !important;
+    }
+    [data-theme="blueprint"] .app-menu-header,
+    [data-theme="blueprint"] .ctx-header,
+    [data-theme="blueprint"] .ctx-sub-label {
+      color: #93c5fd !important;
+    }
+    [data-theme="blueprint"] .tabs-bar {
+      background: #071527 !important;
+      border-bottom: 1px solid #1e497d !important;
+    }
+    [data-theme="blueprint"] .tab-item {
+      background: #0b1d3a !important;
+      border-color: #1e497d !important;
+      color: #93c5fd !important;
+    }
+    [data-theme="blueprint"] .tab-item.active {
+      background: #071527 !important;
+      border-color: #2f6bb5 !important;
+      color: #ffffff !important;
+    }
 
     [data-theme="light_cad"] {
       --bg-deep: #f1f5f9;
       --bg-panel: #ffffff;
       --bg-panel-alt: #f8fafc;
-      --bg-elevated: #e2e8f0;
-      --bg-hover: #cbd5e1;
+      --bg-elevated: #ffffff;
+      --bg-hover: #e2e8f0;
       --border-dim: #cbd5e1;
       --border-bright: #94a3b8;
       --text-main: #0f172a;
@@ -172,10 +394,84 @@
       --control-radius: 4px;
     }
 
+    [data-theme="light_cad"] .app-menubar {
+      background: #ffffff !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+    [data-theme="light_cad"] .menubar-btn {
+      color: #0f172a !important;
+    }
     [data-theme="light_cad"] .menubar-btn:hover,
-    [data-theme="light_cad"] .app-menu-item:hover {
+    [data-theme="light_cad"] .menubar-btn.active {
       background: #e2e8f0 !important;
       color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    [data-theme="light_cad"] .menubar-dropdown,
+    [data-theme="light_cad"] .app-dropdown-menu,
+    [data-theme="light_cad"] .context-menu {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .app-menu-item,
+    [data-theme="light_cad"] .ctx-item {
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .app-menu-item:hover,
+    [data-theme="light_cad"] .ctx-item:hover {
+      background: #e2e8f0 !important;
+      color: #0284c7 !important;
+    }
+    [data-theme="light_cad"] .app-menu-header,
+    [data-theme="light_cad"] .ctx-header,
+    [data-theme="light_cad"] .ctx-sub-label {
+      color: #475569 !important;
+    }
+    [data-theme="light_cad"] .app-menu-divider,
+    [data-theme="light_cad"] .ctx-divider {
+      background: #e2e8f0 !important;
+    }
+    [data-theme="light_cad"] .tabs-bar {
+      background: #e2e8f0 !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+    [data-theme="light_cad"] .tab-item {
+      background: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #475569 !important;
+    }
+    [data-theme="light_cad"] .tab-item:hover {
+      background: #ffffff !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .tab-item.active {
+      background: #ffffff !important;
+      border-color: #94a3b8 !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .pane-header {
+      background: #ffffff !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] #analyzer-header {
+      background: #f8fafc !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .collapse-btn {
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .palette-icon {
+      background: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0284c7 !important;
+    }
+    [data-theme="light_cad"] #zoom-controls {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
     }
 
     * {
@@ -480,6 +776,11 @@
       border-color: #475569;
     }
 
+    select.select-input option {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+    }
+
     /* Responsive scaling for top toolbar */
     @media (max-width: 1440px) {
       #toolbar {
@@ -636,7 +937,7 @@
       width: 32px;
       height: 26px;
       border-radius: var(--control-radius);
-      background: linear-gradient(145deg, #161c24, #0d1117);
+      background: var(--bg-deep);
       border: 1px solid var(--border-bright);
       display: flex;
       align-items: center;
@@ -925,7 +1226,7 @@
       flex-direction: column;
       min-height: 0;
       position: relative;
-      background: #080a0d;
+      background: var(--bg-deep);
     }
 
     #analyzer-panel.collapsed #analyzer-body {
@@ -948,10 +1249,10 @@
     .context-menu {
       position: fixed;
       z-index: 1000;
-      background: #141820;
+      background: var(--bg-elevated);
       border: 1px solid var(--border-bright);
-      border-radius: 8px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: var(--card-radius);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.12);
       min-width: 200px;
       max-width: 280px;
       padding: 5px 0;
@@ -960,6 +1261,7 @@
       backdrop-filter: blur(12px);
       user-select: none;
       animation: ctxFadeIn 0.1s ease-out;
+      color: var(--text-main);
     }
 
     @keyframes ctxFadeIn {
@@ -997,7 +1299,7 @@
 
     .ctx-item:hover {
       background: var(--bg-hover);
-      color: #ffffff;
+      color: var(--text-main);
     }
 
     .ctx-item.danger {
@@ -1031,10 +1333,10 @@
     }
 
     .ctx-chip {
-      background: var(--bg-deep);
+      background: var(--bg-panel);
       border: 1px solid var(--border-bright);
-      color: var(--text-muted);
-      border-radius: 4px;
+      color: var(--text-main);
+      border-radius: var(--control-radius);
       padding: 2px 8px;
       font-size: 11px;
       cursor: pointer;
@@ -1415,10 +1717,10 @@
       left: 0;
       margin-top: 6px;
       z-index: 1000;
-      background: #141820;
+      background: var(--bg-elevated);
       border: 1px solid var(--border-bright);
-      border-radius: 8px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: var(--card-radius);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.12);
       min-width: 250px;
       padding: 6px;
       display: flex;
@@ -1426,6 +1728,7 @@
       gap: 2px;
       backdrop-filter: blur(12px);
       animation: ctxFadeIn 0.12s ease-out;
+      color: var(--text-main);
     }
     .app-menu-header {
       padding: 6px 10px;
@@ -1440,7 +1743,7 @@
       align-items: center;
       gap: 10px;
       padding: 7px 10px;
-      border-radius: 5px;
+      border-radius: var(--control-radius);
       border: none;
       background: transparent;
       color: var(--text-main);
@@ -1452,8 +1755,8 @@
       width: 100%;
     }
     .app-menu-item:hover {
-      background: var(--accent-blue-dim);
-      color: var(--accent-blue);
+      background: var(--bg-hover);
+      color: var(--text-main);
     }
     .app-menu-divider {
       height: 1px;
@@ -1805,7 +2108,7 @@
     .app-menubar {
       height: 32px;
       min-height: 32px;
-      background: #0d1117;
+      background: var(--bg-panel);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
@@ -1829,7 +2132,7 @@
       width: 20px;
       height: 20px;
       font-size: 11px;
-      border-radius: 4px;
+      border-radius: var(--control-radius);
     }
     .menubar-menus {
       display: flex;
@@ -1841,13 +2144,13 @@
     }
     .menubar-btn {
       background: transparent;
-      border: none;
-      color: var(--text-muted);
+      border: 1px solid transparent;
+      color: var(--text-main);
       font-size: 12px;
       font-family: var(--font-sans);
       font-weight: 500;
       padding: 4px 9px;
-      border-radius: 4px;
+      border-radius: var(--btn-radius);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -1856,7 +2159,8 @@
     }
     .menubar-btn:hover, .menubar-btn.active {
       background: var(--bg-hover);
-      color: #fff;
+      color: var(--text-main);
+      border-color: var(--border-bright);
     }
     .menubar-dropdown {
       position: absolute;
@@ -1864,10 +2168,10 @@
       left: 0;
       margin-top: 4px;
       z-index: 1000;
-      background: #141820;
+      background: var(--bg-elevated);
       border: 1px solid var(--border-bright);
-      border-radius: 7px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: var(--card-radius);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.12);
       min-width: 220px;
       padding: 5px;
       display: flex;
@@ -1875,6 +2179,7 @@
       gap: 2px;
       backdrop-filter: blur(14px);
       animation: ctxFadeIn 0.12s ease-out;
+      color: var(--text-main);
     }
     .menu-shortcut {
       margin-left: auto;
@@ -1894,7 +2199,7 @@
     .tabs-bar {
       height: 34px;
       min-height: 34px;
-      background: #0f131a;
+      background: var(--bg-panel-alt);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
@@ -1934,9 +2239,9 @@
       color: var(--text-main);
     }
     .tab-item.active {
-      background: #19202a;
+      background: var(--bg-deep);
       border-color: var(--border-bright);
-      color: #fff;
+      color: var(--text-main);
       font-weight: 600;
       box-shadow: 0 -2px 0 var(--accent-blue) inset;
     }
@@ -2038,14 +2343,14 @@
     .pane-header {
       height: 28px;
       min-height: 28px;
-      background: #11151c;
+      background: var(--bg-panel-alt);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 10px;
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--text-main);
       z-index: 5;
       box-sizing: border-box;
     }
