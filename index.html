@@ -112,6 +112,12 @@
       border-color: #3f3f46 !important;
       color: #ffffff !important;
     }
+    [data-theme="pitch_black"] #sim-toast,
+    [data-theme="pitch_black"] .app-toast {
+      background: #09090b !important;
+      border: 1px solid #3f3f46 !important;
+      color: #f4f4f5 !important;
+    }
 
     [data-theme="java_swing"] {
       --bg-deep: #d4d0c8;
@@ -302,6 +308,28 @@
       background: #ece9d8 !important;
       box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.45) !important;
     }
+    [data-theme="java_swing"] .theme-card-title,
+    [data-theme="java_swing"] .theme-card-desc,
+    [data-theme="java_swing"] .norm-card-title,
+    [data-theme="java_swing"] .norm-card-desc,
+    [data-theme="java_swing"] .settings-label,
+    [data-theme="java_swing"] .settings-desc,
+    [data-theme="java_swing"] .settings-checkbox-label,
+    [data-theme="java_swing"] .modal-header h3,
+    [data-theme="java_swing"] .modal-close-btn,
+    [data-theme="java_swing"] .menu-section-header,
+    [data-theme="java_swing"] .modal-body,
+    [data-theme="java_swing"] .modal-footer {
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] #sim-toast,
+    [data-theme="java_swing"] .app-toast {
+      background: #ece9d8 !important;
+      border: 2px outset #ffffff !important;
+      color: #000000 !important;
+      border-radius: 0px !important;
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.45) !important;
+    }
 
     [data-theme="blueprint"] {
       --bg-deep: #071527;
@@ -370,6 +398,12 @@
       background: #071527 !important;
       border-color: #2f6bb5 !important;
       color: #ffffff !important;
+    }
+    [data-theme="blueprint"] #sim-toast,
+    [data-theme="blueprint"] .app-toast {
+      background: #0b1d3a !important;
+      border: 1px solid #2f6bb5 !important;
+      color: #e0f2fe !important;
     }
 
     [data-theme="light_cad"] {
@@ -472,6 +506,23 @@
     [data-theme="light_cad"] #zoom-controls {
       background: #ffffff !important;
       border: 1px solid #cbd5e1 !important;
+    }
+    [data-theme="light_cad"] #sim-toast,
+    [data-theme="light_cad"] .app-toast {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    }
+    [data-theme="light_cad"] .theme-card-title,
+    [data-theme="light_cad"] .norm-card-title,
+    [data-theme="light_cad"] .settings-label {
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .theme-card-desc,
+    [data-theme="light_cad"] .norm-card-desc,
+    [data-theme="light_cad"] .settings-desc {
+      color: #475569 !important;
     }
     [data-theme="light_cad"] .modal-backdrop {
       background: rgba(15, 23, 42, 0.4) !important;
@@ -2299,6 +2350,27 @@
       font-weight: bold;
     }
 
+    /* Toast Notification (Themed, Floating HUD) */
+    .app-toast,
+    #sim-toast {
+      position: fixed;
+      bottom: 160px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: var(--card-radius);
+      border: 1px solid var(--border-bright);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 999999;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      font-family: var(--font-sans);
+    }
+
     /* Tab Bar */
     .tabs-bar {
       height: 34px;
@@ -2688,6 +2760,16 @@
 
         <div class="divider"></div>
 
+        <!-- History: Undo / Redo -->
+        <button id="btn-quick-undo" class="btn" title="Rückgängig (Strg+Z)">
+          <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></span>
+          <span>Undo</span>
+        </button>
+        <button id="btn-quick-redo" class="btn" title="Wiederholen (Strg+Y)">
+          <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg></span>
+          <span>Redo</span>
+        </button>
+
         <!-- Anordnen Button: Logische Gatterplatzierung & saubere Leitungsverlegung -->
         <button id="btn-auto-route" class="btn" title="Schaltung und alle Gatter logisch von links nach rechts anordnen und Leitungen sauber verlegen">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/><line x1="12" y1="12" x2="12" y2="15"/></svg></span>
@@ -2718,24 +2800,13 @@
           <div class="freq-control" id="freq-control-box">
             <span class="freq-label">Takt:</span>
             <input type="range" id="slider-freq" min="1" max="60" value="10" title="Taktfrequenz (1–60 Hz): Ziehen oder gedrückt halten zum Einstellen" />
-            <span class="freq-val" id="label-freq">10 Hz</span>
+            <span class="freq-val" id="label-freq" title="Klicken für direkte Zahleneingabe (1–60 Hz)" style="cursor:pointer;">10 Hz</span>
           </div>
         </div>
       </div>
 
-      <!-- Right Action Tools (Entfernung aller gedoppelten Buttons!) -->
+      <!-- Right Action Tools -->
       <div class="toolbar-group">
-        <button id="btn-quick-undo" class="btn" title="Rückgängig (Strg+Z)">
-          <span class="btn-icon" style="font-size:13px;">↶</span>
-          <span>Undo</span>
-        </button>
-        <button id="btn-quick-redo" class="btn" title="Wiederholen (Strg+Y)">
-          <span class="btn-icon" style="font-size:13px;">↷</span>
-          <span>Redo</span>
-        </button>
-
-        <div class="divider"></div>
-
         <button id="btn-toggle-split" class="btn" title="Split-Screen Ansicht umschalten (Zwei Schaltungen nebeneinander)">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
           <span id="split-btn-text">Split-Screen</span>
@@ -3014,12 +3085,18 @@
             </button>
           </div>
 
-          <span id="analyzer-playhead-info" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-green); min-width: 60px;">t = 0</span>
+          <div class="analyzer-range-box" id="analyzer-range-box" style="display:inline-flex; align-items:center; gap:4px; margin: 0 4px; font-family: var(--font-mono); font-size: 11px;">
+            <span style="color:var(--text-dim); font-size:10.5px;">Bereich:</span>
+            <input type="number" id="input-range-in" placeholder="In" min="0" title="Start-Tick der Klammer direkt eingeben (Taste I)" style="width:42px; height:20px; font-size:10.5px; font-family:var(--font-mono); text-align:center; padding:1px 2px; background:var(--bg-deep); color:var(--text-main); border:1px solid var(--border-dim); border-radius:3px;" />
+            <span style="color:var(--text-dim); font-size:10px;">..</span>
+            <input type="number" id="input-range-out" placeholder="Out" min="0" title="End-Tick der Klammer direkt eingeben (Taste O)" style="width:42px; height:20px; font-size:10.5px; font-family:var(--font-mono); text-align:center; padding:1px 2px; background:var(--bg-deep); color:var(--text-main); border:1px solid var(--border-dim); border-radius:3px;" />
+          </div>
+          <span id="analyzer-playhead-info" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-green); min-width: 50px;">t = 0</span>
 
           <div class="freq-control" style="padding: 2px 8px;">
             <span class="freq-label">Zeit-Zoom:</span>
             <input type="range" id="slider-time-zoom" min="4" max="32" value="12" />
-            <span class="freq-val" id="label-time-zoom" style="min-width: 48px;">12 px/T</span>
+            <span class="freq-val" id="label-time-zoom" title="Klicken für direkte Zahleneingabe (4–32 px/T)" style="min-width: 48px; cursor: pointer;">12 px/T</span>
           </div>
 
           <div class="freq-control" style="padding: 2px 8px;">
@@ -3273,6 +3350,52 @@
                 <div class="norm-card-desc">Amerikanische Kurven-Symbole (D-Shape für AND, Curved Shield für OR/XOR).</div>
               </div>
             </div>
+
+          <!-- 3. Auto-Layout Dichte (Schaltungs-Anordnung) -->
+          <div class="settings-section">
+            <div class="settings-section-title">Auto-Layout Dichte (Schaltungs-Anordnung):</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Spaltenabstand und vertikaler Korridor-Abstand bei automatischer Anordnung:</div>
+            <div class="norm-card-group" id="settings-density-cards">
+              <div class="norm-card" data-density="compact">
+                <div class="norm-card-badge">Kompakt</div>
+                <div class="norm-card-title">Kompakt</div>
+                <div class="norm-card-desc">120px Spalten, 40px Zeilen. Platzsparend für umfangreiche Schaltungen.</div>
+              </div>
+              <div class="norm-card active" data-density="standard">
+                <div class="norm-card-badge">Standard</div>
+                <div class="norm-card-title">Standard</div>
+                <div class="norm-card-desc">160px Spalten, 60px Zeilen. Perfekte Balance mit übersichtlichen Leitungen.</div>
+              </div>
+              <div class="norm-card" data-density="spacious">
+                <div class="norm-card-badge">Großzügig</div>
+                <div class="norm-card-title">Großzügig</div>
+                <div class="norm-card-desc">200px Spalten, 80px Zeilen. Weite Korridore für maximale Lesbarkeit.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Standard Gatter-Größe & Skalierung -->
+          <div class="settings-section">
+            <div class="settings-section-title">Gatter-Größe &amp; Skalierung:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Standard-Größe für Logikgatter (Pixel-Perfect am Grid ausgerichtet):</div>
+            <div class="norm-card-group" id="settings-gate-size-cards">
+              <div class="norm-card" data-gate-size="compact">
+                <div class="norm-card-badge">Schlank</div>
+                <div class="norm-card-title">Kompakt (Niedrig)</div>
+                <div class="norm-card-desc">60px Höhe, 60px Breite. Niedrigere Bauhöhe, spart vertikalen Raum.</div>
+              </div>
+              <div class="norm-card active" data-gate-size="standard">
+                <div class="norm-card-badge">Klassisch</div>
+                <div class="norm-card-title">Standard</div>
+                <div class="norm-card-desc">80px Höhe, 80px Breite. Standardmäßige CAD-Proportion.</div>
+              </div>
+              <div class="norm-card" data-gate-size="large">
+                <div class="norm-card-badge">Groß</div>
+                <div class="norm-card-title">Groß</div>
+                <div class="norm-card-desc">100px Höhe, 100px Breite. Größere Symbole für Präsentation und Lehre.</div>
+              </div>
+            </div>
+          </div>
           </div>
 
           <!-- 3. Interaktion im Edit-Modus -->
@@ -3576,6 +3699,19 @@
         return this.ticks[idx];
       }
 
+      getOffsetForTick(targetTick) {
+        if (this.count === 0) return 0;
+        let low = 0, high = this.count - 1;
+        while (low <= high) {
+          const mid = (low + high) >> 1;
+          const t = this.getTickAtOffset(mid);
+          if (t === targetTick) return mid;
+          if (t < targetTick) low = mid + 1;
+          else high = mid - 1;
+        }
+        return Math.max(0, Math.min(this.count - 1, low));
+      }
+
       getValueAtOffset(probeId, offset) {
         if (offset < 0 || offset >= this.count) return 0;
         const arr = this.channels.get(probeId);
@@ -3692,13 +3828,16 @@
               halfPeriod: Math.max(1, Math.min(50, parseInt(customParams.halfPeriod ?? 5, 10)))
             };
             break;
-          case 'NOT':
+          case 'NOT': {
+            const defGateScale = customParams.gateScale || (typeof window !== 'undefined' && window.logicSimApp?.defaultGateSize) || 'standard';
             this.params = {
+              gateScale: defGateScale,
               label: customParams.label ?? 'NOT',
               invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : true,
               invertedInputs: Array.isArray(customParams.invertedInputs) ? [...customParams.invertedInputs] : [false]
             };
             break;
+          }
           case 'BUFFER':
             this.params = {
               label: customParams.label ?? 'BUF',
@@ -3729,7 +3868,9 @@
           case 'XNOR': {
             const n = Math.max(2, Math.min(8, parseInt(customParams.numInputs ?? 2, 10)));
             const isDefaultInvertedOut = this.type === 'NAND' || this.type === 'NOR' || this.type === 'XNOR';
+            const defGateScale = customParams.gateScale || (typeof window !== 'undefined' && window.logicSimApp?.defaultGateSize) || 'standard';
             this.params = {
+              gateScale: defGateScale,
               label: customParams.label ?? this.type,
               numInputs: n,
               invertedOutput: customParams.invertedOutput !== undefined ? Boolean(customParams.invertedOutput) : isDefaultInvertedOut,
@@ -3835,14 +3976,16 @@
             outNames = [];
             break;
 
-          case 'NOT':
-            this.width = 80;
+          case 'NOT': {
+            const scale = this.params.gateScale || 'standard';
+            this.width = (scale === 'compact') ? 60 : ((scale === 'large') ? 100 : 80);
             this.height = 40;
             inNames = ['X1'];
             inOffsets = [20];
             outNames = ['Y'];
             outOffsets = [20];
             break;
+          }
 
           case 'BUFFER':
             this.width = 80;
@@ -3878,40 +4021,64 @@
           case 'XOR':
           case 'XNOR': {
             const n = Math.max(2, Math.min(8, parseInt(this.params.numInputs ?? 2, 10)));
-            this.width = 80;
+            const scale = this.params.gateScale || 'standard';
+            const isCompact = scale === 'compact';
+            const isLarge = scale === 'large';
+
+            this.width = isCompact ? 60 : (isLarge ? 100 : 80);
             for (let i = 1; i <= n; i++) {
               inNames.push(`X${i}`);
             }
             outNames = ['Y'];
 
             if (n === 2) {
-              this.height = 80;
-              inOffsets = [20, 60];
-              outOffsets = [40];
+              if (isCompact) {
+                this.height = 60;
+                inOffsets = [20, 40];
+                outOffsets = [30];
+              } else if (isLarge) {
+                this.height = 100;
+                inOffsets = [20, 80];
+                outOffsets = [50];
+              } else {
+                this.height = 80;
+                inOffsets = [20, 60];
+                outOffsets = [40];
+              }
             } else if (n === 3) {
-              this.height = 80;
-              inOffsets = [20, 40, 60];
-              outOffsets = [40];
+              if (isCompact) {
+                this.height = 60;
+                inOffsets = [15, 30, 45];
+                outOffsets = [30];
+              } else if (isLarge) {
+                this.height = 100;
+                inOffsets = [20, 50, 80];
+                outOffsets = [50];
+              } else {
+                this.height = 80;
+                inOffsets = [20, 40, 60];
+                outOffsets = [40];
+              }
             } else if (n === 4) {
-              this.height = 120;
-              inOffsets = [20, 40, 80, 100];
-              outOffsets = [60];
+              this.height = isCompact ? 100 : (isLarge ? 140 : 120);
+              inOffsets = isCompact ? [20, 40, 60, 80] : (isLarge ? [20, 50, 90, 120] : [20, 40, 80, 100]);
+              outOffsets = [Math.round(this.height / 2)];
             } else if (n === 5) {
-              this.height = 120;
-              inOffsets = [20, 40, 60, 80, 100];
-              outOffsets = [60];
+              this.height = isCompact ? 100 : (isLarge ? 140 : 120);
+              inOffsets = isCompact ? [20, 35, 50, 65, 80] : (isLarge ? [20, 45, 70, 95, 120] : [20, 40, 60, 80, 100]);
+              outOffsets = [Math.round(this.height / 2)];
             } else if (n === 6) {
-              this.height = 160;
-              inOffsets = [20, 40, 60, 100, 120, 140];
-              outOffsets = [80];
+              this.height = isCompact ? 120 : (isLarge ? 180 : 160);
+              inOffsets = isCompact ? [20, 36, 52, 68, 84, 100] : (isLarge ? [20, 48, 76, 104, 132, 160] : [20, 40, 60, 100, 120, 140]);
+              outOffsets = [Math.round(this.height / 2)];
             } else if (n === 7) {
-              this.height = 160;
-              inOffsets = [20, 40, 60, 80, 100, 120, 140];
-              outOffsets = [80];
+              this.height = isCompact ? 140 : (isLarge ? 180 : 160);
+              inOffsets = isCompact ? [20, 36, 52, 70, 88, 104, 120] : (isLarge ? [20, 44, 68, 90, 112, 136, 160] : [20, 40, 60, 80, 100, 120, 140]);
+              outOffsets = [Math.round(this.height / 2)];
             } else { // 8
-              this.height = 200;
-              inOffsets = [20, 40, 60, 80, 120, 140, 160, 180];
-              outOffsets = [100];
+              this.height = isCompact ? 160 : (isLarge ? 220 : 200);
+              inOffsets = isCompact ? [20, 37, 54, 71, 89, 106, 123, 140] : (isLarge ? [20, 44, 68, 92, 128, 152, 176, 200] : [20, 40, 60, 80, 120, 140, 160, 180]);
+              outOffsets = [Math.round(this.height / 2)];
             }
             break;
           }
@@ -5818,6 +5985,10 @@
         const probes = this.circuit.getProbes();
         if (!probes || probes.length === 0) return;
 
+        const renderedBadges = [];
+        const pal = this.getThemePalette();
+        const isLight = (this.appTheme === 'java_swing' || this.appTheme === 'light_cad');
+
         for (const probe of probes) {
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
           if (!wire) continue;
@@ -5838,14 +6009,33 @@
           const nameStr = (probe.name || 'PRB').slice(0, 5);
           const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
           const badgeH = 14;
-          const bx = Math.round(pos.x - badgeW / 2);
-          const by = Math.round(pos.y - 17);
+          let bx = Math.round(pos.x - badgeW / 2);
+          let by = Math.round(pos.y - 17); // Above wire by default
+
+          // Anti-Clutter: Avoid overlapping badges on parallel wires
+          const hasCollision = (tx, ty) => renderedBadges.some(rb => 
+            Math.abs(rb.bx - tx) < (badgeW + 2) && Math.abs(rb.by - ty) < (badgeH + 2)
+          );
+
+          if (hasCollision(bx, by)) {
+            // Flip below wire
+            by = Math.round(pos.y + 6);
+            if (hasCollision(bx, by)) {
+              // Stagger horizontally along wire
+              bx += Math.round(badgeW * 0.7);
+            }
+          }
+          renderedBadges.push({ bx, by, badgeW, badgeH });
 
           // 1. Leader line from clip to badge
           ctx.beginPath();
           ctx.moveTo(pos.x, pos.y);
-          ctx.lineTo(pos.x, by + badgeH);
-          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? probeColor : '#475569');
+          if (by < pos.y) {
+            ctx.lineTo(pos.x, by + badgeH);
+          } else {
+            ctx.lineTo(pos.x, by);
+          }
+          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? probeColor : (isLight ? '#808080' : '#475569'));
           ctx.lineWidth = isSelected ? 1.5 : 1.0;
           ctx.stroke();
 
@@ -5856,7 +6046,7 @@
           if (isSelected) {
             ctx.shadowColor = '#00b0ff';
             ctx.shadowBlur = 8;
-          } else if (isHigh) {
+          } else if (isHigh && this.appTheme !== 'java_swing') {
             ctx.shadowColor = probeColor;
             ctx.shadowBlur = 5;
           }
@@ -5868,9 +6058,9 @@
           ctx.fillStyle = '#ffffff';
           ctx.fill();
 
-          // 3. Compact Low-Profile Probe Badge
-          ctx.fillStyle = '#0f172a';
-          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : '#2d3748');
+          // 3. Compact Low-Profile Probe Badge (Theme-adapted)
+          ctx.fillStyle = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#ffffff') : '#0f172a';
+          ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : (isLight ? '#808080' : '#2d3748'));
           ctx.lineWidth = isSelected ? 1.6 : 1.0;
           if (isSelected) {
             ctx.shadowColor = 'rgba(0, 176, 255, 0.4)';
@@ -5878,8 +6068,8 @@
           }
           this.roundRect(ctx, bx, by, badgeW, badgeH, 3);
           ctx.fill();
-          ctx.stroke();
           ctx.shadowBlur = 0;
+          ctx.stroke();
 
           // Left Color Accent Bar
           ctx.fillStyle = probeColor;
@@ -5887,13 +6077,13 @@
           ctx.fill();
 
           // Probe Name
-          ctx.fillStyle = '#f1f5f9';
+          ctx.fillStyle = isSelected ? '#00b0ff' : (isLight ? '#000000' : '#f1f5f9');
           ctx.font = '600 8.5px monospace';
           ctx.textAlign = 'left';
           ctx.fillText(nameStr, bx + 7.5, by + 10);
 
           // Digital Level (1 / 0)
-          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00e676') : '#64748b';
+          ctx.fillStyle = isHigh ? (isLight ? '#008000' : (this.highSignalColor || '#00e676')) : (isLight ? '#555555' : '#64748b');
           ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 4.5, by + 10.5);
@@ -6462,9 +6652,17 @@
           const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
           let leadTargetX = gx1;
-          if ((type === 'OR' || type === 'NOR' || isXorType) && style === 'ANSI') {
+          if (isXorType) {
+            const arcBackX = Math.round(gx1 - (style === 'ANSI' ? 5 : 4));
+            if (style === 'ANSI') {
+              const relNormY = Math.abs(py - cy) / Math.max(1, (gy2 - gy1) / 2);
+              leadTargetX = Math.round(arcBackX + 4 * (1 - relNormY * relNormY));
+            } else {
+              leadTargetX = arcBackX;
+            }
+          } else if ((type === 'OR' || type === 'NOR') && style === 'ANSI') {
             const relNormY = Math.abs(py - cy) / Math.max(1, (gy2 - gy1) / 2);
-            leadTargetX = Math.round(gx1 + 8 * (1 - relNormY * relNormY));
+            leadTargetX = Math.round(gx1 + 4 * (1 - relNormY * relNormY));
           }
 
           if (isInv) {
@@ -6890,22 +7088,28 @@
             };
             const ffName = names[type] || 'FF';
 
-            ctx.fillStyle = '#0c1015';
-            ctx.strokeStyle = '#263244';
+            const isLightTh = (this.appTheme === 'java_swing' || this.appTheme === 'light_cad');
+            const centerBg = (this.appTheme === 'java_swing') ? '#faf8f0' : (this.appTheme === 'light_cad' ? '#f1f5f9' : '#0c1015');
+            const centerBorder = (this.appTheme === 'java_swing') ? '#808080' : (this.appTheme === 'light_cad' ? '#cbd5e1' : '#263244');
+            const headerColor = isLightTh ? '#000000' : '#94a3b8';
+            const trigColor = isLightTh ? '#555555' : '#475569';
+
+            ctx.fillStyle = centerBg;
+            ctx.strokeStyle = centerBorder;
             this.roundRect(ctx, cx - 22, cy - 22, 44, 44, 4);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = headerColor;
             ctx.font = '700 9px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(ffName, cx, cy - 7);
 
-            ctx.fillStyle = q === 1 ? '#00e676' : '#64748b';
+            ctx.fillStyle = q === 1 ? '#00e676' : (isLightTh ? '#777777' : '#64748b');
             ctx.font = '700 13px monospace';
             ctx.fillText(`Q=${q}`, cx, cy + 8);
 
-            ctx.fillStyle = '#475569';
+            ctx.fillStyle = trigColor;
             ctx.font = '500 8px monospace';
             const trigLabel = comp.params.trigger === 'falling' ? 'CLK: ↓' : (comp.params.trigger === 'transparent' ? 'STATIC' : 'CLK: ↑');
             ctx.fillText(type === 'D_LATCH' ? 'LEVEL' : trigLabel, cx, cy + 18);
@@ -6938,6 +7142,8 @@
 
       drawComponentPins(ctx, comp) {
         const isGateComp = this.isGate(comp.type);
+        const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
+        const isIC = isFF || ['COUNTER', 'SHIFT_REG', 'BCD_DEC'].includes(comp.type);
         const pal = this.getThemePalette();
 
         for (let i = 0; i < comp.inputs.length; i++) {
@@ -6950,8 +7156,24 @@
             !this.hoveredPin.isOutput &&
             this.hoveredPin.pinIndex === i;
 
-          if (!isGateComp || isHovered) {
-            this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
+          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+
+          // Draw connection snap indicator ONLY on hover for gates and ICs; discrete I/O (SWITCH, LED) get subtle rest pin
+          if (isHovered) {
+            this.drawPinCircle(ctx, px, py, pin.value === 1, true);
+          } else if (!isGateComp && !isIC) {
+            this.drawPinCircle(ctx, px, py, pin.value === 1, false);
+          }
+
+          if (isInv && isIC) {
+            // Draw clean inversion bubble for inverted IC inputs (active-low)
+            ctx.beginPath();
+            ctx.arc(px - 3.5, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = pal.bg;
+            ctx.fill();
+            ctx.strokeStyle = pal.wireLow;
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
           }
 
           if (pin.name === 'CLK') {
@@ -6964,11 +7186,9 @@
             ctx.stroke();
           }
 
-          // Do NOT draw redundant pin labels like 'X1', 'X2' on logic gates (prevents clutter over negation bubbles)
-          // For ICs (Counter, SIPO, etc.): render pin name with offset if inverted
+          // Pin labels for ICs (Counter, SIPO, Flip-Flops)
           if (!isGateComp && pin.name) {
-            const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
-            const textOffsetX = isInv ? 15 : 7;
+            const textOffsetX = isInv ? 14 : 7;
             ctx.fillStyle = pal.textLabel;
             ctx.font = '500 9.5px monospace';
             ctx.textAlign = 'left';
@@ -6986,26 +7206,29 @@
             this.hoveredPin.isOutput &&
             this.hoveredPin.pinIndex === i;
 
-          if (!isGateComp || isHovered) {
-            this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
+          const isNegatedQ = isFF && pin.name === '!Q';
+          const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
+
+          // Draw snap indicator ONLY on hover for gates and ICs
+          if (isHovered) {
+            this.drawPinCircle(ctx, px, py, pin.value === 1, true);
+          } else if (!isGateComp && !isIC) {
+            this.drawPinCircle(ctx, px, py, pin.value === 1, false);
+          }
+
+          // Clean negation bubble outside chassis boundary for negated Q
+          if (isNegatedQ) {
+            ctx.beginPath();
+            ctx.arc(px + 3.5, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = pal.bg;
+            ctx.fill();
+            ctx.strokeStyle = pal.wireLow;
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
           }
 
           // Do NOT draw redundant output labels like 'Y' on gates
           if (!isGateComp && pin.name) {
-            const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
-            const isNegatedQ = isFF && pin.name === '!Q';
-            const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
-
-            if (isNegatedQ) {
-              ctx.beginPath();
-              ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
-              ctx.fillStyle = pal.bg;
-              ctx.fill();
-              ctx.strokeStyle = pal.wireLow;
-              ctx.lineWidth = 1.3;
-              ctx.stroke();
-            }
-
             const textOffsetX = isInv ? 15 : 7;
             ctx.fillStyle = pal.textLabel;
             ctx.font = '500 9.5px monospace';
@@ -7095,6 +7318,19 @@
         this.setupEvents();
       }
 
+      getStartOffset() {
+        const totalSamples = this.ringBuffer.count;
+        const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+        const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+        const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+        if (this.loopRange && totalSamples > 0) {
+          const bracketCenter = (this.loopRange.inOffset + this.loopRange.outOffset) / 2;
+          const targetStart = Math.round(bracketCenter - visibleTicks / 2);
+          return Math.max(0, Math.min(maxStartOffset, targetStart));
+        }
+        return Math.round(maxStartOffset * this.scrollRatio);
+      }
+
       setupEvents() {
         this.canvas.addEventListener('mousemove', (e) => {
           const rect = this.canvas.getBoundingClientRect();
@@ -7102,10 +7338,7 @@
           this.hoverY = e.clientY - rect.top;
 
           const totalSamples = this.ringBuffer.count;
-          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
-          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
-          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
-          const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+          const startOffset = this.getStartOffset();
 
           if (this.activeBracketDrag === 'in' && this.loopRange) {
             const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
@@ -7159,8 +7392,7 @@
             if (totalSamples === 0) return;
             const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
             const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
-            const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
-            const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+            const startOffset = this.getStartOffset();
 
             if (my <= 22 && this.loopRange) {
               const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
@@ -7190,8 +7422,7 @@
           if (totalSamples === 0) return;
           const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
           const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
-          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
-          const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+          const startOffset = this.getStartOffset();
 
           if (this.activeBracketDrag === 'in' && this.loopRange) {
             const relIdx = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
@@ -7441,7 +7672,8 @@
 
       updateLoopUi() {
         const badge = document.getElementById('analyzer-playhead-info');
-        if (!badge) return;
+        const inputIn = document.getElementById('input-range-in');
+        const inputOut = document.getElementById('input-range-out');
 
         let info = '';
         if (this.playheadOffset !== null) {
@@ -7453,8 +7685,13 @@
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
           const span = tOut - tIn;
           info += `  |  [ Loop: ${tIn}..${tOut} (${span} T) ]`;
+          if (inputIn && document.activeElement !== inputIn) inputIn.value = tIn;
+          if (inputOut && document.activeElement !== inputOut) inputOut.value = tOut;
+        } else {
+          if (inputIn && document.activeElement !== inputIn) inputIn.value = '';
+          if (inputOut && document.activeElement !== inputOut) inputOut.value = '';
         }
-        badge.textContent = info;
+        if (badge) badge.textContent = info;
       }
 
       getHoveredOffset() {
@@ -7565,16 +7802,7 @@
         const totalSamples = this.ringBuffer.count;
         const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
 
-        const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
-        let startOffset;
-        if (this.loopRange && totalSamples > 0) {
-          // Lock view centered on the bracketed range so timeline does not move or jump away
-          const bracketCenter = (this.loopRange.inOffset + this.loopRange.outOffset) / 2;
-          const targetStart = Math.round(bracketCenter - visibleTicks / 2);
-          startOffset = Math.max(0, Math.min(maxStartOffset, targetStart));
-        } else {
-          startOffset = Math.round(maxStartOffset * this.scrollRatio);
-        }
+        const startOffset = this.getStartOffset();
         const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
 
         ctx.fillStyle = headerBg;
@@ -8385,6 +8613,28 @@
                 (val) => {
                   comp.params.xorMode = val;
                   this.circuit.syncImmediateWireLevels();
+                  this.onChange(false);
+                }
+              );
+            }
+
+            // Gate Scaling Control
+            const isScalableGate = ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT'].includes(comp.type);
+            if (isScalableGate) {
+              this.addSelectControl(
+                'Gattergröße (Skalierung)',
+                comp.params.gateScale || 'standard',
+                [
+                  { value: 'compact',  label: 'Kompakt (0.8x / 60px)' },
+                  { value: 'standard', label: 'Standard (1.0x / 80px)' },
+                  { value: 'large',    label: 'Groß (1.2x / 100px)' }
+                ],
+                isSim,
+                (val) => {
+                  comp.params.gateScale = val;
+                  comp.rebuildPins();
+                  this.circuit.syncImmediateWireLevels();
+                  this.render(comp.id, null);
                   this.onChange(false);
                 }
               );
@@ -10733,22 +10983,10 @@
         if (!toast) {
           toast = document.createElement('div');
           toast.id = 'sim-toast';
-          toast.style.position = 'fixed';
-          toast.style.bottom = '160px';
-          toast.style.left = '50%';
-          toast.style.transform = 'translateX(-50%)';
-          toast.style.backgroundColor = '#1e293b';
-          toast.style.color = '#e2e8f0';
-          toast.style.padding = '8px 16px';
-          toast.style.borderRadius = '6px';
-          toast.style.border = '1px solid #00b0ff';
-          toast.style.boxShadow = '0 8px 24px rgba(0,0,0,0.6)';
-          toast.style.fontSize = '12px';
-          toast.style.fontWeight = '600';
-          toast.style.zIndex = '999999';
-          toast.style.pointerEvents = 'none';
-          toast.style.transition = 'opacity 0.3s ease';
+          toast.className = 'app-toast';
           document.body.appendChild(toast);
+        } else {
+          toast.className = 'app-toast';
         }
         toast.textContent = message;
         toast.style.opacity = '1';
@@ -10872,6 +11110,44 @@
           labelFreq.textContent = `${val} Hz`;
           this.engine.setFrequency(val);
         });
+
+        // Click-to-Edit for Frequency
+        if (labelFreq) {
+          labelFreq.addEventListener('click', () => {
+            if (labelFreq.querySelector('input')) return;
+            const curVal = parseInt(sliderFreq.value, 10) || 10;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '1';
+            input.max = '60';
+            input.value = curVal;
+            input.style.width = '42px';
+            input.style.height = '18px';
+            input.style.fontSize = '11px';
+            input.style.fontFamily = 'var(--font-mono)';
+            input.style.textAlign = 'center';
+            input.style.background = 'var(--bg-deep)';
+            input.style.color = 'var(--text-main)';
+            input.style.border = '1px solid var(--accent-blue)';
+            input.style.borderRadius = '3px';
+            labelFreq.textContent = '';
+            labelFreq.appendChild(input);
+            input.focus();
+            input.select();
+
+            const applyVal = () => {
+              const val = Math.max(1, Math.min(60, parseInt(input.value, 10) || curVal));
+              sliderFreq.value = val;
+              this.engine.setFrequency(val);
+              labelFreq.textContent = `${val} Hz`;
+            };
+            input.addEventListener('keydown', (ev) => {
+              if (ev.key === 'Enter') { applyVal(); }
+              else if (ev.key === 'Escape') { labelFreq.textContent = `${curVal} Hz`; }
+            });
+            input.addEventListener('blur', applyVal);
+          });
+        }
 
         const btnUndo = document.getElementById('btn-quick-undo');
         if (btnUndo) {
@@ -12771,6 +13047,69 @@
             this.analyzer.clearLoopRange();
           });
         }
+
+        const inputIn = document.getElementById('input-range-in');
+        const inputOut = document.getElementById('input-range-out');
+        if (inputIn && inputOut) {
+          const applyInputs = () => {
+            const inTick = parseInt(inputIn.value, 10);
+            const outTick = parseInt(inputOut.value, 10);
+            if (!isNaN(inTick) && !isNaN(outTick) && inTick < outTick) {
+              const inOff = this.analyzer.ringBuffer.getOffsetForTick(inTick);
+              const outOff = this.analyzer.ringBuffer.getOffsetForTick(outTick);
+              if (inOff < outOff) {
+                this.analyzer.loopRange = { inOffset: inOff, outOffset: outOff };
+                this.analyzer.updateLoopUi();
+                this.analyzer.render();
+              }
+            }
+          };
+          inputIn.addEventListener('change', applyInputs);
+          inputOut.addEventListener('change', applyInputs);
+          inputIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyInputs(); });
+          inputOut.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyInputs(); });
+        }
+
+        // Click-to-Edit for Analyzer Zoom (label-time-zoom)
+        if (zoomLabel && zoomSlider) {
+          zoomLabel.style.cursor = 'pointer';
+          zoomLabel.title = 'Klicken, um Zoomwert direkt einzugeben (4–32 px/T)';
+          zoomLabel.addEventListener('click', () => {
+            if (zoomLabel.querySelector('input')) return;
+            const curVal = parseInt(zoomSlider.value, 10) || 12;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '4';
+            input.max = '32';
+            input.value = curVal;
+            input.style.width = '42px';
+            input.style.height = '18px';
+            input.style.fontSize = '11px';
+            input.style.fontFamily = 'var(--font-mono)';
+            input.style.textAlign = 'center';
+            input.style.background = 'var(--bg-deep)';
+            input.style.color = 'var(--text-main)';
+            input.style.border = '1px solid var(--accent-blue)';
+            input.style.borderRadius = '3px';
+            zoomLabel.textContent = '';
+            zoomLabel.appendChild(input);
+            input.focus();
+            input.select();
+
+            const applyVal = () => {
+              const val = Math.max(4, Math.min(32, parseInt(input.value, 10) || curVal));
+              zoomSlider.value = val;
+              this.analyzer.pixelsPerTick = val;
+              zoomLabel.textContent = `${val} px/T`;
+              this.analyzer.render();
+            };
+            input.addEventListener('keydown', (ev) => {
+              if (ev.key === 'Enter') { applyVal(); }
+              else if (ev.key === 'Escape') { zoomLabel.textContent = `${curVal} px/T`; }
+            });
+            input.addEventListener('blur', applyVal);
+          });
+        }
       }
 
       initKeyboardEvents() {
@@ -13378,10 +13717,11 @@
             }
           }
 
-          // F. Coordinates Assignment & Corridor Clearance
+          // F. Coordinates Assignment & Corridor Clearance (with configurable density)
           const startX = 80;
-          const colGap = 160;
-          const minRowGap = 60; // 60px provides clean corridor for cross-coupling wires
+          const density = this.layoutDensity || 'standard';
+          const colGap = (density === 'compact') ? 120 : (density === 'spacious' ? 200 : 160);
+          const minRowGap = (density === 'compact') ? 40 : (density === 'spacious' ? 80 : 60);
 
           const colWidths = layers.map(layerNodes => {
             let maxW = 80;
@@ -14088,6 +14428,17 @@
 
         if (ttModal) ttModal.style.display = 'none';
         if (synthModal) synthModal.style.display = 'none';
+
+        // Sync active states for density and gate size cards
+        const curDensity = this.layoutDensity || 'standard';
+        document.querySelectorAll('#settings-density-cards .norm-card').forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-density') === curDensity);
+        });
+        const curGateSize = this.defaultGateSize || 'standard';
+        document.querySelectorAll('#settings-gate-size-cards .norm-card').forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-gate-size') === curGateSize);
+        });
+
         settingsModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
       }
@@ -14331,6 +14682,34 @@
           });
         }
 
+        // Layout Density Cards
+        const densityCards = document.querySelectorAll('#settings-density-cards .norm-card');
+        densityCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const d = card.getAttribute('data-density');
+            if (d) {
+              this.layoutDensity = d;
+              densityCards.forEach(c => c.classList.toggle('active', c.getAttribute('data-density') === d));
+              this.saveSettings();
+              this.showToast(`Layout-Dichte auf "${d}" gesetzt.`);
+            }
+          });
+        });
+
+        // Gate Size Cards
+        const gateSizeCards = document.querySelectorAll('#settings-gate-size-cards .norm-card');
+        gateSizeCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const gs = card.getAttribute('data-gate-size');
+            if (gs) {
+              this.defaultGateSize = gs;
+              gateSizeCards.forEach(c => c.classList.toggle('active', c.getAttribute('data-gate-size') === gs));
+              this.saveSettings();
+              this.showToast(`Standard-Gattergröße auf "${gs}" gesetzt.`);
+            }
+          });
+        });
+
         // 5. Workbench Theme Cards
         const themeCards = document.querySelectorAll('#settings-theme-cards .theme-card');
         themeCards.forEach(card => {
@@ -14456,6 +14835,8 @@
             if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.symbolStandard) this.setSymbolStandard(s.symbolStandard);
+            if (s.layoutDensity) this.layoutDensity = s.layoutDensity;
+            if (s.defaultGateSize) this.defaultGateSize = s.defaultGateSize;
             if (s.appTheme) this.setAppTheme(s.appTheme);
             else if (s.canvasTheme) {
               if (s.canvasTheme === 'deep_black') this.setAppTheme('pitch_black');
@@ -14478,7 +14859,9 @@
             autoSaveCircuit: this.autoSaveCircuit,
             canvasTheme: this.canvasTheme,
             appTheme: this.appTheme,
-            symbolStandard: this.symbolStandard
+            symbolStandard: this.symbolStandard,
+            layoutDensity: this.layoutDensity || 'standard',
+            defaultGateSize: this.defaultGateSize || 'standard'
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_theme', this.appTheme);
