@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
-    :root, [data-theme="modern"] {
+    :root, html[data-theme="modern"] {
       --bg-deep: #0b0d10;
       --bg-panel: #12161c;
       --bg-panel-alt: #171c24;
@@ -33,7 +33,7 @@
       --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
     }
 
-    [data-theme="pitch_black"] {
+    html[data-theme="pitch_black"] {
       --bg-deep: #000000;
       --bg-panel: #09090b;
       --bg-panel-alt: #121215;
@@ -119,7 +119,7 @@
       color: #f4f4f5 !important;
     }
 
-    [data-theme="java_swing"] {
+    html[data-theme="java_swing"] {
       --bg-deep: #d4d0c8;
       --bg-panel: #ece9d8;
       --bg-panel-alt: #e4dfd3;
@@ -331,7 +331,7 @@
       box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.45) !important;
     }
 
-    [data-theme="blueprint"] {
+    html[data-theme="blueprint"] {
       --bg-deep: #071527;
       --bg-panel: #0b1d3a;
       --bg-panel-alt: #0f284e;
@@ -406,7 +406,7 @@
       color: #e0f2fe !important;
     }
 
-    [data-theme="light_cad"] {
+    html[data-theme="light_cad"] {
       --bg-deep: #f1f5f9;
       --bg-panel: #ffffff;
       --bg-panel-alt: #f8fafc;
@@ -536,6 +536,32 @@
     }
     [data-theme="light_cad"] ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+
+
+    [data-theme="java_swing"] .theme-card .theme-card-title,
+    [data-theme="java_swing"] .norm-card .norm-card-title,
+    [data-theme="java_swing"] .density-card .density-card-title,
+    [data-theme="java_swing"] .gate-size-card .gate-size-card-title {
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .theme-card .theme-card-desc,
+    [data-theme="java_swing"] .norm-card .norm-card-desc,
+    [data-theme="java_swing"] .density-card .density-card-desc,
+    [data-theme="java_swing"] .gate-size-card .gate-size-card-desc {
+      color: #333333 !important;
+    }
+    [data-theme="light_cad"] .theme-card .theme-card-title,
+    [data-theme="light_cad"] .norm-card .norm-card-title,
+    [data-theme="light_cad"] .density-card .density-card-title,
+    [data-theme="light_cad"] .gate-size-card .gate-size-card-title {
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .theme-card .theme-card-desc,
+    [data-theme="light_cad"] .norm-card .norm-card-desc,
+    [data-theme="light_cad"] .density-card .density-card-desc,
+    [data-theme="light_cad"] .gate-size-card .gate-size-card-desc {
+      color: #475569 !important;
     }
 
     [data-theme="java_swing"] .modal-backdrop {
@@ -5359,6 +5385,96 @@
         this.selectionBox = null;
       }
 
+      getModuleThemeStyle() {
+        const t = this.appTheme;
+        if (t === 'java_swing') {
+          return {
+            displayBg: '#faf8f0',
+            displayBorder: '#808080',
+            headerText: '#000080',
+            primaryText: '#008000',
+            secondaryText: '#555555',
+            dimText: '#777777',
+            trackOff: '#d4d0c8',
+            trackOffBorder: '#808080',
+            knobOff: '#ece9d8',
+            btnOff: '#ece9d8',
+            btnOffBorder: '#808080',
+            btnOffText: '#000000',
+            clockWave: '#000080',
+            clockText: '#333333'
+          };
+        } else if (t === 'light_cad') {
+          return {
+            displayBg: '#f1f5f9',
+            displayBorder: '#cbd5e1',
+            headerText: '#0284c7',
+            primaryText: '#059669',
+            secondaryText: '#64748b',
+            dimText: '#94a3b8',
+            trackOff: '#e2e8f0',
+            trackOffBorder: '#cbd5e1',
+            knobOff: '#94a3b8',
+            btnOff: '#e2e8f0',
+            btnOffBorder: '#cbd5e1',
+            btnOffText: '#334155',
+            clockWave: '#0284c7',
+            clockText: '#475569'
+          };
+        } else if (t === 'pitch_black') {
+          return {
+            displayBg: '#000000',
+            displayBorder: '#27272a',
+            headerText: '#38bdf8',
+            primaryText: '#00e676',
+            secondaryText: '#a1a1aa',
+            dimText: '#71717a',
+            trackOff: '#000000',
+            trackOffBorder: '#27272a',
+            knobOff: '#52525b',
+            btnOff: '#18181b',
+            btnOffBorder: '#3f3f46',
+            btnOffText: '#d4d4d8',
+            clockWave: '#00b0ff',
+            clockText: '#a1a1aa'
+          };
+        } else if (t === 'blueprint') {
+          return {
+            displayBg: '#071a2e',
+            displayBorder: '#1e3a5f',
+            headerText: '#38bdf8',
+            primaryText: '#38bdf8',
+            secondaryText: '#7dd3fc',
+            dimText: '#1e497d',
+            trackOff: '#0c233f',
+            trackOffBorder: '#25599c',
+            knobOff: '#38bdf8',
+            btnOff: '#0c233f',
+            btnOffBorder: '#25599c',
+            btnOffText: '#e0f2fe',
+            clockWave: '#38bdf8',
+            clockText: '#7dd3fc'
+          };
+        } else {
+          return {
+            displayBg: '#0c1015',
+            displayBorder: '#263244',
+            headerText: '#00b0ff',
+            primaryText: '#00e676',
+            secondaryText: '#94a3b8',
+            dimText: '#64748b',
+            trackOff: '#0b0d10',
+            trackOffBorder: '#334155',
+            knobOff: '#64748b',
+            btnOff: '#263040',
+            btnOffBorder: '#475569',
+            btnOffText: '#cbd5e1',
+            clockWave: '#00b0ff',
+            clockText: '#94a3b8'
+          };
+        }
+      }
+
       getThemePalette() {
         switch (this.appTheme) {
           case 'pitch_black':
@@ -6886,6 +7002,7 @@
         const { x, y, width, height, type } = comp;
         const cx = x + width / 2;
         const cy = y + height / 2;
+        const mStyle = this.getModuleThemeStyle();
 
         switch (type) {
           case 'SWITCH': {
@@ -6895,8 +7012,8 @@
             const sx = cx - swW / 2 - 4;
             const sy = cy - swH / 2;
 
-            ctx.fillStyle = isOn ? 'rgba(0, 230, 118, 0.22)' : '#0b0d10';
-            ctx.strokeStyle = isOn ? '#00e676' : '#334155';
+            ctx.fillStyle = isOn ? 'rgba(0, 230, 118, 0.22)' : mStyle.trackOff;
+            ctx.strokeStyle = isOn ? '#00e676' : mStyle.trackOffBorder;
             ctx.lineWidth = 1.5;
             this.roundRect(ctx, sx, sy, swW, swH, 10);
             ctx.fill();
@@ -6905,10 +7022,15 @@
             const knobX = isOn ? sx + swW - 10 : sx + 10;
             ctx.beginPath();
             ctx.arc(knobX, cy, 6.5, 0, Math.PI * 2);
-            ctx.fillStyle = isOn ? '#00e676' : '#64748b';
+            ctx.fillStyle = isOn ? '#00e676' : mStyle.knobOff;
             ctx.fill();
+            if (!isOn && this.appTheme === 'java_swing') {
+              ctx.strokeStyle = '#808080';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
 
-            ctx.fillStyle = isOn ? '#00e676' : '#64748b';
+            ctx.fillStyle = isOn ? '#00e676' : mStyle.secondaryText;
             ctx.font = '700 10px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(isOn ? '1' : '0', isOn ? sx + 11 : sx + swW - 11, cy + 3.5);
@@ -6919,13 +7041,13 @@
             const isPressed = comp.state.pressed === 1;
             ctx.beginPath();
             ctx.arc(cx - 4, cy, 12, 0, Math.PI * 2);
-            ctx.fillStyle = isPressed ? '#00e676' : '#263040';
+            ctx.fillStyle = isPressed ? '#00e676' : mStyle.btnOff;
             ctx.fill();
             ctx.lineWidth = 2;
-            ctx.strokeStyle = isPressed ? '#ffffff' : '#475569';
+            ctx.strokeStyle = isPressed ? '#ffffff' : mStyle.btnOffBorder;
             ctx.stroke();
 
-            ctx.fillStyle = isPressed ? '#06120c' : '#cbd5e1';
+            ctx.fillStyle = isPressed ? '#06120c' : mStyle.btnOffText;
             ctx.font = '700 9px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(isPressed ? '1' : 'T', cx - 4, cy + 3);
@@ -6934,7 +7056,7 @@
 
           case 'CLOCK': {
             const isHigh = comp.outputs[0]?.value === 1;
-            ctx.strokeStyle = isHigh ? '#00e676' : '#00b0ff';
+            ctx.strokeStyle = isHigh ? '#00e676' : mStyle.clockWave;
             ctx.lineWidth = 1.8;
             ctx.beginPath();
             const wx = x + 12;
@@ -6948,7 +7070,7 @@
             ctx.lineTo(wx + 27, wy - 5);
             ctx.stroke();
 
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = mStyle.clockText;
             ctx.font = '600 9.5px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`T½=${comp.params.halfPeriod}`, cx - 6, y + height - 6);
@@ -7043,22 +7165,22 @@
             const val = comp.state.currentVal ?? 0;
             const hexChar = (val <= 9 || comp.params.hexMode) ? HEX_CHARS[val] : '-';
 
-            ctx.fillStyle = '#0c1015';
-            ctx.strokeStyle = '#263244';
-            this.roundRect(ctx, cx - 22, cy - 22, 44, 44, 5);
+            ctx.fillStyle = mStyle.displayBg;
+            ctx.strokeStyle = mStyle.displayBorder;
+            this.roundRect(ctx, cx - 22, cy - 22, 44, 44, 4);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = '600 9px monospace';
+            ctx.fillStyle = mStyle.headerText;
+            ctx.font = '700 9px monospace';
             ctx.textAlign = 'center';
             ctx.fillText('BCD/7S', cx, cy - 9);
 
-            ctx.fillStyle = '#00e676';
+            ctx.fillStyle = mStyle.primaryText;
             ctx.font = '700 13px monospace';
             ctx.fillText(`${val} (${hexChar})`, cx, cy + 9);
 
-            ctx.fillStyle = '#475569';
+            ctx.fillStyle = mStyle.secondaryText;
             ctx.font = '500 8.5px monospace';
             ctx.fillText(comp.params.hexMode ? 'HEX: ON' : 'HEX: OFF', cx, cy + 19);
             break;
@@ -7069,22 +7191,22 @@
             const hexStr = '0x' + cnt.toString(16).toUpperCase();
             const modeStr = comp.params.mode === 'bcd' ? 'MOD 10' : 'MOD 16';
 
-            ctx.fillStyle = '#0c1015';
-            ctx.strokeStyle = '#263244';
-            this.roundRect(ctx, cx - 24, cy - 24, 48, 48, 5);
+            ctx.fillStyle = mStyle.displayBg;
+            ctx.strokeStyle = mStyle.displayBorder;
+            this.roundRect(ctx, cx - 24, cy - 24, 48, 48, 4);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#00b0ff';
+            ctx.fillStyle = mStyle.headerText;
             ctx.font = '700 9px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(modeStr, cx, cy - 10);
 
-            ctx.fillStyle = '#00e676';
+            ctx.fillStyle = mStyle.primaryText;
             ctx.font = '700 14px monospace';
             ctx.fillText(`${cnt}`, cx, cy + 6);
 
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = mStyle.secondaryText;
             ctx.font = '500 9px monospace';
             ctx.fillText(hexStr, cx, cy + 19);
             break;
@@ -7095,22 +7217,22 @@
             const bitStr = `${bits[3]}${bits[2]}${bits[1]}${bits[0]}`;
             const val = bits[3] * 8 + bits[2] * 4 + bits[1] * 2 + bits[0];
 
-            ctx.fillStyle = '#0c1015';
-            ctx.strokeStyle = '#263244';
-            this.roundRect(ctx, cx - 25, cy - 20, 50, 40, 5);
+            ctx.fillStyle = mStyle.displayBg;
+            ctx.strokeStyle = mStyle.displayBorder;
+            this.roundRect(ctx, cx - 25, cy - 20, 50, 40, 4);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '600 8.5px monospace';
+            ctx.fillStyle = mStyle.headerText;
+            ctx.font = '700 8.5px monospace';
             ctx.textAlign = 'center';
             ctx.fillText('SIPO 4B', cx, cy - 7);
 
-            ctx.fillStyle = '#00e676';
+            ctx.fillStyle = mStyle.primaryText;
             ctx.font = '700 11px monospace';
             ctx.fillText(bitStr, cx, cy + 6);
 
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = mStyle.secondaryText;
             ctx.font = '500 8.5px monospace';
             ctx.fillText(`0x${val.toString(16).toUpperCase()}`, cx, cy + 16);
             break;
@@ -7131,28 +7253,22 @@
             };
             const ffName = names[type] || 'FF';
 
-            const isLightTh = (this.appTheme === 'java_swing' || this.appTheme === 'light_cad');
-            const centerBg = (this.appTheme === 'java_swing') ? '#faf8f0' : (this.appTheme === 'light_cad' ? '#f1f5f9' : '#0c1015');
-            const centerBorder = (this.appTheme === 'java_swing') ? '#808080' : (this.appTheme === 'light_cad' ? '#cbd5e1' : '#263244');
-            const headerColor = isLightTh ? '#000000' : '#94a3b8';
-            const trigColor = isLightTh ? '#555555' : '#475569';
-
-            ctx.fillStyle = centerBg;
-            ctx.strokeStyle = centerBorder;
+            ctx.fillStyle = mStyle.displayBg;
+            ctx.strokeStyle = mStyle.displayBorder;
             this.roundRect(ctx, cx - 22, cy - 22, 44, 44, 4);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = headerColor;
+            ctx.fillStyle = mStyle.headerText;
             ctx.font = '700 9px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(ffName, cx, cy - 7);
 
-            ctx.fillStyle = q === 1 ? '#00e676' : (isLightTh ? '#777777' : '#64748b');
+            ctx.fillStyle = q === 1 ? mStyle.primaryText : mStyle.dimText;
             ctx.font = '700 13px monospace';
             ctx.fillText(`Q=${q}`, cx, cy + 8);
 
-            ctx.fillStyle = trigColor;
+            ctx.fillStyle = mStyle.secondaryText;
             ctx.font = '500 8px monospace';
             const trigLabel = comp.params.trigger === 'falling' ? 'CLK: ↓' : (comp.params.trigger === 'transparent' ? 'STATIC' : 'CLK: ↑');
             ctx.fillText(type === 'D_LATCH' ? 'LEVEL' : trigLabel, cx, cy + 18);
@@ -13940,105 +14056,280 @@
        * - Resets manual waypoints to clean, optimized orthogonal routes.
        */
       autoRouteAllWires() {
-        if (!this.circuit.wires || this.circuit.wires.length === 0) return;
+        const circuit = this.circuit;
+        const comps = circuit.components || [];
+        const wires = circuit.wires || [];
+        if (wires.length === 0) return;
 
-        // Reset all manual waypoints
-        for (const w of this.circuit.wires) {
-          w.waypoints = [];
-          w.channelOffset = 0;
-        }
+        const obstacles = comps.map(c => ({
+          id: c.id,
+          left: c.x,
+          right: c.x + c.width,
+          top: c.y,
+          bottom: c.y + c.height
+        }));
 
-        // Group non-straight forward wires by channel (midpoint X bucket)
-        const channelBuckets = new Map();
-        const backwardWires = [];
+        const segCollides = (xa, ya, xb, yb) => {
+          const minX = Math.min(xa, xb), maxX = Math.max(xa, xb);
+          const minY = Math.min(ya, yb), maxY = Math.max(ya, yb);
+          for (const obs of obstacles) {
+            const bL = obs.left + 2, bR = obs.right - 2;
+            const bT = obs.top + 2, bB = obs.bottom - 2;
+            if (ya === yb) {
+              if (ya >= bT && ya <= bB && maxX > bL && minX < bR) return true;
+            } else if (xa === xb) {
+              if (xa >= bL && xa <= bR && maxY > bT && minY < bB) return true;
+            }
+          }
+          return false;
+        };
 
-        for (const w of this.circuit.wires) {
-          const fromComp = this.circuit.getComponent(w.fromCompId);
-          const toComp = this.circuit.getComponent(w.toCompId);
+        const pathCollidesComps = (pts) => {
+          for (let i = 0; i < pts.length - 1; i++) {
+            if (segCollides(pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y)) return true;
+          }
+          return false;
+        };
+
+        const reservedSegs = [];
+
+        const pathHasWireOverlap = (pts, netId) => {
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i], pB = pts[i + 1];
+            const isH = (pA.y === pB.y);
+            const isV = (pA.x === pB.x);
+            const segMin = isH ? Math.min(pA.x, pB.x) : Math.min(pA.y, pB.y);
+            const segMax = isH ? Math.max(pA.x, pB.x) : Math.max(pA.y, pB.y);
+            const fixed = isH ? pA.y : pA.x;
+
+            for (const r of reservedSegs) {
+              if (r.netId === netId) continue; // Same net is allowed to share trunks (fanout)
+              if (isH && r.isHoriz && Math.abs(r.fixed - fixed) < 2) {
+                const ovStart = Math.max(segMin, r.min);
+                const ovEnd = Math.min(segMax, r.max);
+                if (ovEnd - ovStart > 4) return true;
+              } else if (isV && r.isVert && Math.abs(r.fixed - fixed) < 2) {
+                const ovStart = Math.max(segMin, r.min);
+                const ovEnd = Math.min(segMax, r.max);
+                if (ovEnd - ovStart > 4) return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        const addPathToReserved = (pts, netId) => {
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i], pB = pts[i + 1];
+            const isH = (pA.y === pB.y);
+            const isV = (pA.x === pB.x);
+            reservedSegs.push({
+              isHoriz: isH,
+              isVert: isV,
+              fixed: isH ? pA.y : pA.x,
+              min: isH ? Math.min(pA.x, pB.x) : Math.min(pA.y, pB.y),
+              max: isH ? Math.max(pA.x, pB.x) : Math.max(pA.y, pB.y),
+              netId
+            });
+          }
+        };
+
+        const simplifyCollinear = (pts) => {
+          if (pts.length <= 2) return pts;
+          const res = [pts[0]];
+          for (let i = 1; i < pts.length - 1; i++) {
+            const prev = res[res.length - 1];
+            const curr = pts[i];
+            const next = pts[i + 1];
+            if ((prev.x === curr.x && curr.x === next.x) || (prev.y === curr.y && curr.y === next.y)) {
+              continue;
+            }
+            res.push(curr);
+          }
+          res.push(pts[pts.length - 1]);
+          return res;
+        };
+
+        // Sort wires: shortest distance and forward wires first, feedback wires last
+        const wireOrder = [...wires].sort((wA, wB) => {
+          const cA1 = circuit.getComponent(wA.fromCompId);
+          const cA2 = circuit.getComponent(wA.toCompId);
+          const cB1 = circuit.getComponent(wB.fromCompId);
+          const cB2 = circuit.getComponent(wB.toCompId);
+          if (!cA1 || !cA2 || !cB1 || !cB2) return 0;
+          const pA1 = cA1.getPinWorldPos(true, wA.fromPin);
+          const pA2 = cA2.getPinWorldPos(false, wA.toPin);
+          const pB1 = cB1.getPinWorldPos(true, wB.fromPin);
+          const pB2 = cB2.getPinWorldPos(false, wB.toPin);
+          const isBackA = pA2.x < pA1.x + 20;
+          const isBackB = pB2.x < pB1.x + 20;
+          if (isBackA !== isBackB) return isBackA ? 1 : -1;
+          return (Math.abs(pA2.x - pA1.x) + Math.abs(pA2.y - pA1.y)) - (Math.abs(pB2.x - pB1.x) + Math.abs(pB2.y - pB1.y));
+        });
+
+        for (const w of wireOrder) {
+          const fromComp = circuit.getComponent(w.fromCompId);
+          const toComp = circuit.getComponent(w.toCompId);
           if (!fromComp || !toComp) continue;
 
           const p1 = fromComp.getPinWorldPos(true, w.fromPin);
           const p2 = toComp.getPinWorldPos(false, w.toPin);
+          const x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+          const netId = `${w.fromCompId}:${w.fromPin}`;
 
-          // Straight horizontal wires need zero channel offset
-          if (p1.y === p2.y) {
-            w.channelOffset = 0;
-            continue;
-          }
+          let chosenPath = null;
 
-          if (p2.x >= p1.x + 20) {
-            const rawMid = (p2.x - p1.x > 200) ? ((p1.y < p2.y) ? (p1.x + 80) : (p2.x - 80)) : ((p1.x + p2.x) / 2);
-            const channelKey = Math.round(rawMid / 40) * 40;
-            if (!channelBuckets.has(channelKey)) {
-              channelBuckets.set(channelKey, []);
+          if (x2 >= x1 + 20) {
+            // Forward wire
+            if (y1 === y2) {
+              const direct = [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+              if (!pathCollidesComps(direct) && !pathHasWireOverlap(direct, netId)) {
+                chosenPath = direct;
+              }
             }
-            const minY = Math.min(p1.y, p2.y);
-            const maxY = Math.max(p1.y, p2.y);
-            channelBuckets.get(channelKey).push({ wire: w, p1, p2, minY, maxY });
+
+            if (!chosenPath) {
+              // Try standard 3-segment paths with candidate midX
+              const midBase = (x2 - x1 > 200) ? ((y1 < y2) ? (x1 + 60) : (x2 - 60)) : ((x1 + x2) / 2);
+              const snapBase = Math.round(midBase / GRID_SIZE) * GRID_SIZE;
+
+              const candidateXs = [];
+              for (let off = 0; off <= 80; off += 20) {
+                if (off === 0) candidateXs.push(snapBase);
+                else {
+                  candidateXs.push(snapBase + off);
+                  candidateXs.push(snapBase - off);
+                }
+              }
+
+              for (const midX of candidateXs) {
+                if (midX <= x1 + 10 || midX >= x2 - 10) continue;
+                const test = [{ x: x1, y: y1 }, { x: midX, y: y1 }, { x: midX, y: y2 }, { x: x2, y: y2 }];
+                if (!pathCollidesComps(test) && !pathHasWireOverlap(test, netId)) {
+                  chosenPath = test;
+                  break;
+                }
+              }
+            }
+
+            if (!chosenPath) {
+              // Multi-obstacle / multi-wire corridor jogging
+              const spannedObs = obstacles.filter(o => o.right > x1 + 4 && o.left < x2 - 4);
+              const minTop = spannedObs.length > 0 ? Math.min(...spannedObs.map(o => o.top)) : Math.min(y1, y2) - 40;
+              const maxBottom = spannedObs.length > 0 ? Math.max(...spannedObs.map(o => o.bottom)) : Math.max(y1, y2) + 40;
+              const minLeft = spannedObs.length > 0 ? Math.min(...spannedObs.map(o => o.left)) : x1 + 40;
+              const maxRight = spannedObs.length > 0 ? Math.max(...spannedObs.map(o => o.right)) : x2 - 40;
+
+              const postCandidates = [
+                Math.min(x2 - 20, Math.round((maxRight + 20) / GRID_SIZE) * GRID_SIZE),
+                x2 - 20,
+                Math.max(x1 + 40, x2 - 40)
+              ];
+              const preCandidates = [
+                Math.max(x1 + 20, Math.round((minLeft - 20) / GRID_SIZE) * GRID_SIZE),
+                x1 + 20,
+                Math.min(x2 - 40, x1 + 40)
+              ];
+
+              outerLoop:
+              for (const postX of postCandidates) {
+                for (const preX of preCandidates) {
+                  if (preX >= postX) continue;
+                  for (let k = 0; k <= 6; k++) {
+                    const jogAbove = Math.round((minTop - 20) / GRID_SIZE) * GRID_SIZE - k * GRID_SIZE;
+                    const jogBelow = Math.round((maxBottom + 20) / GRID_SIZE) * GRID_SIZE + k * GRID_SIZE;
+
+                    const pAbove = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: jogAbove }, { x: postX, y: jogAbove }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+                    if (!pathCollidesComps(pAbove) && !pathHasWireOverlap(pAbove, netId)) {
+                      chosenPath = pAbove;
+                      break outerLoop;
+                    }
+
+                    const pBelow = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: jogBelow }, { x: postX, y: jogBelow }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+                    if (!pathCollidesComps(pBelow) && !pathHasWireOverlap(pBelow, netId)) {
+                      chosenPath = pBelow;
+                      break outerLoop;
+                    }
+                  }
+                }
+              }
+            }
+
+            if (!chosenPath) {
+              chosenPath = [{ x: x1, y: y1 }, { x: Math.round(((x1 + x2)/2)/GRID_SIZE)*GRID_SIZE, y: y1 }, { x: Math.round(((x1 + x2)/2)/GRID_SIZE)*GRID_SIZE, y: y2 }, { x: x2, y: y2 }];
+            }
           } else {
-            backwardWires.push({ wire: w, p1, p2 });
-          }
-        }
-
-        // Assign non-conflicting track offsets to backward feedback wires
-        // For downward loop: lower p1 (larger p1.y) turns earlier, higher p2 (smaller p2.y) rises earlier
-        if (backwardWires.length > 0) {
-          backwardWires.sort((a, b) => b.p1.y - a.p1.y || a.p2.y - b.p2.y);
-          backwardWires.forEach((item, idx) => {
-            item.wire.channelOffset = idx * GRID_SIZE;
-          });
-        }
-
-        // For each forward channel, assign tracks with topological river routing:
-        for (const [channelKey, group] of channelBuckets.entries()) {
-          if (group.length <= 1) continue;
-
-          // Topological river-routing sort prevents parallel bus lines from crossing:
-          // Upward-bending wires turn earliest (smaller track index).
-          // Downward-bending wires: wire starting lower (larger y1) turns earlier.
-          const getWireChannelPriority = (item) => {
-            const isDown = item.p1.y < item.p2.y;
-            if (!isDown) {
-              return item.p1.y;
-            } else {
-              return 100000 - item.p1.y;
+            // Backward feedback wire
+            let minObsY = Infinity, maxObsY = -Infinity;
+            let minObsX = Infinity, maxObsX = -Infinity;
+            for (const obs of obstacles) {
+              if (obs.top < minObsY) minObsY = obs.top;
+              if (obs.bottom > maxObsY) maxObsY = obs.bottom;
+              if (obs.left < minObsX) minObsX = obs.left;
+              if (obs.right > maxObsX) maxObsX = obs.right;
             }
-          };
 
-          group.sort((a, b) => getWireChannelPriority(a) - getWireChannelPriority(b));
+            const candidateExitXs = [
+              Math.round((x1 + 20) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x1 + 40) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x1 + 60) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x1 + 80) / GRID_SIZE) * GRID_SIZE,
+              Math.round((maxObsX + 20) / GRID_SIZE) * GRID_SIZE,
+              Math.round((maxObsX + 40) / GRID_SIZE) * GRID_SIZE
+            ];
 
-          // Greedy track assignment (interval coloring with 20px clearance)
-          const tracks = [];
-          for (const item of group) {
-            let assignedTrack = -1;
-            for (let t = 0; t < tracks.length; t++) {
-              if (item.minY >= tracks[t] + 20) {
-                assignedTrack = t;
-                tracks[t] = item.maxY;
-                break;
+            const candidateEnterXs = [
+              Math.round((x2 - 20) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x2 - 40) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x2 - 60) / GRID_SIZE) * GRID_SIZE,
+              Math.round((x2 - 80) / GRID_SIZE) * GRID_SIZE,
+              Math.round((minObsX - 20) / GRID_SIZE) * GRID_SIZE,
+              Math.round((minObsX - 40) / GRID_SIZE) * GRID_SIZE
+            ];
+
+            const baseAbove = (minObsY !== Infinity ? Math.round((minObsY - 20) / GRID_SIZE) * GRID_SIZE : Math.min(y1, y2) - 40);
+            const baseBelow = (maxObsY !== -Infinity ? Math.round((maxObsY + 20) / GRID_SIZE) * GRID_SIZE : Math.max(y1, y2) + 40);
+
+            backSearch:
+            for (let k = 0; k <= 12; k++) {
+              const loopAbove = baseAbove - k * GRID_SIZE;
+              const loopBelow = baseBelow + k * GRID_SIZE;
+
+              for (const exitX of candidateExitXs) {
+                for (const enterX of candidateEnterXs) {
+                  const tryOrder = (y1 + y2 < (minObsY + maxObsY)) ? [loopAbove, loopBelow] : [loopBelow, loopAbove];
+                  for (const loopY of tryOrder) {
+                    const test = [
+                      { x: x1, y: y1 },
+                      { x: exitX, y: y1 },
+                      { x: exitX, y: loopY },
+                      { x: enterX, y: loopY },
+                      { x: enterX, y: y2 },
+                      { x: x2, y: y2 }
+                    ];
+                    if (!pathCollidesComps(test) && !pathHasWireOverlap(test, netId)) {
+                      chosenPath = test;
+                      break backSearch;
+                    }
+                  }
+                }
               }
             }
-            if (assignedTrack === -1) {
-              assignedTrack = tracks.length;
-              tracks.push(item.maxY);
+
+            if (!chosenPath) {
+              const exitX = Math.round((maxObsX + 40) / GRID_SIZE) * GRID_SIZE;
+              const enterX = Math.round((minObsX - 40) / GRID_SIZE) * GRID_SIZE;
+              const loopY = (y1 + y2 < (minObsY + maxObsY)) ? (baseAbove - 60) : (baseBelow + 60);
+              chosenPath = [{ x: x1, y: y1 }, { x: exitX, y: y1 }, { x: exitX, y: loopY }, { x: enterX, y: loopY }, { x: enterX, y: y2 }, { x: x2, y: y2 }];
             }
-            item.trackIndex = assignedTrack;
           }
 
-          const numTracks = tracks.length;
-          if (numTracks > 1) {
-            const step = GRID_SIZE; // 20px track spacing
-            for (const item of group) {
-              const trackOffset = (item.trackIndex - (numTracks - 1) / 2) * step;
-              const trackX = channelKey + Math.round(trackOffset / GRID_SIZE) * GRID_SIZE;
-              let defaultMid = (item.p1.x + item.p2.x) / 2;
-              if (item.p2.x - item.p1.x > 200) {
-                defaultMid = (item.p1.y < item.p2.y) ? (item.p1.x + 80) : (item.p2.x - 80);
-              }
-              const defaultMidSnap = Math.round(defaultMid / GRID_SIZE) * GRID_SIZE;
-              item.wire.channelOffset = trackX - defaultMidSnap;
-            }
-          }
+          const simple = simplifyCollinear(chosenPath);
+          addPathToReserved(simple, netId);
+
+          // Save waypoints into wire (excluding end points p1 and p2)
+          w.waypoints = simple.slice(1, -1);
+          w.channelOffset = 0;
         }
 
         this.renderer.render();
