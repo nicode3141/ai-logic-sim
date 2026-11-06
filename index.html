@@ -473,6 +473,45 @@
       background: #ffffff !important;
       border: 1px solid #cbd5e1 !important;
     }
+    [data-theme="light_cad"] .modal-backdrop {
+      background: rgba(15, 23, 42, 0.4) !important;
+    }
+    [data-theme="light_cad"] ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    [data-theme="light_cad"] ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    [data-theme="light_cad"] ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    [data-theme="java_swing"] .modal-backdrop {
+      background: rgba(0, 0, 0, 0.3) !important;
+      backdrop-filter: none !important;
+    }
+    [data-theme="java_swing"] ::-webkit-scrollbar {
+      width: 13px;
+      height: 13px;
+    }
+    [data-theme="java_swing"] ::-webkit-scrollbar-track {
+      background: #d4d0c8;
+      border: 1px solid #808080;
+    }
+    [data-theme="java_swing"] ::-webkit-scrollbar-thumb {
+      background: #ece9d8;
+      border: 2px outset #ffffff;
+    }
+
+    [data-theme="pitch_black"] .modal-backdrop {
+      background: rgba(0, 0, 0, 0.9) !important;
+      backdrop-filter: none !important;
+    }
+
+    [data-theme="blueprint"] .modal-backdrop {
+      background: rgba(5, 15, 30, 0.8) !important;
+    }
 
     * {
       box-sizing: border-box;
@@ -1056,7 +1095,9 @@
       right: 12px;
       display: flex;
       gap: 4px;
-      background: rgba(18, 22, 28, 0.9);
+      background: var(--bg-panel);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       padding: 4px;
       border-radius: var(--control-radius);
       border: 1px solid var(--border-bright);
@@ -1617,8 +1658,8 @@
       height: 18px;
       line-height: 18px;
       border-radius: 3px;
-      background: rgba(0, 230, 118, 0.22);
-      color: #00e676;
+      background: var(--accent-green-dim);
+      color: var(--accent-green);
       font-weight: 700;
     }
     .tt-val-0 {
@@ -1627,8 +1668,8 @@
       height: 18px;
       line-height: 18px;
       border-radius: 3px;
-      background: rgba(100, 116, 139, 0.18);
-      color: #94a3b8;
+      background: var(--bg-deep);
+      color: var(--text-dim);
     }
 
     .tt-badge-current {
@@ -1675,7 +1716,7 @@
       border: 1px solid var(--border-bright);
       border-radius: 6px;
       padding: 10px 12px;
-      color: #f1f5f9;
+      color: var(--text-main);
       font-family: var(--font-mono);
       font-size: 13.5px;
       resize: vertical;
@@ -1772,7 +1813,7 @@
     .brand-btn:hover {
       background: var(--bg-hover);
       border-color: var(--accent-blue);
-      color: #fff;
+      color: var(--text-main);
     }
     .app-dropdown-menu {
       position: absolute;
@@ -1886,8 +1927,8 @@
     }
     .color-swatch-btn.active {
       border-color: var(--c);
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
+      background: var(--bg-hover);
+      color: var(--text-main);
       box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
     }
     .color-dot {
@@ -2160,7 +2201,7 @@
     .synth-legend-math {
       font-family: var(--font-mono);
       font-weight: 700;
-      color: #f8fafc;
+      color: var(--text-main);
     }
     .synth-legend-desc {
       color: var(--text-dim);
@@ -2906,7 +2947,7 @@
             </div>
             <canvas id="grid-canvas-right"></canvas>
 
-            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: rgba(18, 22, 28, 0.85); padding: 4px; border-radius: 6px; border: 1px solid var(--border-dim); backdrop-filter: blur(8px);">
+            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: var(--bg-panel); padding: 4px; border-radius: 6px; border: 1px solid var(--border-bright); backdrop-filter: blur(8px);">
               <button class="zoom-btn" id="btn-zoom-out-right" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
               <button class="zoom-btn" id="btn-zoom-reset-right" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
               <button class="zoom-btn" id="btn-zoom-in-right" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -2914,7 +2955,7 @@
           </div>
         </div>
 
-        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 44px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
+        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 44px; z-index: 15; display: none; background: var(--bg-panel); border: 1px solid var(--border-bright); color: var(--text-main);" title="Inspector wieder einblenden">
           <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
           <span>Eigenschaften</span>
         </button>
@@ -5320,7 +5361,29 @@
             midX = Math.max(x1 + 20, Math.min(x2 - 20, midX));
           }
           if (y1 === y2) {
-            pts.push({ x: x2, y: y2 });
+            let hasHorizCollision = false;
+            let collidingComp = null;
+            if (this.circuit && this.circuit.components) {
+              for (const comp of this.circuit.components) {
+                if (y1 > comp.y + 4 && y1 < comp.y + comp.height - 4 && Math.max(x1, x2) > comp.x + 4 && Math.min(x1, x2) < comp.x + comp.width - 4) {
+                  hasHorizCollision = true;
+                  collidingComp = comp;
+                  break;
+                }
+              }
+            }
+            if (!hasHorizCollision) {
+              pts.push({ x: x2, y: y2 });
+            } else {
+              const jogY = Math.round((collidingComp.y + collidingComp.height + 20) / GRID_SIZE) * GRID_SIZE;
+              const preX = Math.round((x1 + 40) / GRID_SIZE) * GRID_SIZE;
+              const postX = Math.round((x2 - 40) / GRID_SIZE) * GRID_SIZE;
+              pts.push({ x: preX, y: y1 });
+              pts.push({ x: preX, y: jogY });
+              pts.push({ x: postX, y: jogY });
+              pts.push({ x: postX, y: y2 });
+              pts.push({ x: x2, y: y2 });
+            }
           } else {
             pts.push({ x: midX, y: y1 });
             pts.push({ x: midX, y: y2 });
@@ -12970,7 +13033,7 @@
             continue;
           }
 
-          // A. Identify Roots / Sources in this sub-circuit
+          // A. Identify Roots / Primary Sources in this sub-circuit
           let roots = [];
           for (const id of sub) {
             const c = compMap.get(id);
@@ -12990,66 +13053,128 @@
             roots.push(bestId);
           }
 
-          // B. Cycle Detection via DFS Back-Edges & 2-Cycles
-          const dfsVisited = new Set();
-          const inStack = new Set();
-          const backEdges = new Set();
+          // B. BFS Shortest-Path Stage Distance from Primary Roots
+          const bfsDist = new Map();
+          const bfsQueue = [];
+          for (const r of roots) {
+            bfsDist.set(r, 0);
+            bfsQueue.push(r);
+          }
 
-          const isSequentialType = (type) => type === 'SHIFT_REG' || type === 'COUNTER' || ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(type);
-
-          // 1. Detect 2-cycles with sequential feedback awareness:
-          for (const u of sub) {
-            const uComp = compMap.get(u);
-            const uIsSeq = isSequentialType(uComp.type);
+          while (bfsQueue.length > 0) {
+            const u = bfsQueue.shift();
+            const d = bfsDist.get(u);
             for (const edge of adjOut.get(u)) {
               const v = edge.toId;
-              if (subSet.has(v) && adjOut.get(v).some(e => e.toId === u)) {
-                const vComp = compMap.get(v);
-                const vIsSeq = isSequentialType(vComp.type);
-                if (uIsSeq && !vIsSeq) {
-                  // u is sequential register, v is combinational logic: u -> v is the back-edge!
-                  backEdges.add(`${u}->${v}`);
-                } else if (!uIsSeq && vIsSeq) {
-                  // v is sequential register, u is combinational logic: v -> u is the back-edge!
-                  backEdges.add(`${v}->${u}`);
-                } else {
-                  // Symmetric peer pair (e.g. cross-coupled SR latch NAND/NOR gates): both form cycle
-                  backEdges.add(`${u}->${v}`);
-                  backEdges.add(`${v}->${u}`);
+              if (!subSet.has(v)) continue;
+              if (!bfsDist.has(v)) {
+                bfsDist.set(v, d + 1);
+                bfsQueue.push(v);
+              }
+            }
+          }
+
+          for (const id of sub) {
+            if (!bfsDist.has(id)) {
+              bfsDist.set(id, 0);
+              bfsQueue.push(id);
+              while (bfsQueue.length > 0) {
+                const u = bfsQueue.shift();
+                const d = bfsDist.get(u);
+                for (const edge of adjOut.get(u)) {
+                  const v = edge.toId;
+                  if (!subSet.has(v)) continue;
+                  if (!bfsDist.has(v)) {
+                    bfsDist.set(v, d + 1);
+                    bfsQueue.push(v);
+                  }
                 }
               }
             }
           }
 
-          const dfs = (curr) => {
+          // C. Detect Back-Edges and Latch Pairs using Directed Cycle Analysis
+          const canReach = (from, to) => {
+            const q = [from];
+            const seen = new Set([from]);
+            while (q.length > 0) {
+              const curr = q.shift();
+              if (curr === to) return true;
+              for (const e of adjOut.get(curr)) {
+                if (!subSet.has(e.toId) || seen.has(e.toId)) continue;
+                seen.add(e.toId);
+                q.push(e.toId);
+              }
+            }
+            return false;
+          };
+
+          const backEdges = new Set();
+          const latchPairs = [];
+          const isSequentialType = (type) => type === 'SHIFT_REG' || type === 'COUNTER' || ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(type);
+
+          // Step 1: Mutual 2-cycles (cross-coupled latch pairs e.g. NAND/NOR latches)
+          for (const u of sub) {
+            const uComp = compMap.get(u);
+            const uIsSeq = isSequentialType(uComp.type);
+            for (const edge of adjOut.get(u)) {
+              const v = edge.toId;
+              if (u < v && subSet.has(v) && adjOut.get(v).some(e => e.toId === u)) {
+                const vComp = compMap.get(v);
+                const vIsSeq = isSequentialType(vComp.type);
+                if (uIsSeq && !vIsSeq) {
+                  backEdges.add(`${u}->${v}`);
+                } else if (!uIsSeq && vIsSeq) {
+                  backEdges.add(`${v}->${u}`);
+                } else {
+                  backEdges.add(`${u}->${v}`);
+                  backEdges.add(`${v}->${u}`);
+                  latchPairs.push({ a: u, b: v });
+                }
+              }
+            }
+          }
+
+          // Step 2: Backwards edges where bfsDist(u) > bfsDist(v) closing a cycle
+          for (const u of sub) {
+            for (const edge of adjOut.get(u)) {
+              const v = edge.toId;
+              if (!subSet.has(v) || backEdges.has(`${u}->${v}`)) continue;
+              if (bfsDist.get(u) > bfsDist.get(v) && canReach(v, u)) {
+                backEdges.add(`${u}->${v}`);
+              }
+            }
+          }
+
+          // Step 3: Break any remaining cycles via DFS on forward edges
+          const dfsVisited = new Set();
+          const inStack = new Set();
+          const breakRemainingCycles = (curr) => {
             dfsVisited.add(curr);
             inStack.add(curr);
             for (const edge of adjOut.get(curr)) {
               const next = edge.toId;
-              if (!subSet.has(next)) continue;
+              if (!subSet.has(next) || backEdges.has(`${curr}->${next}`)) continue;
               if (inStack.has(next)) {
                 backEdges.add(`${curr}->${next}`);
               } else if (!dfsVisited.has(next)) {
-                dfs(next);
+                breakRemainingCycles(next);
               }
             }
             inStack.delete(curr);
           };
+          for (const r of roots) if (!dfsVisited.has(r)) breakRemainingCycles(r);
+          for (const id of sub) if (!dfsVisited.has(id)) breakRemainingCycles(id);
 
-          for (const r of roots) if (!dfsVisited.has(r)) dfs(r);
-          for (const id of sub) if (!dfsVisited.has(id)) dfs(id);
-
-          // C. Forward Topological Layers (Longest Path on DAG)
+          // D. Forward Topological DAG Layering (Longest path on DAG)
           const inDegreeDAG = new Map();
           for (const id of sub) inDegreeDAG.set(id, 0);
 
           for (const u of sub) {
             for (const edge of adjOut.get(u)) {
               const v = edge.toId;
-              if (!subSet.has(v)) continue;
-              if (!backEdges.has(`${u}->${v}`)) {
-                inDegreeDAG.set(v, inDegreeDAG.get(v) + 1);
-              }
+              if (!subSet.has(v) || backEdges.has(`${u}->${v}`)) continue;
+              inDegreeDAG.set(v, inDegreeDAG.get(v) + 1);
             }
           }
 
@@ -13067,8 +13192,7 @@
             const uLayer = layerMap.get(u) || 0;
             for (const edge of adjOut.get(u)) {
               const v = edge.toId;
-              if (!subSet.has(v)) continue;
-              if (backEdges.has(`${u}->${v}`)) continue;
+              if (!subSet.has(v) || backEdges.has(`${u}->${v}`)) continue;
               const vLayer = Math.max(layerMap.get(v) ?? 0, uLayer + 1);
               layerMap.set(v, vLayer);
               const deg = inDegreeDAG.get(v) - 1;
@@ -13081,7 +13205,22 @@
             if (!layerMap.has(id)) layerMap.set(id, 0);
           }
 
-          // Pull Sinks / Displays to appropriate output stage (align on right margin)
+          // Synchronize latch pair layers to the maximum of both
+          for (const { a, b } of latchPairs) {
+            const targetL = Math.max(layerMap.get(a) || 0, layerMap.get(b) || 0);
+            layerMap.set(a, targetL);
+            layerMap.set(b, targetL);
+          }
+
+          // Primary sources (Switches, Clocks, Buttons) MUST stay in Layer 0
+          for (const id of sub) {
+            const c = compMap.get(id);
+            if (isSourceType(c.type)) {
+              layerMap.set(id, 0);
+            }
+          }
+
+          // Sinks / Displays to rightmost stage fed by inputs
           for (const id of sub) {
             const c = compMap.get(id);
             const outEdgesSub = adjOut.get(id).filter(e => subSet.has(e.toId));
@@ -13094,26 +13233,13 @@
             }
           }
 
-          // ALAP Layering for Sources that only feed downstream stages (minTargetL > 1)
-          for (const id of sub) {
-            const inEdgesSub = adjIn.get(id).filter(e => subSet.has(e.fromId));
-            const outEdgesSub = adjOut.get(id).filter(e => subSet.has(e.toId));
-            if (inEdgesSub.length === 0 && outEdgesSub.length > 0) {
-              const targetLayers = outEdgesSub.map(e => layerMap.get(e.toId) ?? 1);
-              const minTargetL = Math.min(...targetLayers);
-              if (minTargetL > 1) {
-                layerMap.set(id, minTargetL - 1);
-              }
-            }
-          }
-
           const maxL = Math.max(...Array.from(layerMap.values()));
           const layers = Array.from({ length: maxL + 1 }, () => []);
           for (const id of sub) {
             layers[layerMap.get(id)].push(id);
           }
 
-          // D. Pin-Aware Sorting & Crossing Minimization
+          // E. Pin-Aware Sorting & Latch Vertical Ordering
           const getGateTypeOrder = (type) => {
             if (type === 'XOR' || type === 'XNOR') return 10;
             if (type === 'AND' || type === 'NAND') return 20;
@@ -13139,21 +13265,7 @@
             return bias;
           };
 
-          // 1. Initial layer-by-layer sort:
-          for (let l = 1; l <= maxL; l++) {
-            layers[l].sort((a, b) => {
-              const inA = adjIn.get(a).filter(e => subSet.has(e.fromId));
-              const inB = adjIn.get(b).filter(e => subSet.has(e.fromId));
-              const pinA = inA.length > 0 ? inA.reduce((s, e) => s + e.toPinRelY, 0) / inA.length : 50;
-              const pinB = inB.length > 0 ? inB.reduce((s, e) => s + e.toPinRelY, 0) / inB.length : 50;
-              if (pinA !== pinB) return pinA - pinB;
-              const typeDiff = getGateTypeOrder(compMap.get(a).type) - getGateTypeOrder(compMap.get(b).type);
-              if (typeDiff !== 0) return typeDiff;
-              return (compMap.get(a).params.label || '').localeCompare(compMap.get(b).params.label || '');
-            });
-          }
-
-          // 2. Sort Layer 0 (Inputs/Sources) strictly by target pin Y to eliminate crossings:
+          // Sort Layer 0 (Primary inputs): by target layer and target pin Y
           layers[0].sort((a, b) => {
             const outA = adjOut.get(a).filter(e => subSet.has(e.toId));
             const outB = adjOut.get(b).filter(e => subSet.has(e.toId));
@@ -13163,8 +13275,7 @@
               let minKey = Infinity;
               for (const e of edges) {
                 const targetL = layerMap.get(e.toId) ?? 1;
-                const targetIdx = layers[targetL] ? layers[targetL].indexOf(e.toId) : 0;
-                const key = targetL * 100000 + Math.max(0, targetIdx) * 1000 + e.toPinRelY;
+                const key = targetL * 100000 + e.toPinRelY;
                 if (key < minKey) minKey = key;
               }
               return minKey;
@@ -13176,14 +13287,42 @@
             return (compMap.get(a).params.label || '').localeCompare(compMap.get(b).params.label || '');
           });
 
-          // 3. Forward & Backward Sweeps with Pin-Barycenter & Semantic Tie-Breaking:
-          for (let sweep = 0; sweep < 2; sweep++) {
+          // Initial sort for layers 1..maxL
+          for (let l = 1; l <= maxL; l++) {
+            layers[l].sort((a, b) => {
+              const lblA = (compMap.get(a).params.label || '').toLowerCase();
+              const lblB = (compMap.get(b).params.label || '').toLowerCase();
+              const isNotQA = lblA.includes('q\'') || lblA.includes('qn') || lblA.includes('nq') || lblA.includes('q_bar');
+              const isNotQB = lblB.includes('q\'') || lblB.includes('qn') || lblB.includes('nq') || lblB.includes('q_bar');
+              if (!isNotQA && isNotQB) return -1;
+              if (isNotQA && !isNotQB) return 1;
+
+              const inA = adjIn.get(a).filter(e => subSet.has(e.fromId));
+              const inB = adjIn.get(b).filter(e => subSet.has(e.fromId));
+              const pinA = inA.length > 0 ? inA.reduce((s, e) => s + e.toPinRelY, 0) / inA.length : 50;
+              const pinB = inB.length > 0 ? inB.reduce((s, e) => s + e.toPinRelY, 0) / inB.length : 50;
+              if (pinA !== pinB) return pinA - pinB;
+              const typeDiff = getGateTypeOrder(compMap.get(a).type) - getGateTypeOrder(compMap.get(b).type);
+              if (typeDiff !== 0) return typeDiff;
+              return (compMap.get(a).params.label || '').localeCompare(compMap.get(b).params.label || '');
+            });
+          }
+
+          // Forward & Backward Barycenter Sweeps
+          for (let sweep = 0; sweep < 3; sweep++) {
             // Forward pass (layers 1..maxL)
             for (let l = 1; l <= maxL; l++) {
               const prevIdx = new Map();
               layers[l - 1].forEach((id, idx) => prevIdx.set(id, idx));
 
               layers[l].sort((a, b) => {
+                const lblA = (compMap.get(a).params.label || '').toLowerCase();
+                const lblB = (compMap.get(b).params.label || '').toLowerCase();
+                const isNotQA = lblA.includes('q\'') || lblA.includes('qn') || lblA.includes('nq') || lblA.includes('q_bar');
+                const isNotQB = lblB.includes('q\'') || lblB.includes('qn') || lblB.includes('nq') || lblB.includes('q_bar');
+                if (!isNotQA && isNotQB) return -1;
+                if (isNotQA && !isNotQB) return 1;
+
                 const inA = adjIn.get(a).filter(e => prevIdx.has(e.fromId));
                 const inB = adjIn.get(b).filter(e => prevIdx.has(e.fromId));
 
@@ -13195,15 +13334,10 @@
                   : 99999;
 
                 if (scoreA !== scoreB) return scoreA - scoreB;
-
-                // Tie-breaking: Type Priority (XOR sum rail top, AND/OR carry rail bottom)
                 const typeDiff = getGateTypeOrder(compMap.get(a).type) - getGateTypeOrder(compMap.get(b).type);
                 if (typeDiff !== 0) return typeDiff;
-
-                // Successor Bias
                 const biasDiff = getSuccessorBias(a) - getSuccessorBias(b);
                 if (biasDiff !== 0) return biasDiff;
-
                 return (compMap.get(a).params.label || '').localeCompare(compMap.get(b).params.label || '');
               });
             }
@@ -13211,6 +13345,13 @@
             // Backward pass (layers maxL-1 .. 1)
             for (let l = maxL - 1; l >= 1; l--) {
               layers[l].sort((a, b) => {
+                const lblA = (compMap.get(a).params.label || '').toLowerCase();
+                const lblB = (compMap.get(b).params.label || '').toLowerCase();
+                const isNotQA = lblA.includes('q\'') || lblA.includes('qn') || lblA.includes('nq') || lblA.includes('q_bar');
+                const isNotQB = lblB.includes('q\'') || lblB.includes('qn') || lblB.includes('nq') || lblB.includes('q_bar');
+                if (!isNotQA && isNotQB) return -1;
+                if (isNotQA && !isNotQB) return 1;
+
                 const outA = adjOut.get(a).filter(e => subSet.has(e.toId));
                 const outB = adjOut.get(b).filter(e => subSet.has(e.toId));
 
@@ -13227,26 +13368,21 @@
 
                 const scoreA = getTargetMetric(outA);
                 const scoreB = getTargetMetric(outB);
-
                 if (scoreA !== scoreB) return scoreA - scoreB;
-
                 const typeDiff = getGateTypeOrder(compMap.get(a).type) - getGateTypeOrder(compMap.get(b).type);
                 if (typeDiff !== 0) return typeDiff;
-
                 const biasDiff = getSuccessorBias(a) - getSuccessorBias(b);
                 if (biasDiff !== 0) return biasDiff;
-
                 return (compMap.get(a).params.label || '').localeCompare(compMap.get(b).params.label || '');
               });
             }
           }
 
-          // E. Pin-to-Pin Direct Alignment & Grid Snapping
+          // F. Coordinates Assignment & Corridor Clearance
           const startX = 80;
           const colGap = 160;
-          const minRowGap = 40;
+          const minRowGap = 60; // 60px provides clean corridor for cross-coupling wires
 
-          // X Coordinates per column
           const colWidths = layers.map(layerNodes => {
             let maxW = 80;
             for (const id of layerNodes) {
@@ -13261,7 +13397,6 @@
             layerX[l] = layerX[l - 1] + colWidths[l - 1] + colGap;
           }
 
-          // Assign X coordinates
           for (let l = 0; l <= maxL; l++) {
             for (const id of layers[l]) {
               const c = compMap.get(id);
@@ -13270,8 +13405,7 @@
             }
           }
 
-          // Y Coordinates: Pin-to-Pin Alignment
-          // Place Layer 0 initial spacing
+          // Y Coordinates: Initial spacing for Layer 0
           let curY0 = currentGlobalY;
           for (const id of layers[0]) {
             const c = compMap.get(id);
@@ -13279,21 +13413,19 @@
             curY0 += c.height + minRowGap;
           }
 
-          // Propagate Pin-Aligned Heights to downstream layers
+          // Downstream Pin-Alignment
           for (let l = 1; l <= maxL; l++) {
             for (const id of layers[l]) {
               const c = compMap.get(id);
               const inEdges = adjIn.get(id).filter(e => subSet.has(e.fromId));
 
               if (inEdges.length > 0) {
-                // Find target Y that aligns as many pins as possible
                 const sameTypeEdge = inEdges.find(e => compMap.get(e.fromId) && compMap.get(e.fromId).type === c.type);
                 if (sameTypeEdge) {
                   const fromComp = compMap.get(sameTypeEdge.fromId);
                   const ideal = (fromComp.y + sameTypeEdge.fromPinRelY) - sameTypeEdge.toPinRelY;
                   c.y = Math.round(ideal / GRID_SIZE) * GRID_SIZE;
                 } else {
-                  // Prioritize gate/data input (non-source) over auxiliary control inputs
                   const primaryEdge = inEdges.find(e => {
                     const fc = compMap.get(e.fromId);
                     return fc && !isSourceType(fc.type);
@@ -13304,7 +13436,6 @@
                   c.y = Math.round(ideal / GRID_SIZE) * GRID_SIZE;
                 }
               } else {
-                // Pure source placed in layer l: align directly to target
                 const outEdges = adjOut.get(id).filter(e => subSet.has(e.toId));
                 if (outEdges.length > 0) {
                   const e = outEdges[0];
