@@ -2519,28 +2519,6 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
               <span>Eigenschaften (Inspector)</span>
             </button>
-            <div class="app-menu-divider"></div>
-            <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
-            <button class="app-menu-item" data-theme-btn="modern">
-              <span class="norm-check" id="check-theme-modern">✓</span>
-              <span>Modern Dark (CAD Slate)</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="pitch_black">
-              <span class="norm-check" id="check-theme-pitch_black">&nbsp;</span>
-              <span>Pitch Black (OLED)</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="java_swing">
-              <span class="norm-check" id="check-theme-java_swing">&nbsp;</span>
-              <span>Java Swing Classic (Retro 90s)</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="blueprint">
-              <span class="norm-check" id="check-theme-blueprint">&nbsp;</span>
-              <span>Nordic Blueprint (Technik-Papier)</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="light_cad">
-              <span class="norm-check" id="check-theme-light_cad">&nbsp;</span>
-              <span>Clean Light (Ingenieurs-Weiß)</span>
-            </button>
           </div>
         </div>
 
@@ -2557,25 +2535,6 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg>
               <span>Boolesche Schaltalgebra &amp; Synthese...</span>
               <span class="menu-shortcut">Strg+B</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Norm -->
-        <div class="menubar-item" data-menu="norm">
-          <button class="menubar-btn" id="mbtn-norm">Norm</button>
-          <div class="menubar-dropdown" id="mdropdown-norm" style="display: none;">
-            <button class="app-menu-item" id="menu-norm-din40700">
-              <span class="norm-check" id="check-norm-din40700">✓</span>
-              <span>DIN 40700 (Deutsch / Ursprünglich)</span>
-            </button>
-            <button class="app-menu-item" id="menu-norm-din60617">
-              <span class="norm-check" id="check-norm-din60617">&nbsp;</span>
-              <span>DIN EN 60617 (IEC / International)</span>
-            </button>
-            <button class="app-menu-item" id="menu-norm-ansi">
-              <span class="norm-check" id="check-norm-ansi">&nbsp;</span>
-              <span>ANSI / IEEE (US-Formen)</span>
             </button>
           </div>
         </div>
@@ -2936,9 +2895,15 @@
             <button id="btn-analyzer-set-out" class="btn" style="padding: 2px 7px; font-size: 11px;" title="Out-Klammer ']' an aktueller Cursor-Position setzen (Taste O)">
               <span style="font-weight:700; color:var(--accent-blue);">]</span> Out
             </button>
+            <button id="btn-analyzer-loop-step-prev" class="btn" style="padding: 2px 6px; font-size: 11px;" title="1 Tick zurück innerhalb der Klammer">
+              <span>◀</span>
+            </button>
             <button id="btn-analyzer-loop" class="btn" style="padding: 2px 8px; font-size: 11px;" title="Eingeklammerten Bereich in einer Animation abspielen (Taste L)">
               <span class="btn-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
               <span id="analyzer-loop-text">Loop Play</span>
+            </button>
+            <button id="btn-analyzer-loop-step-next" class="btn" style="padding: 2px 6px; font-size: 11px;" title="1 Tick vorwärts innerhalb der Klammer">
+              <span>▶</span>
             </button>
             <button id="btn-analyzer-clear-range" class="btn" style="padding: 2px 6px; font-size: 11px;" title="Klammern / Loop-Bereich aufheben">
               <span>✕</span>
@@ -5300,34 +5265,61 @@
           }
         } else {
           // Backward / feedback wire
-          // Case A: Gates in the same column or adjacent (e.g. cross-coupled SR Latch):
-          if (x1 - x2 <= 140) {
-            const trackX = x1 + 20 + Math.abs(channelOffset || 0);
-            pts.push({ x: trackX, y: y1 });
-            pts.push({ x: trackX, y: y2 });
-            pts.push({ x: x2, y: y2 });
-          } else {
-            // Case B: Multi-stage backward wire (route via outer perimeter around circuitMaxY)
-            let circuitMaxY = 400;
-            if (this.circuit && this.circuit.components && this.circuit.components.length > 0) {
-              let cMaxY = -Infinity;
-              for (const c of this.circuit.components) {
-                if (c.y + c.height > cMaxY) cMaxY = c.y + c.height;
-              }
-              if (cMaxY > -Infinity) circuitMaxY = cMaxY;
+          // Must exit source gate to the right: (exitX, y1)
+          // Must enter target gate strictly from the left: (enterX, y2) -> (x2, y2)
+          const off = Math.abs(channelOffset || 0);
+          const exitX = Math.round((x1 + 20 + off) / GRID_SIZE) * GRID_SIZE;
+          const enterX = Math.round((x2 - 20 - off) / GRID_SIZE) * GRID_SIZE;
+
+          // Compute circuit bounding box for safe perimeter clearance
+          let circuitMinY = 60;
+          let circuitMaxY = 400;
+          if (this.circuit && this.circuit.components && this.circuit.components.length > 0) {
+            let cMinY = Infinity, cMaxY = -Infinity;
+            for (const c of this.circuit.components) {
+              if (c.y < cMinY) cMinY = c.y;
+              if (c.y + c.height > cMaxY) cMaxY = c.y + c.height;
             }
-
-            // Turn down in the immediate channel after x1, so we do NOT travel past downstream gates (like LEDs)
-            const exitX = Math.round((x1 + 40 + (channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
-            const routeY = Math.round((circuitMaxY + 40 + Math.abs(channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
-            const enterX = Math.round((x2 - 20 - Math.abs(channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
-
-            pts.push({ x: exitX, y: y1 });
-            pts.push({ x: exitX, y: routeY });
-            pts.push({ x: enterX, y: routeY });
-            pts.push({ x: enterX, y: y2 });
-            pts.push({ x: x2, y: y2 });
+            if (cMinY < Infinity) circuitMinY = cMinY;
+            if (cMaxY > -Infinity) circuitMaxY = cMaxY;
           }
+
+          // Candidate 1: Try open horizontal corridor between source and target
+          let chosenTransitY = null;
+          if (Math.abs(y1 - y2) >= 30) {
+            const midGapY = Math.round(((y1 + y2) / 2) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
+            const minX = Math.min(enterX, exitX);
+            const maxX = Math.max(enterX, exitX);
+
+            let hasCollision = false;
+            if (this.circuit && this.circuit.components) {
+              for (const c of this.circuit.components) {
+                // Strict collision check: does horizontal line at midGapY pass through inside of c?
+                if (midGapY > c.y + 4 && midGapY < c.y + c.height - 4 && maxX > c.x + 4 && minX < c.x + c.width - 4) {
+                  hasCollision = true;
+                  break;
+                }
+              }
+            }
+            if (!hasCollision) {
+              chosenTransitY = midGapY;
+            }
+          }
+
+          // Candidate 2: Perimeter routing above or below circuit bounds
+          if (chosenTransitY === null) {
+            if (y1 <= (circuitMinY + circuitMaxY) / 2) {
+              chosenTransitY = Math.round((circuitMinY - 40 - off) / GRID_SIZE) * GRID_SIZE;
+            } else {
+              chosenTransitY = Math.round((circuitMaxY + 40 + off) / GRID_SIZE) * GRID_SIZE;
+            }
+          }
+
+          pts.push({ x: exitX, y: y1 });
+          pts.push({ x: exitX, y: chosenTransitY });
+          pts.push({ x: enterX, y: chosenTransitY });
+          pts.push({ x: enterX, y: y2 });
+          pts.push({ x: x2, y: y2 });
         }
 
         return this.simplifyCollinear(pts);
@@ -6208,16 +6200,16 @@
         const { x, y, width, height, type } = comp;
         const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
         const isXorType = type === 'XOR' || type === 'XNOR';
-        const hasInvInput = Boolean(comp.params.invertedInputs && comp.params.invertedInputs.some(Boolean));
         const rBubble = GATE_RENDER_METRICS.bubbleRadius;
         const dBubble = GATE_RENDER_METRICS.bubbleDiameter;
-        const inLeadInset = hasInvInput ? (dBubble + 2) : 0;
 
-        const gx1 = x + inLeadInset + (isXorType ? (style === 'ANSI' ? 6 : 5) : 0);
-        const gx2 = isOutInv ? (x + width - dBubble - 2) : (x + width);
-        const gy1 = y + 4;
-        const gy2 = y + height - 4;
-        const cy = y + (comp.outputs[0]?.relY ?? height / 2);
+        // Pixel-perfect lead stubs (14px from component bounds):
+        const leadLen = 14;
+        const gx1 = Math.round(x + leadLen + (isXorType ? (style === 'ANSI' ? 5 : 4) : 0));
+        const gx2 = Math.round(x + width - leadLen);
+        const gy1 = Math.round(y + 4);
+        const gy2 = Math.round(y + height - 4);
+        const cy = Math.round(y + (comp.outputs[0]?.relY ?? height / 2));
         const bodyEnd = gx2;
 
         const highColor = this.highSignalColor || '#00e676';
@@ -6259,7 +6251,7 @@
             ctx.moveTo(gx1, gy1);
             ctx.bezierCurveTo(gx1 + (bodyEnd - gx1) * 0.55, gy1, bodyEnd - 6, cy - 3, bodyEnd, cy);
             ctx.bezierCurveTo(bodyEnd - 6, cy + 3, gx1 + (gx2 - gx1) * 0.55, gy2, gx1, gy2);
-            ctx.quadraticCurveTo(gx1 + 9, cy, gx1, gy1);
+            ctx.quadraticCurveTo(gx1 + 8, cy, gx1, gy1);
             ctx.closePath();
           } else {
             // DIN 40700 Spitzbogen / Halbei (convex lens shape)
@@ -6279,13 +6271,14 @@
         if (isXorType) {
           ctx.save();
           ctx.beginPath();
+          const arcBackX = Math.round(gx1 - (style === 'ANSI' ? 5 : 4));
           if (style === 'ANSI') {
-            ctx.moveTo(x + inLeadInset, gy1);
-            ctx.quadraticCurveTo(x + inLeadInset + 9, cy, x + inLeadInset, gy2);
+            ctx.moveTo(arcBackX, gy1);
+            ctx.quadraticCurveTo(arcBackX + 8, cy, arcBackX, gy2);
           } else {
             // DIN 40700: Parallel input boundary arc
-            ctx.moveTo(x + inLeadInset, gy1);
-            ctx.lineTo(x + inLeadInset, gy2);
+            ctx.moveTo(arcBackX, gy1);
+            ctx.lineTo(arcBackX, gy2);
           }
           ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
           ctx.lineWidth = isSelected ? 2 : 1.5;
@@ -6293,12 +6286,12 @@
           ctx.restore();
         }
 
-        // 3. Output Inversion Bubble & Lead Line
-        const outPinX = x + width;
+        // 3. Output Inversion Bubble & Pixel-Perfect Lead Stub
+        const outPinX = Math.round(x + width);
         const isOutHigh = comp.outputs[0]?.value === 1;
 
         if (isOutInv) {
-          const bx = bodyEnd + rBubble + 1;
+          const bx = Math.round(bodyEnd + rBubble);
           ctx.beginPath();
           ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
           ctx.fillStyle = pal.bg;
@@ -6306,34 +6299,50 @@
           ctx.strokeStyle = isSelected ? '#00b0ff' : (isOutHigh ? highColor : pal.gateStroke);
           ctx.lineWidth = 1.6;
           ctx.stroke();
-        }
 
-        const outLeadStart = isOutInv ? bodyEnd + dBubble + 1 : bodyEnd;
-        if (outLeadStart < outPinX) {
+          const outLeadStart = Math.round(bodyEnd + dBubble);
           ctx.save();
           ctx.beginPath();
           ctx.moveTo(outLeadStart, cy);
           ctx.lineTo(outPinX, cy);
           ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
-          ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
-          if (isOutHigh) {
+          ctx.lineWidth = isOutHigh ? 2.2 : 1.5;
+          if (isOutHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
             ctx.shadowColor = highGlow;
-            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
+            ctx.shadowBlur = 6;
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(bodyEnd, cy);
+          ctx.lineTo(outPinX, cy);
+          ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
+          ctx.lineWidth = isOutHigh ? 2.2 : 1.5;
+          if (isOutHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+            ctx.shadowColor = highGlow;
+            ctx.shadowBlur = 6;
           }
           ctx.stroke();
           ctx.restore();
         }
 
-        // 4. Input Lead Lines & Inversion Bubbles
-        const inputBoundaryX = isXorType ? (x + inLeadInset) : gx1;
+        // 4. Input Lead Stubs & Inversion Bubbles
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
-          const py = y + pin.relY;
+          const py = Math.round(y + pin.relY);
           const isHigh = pin.value === 1;
           const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
+          let leadTargetX = gx1;
+          if ((type === 'OR' || type === 'NOR' || isXorType) && style === 'ANSI') {
+            const relNormY = Math.abs(py - cy) / Math.max(1, (gy2 - gy1) / 2);
+            leadTargetX = Math.round(gx1 + 8 * (1 - relNormY * relNormY));
+          }
+
           if (isInv) {
-            const bx = inputBoundaryX - rBubble - 1;
+            const bx = Math.round(leadTargetX - rBubble);
             ctx.beginPath();
             ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
             ctx.fillStyle = pal.bg;
@@ -6341,25 +6350,30 @@
             ctx.strokeStyle = isSelected ? '#00b0ff' : (isHigh ? highColor : pal.gateStroke);
             ctx.lineWidth = 1.5;
             ctx.stroke();
-          }
 
-          let leadTargetX = inputBoundaryX;
-          if ((type === 'OR' || type === 'NOR' || isXorType) && style === 'ANSI') {
-            const relNormY = Math.abs(py - cy) / Math.max(1, (gy2 - gy1) / 2);
-            leadTargetX = gx1 + Math.max(0, 9 * (1 - relNormY * relNormY));
-          }
-
-          const inLeadEnd = isInv ? inputBoundaryX - dBubble - 1 : leadTargetX;
-          if (inLeadEnd > x) {
+            const leadEnd = Math.round(leadTargetX - dBubble);
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(x, py);
-            ctx.lineTo(inLeadEnd, py);
+            ctx.lineTo(leadEnd, py);
             ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
-            ctx.lineWidth = isHigh ? 2.2 : 1.4;
-            if (isHigh) {
+            ctx.lineWidth = isHigh ? 2.2 : 1.5;
+            if (isHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
               ctx.shadowColor = highGlow;
-              ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
+              ctx.shadowBlur = 6;
+            }
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, py);
+            ctx.lineTo(leadTargetX, py);
+            ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
+            ctx.lineWidth = isHigh ? 2.2 : 1.5;
+            if (isHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+              ctx.shadowColor = highGlow;
+              ctx.shadowBlur = 6;
             }
             ctx.stroke();
             ctx.restore();
@@ -6373,17 +6387,17 @@
       drawGateIEC(ctx, comp, isSelected) {
         const { x, y, width, height, type } = comp;
         const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
-        const hasInvInput = Boolean(comp.params.invertedInputs && comp.params.invertedInputs.some(Boolean));
-        const cx = x + width / 2;
-        const cy = y + (comp.outputs[0]?.relY ?? height / 2);
+        const cy = Math.round(y + (comp.outputs[0]?.relY ?? height / 2));
         const rBubble = GATE_RENDER_METRICS.bubbleRadius;
         const dBubble = GATE_RENDER_METRICS.bubbleDiameter;
-        const inLeadInset = hasInvInput ? (dBubble + 2) : 0;
 
-        const gx1 = x + inLeadInset;
-        const gx2 = isOutInv ? (x + width - dBubble - 2) : (x + width);
-        const gy1 = y + 4;
-        const gy2 = y + height - 4;
+        // Pixel-perfect lead stubs (14px from component bounds):
+        const leadLen = 14;
+        const gx1 = Math.round(x + leadLen);
+        const gx2 = Math.round(x + width - leadLen);
+        const gy1 = Math.round(y + 4);
+        const gy2 = Math.round(y + height - 4);
+        const cx = Math.round((gx1 + gx2) / 2);
 
         const highColor = this.highSignalColor || '#00e676';
         const highGlow = this.highSignalGlow || 'rgba(0, 230, 118, 0.6)';
@@ -6412,12 +6426,12 @@
         const sym = GATE_IEC_SYMBOLS[type] || (type.startsWith('X') ? (comp.params.xorMode === 'parity' ? '≠' : '=1') : '&');
         ctx.fillText(sym, cx, cy + 5);
 
-        // Output Bubble & Lead Line
-        const outPinX = x + width;
+        // Output Bubble & Pixel-Perfect Lead Stub
+        const outPinX = Math.round(x + width);
         const isOutHigh = comp.outputs[0]?.value === 1;
 
         if (isOutInv) {
-          const bx = gx2 + rBubble + 1;
+          const bx = Math.round(gx2 + rBubble);
           ctx.beginPath();
           ctx.arc(bx, cy, rBubble, 0, Math.PI * 2);
           ctx.fillStyle = pal.bg;
@@ -6425,33 +6439,44 @@
           ctx.strokeStyle = isSelected ? '#00b0ff' : (isOutHigh ? highColor : pal.gateStroke);
           ctx.lineWidth = 1.6;
           ctx.stroke();
-        }
 
-        const outLeadStart = isOutInv ? gx2 + dBubble + 1 : gx2;
-        if (outLeadStart < outPinX) {
+          const outLeadStart = Math.round(gx2 + dBubble);
           ctx.save();
           ctx.beginPath();
           ctx.moveTo(outLeadStart, cy);
           ctx.lineTo(outPinX, cy);
           ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
-          ctx.lineWidth = isOutHigh ? 2.2 : 1.4;
-          if (isOutHigh) {
+          ctx.lineWidth = isOutHigh ? 2.2 : 1.5;
+          if (isOutHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
             ctx.shadowColor = highGlow;
-            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
+            ctx.shadowBlur = 6;
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(gx2, cy);
+          ctx.lineTo(outPinX, cy);
+          ctx.strokeStyle = isOutHigh ? highColor : pal.leadLine;
+          ctx.lineWidth = isOutHigh ? 2.2 : 1.5;
+          if (isOutHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+            ctx.shadowColor = highGlow;
+            ctx.shadowBlur = 6;
           }
           ctx.stroke();
           ctx.restore();
         }
 
-        // Input Bubbles & Lead Lines
+        // Input Bubbles & Pixel-Perfect Lead Stubs
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
-          const py = y + pin.relY;
+          const py = Math.round(y + pin.relY);
           const isHigh = pin.value === 1;
           const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
           if (isInv) {
-            const bx = gx1 - rBubble - 1;
+            const bx = Math.round(gx1 - rBubble);
             ctx.beginPath();
             ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
             ctx.fillStyle = pal.bg;
@@ -6459,19 +6484,30 @@
             ctx.strokeStyle = isSelected ? '#00b0ff' : (isHigh ? highColor : pal.gateStroke);
             ctx.lineWidth = 1.5;
             ctx.stroke();
-          }
 
-          const inLeadEnd = isInv ? gx1 - dBubble - 1 : gx1;
-          if (inLeadEnd > x) {
+            const leadEnd = Math.round(gx1 - dBubble);
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(x, py);
-            ctx.lineTo(inLeadEnd, py);
+            ctx.lineTo(leadEnd, py);
             ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
-            ctx.lineWidth = isHigh ? 2.2 : 1.4;
-            if (isHigh) {
+            ctx.lineWidth = isHigh ? 2.2 : 1.5;
+            if (isHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
               ctx.shadowColor = highGlow;
-              ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
+              ctx.shadowBlur = 6;
+            }
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, py);
+            ctx.lineTo(gx1, py);
+            ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
+            ctx.lineWidth = isHigh ? 2.2 : 1.5;
+            if (isHigh && this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+              ctx.shadowColor = highGlow;
+              ctx.shadowBlur = 6;
             }
             ctx.stroke();
             ctx.restore();
@@ -7226,6 +7262,22 @@
         if (this.callbacks?.onLoopStateChange) this.callbacks.onLoopStateChange();
       }
 
+      stepLoop(direction) {
+        const total = this.ringBuffer.count;
+        if (total === 0) return;
+        if (this.isLoopPlaying) {
+          this.stopLoopAnimation();
+        }
+        const minOffset = this.loopRange ? this.loopRange.inOffset : 0;
+        const maxOffset = this.loopRange ? this.loopRange.outOffset : (total - 1);
+        let cur = this.playheadOffset !== null ? this.playheadOffset : minOffset;
+        let next = cur + direction;
+        if (next < minOffset) next = maxOffset;
+        else if (next > maxOffset) next = minOffset;
+        this.setPlayheadOffset(next);
+        this.render();
+      }
+
       updateLoopUi() {
         const badge = document.getElementById('analyzer-playhead-info');
         if (!badge) return;
@@ -7291,9 +7343,37 @@
         const isOled = this.appTheme === 'pitch_black';
         const isBlue = this.appTheme === 'blueprint';
         const bgColor = isLight ? (this.appTheme === 'java_swing' ? '#ffffff' : '#f8fafc') : (isOled ? '#000000' : (isBlue ? '#071527' : '#080a0d'));
-        const headerBg = isLight ? '#ece9d8' : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#10141b'));
-        const textColor = isLight ? '#000000' : (isBlue ? '#93c5fd' : '#94a3b8');
-        const gridBorder = isLight ? '#808080' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#1e2633'));
+        const headerBg = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#f1f5f9') : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#10141b'));
+        const textColor = isLight ? (this.appTheme === 'java_swing' ? '#000000' : '#0f172a') : (isBlue ? '#93c5fd' : '#94a3b8');
+        const gridBorder = isLight ? (this.appTheme === 'java_swing' ? '#808080' : '#cbd5e1') : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#1e2633'));
+
+        const gutterRowBg = isLight
+          ? (this.appTheme === 'java_swing' ? '#dfdacb' : '#f1f5f9')
+          : (isOled ? '#09090b' : (isBlue ? '#0c2344' : '#0e1218'));
+        const gutterBorder = isLight
+          ? (this.appTheme === 'java_swing' ? '#808080' : '#cbd5e1')
+          : (isOled ? '#27272a' : (isBlue ? '#1e497d' : '#222936'));
+        const rowDivider = isLight
+          ? (this.appTheme === 'java_swing' ? '#c4c0b8' : '#e2e8f0')
+          : (isOled ? '#1c1c20' : (isBlue ? '#143261' : '#141922'));
+        const tickLineMajor = isLight
+          ? (this.appTheme === 'java_swing' ? '#b0a898' : '#cbd5e1')
+          : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#1b2330'));
+        const tickLineMinor = isLight
+          ? (this.appTheme === 'java_swing' ? '#dfdacb' : '#f1f5f9')
+          : (isOled ? '#18181b' : (isBlue ? '#0f2747' : '#11161f'));
+        const tickTextColor = isLight
+          ? (this.appTheme === 'java_swing' ? '#333333' : '#64748b')
+          : (isBlue ? '#60a5fa' : '#64748b');
+        const probeTextColor = isLight
+          ? (this.appTheme === 'java_swing' ? '#000000' : '#0f172a')
+          : (isOled ? '#f4f4f5' : (isBlue ? '#e0f2fe' : '#e2e8f0'));
+        const inactiveValColor = isLight
+          ? (this.appTheme === 'java_swing' ? '#555555' : '#64748b')
+          : '#64748b';
+        const deleteBtnColor = isLight
+          ? (this.appTheme === 'java_swing' ? '#777777' : '#94a3b8')
+          : (isOled ? '#71717a' : (isBlue ? '#3b82f6' : '#475569'));
 
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
@@ -7377,7 +7457,7 @@
             : (totalSamples > 0 ? this.ringBuffer.getTickAtOffset(totalSamples - 1) + (offset - totalSamples + 1) : i + 1);
 
           const isMajor = (tickNum % labelInterval) === 0;
-          ctx.strokeStyle = isMajor ? '#1b2330' : '#11161f';
+          ctx.strokeStyle = isMajor ? tickLineMajor : tickLineMinor;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(x, headerH);
@@ -7385,7 +7465,7 @@
           ctx.stroke();
 
           if (isMajor && offset < totalSamples) {
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = tickTextColor;
             ctx.font = '9.5px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`${tickNum}`, x, 14);
@@ -7438,7 +7518,7 @@
           const color = probe.color || probe.params?.color || '#00e676';
           const probeName = probe.name || probe.params?.name || 'PRB';
 
-          ctx.strokeStyle = '#141922';
+          ctx.strokeStyle = rowDivider;
           ctx.beginPath();
           ctx.moveTo(0, rowTop + rowH);
           ctx.lineTo(width, rowTop + rowH);
@@ -7482,7 +7562,7 @@
             ctx.restore();
           }
 
-          ctx.fillStyle = '#0e1218';
+          ctx.fillStyle = gutterRowBg;
           ctx.fillRect(0, rowTop, this.gutterWidth, rowH - 1);
 
           ctx.fillStyle = color;
@@ -7490,7 +7570,7 @@
           ctx.arc(12, rowTop + rowH / 2, 4, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#e2e8f0';
+          ctx.fillStyle = probeTextColor;
           ctx.font = '600 11px monospace';
           ctx.textAlign = 'left';
           ctx.fillText(probeName.slice(0, 9), 22, rowTop + rowH / 2 + 4);
@@ -7502,7 +7582,7 @@
             ? this.ringBuffer.getValueAtOffset(probe.id, refOffset)
             : (currentVal || 0);
 
-          ctx.fillStyle = displayVal === 1 ? '#00e676' : '#64748b';
+          ctx.fillStyle = displayVal === 1 ? '#00e676' : inactiveValColor;
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 28, rowTop + rowH / 2 + 4);
@@ -7520,14 +7600,14 @@
             ctx.fill();
             ctx.fillStyle = '#ffffff';
           } else {
-            ctx.fillStyle = '#475569';
+            ctx.fillStyle = deleteBtnColor;
           }
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'center';
           ctx.fillText('✕', btnX + 8, btnY + 12);
         }
 
-        ctx.strokeStyle = '#222936';
+        ctx.strokeStyle = gutterBorder;
         ctx.beginPath();
         ctx.moveTo(this.gutterWidth, 0);
         ctx.lineTo(this.gutterWidth, height);
@@ -10500,12 +10580,9 @@
 
         const hudNormBadge = document.getElementById('hud-norm-badge');
         if (hudNormBadge) {
+          hudNormBadge.title = 'Schaltsymbol-Norm in den Einstellungen anpassen';
           hudNormBadge.addEventListener('click', () => {
-            const norms = ['DIN_40700', 'DIN_EN_60617', 'ANSI'];
-            const curIdx = norms.indexOf(this.renderer.symbolStandard);
-            const nextNorm = norms[(curIdx + 1) % norms.length];
-            this.setSymbolStandard(nextNorm);
-            this.saveSettings();
+            this.openSettingsModal();
           });
         }
 
@@ -12099,33 +12176,6 @@
           div1.className = 'ctx-divider';
           menu.appendChild(div1);
 
-          const subNorm = document.createElement('div');
-          subNorm.className = 'ctx-sub-label';
-          subNorm.textContent = 'Symbol-Norm umschalten:';
-          menu.appendChild(subNorm);
-
-          const normRow = document.createElement('div');
-          normRow.className = 'ctx-sub-row';
-          [
-            { key: 'DIN_40700', label: 'DIN 40700' },
-            { key: 'DIN_EN_60617', label: 'IEC' },
-            { key: 'ANSI', label: 'ANSI' }
-          ].forEach(n => {
-            const chip = document.createElement('span');
-            chip.className = 'ctx-chip' + (this.renderer.symbolStandard === n.key ? ' active' : '');
-            chip.textContent = n.label;
-            chip.addEventListener('click', () => {
-              this.setSymbolStandard(n.key);
-              this.hideContextMenu();
-            });
-            normRow.appendChild(chip);
-          });
-          menu.appendChild(normRow);
-
-          const div2 = document.createElement('div');
-          div2.className = 'ctx-divider';
-          menu.appendChild(div2);
-
           const autoLayoutAll = document.createElement('div');
           autoLayoutAll.className = 'ctx-item';
           autoLayoutAll.innerHTML = `<span>${ICONS.autoLayout}</span> <span>Schaltung & Gatter sauber anordnen</span>`;
@@ -12361,10 +12411,24 @@
           });
         }
 
+        const btnLoopPrev = document.getElementById('btn-analyzer-loop-step-prev');
+        if (btnLoopPrev) {
+          btnLoopPrev.addEventListener('click', () => {
+            this.analyzer.stepLoop(-1);
+          });
+        }
+
         const btnLoop = document.getElementById('btn-analyzer-loop');
         if (btnLoop) {
           btnLoop.addEventListener('click', () => {
             this.analyzer.toggleLoopAnimation();
+          });
+        }
+
+        const btnLoopNext = document.getElementById('btn-analyzer-loop-step-next');
+        if (btnLoopNext) {
+          btnLoopNext.addEventListener('click', () => {
+            this.analyzer.stepLoop(1);
           });
         }
 
@@ -12910,7 +12974,7 @@
           // E. Pin-to-Pin Direct Alignment & Grid Snapping
           const startX = 80;
           const colGap = 160;
-          const minRowGap = 20;
+          const minRowGap = 40;
 
           // X Coordinates per column
           const colWidths = layers.map(layerNodes => {
@@ -13775,17 +13839,6 @@
           if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
         });
 
-        // Theme buttons in View menu
-        document.querySelectorAll('#mdropdown-view [data-theme-btn]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            closeAllMenus();
-            const t = btn.getAttribute('data-theme-btn');
-            if (t) {
-              this.setAppTheme(t);
-            }
-          });
-        });
-
         // 4. Analyse
         document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
           closeAllMenus();
@@ -13796,24 +13849,7 @@
           this.openBoolSynthModal();
         });
 
-        // 5. Norm
-        document.getElementById('menu-norm-din40700')?.addEventListener('click', () => {
-          closeAllMenus();
-          this.setSymbolStandard('DIN_40700');
-          this.saveSettings();
-        });
-        document.getElementById('menu-norm-din60617')?.addEventListener('click', () => {
-          closeAllMenus();
-          this.setSymbolStandard('DIN_EN_60617');
-          this.saveSettings();
-        });
-        document.getElementById('menu-norm-ansi')?.addEventListener('click', () => {
-          closeAllMenus();
-          this.setSymbolStandard('ANSI');
-          this.saveSettings();
-        });
-
-        // 6. Demos
+        // 5. Demos
         document.querySelectorAll('#mdropdown-demos [data-demo]').forEach(btn => {
           btn.addEventListener('click', () => {
             closeAllMenus();
