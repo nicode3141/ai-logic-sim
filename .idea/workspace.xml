@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="bf672a25-2738-41bc-bb23-40f2f9c0489c" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.002264476802239" />
+      <entry key="MS500" value="1.5075054774683498" />
+      <entry key="S2" value="2.4917230950119116" />
+      <entry key="S5" value="4.217287163439712" />
+      <entry key="S10" value="6.890568090326566" />
+      <entry key="S30" value="10.819901272252023" />
+      <entry key="S60" value="12.278525458367092" />
+      <entry key="M2" value="13.128227111781069" />
+      <entry key="M5" value="15.118787580381586" />
+      <entry key="M10" value="20.78236645932087" />
+      <entry key="M15" value="25.790347055554655" />
+      <entry key="M30" value="34.53319854783337" />
+      <entry key="H1" value="41.15970625595204" />
+      <entry key="H2" value="45.260173592953834" />
+      <entry key="H4" value="47.544039514579374" />
+      <entry key="D1" value="49.578162327114036" />
+      <entry key="W1" value="49.93942349861484" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="0.0" />
+      <entry key="H2" value="0.0" />
+      <entry key="H4" value="0.0" />
+      <entry key="D1" value="0.0" />
+      <entry key="W1" value="0.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9416869947533573" />
+      <entry key="MS500" value="1.4886337193023715" />
+      <entry key="S2" value="2.4824889280112816" />
+      <entry key="S5" value="4.20445064965388" />
+      <entry key="S10" value="6.876684002835446" />
+      <entry key="S30" value="10.81168673109063" />
+      <entry key="S60" value="12.273761627916455" />
+      <entry key="M2" value="13.125660021875758" />
+      <entry key="M5" value="15.11769717465907" />
+      <entry key="M10" value="20.78177597579214" />
+      <entry key="M15" value="25.789927547468523" />
+      <entry key="M30" value="34.5329659018114" />
+      <entry key="H1" value="41.15958110936441" />
+      <entry key="H2" value="45.26010826124212" />
+      <entry key="H4" value="47.54400607623489" />
+      <entry key="D1" value="49.57815663897927" />
+      <entry key="W1" value="49.93942268309888" />
+    </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3Lh3M6OSRbaBIKhRmpeyJvKyKDH" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "begin",
+    "ignore.virus.scanning.warn.message": "true",
+    "javascript.preferred.runtime.type.id": "node",
+    "last_opened_file_path": "C:/Users/leqit/Documents/ai-logic-sim",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.intellij.mcpserver.settings"
+  }
+}]]></component>
+  <component name="QodanaHighlightedReportService">
+    <option name="localRunNotPublishedPersistedInfo">
+      <LocalReportPersistedInfo>
+        <option name="path" value="C:\Users\leqit\AppData\Local\Temp\qodana_output\qodana.sarif.json" />
+        <option name="reportGuid" value="82d7845d-24f1-4012-9514-1d014818c884" />
+        <option name="reportName" value="ai-logic-sim/qodana/2026-11-05" />
+      </LocalReportPersistedInfo>
+    </option>
+  </component>
+  <component name="QodanaIsSelectedPersistenceService">
+    <option name="selectedOrLoading" value="true" />
+  </component>
+  <component name="QodanaReportsService">
+    <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\leqit\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="82d7845d-24f1-4012-9514-1d014818c884" reportId="ai-logic-sim/qodana/2026-11-05" />
+    </option>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-56aff7b04f6f-JavaScript-WS-263.7307.202" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bf672a25-2738-41bc-bb23-40f2f9c0489c" name="Changes" comment="" />
+      <created>1793892424204</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1793892424204</updated>
+      <workItem from="1793892425575" duration="81000" />
+      <workItem from="1793896875613" duration="1925000" />
+      <workItem from="1793899194545" duration="21996000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="TEXT_FILTER_SETTINGS">
+                <TextFilterSettings>
+                  <option name="REGEX" value="true" />
+                </TextFilterSettings>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
