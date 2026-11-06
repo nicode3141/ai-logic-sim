@@ -742,23 +742,60 @@
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
+      height: 18px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
       height: 4px;
       background: var(--border-bright);
       border-radius: 2px;
-      outline: none;
       cursor: pointer;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: var(--accent-green);
       cursor: pointer;
       border: 2px solid var(--bg-deep);
       box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+      margin-top: -5px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.18);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      background: var(--border-bright);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      cursor: pointer;
+      border: 2px solid var(--bg-deep);
+      box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+    }
+
+    input[type="range"]:active::-moz-range-thumb {
+      transform: scale(1.18);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
     }
 
     select.select-input {
@@ -895,6 +932,32 @@
       color: var(--text-dim);
       margin-bottom: 6px;
       padding-left: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      transition: color 0.15s ease;
+    }
+
+    .category-title:hover {
+      color: var(--text-main);
+    }
+
+    .category-title::after {
+      content: '▾';
+      font-size: 9px;
+      opacity: 0.6;
+      transition: transform 0.15s ease;
+    }
+
+    .palette-category.collapsed .category-title::after {
+      content: '▸';
+      opacity: 0.8;
+    }
+
+    .palette-category.collapsed .palette-grid {
+      display: none !important;
     }
 
     .palette-grid {
@@ -2611,9 +2674,9 @@
             <span class="btn-text">Reset</span>
           </button>
 
-          <div class="freq-control disabled" id="freq-control-box">
+          <div class="freq-control" id="freq-control-box">
             <span class="freq-label">Takt:</span>
-            <input type="range" id="slider-freq" min="1" max="60" value="10" />
+            <input type="range" id="slider-freq" min="1" max="60" value="10" title="Taktfrequenz (1–60 Hz): Ziehen oder gedrückt halten zum Einstellen" />
             <span class="freq-val" id="label-freq">10 Hz</span>
           </div>
         </div>
@@ -7056,6 +7119,41 @@
           }
         });
 
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isScrubbing && !this.activeBracketDrag) return;
+          const rect = this.canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const totalSamples = this.ringBuffer.count;
+          if (totalSamples === 0) return;
+          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+          const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+
+          if (this.activeBracketDrag === 'in' && this.loopRange) {
+            const relIdx = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
+            this.loopRange.inOffset = targetOffset;
+            this.updateLoopUi();
+            this.render();
+            return;
+          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
+            const relIdx = Math.round((mx - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
+            this.loopRange.outOffset = targetOffset;
+            this.updateLoopUi();
+            this.render();
+            return;
+          }
+
+          if (this.isScrubbing) {
+            const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
+            this.setPlayheadOffset(targetOffset);
+            this.render();
+          }
+        });
+
         window.addEventListener('mouseup', () => {
           this.isScrubbing = false;
           this.activeBracketDrag = null;
@@ -7710,6 +7808,205 @@
 
         ctx.restore();
       }
+    }
+
+    /**
+     * Attaches continuous hold-to-repeat functionality to a button.
+     * Fires immediately, then after 350ms repeats actionFn() every 60ms while held down.
+     */
+    function attachHoldRepeat(btn, actionFn) {
+      if (!btn) return;
+      let timeoutId = null;
+      let intervalId = null;
+      let handledByMouse = false;
+
+      const stop = () => {
+        if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      };
+
+      const start = (e) => {
+        if (btn.disabled) return;
+        if (e && e.type === 'mousedown' && e.button !== 0) return;
+        stop();
+        handledByMouse = true;
+        actionFn();
+
+        timeoutId = setTimeout(() => {
+          intervalId = setInterval(() => {
+            if (btn.disabled) {
+              stop();
+              return;
+            }
+            actionFn();
+          }, 60);
+        }, 350);
+      };
+
+      btn.addEventListener('mousedown', start);
+      window.addEventListener('mouseup', () => {
+        stop();
+        setTimeout(() => { handledByMouse = false; }, 0);
+      });
+      btn.addEventListener('mouseleave', stop);
+      btn.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) start(e);
+      }, { passive: true });
+      window.addEventListener('touchend', () => {
+        stop();
+        setTimeout(() => { handledByMouse = false; }, 0);
+      });
+      window.addEventListener('touchcancel', stop);
+
+      btn.addEventListener('click', (e) => {
+        if (btn.disabled) return;
+        if (handledByMouse) return;
+        actionFn();
+      });
+    }
+
+    /**
+     * Attaches smooth press-and-hold & continuous dragging to range sliders (<input type="range">).
+     * - Pressing & holding down on the track smoothly and repeatedly steps towards cursor position.
+     * - Dragging with pointer capture follows cursor reliably even when mouse leaves element bounds.
+     * - Prevents event propagation so parent canvas/window drag handlers never interfere.
+     */
+    function attachSliderHoldRepeat(slider, onUpdate) {
+      if (!slider) return;
+
+      let holdTimeout = null;
+      let holdInterval = null;
+      let isPointerDown = false;
+      let activePointerId = null;
+      let targetVal = null;
+
+      const clearHold = () => {
+        if (holdTimeout) { clearTimeout(holdTimeout); holdTimeout = null; }
+        if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
+        isPointerDown = false;
+        activePointerId = null;
+        targetVal = null;
+      };
+
+      const computeRatioFromEvent = (e) => {
+        const rect = slider.getBoundingClientRect();
+        if (rect.width <= 0) return 0.5;
+        const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+        return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      };
+
+      const ratioToSliderVal = (ratio) => {
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        const step = parseFloat(slider.step !== '' ? slider.step : '1') || 1;
+        const raw = min + ratio * (max - min);
+        const snapped = Math.round((raw - min) / step) * step + min;
+        return Math.max(min, Math.min(max, snapped));
+      };
+
+      const sliderValToRatio = (val) => {
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        if (max === min) return 0.5;
+        return Math.max(0, Math.min(1, (val - min) / (max - min)));
+      };
+
+      const stepSliderTowards = (target) => {
+        const curr = parseFloat(slider.value);
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        const step = parseFloat(slider.step !== '' ? slider.step : '1') || 1;
+
+        if (Math.abs(curr - target) < step * 0.5) return false;
+
+        let next;
+        if (curr < target) {
+          next = Math.min(target, curr + step);
+        } else {
+          next = Math.max(target, curr - step);
+        }
+        next = Math.max(min, Math.min(max, next));
+        if (next !== curr) {
+          slider.value = next;
+          slider.dispatchEvent(new Event('input', { bubbles: true }));
+          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof onUpdate === 'function') onUpdate(next);
+          return true;
+        }
+        return false;
+      };
+
+      const startHold = (e) => {
+        if (slider.disabled) return;
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        if (e.type === 'pointerdown' && e.button !== 0) return;
+
+        e.stopPropagation();
+
+        isPointerDown = true;
+        activePointerId = e.pointerId ?? null;
+        if (activePointerId !== null && typeof slider.setPointerCapture === 'function') {
+          try { slider.setPointerCapture(activePointerId); } catch (_) {}
+        }
+
+        const ratio = computeRatioFromEvent(e);
+        targetVal = ratioToSliderVal(ratio);
+        const currVal = parseFloat(slider.value);
+        const currRatio = sliderValToRatio(currVal);
+
+        const isNearThumb = Math.abs(ratio - currRatio) < 0.09;
+
+        if (!isNearThumb) {
+          stepSliderTowards(targetVal);
+
+          clearTimeout(holdTimeout);
+          clearInterval(holdInterval);
+          holdTimeout = setTimeout(() => {
+            if (!isPointerDown) return;
+            holdInterval = setInterval(() => {
+              if (!isPointerDown) {
+                clearHold();
+                return;
+              }
+              if (targetVal !== null) {
+                stepSliderTowards(targetVal);
+              }
+            }, 40);
+          }, 200);
+        }
+      };
+
+      const onPointerMove = (e) => {
+        if (!isPointerDown) return;
+        e.stopPropagation();
+        const ratio = computeRatioFromEvent(e);
+        targetVal = ratioToSliderVal(ratio);
+        if (parseFloat(slider.value) !== targetVal) {
+          slider.value = targetVal;
+          slider.dispatchEvent(new Event('input', { bubbles: true }));
+          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof onUpdate === 'function') onUpdate(targetVal);
+        }
+      };
+
+      const stopHold = (e) => {
+        if (!isPointerDown) return;
+        if (e) e.stopPropagation();
+        if (activePointerId !== null && typeof slider.releasePointerCapture === 'function') {
+          try {
+            if (slider.hasPointerCapture(activePointerId)) {
+              slider.releasePointerCapture(activePointerId);
+            }
+          } catch (_) {}
+        }
+        clearHold();
+      };
+
+      slider.addEventListener('pointerdown', startHold);
+      slider.addEventListener('pointermove', onPointerMove);
+      slider.addEventListener('pointerup', stopHold);
+      slider.addEventListener('pointercancel', stopHold);
+      slider.addEventListener('lostpointercapture', stopHold);
     }
 
     /**
@@ -8384,6 +8681,10 @@
         slider.addEventListener('input', (e) => {
           valSpan.textContent = `${e.target.value} ${unit}`;
           onChange(e.target.value);
+        });
+        attachSliderHoldRepeat(slider, (val) => {
+          valSpan.textContent = `${val} ${unit}`;
+          onChange(val);
         });
 
         group.appendChild(lbl);
@@ -10296,7 +10597,7 @@
         }
         btnStep.disabled = !isSim || this.engine.running;
         btnReset.disabled = !isSim;
-        freqBox.classList.toggle('disabled', !isSim);
+        if (freqBox) freqBox.classList.remove('disabled');
 
         const playIcon = document.getElementById('sim-play-icon');
         const playText = document.getElementById('sim-play-text');
@@ -10419,23 +10720,23 @@
         }
       }
 
-      highlightInspector() {
+      highlightInspector(force = false) {
         const inspector = document.getElementById('inspector');
         const btnExpand = document.getElementById('btn-inspector-expand');
-        if (inspector) {
-          if (inspector.classList.contains('collapsed')) {
-            inspector.classList.remove('collapsed');
-            if (btnExpand) btnExpand.style.display = 'none';
-            this.renderer.resize();
-          }
-          inspector.classList.remove('highlight-pulse');
-          void inspector.offsetWidth; // force DOM reflow to restart animation
-          inspector.classList.add('highlight-pulse');
-          inspector.scrollTop = 0;
-          const firstInput = inspector.querySelector('input:not([type="range"]), select');
-          if (firstInput && !firstInput.disabled && typeof firstInput.focus === 'function') {
-            firstInput.focus();
-          }
+        if (!inspector) return;
+        if (inspector.classList.contains('collapsed')) {
+          if (!force) return;
+          inspector.classList.remove('collapsed');
+          if (btnExpand) btnExpand.style.display = 'none';
+          this.renderer.resize();
+        }
+        inspector.classList.remove('highlight-pulse');
+        void inspector.offsetWidth; // force DOM reflow to restart animation
+        inspector.classList.add('highlight-pulse');
+        inspector.scrollTop = 0;
+        const firstInput = inspector.querySelector('input:not([type="range"]), select');
+        if (firstInput && !firstInput.disabled && typeof firstInput.focus === 'function') {
+          firstInput.focus();
         }
       }
 
@@ -10479,59 +10780,6 @@
           }
         });
 
-        const attachHoldRepeat = (btn, actionFn) => {
-          if (!btn) return;
-          let timeoutId = null;
-          let intervalId = null;
-          let handledByMouse = false;
-
-          const stop = () => {
-            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-            if (intervalId) { clearInterval(intervalId); intervalId = null; }
-          };
-
-          const start = (e) => {
-            if (btn.disabled) return;
-            if (e && e.type === 'mousedown' && e.button !== 0) return;
-            stop();
-            handledByMouse = true;
-            actionFn();
-
-            timeoutId = setTimeout(() => {
-              intervalId = setInterval(() => {
-                if (btn.disabled) {
-                  stop();
-                  return;
-                }
-                actionFn();
-              }, 60);
-            }, 350);
-          };
-
-          btn.addEventListener('mousedown', start);
-          window.addEventListener('mouseup', () => {
-            stop();
-            setTimeout(() => { handledByMouse = false; }, 0);
-          });
-          btn.addEventListener('mouseleave', stop);
-          btn.addEventListener('touchstart', (e) => {
-            if (e.touches && e.touches.length === 1) start(e);
-          }, { passive: true });
-          window.addEventListener('touchend', () => {
-            stop();
-            setTimeout(() => { handledByMouse = false; }, 0);
-          });
-          window.addEventListener('touchcancel', stop);
-
-          btn.addEventListener('click', (e) => {
-            if (btn.disabled) return;
-            if (handledByMouse) {
-              return;
-            }
-            actionFn();
-          });
-        };
-
         const btnStepBack = document.getElementById('btn-sim-step-back');
         attachHoldRepeat(btnStepBack, () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
@@ -10554,6 +10802,10 @@
         const labelFreq = document.getElementById('label-freq');
         sliderFreq.addEventListener('input', (e) => {
           const val = parseInt(e.target.value, 10);
+          labelFreq.textContent = `${val} Hz`;
+          this.engine.setFrequency(val);
+        });
+        attachSliderHoldRepeat(sliderFreq, (val) => {
           labelFreq.textContent = `${val} Hz`;
           this.engine.setFrequency(val);
         });
@@ -10625,6 +10877,15 @@
       }
 
       initPaletteEvents() {
+        document.querySelectorAll('.palette-category .category-title').forEach((titleEl) => {
+          titleEl.title = 'Kategorie ein-/ausklappen';
+          titleEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cat = titleEl.closest('.palette-category');
+            if (cat) cat.classList.toggle('collapsed');
+          });
+        });
+
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
           item.addEventListener('dragstart', (e) => {
@@ -11753,7 +12014,7 @@
         inspectItem.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
         inspectItem.addEventListener('click', () => {
           this.selectItem(null, hitWp.wire.id);
-          this.highlightInspector();
+          this.highlightInspector(true);
           this.hideContextMenu();
         });
         menu.appendChild(inspectItem);
@@ -11791,7 +12052,7 @@
           openInspect.className = 'ctx-item';
           openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
           openInspect.addEventListener('click', () => {
-            this.highlightInspector();
+            this.highlightInspector(true);
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
@@ -11841,7 +12102,7 @@
           openInspect.className = 'ctx-item';
           openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Einstellungen im Inspector öffnen</span>`;
           openInspect.addEventListener('click', () => {
-            this.highlightInspector();
+            this.highlightInspector(true);
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
@@ -12050,7 +12311,7 @@
           openInspect.className = 'ctx-item';
           openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
           openInspect.addEventListener('click', () => {
-            this.highlightInspector();
+            this.highlightInspector(true);
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
@@ -12256,7 +12517,7 @@
         openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector öffnen</span>`;
         openInspect.addEventListener('click', () => {
           this.selectItem(null, null, probe.id);
-          this.highlightInspector();
+          this.highlightInspector(true);
           this.hideContextMenu();
         });
         menu.appendChild(openInspect);
@@ -12385,10 +12646,19 @@
           zoomLabel.textContent = `${val} px/T`;
           this.analyzer.render();
         });
+        attachSliderHoldRepeat(zoomSlider, (val) => {
+          this.analyzer.pixelsPerTick = val;
+          zoomLabel.textContent = `${val} px/T`;
+          this.analyzer.render();
+        });
 
         const scrollSlider = document.getElementById('slider-time-scroll');
         scrollSlider.addEventListener('input', (e) => {
           this.analyzer.scrollRatio = parseInt(e.target.value, 10) / 100;
+          this.analyzer.render();
+        });
+        attachSliderHoldRepeat(scrollSlider, (val) => {
+          this.analyzer.scrollRatio = val / 100;
           this.analyzer.render();
         });
 
@@ -12413,7 +12683,7 @@
 
         const btnLoopPrev = document.getElementById('btn-analyzer-loop-step-prev');
         if (btnLoopPrev) {
-          btnLoopPrev.addEventListener('click', () => {
+          attachHoldRepeat(btnLoopPrev, () => {
             this.analyzer.stepLoop(-1);
           });
         }
@@ -12427,7 +12697,7 @@
 
         const btnLoopNext = document.getElementById('btn-analyzer-loop-step-next');
         if (btnLoopNext) {
-          btnLoopNext.addEventListener('click', () => {
+          attachHoldRepeat(btnLoopNext, () => {
             this.analyzer.stepLoop(1);
           });
         }
