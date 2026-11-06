@@ -5092,8 +5092,8 @@
         ],
         wires: [
           { id: 'lw1', fromCompId: 'l_din',  fromPin: 0, toCompId: 'l_xor',  toPin: 0 },
-          { id: 'lw2', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_xor',  toPin: 1, waypoints: [{ x: 570, y: 220 }, { x: 570, y: 260 }, { x: 720, y: 260 }, { x: 720, y: 400 }, { x: 180, y: 400 }, { x: 180, y: 120 }] },
-          { id: 'lw3', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_xor',  toPin: 2, waypoints: [{ x: 540, y: 240 }, { x: 540, y: 320 }, { x: 700, y: 320 }, { x: 700, y: 370 }, { x: 200, y: 370 }, { x: 200, y: 140 }] },
+          { id: 'lw2', fromCompId: 'l_sipo', fromPin: 2, toCompId: 'l_xor',  toPin: 1, waypoints: [{ x: 570, y: 220 }, { x: 570, y: 360 }, { x: 720, y: 360 }, { x: 720, y: 400 }, { x: 180, y: 400 }, { x: 180, y: 120 }] },
+          { id: 'lw3', fromCompId: 'l_sipo', fromPin: 3, toCompId: 'l_xor',  toPin: 2, waypoints: [{ x: 540, y: 240 }, { x: 540, y: 380 }, { x: 700, y: 380 }, { x: 700, y: 420 }, { x: 200, y: 420 }, { x: 200, y: 140 }] },
           { id: 'lw4', fromCompId: 'l_xor',  fromPin: 0, toCompId: 'l_sipo', toPin: 0 },
           { id: 'lw5', fromCompId: 'l_clk',  fromPin: 0, toCompId: 'l_sipo', toPin: 1 },
           { id: 'lw6', fromCompId: 'l_rst',  fromPin: 0, toCompId: 'l_sipo', toPin: 2 },
@@ -5511,111 +5511,149 @@
           return this.simplifyCollinear(fullPts);
         }
 
-        const x1 = p1.x;
-        const y1 = p1.y;
-        const x2 = p2.x;
-        const y2 = p2.y;
-        const pts = [{ x: x1, y: y1 }];
-
-        if (x2 >= x1 + 20) {
-          // If spanning multiple columns (x2 - x1 > 200), prefer turning in the channel that clears intermediate gates
-          let targetMid = (x1 + x2) / 2;
-          if (x2 - x1 > 200) {
-            targetMid = (y1 < y2) ? (x1 + 80) : (x2 - 80);
+        const x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+        const comps = (this.circuit && this.circuit.components) || [];
+        const obstacles = [];
+        for (const c of comps) {
+          const isSource = (Math.abs(x1 - (c.x + c.width)) <= 2 && y1 >= c.y && y1 <= c.y + c.height);
+          const isTarget = (Math.abs(x2 - c.x) <= 2 && y2 >= c.y && y2 <= c.y + c.height);
+          if (!isSource && !isTarget) {
+            obstacles.push({
+              id: c.id,
+              left: c.x,
+              right: c.x + c.width,
+              top: c.y,
+              bottom: c.y + c.height
+            });
           }
-          let midX = Math.round(targetMid / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
-          if (x2 > x1 + 20) {
-            midX = Math.max(x1 + 20, Math.min(x2 - 20, midX));
-          }
-          if (y1 === y2) {
-            let hasHorizCollision = false;
-            let collidingComp = null;
-            if (this.circuit && this.circuit.components) {
-              for (const comp of this.circuit.components) {
-                if (y1 > comp.y + 4 && y1 < comp.y + comp.height - 4 && Math.max(x1, x2) > comp.x + 4 && Math.min(x1, x2) < comp.x + comp.width - 4) {
-                  hasHorizCollision = true;
-                  collidingComp = comp;
-                  break;
-                }
-              }
-            }
-            if (!hasHorizCollision) {
-              pts.push({ x: x2, y: y2 });
-            } else {
-              const jogY = Math.round((collidingComp.y + collidingComp.height + 20) / GRID_SIZE) * GRID_SIZE;
-              const preX = Math.round((x1 + 40) / GRID_SIZE) * GRID_SIZE;
-              const postX = Math.round((x2 - 40) / GRID_SIZE) * GRID_SIZE;
-              pts.push({ x: preX, y: y1 });
-              pts.push({ x: preX, y: jogY });
-              pts.push({ x: postX, y: jogY });
-              pts.push({ x: postX, y: y2 });
-              pts.push({ x: x2, y: y2 });
-            }
-          } else {
-            pts.push({ x: midX, y: y1 });
-            pts.push({ x: midX, y: y2 });
-            pts.push({ x: x2, y: y2 });
-          }
-        } else {
-          // Backward / feedback wire
-          // Must exit source gate to the right: (exitX, y1)
-          // Must enter target gate strictly from the left: (enterX, y2) -> (x2, y2)
-          const off = Math.abs(channelOffset || 0);
-          const exitX = Math.round((x1 + 20 + off) / GRID_SIZE) * GRID_SIZE;
-          const enterX = Math.round((x2 - 20 - off) / GRID_SIZE) * GRID_SIZE;
-
-          // Compute circuit bounding box for safe perimeter clearance
-          let circuitMinY = 60;
-          let circuitMaxY = 400;
-          if (this.circuit && this.circuit.components && this.circuit.components.length > 0) {
-            let cMinY = Infinity, cMaxY = -Infinity;
-            for (const c of this.circuit.components) {
-              if (c.y < cMinY) cMinY = c.y;
-              if (c.y + c.height > cMaxY) cMaxY = c.y + c.height;
-            }
-            if (cMinY < Infinity) circuitMinY = cMinY;
-            if (cMaxY > -Infinity) circuitMaxY = cMaxY;
-          }
-
-          // Candidate 1: Try open horizontal corridor between source and target
-          let chosenTransitY = null;
-          if (Math.abs(y1 - y2) >= 30) {
-            const midGapY = Math.round(((y1 + y2) / 2) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
-            const minX = Math.min(enterX, exitX);
-            const maxX = Math.max(enterX, exitX);
-
-            let hasCollision = false;
-            if (this.circuit && this.circuit.components) {
-              for (const c of this.circuit.components) {
-                // Strict collision check: does horizontal line at midGapY pass through inside of c?
-                if (midGapY > c.y + 4 && midGapY < c.y + c.height - 4 && maxX > c.x + 4 && minX < c.x + c.width - 4) {
-                  hasCollision = true;
-                  break;
-                }
-              }
-            }
-            if (!hasCollision) {
-              chosenTransitY = midGapY;
-            }
-          }
-
-          // Candidate 2: Perimeter routing above or below circuit bounds
-          if (chosenTransitY === null) {
-            if (y1 <= (circuitMinY + circuitMaxY) / 2) {
-              chosenTransitY = Math.round((circuitMinY - 40 - off) / GRID_SIZE) * GRID_SIZE;
-            } else {
-              chosenTransitY = Math.round((circuitMaxY + 40 + off) / GRID_SIZE) * GRID_SIZE;
-            }
-          }
-
-          pts.push({ x: exitX, y: y1 });
-          pts.push({ x: exitX, y: chosenTransitY });
-          pts.push({ x: enterX, y: chosenTransitY });
-          pts.push({ x: enterX, y: y2 });
-          pts.push({ x: x2, y: y2 });
         }
 
-        return this.simplifyCollinear(pts);
+        const segCollides = (xa, ya, xb, yb) => {
+          const minX = Math.min(xa, xb), maxX = Math.max(xa, xb);
+          const minY = Math.min(ya, yb), maxY = Math.max(ya, yb);
+          for (const obs of obstacles) {
+            const bL = obs.left + 2;
+            const bR = obs.right - 2;
+            const bT = obs.top + 2;
+            const bB = obs.bottom - 2;
+            if (ya === yb) {
+              if (ya >= bT && ya <= bB && maxX > bL && minX < bR) return obs;
+            } else if (xa === xb) {
+              if (xa >= bL && xa <= bR && maxY > bT && minY < bB) return obs;
+            }
+          }
+          return null;
+        };
+
+        const pathCollides = (pathPts) => {
+          for (let i = 0; i < pathPts.length - 1; i++) {
+            const hit = segCollides(pathPts[i].x, pathPts[i].y, pathPts[i+1].x, pathPts[i+1].y);
+            if (hit) return hit;
+          }
+          return null;
+        };
+
+        // 1. Forward Routing (x2 >= x1 + 20)
+        if (x2 >= x1 + 20) {
+          if (y1 === y2) {
+            const directPath = [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+            const hit = pathCollides(directPath);
+            if (!hit) return directPath;
+
+            const spannedObs = obstacles.filter(o => o.right > x1 + 4 && o.left < x2 - 4);
+            const minTop = spannedObs.length > 0 ? Math.min(...spannedObs.map(o => o.top)) : hit.top;
+            const maxBottom = spannedObs.length > 0 ? Math.max(...spannedObs.map(o => o.bottom)) : hit.bottom;
+            const minLeft = spannedObs.length > 0 ? Math.min(...spannedObs.map(o => o.left)) : hit.left;
+            const maxRight = spannedObs.length > 0 ? Math.max(...spannedObs.map(o => o.right)) : hit.right;
+
+            const preX = Math.max(x1 + 20, Math.round((minLeft - 20) / GRID_SIZE) * GRID_SIZE);
+            const postX = Math.min(x2 - 20, Math.round((maxRight + 20) / GRID_SIZE) * GRID_SIZE);
+            const jogAbove = Math.round((minTop - 20) / GRID_SIZE) * GRID_SIZE - (channelOffset || 0);
+            const jogBelow = Math.round((maxBottom + 20) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
+
+            const pathBelow = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: jogBelow }, { x: postX, y: jogBelow }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+            if (!pathCollides(pathBelow)) return this.simplifyCollinear(pathBelow);
+
+            const pathAbove = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: jogAbove }, { x: postX, y: jogAbove }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+            if (!pathCollides(pathAbove)) return this.simplifyCollinear(pathAbove);
+
+            return this.simplifyCollinear(pathBelow);
+          }
+
+          const defaultMid = (x2 - x1 > 200) ? ((y1 < y2) ? (x1 + 60) : (x2 - 60)) : ((x1 + x2) / 2);
+          const snapMid = Math.round(defaultMid / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
+
+          const candidates = [
+            Math.max(x1 + 20, Math.min(x2 - 20, snapMid)),
+            Math.max(x1 + 20, Math.min(x2 - 20, Math.round(((x1 + x2) / 2) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0))),
+            Math.max(x1 + 20, Math.min(x2 - 20, Math.round((x1 + 40) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0))),
+            Math.max(x1 + 20, Math.min(x2 - 20, Math.round((x2 - 40) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0))),
+            Math.max(x1 + 20, Math.min(x2 - 20, Math.round((x1 + 60) / GRID_SIZE) * GRID_SIZE)),
+            Math.max(x1 + 20, Math.min(x2 - 20, Math.round((x2 - 60) / GRID_SIZE) * GRID_SIZE))
+          ];
+
+          for (const midX of candidates) {
+            const testPath = [{ x: x1, y: y1 }, { x: midX, y: y1 }, { x: midX, y: y2 }, { x: x2, y: y2 }];
+            if (!pathCollides(testPath)) {
+              return this.simplifyCollinear(testPath);
+            }
+          }
+
+          // All standard 3-segment paths collided with intermediate obstacles: jog around all spanned obstacles
+          const spannedObs = obstacles.filter(o => o.right > x1 + 4 && o.left < x2 - 4);
+          if (spannedObs.length > 0) {
+            const minTop = Math.min(...spannedObs.map(o => o.top));
+            const maxBottom = Math.max(...spannedObs.map(o => o.bottom));
+            const minLeft = Math.min(...spannedObs.map(o => o.left));
+            const maxRight = Math.max(...spannedObs.map(o => o.right));
+
+            const preX = Math.max(x1 + 20, Math.round((minLeft - 20) / GRID_SIZE) * GRID_SIZE);
+            const postX = Math.min(x2 - 20, Math.round((maxRight + 20) / GRID_SIZE) * GRID_SIZE);
+            const jogAbove = Math.round((minTop - 20) / GRID_SIZE) * GRID_SIZE - (channelOffset || 0);
+            const jogBelow = Math.round((maxBottom + 20) / GRID_SIZE) * GRID_SIZE + (channelOffset || 0);
+
+            const prefAbove = Math.abs(jogAbove - Math.min(y1, y2)) <= Math.abs(jogBelow - Math.max(y1, y2));
+            const corridorY = prefAbove ? jogAbove : jogBelow;
+            const altCorridorY = prefAbove ? jogBelow : jogAbove;
+
+            const jogPath1 = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: corridorY }, { x: postX, y: corridorY }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+            if (!pathCollides(jogPath1)) return this.simplifyCollinear(jogPath1);
+
+            const jogPath2 = [{ x: x1, y: y1 }, { x: preX, y: y1 }, { x: preX, y: altCorridorY }, { x: postX, y: altCorridorY }, { x: postX, y: y2 }, { x: x2, y: y2 }];
+            if (!pathCollides(jogPath2)) return this.simplifyCollinear(jogPath2);
+          }
+
+          const fallbackMid = candidates[0];
+          return this.simplifyCollinear([{ x: x1, y: y1 }, { x: fallbackMid, y: y1 }, { x: fallbackMid, y: y2 }, { x: x2, y: y2 }]);
+        }
+
+        // 2. Backward / Feedback Wire Routing
+        const exitX = Math.round((x1 + 30) / GRID_SIZE) * GRID_SIZE;
+        const enterX = Math.round((x2 - 30) / GRID_SIZE) * GRID_SIZE;
+
+        let minObsY = Infinity, maxObsY = -Infinity;
+        for (const obs of obstacles) {
+          if (obs.right >= Math.min(enterX, exitX) && obs.left <= Math.max(enterX, exitX)) {
+            if (obs.top < minObsY) minObsY = obs.top;
+            if (obs.bottom > maxObsY) maxObsY = obs.bottom;
+          }
+        }
+
+        const loopAbove = (minObsY !== Infinity ? Math.round((minObsY - 30) / GRID_SIZE) * GRID_SIZE : Math.min(y1, y2) - 40) - (channelOffset || 0);
+        const loopBelow = (maxObsY !== -Infinity ? Math.round((maxObsY + 30) / GRID_SIZE) * GRID_SIZE : Math.max(y1, y2) + 40) + (channelOffset || 0);
+
+        const prefAbove = (y1 < y2) || (p1.y === p2.y && channelOffset < 0);
+        const loopY = prefAbove ? loopAbove : loopBelow;
+
+        const backPath = [
+          { x: x1, y: y1 },
+          { x: exitX, y: y1 },
+          { x: exitX, y: loopY },
+          { x: enterX, y: loopY },
+          { x: enterX, y: y2 },
+          { x: x2, y: y2 }
+        ];
+        return this.simplifyCollinear(backPath);
       }
 
       simplifyCollinear(pts) {
@@ -6554,11 +6592,16 @@
           ctx.lineTo(gx1, gy2);
           ctx.closePath();
         } else if (type === 'AND' || type === 'NAND' || type === 'MAJORITY') {
-          // Semi-Ellipse / D-Form (DIN 40700 & ANSI)
-          const straightX = gx1 + (bodyEnd - gx1) * 0.38;
+          // Semi-Ellipse / D-Form (DIN 40700 & ANSI) - touches (bodyEnd, cy) exactly with zero gap
+          const straightX = Math.round(gx1 + (bodyEnd - gx1) * 0.38);
+          const cpX = Math.round(straightX + (bodyEnd - straightX) * 0.552);
+          const cpYTop = Math.round(cy - (cy - gy1) * 0.448);
+          const cpYBot = Math.round(cy + (gy2 - cy) * 0.448);
+
           ctx.moveTo(gx1, gy1);
           ctx.lineTo(straightX, gy1);
-          ctx.bezierCurveTo(bodyEnd, gy1, bodyEnd, gy2, straightX, gy2);
+          ctx.bezierCurveTo(cpX, gy1, bodyEnd, cpYTop, bodyEnd, cy);
+          ctx.bezierCurveTo(bodyEnd, cpYBot, cpX, gy2, straightX, gy2);
           ctx.lineTo(gx1, gy2);
           ctx.closePath();
         } else if (type === 'OR' || type === 'NOR' || isXorType) {
