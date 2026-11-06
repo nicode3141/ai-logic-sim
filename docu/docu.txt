@@ -1,0 +1,12 @@
+1. ok versuche mir einen prompt in .md zu generieren für ein einfacheres logiksimulator mit schaltern, gattern, lampen, bcd, 7 segment, counter, vielleicht noch kleinere schieberegistern und die möglichkeit messpunkte zu setzten für ein impulsdiagramm. Es soll ein gui geben wo man die gitter reinschieben kann. Man soll auch einstellen können wie viele inputs man bei gattern und so haben kann. Es soll ein simulationsmodus geben. Es soll in javascript geschrieben werden also für webs unzwar in einem file! 
+antwort:  erste prompt md
+
+md im plan mode reingeladen:
+
+hat unendlich lange (1h) reasoning betrieben und gecoded
+
+gefragt nach deutschen zeichen und kontextmenu
+
+gefragt nach mouse selection und Verkleinerung des Setting Panels
+
+Verbindungen optimiert
