@@ -5,199 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
-    :root, html[data-theme="modern"] {
-      --bg-deep: #0b0d10;
-      --bg-panel: #12161c;
-      --bg-panel-alt: #171c24;
-      --bg-elevated: #1e2530;
-      --bg-hover: #262f3d;
-      --border-dim: #263040;
-      --border-bright: #3d4d66;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --accent-green: #00e676;
-      --accent-green-dim: rgba(0, 230, 118, 0.16);
-      --accent-blue: #00b0ff;
-      --accent-blue-dim: rgba(0, 176, 255, 0.16);
-      --accent-amber: #ffb300;
-      --accent-amber-dim: rgba(255, 179, 0, 0.16);
-      --accent-red: #ff5252;
-      --accent-red-dim: rgba(255, 82, 82, 0.16);
-      --wire-low: #33455a;
-      --wire-high: #00e676;
-      --btn-radius: 4px;
-      --card-radius: 6px;
-      --control-radius: 4px;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
-    }
+    :root,html[data-theme="modern"]{--bg-deep:#0b0d10;--bg-panel:#12161c;--bg-panel-alt:#171c24;--bg-elevated:#1e2530;--bg-hover:#262f3d;--border-dim:#263040;--border-bright:#3d4d66;--text-main:#f8fafc;--text-muted:#94a3b8;--text-dim:#64748b;--accent-green:#00e676;--accent-green-dim:rgba(0,230,118,.16);--accent-blue:#00b0ff;--accent-blue-dim:rgba(0,176,255,.16);--accent-amber:#ffb300;--accent-amber-dim:rgba(255,179,0,.16);--accent-red:#ff5252;--accent-red-dim:rgba(255,82,82,.16);--wire-low:#33455a;--wire-high:#00e676;--btn-radius:4px;--card-radius:6px;--control-radius:4px;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;--font-mono:'JetBrains Mono','Fira Code','Consolas','Courier New',monospace}
 
-    html[data-theme="pitch_black"] {
-      --bg-deep: #000000;
-      --bg-panel: #09090b;
-      --bg-panel-alt: #121215;
-      --bg-elevated: #18181b;
-      --bg-hover: #27272a;
-      --border-dim: #3f3f46;
-      --border-bright: #52525b;
-      --text-main: #ffffff;
-      --text-muted: #d4d4d8;
-      --text-dim: #a1a1aa;
-      --accent-green: #00e676;
-      --accent-green-dim: rgba(0, 230, 118, 0.12);
-      --accent-blue: #00b0ff;
-      --accent-blue-dim: rgba(0, 176, 255, 0.12);
-      --wire-low: #3f3f46;
-      --wire-high: #00e676;
-      --btn-radius: 2px;
-      --card-radius: 3px;
-      --control-radius: 2px;
-    }
+    html[data-theme="pitch_black"]{--bg-deep:#000000;--bg-panel:#09090b;--bg-panel-alt:#121215;--bg-elevated:#18181b;--bg-hover:#27272a;--border-dim:#3f3f46;--border-bright:#52525b;--text-main:#ffffff;--text-muted:#d4d4d8;--text-dim:#a1a1aa;--accent-green:#00e676;--accent-green-dim:rgba(0,230,118,.12);--accent-blue:#00b0ff;--accent-blue-dim:rgba(0,176,255,.12);--wire-low:#3f3f46;--wire-high:#00e676;--btn-radius:2px;--card-radius:3px;--control-radius:2px}
 
-    [data-theme="pitch_black"] .sim-deck,
-    [data-theme="pitch_black"] .mode-switch,
-    [data-theme="pitch_black"] .btn,
-    [data-theme="pitch_black"] .logic-modal,
-    [data-theme="pitch_black"] .brand-icon {
-      box-shadow: none !important;
-      text-shadow: none !important;
-    }
-    [data-theme="pitch_black"] .app-menubar {
-      background: #000000 !important;
-      border-bottom: 1px solid #27272a !important;
-    }
-    [data-theme="pitch_black"] .menubar-btn {
-      color: #ffffff !important;
-    }
-    [data-theme="pitch_black"] .menubar-btn:hover,
-    [data-theme="pitch_black"] .menubar-btn.active {
-      background: #18181b !important;
-      color: #ffffff !important;
-      border-color: #3f3f46 !important;
-    }
-    [data-theme="pitch_black"] .menubar-dropdown,
-    [data-theme="pitch_black"] .app-dropdown-menu,
-    [data-theme="pitch_black"] .context-menu {
-      background: #09090b !important;
-      border: 1px solid #3f3f46 !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95) !important;
-      color: #ffffff !important;
-    }
-    [data-theme="pitch_black"] .app-menu-item,
-    [data-theme="pitch_black"] .ctx-item {
-      color: #ffffff !important;
-    }
-    [data-theme="pitch_black"] .app-menu-item:hover,
-    [data-theme="pitch_black"] .ctx-item:hover {
-      background: #27272a !important;
-      color: #00e676 !important;
-    }
-    [data-theme="pitch_black"] .app-menu-header,
-    [data-theme="pitch_black"] .ctx-header,
-    [data-theme="pitch_black"] .ctx-sub-label {
-      color: #d4d4d8 !important;
-    }
-    [data-theme="pitch_black"] .tabs-bar {
-      background: #000000 !important;
-      border-bottom: 1px solid #27272a !important;
-    }
-    [data-theme="pitch_black"] .tab-item {
-      background: #09090b !important;
-      border-color: #27272a !important;
-      color: #a1a1aa !important;
-    }
-    [data-theme="pitch_black"] .tab-item.active {
-      background: #000000 !important;
-      border-color: #3f3f46 !important;
-      color: #ffffff !important;
-    }
-    [data-theme="pitch_black"] #sim-toast,
-    [data-theme="pitch_black"] .app-toast {
-      background: #09090b !important;
-      border: 1px solid #3f3f46 !important;
-      color: #f4f4f5 !important;
-    }
+[data-theme="pitch_black"][.sim-deck,.mode-switch,.btn,.logic-modal,.brand-icon]{box-shadow:none!important;text-shadow:none!important}[data-theme="pitch_black"][.app-menubar]{background:#000000!important;border-bottom:1px solid#27272a!important}[data-theme="pitch_black"][.menubar-btn]{color:#ffffff!important}[data-theme="pitch_black"][.menubar-btn:hover,.menubar-btn.active]{background:#18181b!important;color:#ffffff!important;border-color:#3f3f46!important}[data-theme="pitch_black"][.menubar-dropdown,.app-dropdown-menu,.context-menu]{background:#09090b!important;border:1px solid#3f3f46!important;box-shadow:0 10px 30px rgba(0,0,0,.95)!important;color:#ffffff!important}[data-theme="pitch_black"][.app-menu-item,.ctx-item]{color:#ffffff!important}[data-theme="pitch_black"][.app-menu-item:hover,.ctx-item:hover]{background:#27272a!important;color:#00e676!important}[data-theme="pitch_black"][.app-menu-header,.ctx-header,.ctx-sub-label]{color:#d4d4d8!important}[data-theme="pitch_black"][.tabs-bar]{background:#000000!important;border-bottom:1px solid#27272a!important}[data-theme="pitch_black"][.tab-item]{background:#09090b!important;border-color:#27272a!important;color:#a1a1aa!important}[data-theme="pitch_black"][.tab-item.active]{background:#000000!important;border-color:#3f3f46!important;color:#ffffff!important}[data-theme="pitch_black"][#sim-toast,.app-toast]{background:#09090b!important;border:1px solid#3f3f46!important;color:#f4f4f5!important}
 
-    html[data-theme="java_swing"] {
-      --bg-deep: #d4d0c8;
-      --bg-panel: #ece9d8;
-      --bg-panel-alt: #e4dfd3;
-      --bg-elevated: #ece9d8;
-      --bg-hover: #dfdbcb;
-      --border-dim: #808080;
-      --border-bright: #404040;
-      --text-main: #000000;
-      --text-muted: #1e1e1e;
-      --text-dim: #333333;
-      --accent-green: #008000;
-      --accent-green-dim: rgba(0, 128, 0, 0.15);
-      --accent-blue: #000080;
-      --accent-blue-dim: rgba(0, 0, 128, 0.15);
-      --wire-low: #333333;
-      --wire-high: #008000;
-      --btn-radius: 0px;
-      --card-radius: 0px;
-      --control-radius: 0px;
-      --font-sans: 'Segoe UI', Tahoma, Arial, sans-serif;
-    }
+    html[data-theme="java_swing"]{--bg-deep:#d4d0c8;--bg-panel:#ece9d8;--bg-panel-alt:#e4dfd3;--bg-elevated:#ece9d8;--bg-hover:#dfdbcb;--border-dim:#808080;--border-bright:#404040;--text-main:#000000;--text-muted:#1e1e1e;--text-dim:#333333;--accent-green:#008000;--accent-green-dim:rgba(0,128,0,.15);--accent-blue:#000080;--accent-blue-dim:rgba(0,0,128,.15);--wire-low:#333333;--wire-high:#008000;--btn-radius:0px;--card-radius:0px;--control-radius:0px;--font-sans:'Segoe UI',Tahoma,Arial,sans-serif}
 
-    [data-theme="java_swing"] .btn,
-    [data-theme="java_swing"] .menubar-btn,
-    [data-theme="java_swing"] .mode-btn,
-    [data-theme="java_swing"] .tab-item,
-    [data-theme="java_swing"] .palette-item,
-    [data-theme="java_swing"] .select-input,
-    [data-theme="java_swing"] .norm-card,
-    [data-theme="java_swing"] .theme-card,
-    [data-theme="java_swing"] .color-swatch-btn {
-      border-radius: 0px !important;
-      border: 1px solid #808080 !important;
-      background: #ece9d8 !important;
-      color: #000000 !important;
-      box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
-    }
+[data-theme="java_swing"][.btn,.menubar-btn,.mode-btn,.tab-item,.palette-item,.select-input,.norm-card,.theme-card,.color-swatch-btn]{border-radius:0px!important;border:1px solid#808080!important;background:#ece9d8!important;color:#000000!important;box-shadow:inset 1px 1px #ffffff,inset -1px -1px #808080!important}
 
-    [data-theme="java_swing"] .btn:active,
-    [data-theme="java_swing"] .mode-btn.active-edit,
-    [data-theme="java_swing"] .mode-btn.active-sim,
-    [data-theme="java_swing"] .tab-item.active,
-    [data-theme="java_swing"] .norm-card.active,
-    [data-theme="java_swing"] .theme-card.active {
-      box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
-      background: #dfdacb !important;
-      border-color: #555555 !important;
-    }
-
-    [data-theme="java_swing"] .sim-deck,
-    [data-theme="java_swing"] .mode-switch,
-    [data-theme="java_swing"] .freq-control,
-    [data-theme="java_swing"] .brand-icon,
-    [data-theme="java_swing"] .panel-header {
-      border-radius: 0px !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="java_swing"] .brand-icon {
-      background: #000080 !important;
-      color: #ffffff !important;
-    }
-
-    [data-theme="java_swing"] .app-menubar {
-      background: #ece9d8 !important;
-      border-bottom: 1px solid #808080 !important;
-      color: #000000 !important;
-    }
-    [data-theme="java_swing"] .menubar-brand {
-      color: #000000 !important;
-      border-right-color: #808080 !important;
-    }
-    [data-theme="java_swing"] .menubar-btn {
-      background: #ece9d8 !important;
-      color: #000000 !important;
-      border: 1px solid #808080 !important;
-      border-radius: 0px !important;
-      box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
+[data-theme="java_swing"][.btn:active,.mode-btn.active-edit,.mode-btn.active-sim,.tab-item.active,.norm-card.active,.theme-card.active]{box-shadow:inset 1px 1px #808080,inset -1px -1px #ffffff!important;background:#dfdacb!important;border-color:#555555!important}[data-theme="java_swing"][.sim-deck,.mode-switch,.freq-control,.brand-icon,.panel-header]{border-radius:0px!important;box-shadow:none!important}[data-theme="java_swing"][.brand-icon]{background:#000080!important;color:#ffffff!important}[data-theme="java_swing"][.app-menubar]{background:#ece9d8!important;border-bottom:1px solid#808080!important;color:#000000!important}[data-theme="java_swing"][.menubar-brand]{color:#000000!important;border-right-color:#808080!important}[data-theme="java_swing"][.menubar-btn]{background:#ece9d8!important;color:#000000!important;border:1px solid#808080!important;border-radius:0px!important;box-shadow:inset 1px 1px #ffffff,inset -1px -1px #808080!important;
     }
     [data-theme="java_swing"] .menubar-btn:hover {
       background: #dfdacb !important;
@@ -590,24 +408,7 @@
       background: rgba(5, 15, 30, 0.8) !important;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: var(--bg-deep);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      font-size: 13px;
-      line-height: 1.4;
-    }
+    *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}html,body{width:100%;height:100%;overflow:hidden;background-color:var(--bg-deep);color:var(--text-main);font-family:var(--font-sans);font-size:13px;line-height:1.4}
 
     /* App Layout */
     #app {
@@ -2286,43 +2087,8 @@
     }
 
     /* Top Desktop Menubar */
-    .app-menubar {
-      height: 32px;
-      min-height: 32px;
-      background: var(--bg-panel);
-      border-bottom: 1px solid var(--border-dim);
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
-      gap: 10px;
-      z-index: 30;
-      user-select: none;
-      box-sizing: border-box;
-    }
-    .menubar-brand {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--text-main);
-      padding-right: 10px;
-      border-right: 1px solid var(--border-dim);
-    }
-    .menubar-brand .brand-icon {
-      width: 20px;
-      height: 20px;
-      font-size: 11px;
-      border-radius: var(--control-radius);
-    }
-    .menubar-menus {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-    }
-    .menubar-item {
-      position: relative;
-    }
+    .app-menubar{height:32px;min-height:32px;background:var(--bg-panel);border-bottom:1px solid var(--border-dim);display:flex;align-items:center;padding:0 10px;gap:10px;z-index:30;user-select:none;box-sizing:border-box}.menubar-brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;color:var(--text-main);padding-right:10px;border-right:1px solid var(--border-dim)}
+.menubar-brand .brand-icon{width:20px;height:20px;font-size:11px;border-radius:var(--control-radius)}.menubar-menus{display:flex;align-items:center;gap:2px}.menubar-item{position:relative}
     .menubar-btn {
       background: transparent;
       border: 1px solid transparent;
@@ -2398,61 +2164,9 @@
     }
 
     /* Tab Bar */
-    .tabs-bar {
-      height: 34px;
-      min-height: 34px;
-      background: var(--bg-panel-alt);
-      border-bottom: 1px solid var(--border-dim);
-      display: flex;
-      align-items: center;
-      padding: 0 8px;
-      gap: 4px;
-      user-select: none;
-      z-index: 10;
-      overflow-x: auto;
-      overflow-y: hidden;
-      box-sizing: border-box;
-    }
-    .tabs-container {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      height: 100%;
-    }
-    .tab-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      height: 28px;
-      padding: 0 10px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border-dim);
-      border-bottom: none;
-      border-radius: var(--btn-radius) var(--btn-radius) 0 0;
-      color: var(--text-muted);
-      font-size: 11.5px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.12s ease;
-      white-space: nowrap;
-    }
-    .tab-item:hover {
-      background: var(--bg-hover);
-      color: var(--text-main);
-    }
-    .tab-item.active {
-      background: var(--bg-deep);
-      border-color: var(--border-bright);
-      color: var(--text-main);
-      font-weight: 600;
-      box-shadow: 0 -2px 0 var(--accent-blue) inset;
-    }
-    .tab-title {
-      max-width: 140px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      outline: none;
-    }
+.tabs-bar{height:34px;min-height:34px;background:var(--bg-panel-alt);border-bottom:1px solid var(--border-dim);display:flex;align-items:center;padding:0 8px;gap:4px;user-select:none;z-index:10;overflow-x:auto;overflow-y:hidden;box-sizing:border-box}.tabs-container{display:flex;align-items:center;gap:4px;height:100%}
+.tab-item{display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;background:var(--bg-panel);border:1px solid var(--border-dim);border-bottom:none;border-radius:var(--btn-radius)var(--btn-radius)0 0;color:var(--text-muted);font-size:11.5px;font-weight:500;cursor:pointer;transition:all .12s ease;white-space:nowrap}.tab-item:hover{background:var(--bg-hover);color:var(--text-main)}
+.tab-item.active{background:var(--bg-deep);border-color:var(--border-bright);color:var(--text-main);font-weight:600;box-shadow:0 -2px 0 var(--accent-blue) inset}.tab-title{max-width:140px;overflow:hidden;text-overflow:ellipsis;outline:none}
     .tab-close-btn {
       background: transparent;
       border: none;
@@ -3521,33 +3235,9 @@
      * ============================================================================
      */
 
-    const GRID_SIZE = 20;
+    const GRID_SIZE=20;const SYMBOL_STANDARDS={DIN_40700:'DIN 40700 (Deutsch)',DIN_EN_60617:'DIN EN 60617 (IEC)',ANSI:'ANSI / IEEE 91 (US)'};const GATE_RENDER_METRICS={bubbleRadius:3.6,bubbleDiameter:7.2};
 
-    const SYMBOL_STANDARDS = {
-      DIN_40700: 'DIN 40700 (Deutsch)',
-      DIN_EN_60617: 'DIN EN 60617 (IEC)',
-      ANSI: 'ANSI / IEEE 91 (US)'
-    };
-
-    const GATE_RENDER_METRICS = {
-      bubbleRadius: 3.6,
-      bubbleDiameter: 7.2
-    };
-
-    const GATE_IEC_SYMBOLS = {
-      NOT: '1',
-      BUFFER: '1',
-      TRI_STATE: '1',
-      MAJORITY: '≥2',
-      AND: '&',
-      OR: '≥1',
-      NAND: '&',
-      NOR: '≥1',
-      XOR: '=1',
-      XNOR: '=1'
-    };
-
-    const LED_COLORS = {
+    const GATE_IEC_SYMBOLS={NOT:'1',BUFFER:'1',TRI_STATE:'1',MAJORITY:'≥2',AND:'&',OR:'≥1',NAND:'&',NOR:'≥1',XOR:'=1',XNOR:'=1'};const LED_COLORS={
       green:  { on: '#00e676', glow: 'rgba(0, 230, 118, 0.65)', off: '#143325', label: 'Grün' },
       red:    { on: '#ff5252', glow: 'rgba(255, 82, 82, 0.65)',  off: '#38161a', label: 'Rot' },
       yellow: { on: '#ffd600', glow: 'rgba(255, 214, 0, 0.65)',  off: '#383012', label: 'Gelb' },
