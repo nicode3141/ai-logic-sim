@@ -3235,26 +3235,26 @@
       <div class="menubar-menus">
         <!-- Datei -->
         <div class="menubar-item" data-menu="file">
-          <button class="menubar-btn" id="mbtn-file">Datei</button>
+          <button class="menubar-btn" id="mbtn-file" data-i18n="menu.file">Datei</button>
           <div class="menubar-dropdown" id="mdropdown-file" style="display: none;">
             <button class="app-menu-item" id="menu-item-new">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span>Neu (Leeren)</span>
+              <span data-i18n="menu.file.new">Neu (Leeren)</span>
               <span class="menu-shortcut">Strg+N</span>
             </button>
             <button class="app-menu-item" id="menu-item-open">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span>Öffnen... (JSON Import)</span>
+              <span data-i18n="menu.file.open">Öffnen... (JSON Import)</span>
               <span class="menu-shortcut">Strg+O</span>
             </button>
             <button class="app-menu-item" id="menu-item-save">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Speichern... (JSON Export)</span>
+              <span data-i18n="menu.file.save">Speichern... (JSON Export)</span>
               <span class="menu-shortcut">Strg+S</span>
             </button>
             <button class="app-menu-item" id="menu-item-export-png">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <span>Bild exportieren (PNG)</span>
+              <span data-i18n="menu.file.export_png">Bild exportieren (PNG)</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-clear">
@@ -3266,53 +3266,53 @@
 
         <!-- Bearbeiten -->
         <div class="menubar-item" data-menu="edit">
-          <button class="menubar-btn" id="mbtn-edit">Bearbeiten</button>
+          <button class="menubar-btn" id="mbtn-edit" data-i18n="menu.edit">Bearbeiten</button>
           <div class="menubar-dropdown" id="mdropdown-edit" style="display: none;">
             <button class="app-menu-item" id="menu-item-undo">
               <span style="font-size:14px; width:14px;">↶</span>
-              <span>Rückgängig</span>
+              <span data-i18n="menu.edit.undo">Rückgängig</span>
               <span class="menu-shortcut">Strg+Z</span>
             </button>
             <button class="app-menu-item" id="menu-item-redo">
               <span style="font-size:14px; width:14px;">↷</span>
-              <span>Wiederholen</span>
+              <span data-i18n="menu.edit.redo">Wiederholen</span>
               <span class="menu-shortcut">Strg+Y</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-select-all">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/></svg>
-              <span>Alles auswählen</span>
+              <span data-i18n="menu.edit.select_all">Alles auswählen</span>
               <span class="menu-shortcut">Strg+A</span>
             </button>
             <button class="app-menu-item" id="menu-item-copy">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span>Kopieren</span>
+              <span data-i18n="menu.edit.copy">Kopieren</span>
               <span class="menu-shortcut">Strg+C</span>
             </button>
             <button class="app-menu-item" id="menu-item-paste">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
-              <span>Einfügen</span>
+              <span data-i18n="menu.edit.paste">Einfügen</span>
               <span class="menu-shortcut">Strg+V</span>
             </button>
             <button class="app-menu-item" id="menu-item-duplicate">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-              <span>Duplizieren</span>
+              <span data-i18n="menu.edit.duplicate">Duplizieren</span>
               <span class="menu-shortcut">Strg+D</span>
             </button>
             <button class="app-menu-item" id="menu-item-delete">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              <span>Löschen</span>
+              <span data-i18n="menu.edit.delete">Löschen</span>
               <span class="menu-shortcut">Entf</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-layout">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8.5l-3.9 1.6L12 14l-1.6-3.9L6.5 8.5l3.9-1.6z"/><path d="M5 14l.8 2 2 .8-2 .8L5 19.6l-.8-2-2-.8 2-.8z"/><path d="M18.5 14.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z"/></svg>
-              <span>Auto-Anordnen</span>
+              <span data-i18n="menu.edit.layout">Auto-Anordnen</span>
               <span class="menu-shortcut">A</span>
             </button>
             <button class="app-menu-item" id="menu-item-reroute">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5v12h5"/></svg>
-              <span>Leitungen neu verlegen</span>
+              <span data-i18n="menu.edit.reroute">Leitungen neu verlegen</span>
               <span class="menu-shortcut">L</span>
             </button>
           </div>
@@ -3320,49 +3320,49 @@
 
         <!-- Ansicht -->
         <div class="menubar-item" data-menu="view">
-          <button class="menubar-btn" id="mbtn-view">Ansicht</button>
+          <button class="menubar-btn" id="mbtn-view" data-i18n="menu.view">Ansicht</button>
           <div class="menubar-dropdown" id="mdropdown-view" style="display: none;">
             <button class="app-menu-item" id="menu-item-single-view">
               <span class="norm-check" id="check-view-single">✓</span>
-              <span>Einzelansicht (Standard)</span>
+              <span data-i18n="menu.view.single">Einzelansicht (Standard)</span>
             </button>
             <button class="app-menu-item" id="menu-item-split-screen">
               <span class="norm-check" id="check-view-split">&nbsp;</span>
-              <span>Split-Screen (Nebeneinander)</span>
+              <span data-i18n="menu.view.split">Split-Screen (Nebeneinander)</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-zoom-in">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <span>Hineinzoomen</span>
+              <span data-i18n="menu.view.zoom_in">Hineinzoomen</span>
               <span class="menu-shortcut">+</span>
             </button>
             <button class="app-menu-item" id="menu-item-zoom-out">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <span>Herauszoomen</span>
+              <span data-i18n="menu.view.zoom_out">Herauszoomen</span>
               <span class="menu-shortcut">-</span>
             </button>
             <button class="app-menu-item" id="menu-item-zoom-reset">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              <span>Ansicht zentrieren (100%)</span>
+              <span data-i18n="menu.view.zoom_reset">Ansicht zentrieren (100%)</span>
               <span class="menu-shortcut">0</span>
             </button>
             <button class="app-menu-item" id="menu-item-zoom-fit">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-              <span>Ganze Schaltung einpassen</span>
+              <span data-i18n="menu.view.zoom_fit">Ganze Schaltung einpassen</span>
               <span class="menu-shortcut">F</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-toggle-analyzer">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              <span>Impulsdiagramm (Logic Analyzer)</span>
+              <span data-i18n="menu.view.analyzer">Impulsdiagramm (Logic Analyzer)</span>
             </button>
             <button class="app-menu-item" id="menu-item-toggle-inspector">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-              <span>Eigenschaften (Inspector)</span>
+              <span data-i18n="menu.view.inspector">Eigenschaften (Inspector)</span>
             </button>
             <button class="app-menu-item" id="menu-item-toggle-bridges">
               <span class="norm-check" id="check-view-bridges">✓</span>
-              <span>Leitungsbrücken bei Kreuzungen</span>
+              <span data-i18n="menu.view.bridges">Leitungsbrücken bei Kreuzungen</span>
             </button>
             <div class="app-menu-divider"></div>
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
@@ -3386,21 +3386,31 @@
               <span class="norm-check" id="check-theme-light_cad">&nbsp;</span>
               <span>Clean Light (Ingenieurs-Weiß)</span>
             </button>
+            <div class="app-menu-divider"></div>
+            <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="menu.view.language">Sprache / Language</div>
+            <button class="app-menu-item" id="menu-lang-de" data-lang-btn="de">
+              <span class="norm-check" id="check-lang-de">✓</span>
+              <span>Deutsch (DE)</span>
+            </button>
+            <button class="app-menu-item" id="menu-lang-en" data-lang-btn="en">
+              <span class="norm-check" id="check-lang-en">&nbsp;</span>
+              <span>English (EN)</span>
+            </button>
           </div>
         </div>
 
         <!-- Analyse -->
         <div class="menubar-item" data-menu="analysis">
-          <button class="menubar-btn" id="mbtn-analysis">Analyse</button>
+          <button class="menubar-btn" id="mbtn-analysis" data-i18n="menu.analysis">Analyse</button>
           <div class="menubar-dropdown" id="mdropdown-analysis" style="display: none;">
             <button class="app-menu-item" id="menu-item-truth-table">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-              <span>Wahrheitstabelle (Truth Table)...</span>
+              <span data-i18n="menu.analysis.truth_table">Wahrheitstabelle (Truth Table)...</span>
               <span class="menu-shortcut">Strg+T</span>
             </button>
             <button class="app-menu-item" id="menu-item-bool-synth">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg>
-              <span>Boolesche Schaltalgebra &amp; Synthese...</span>
+              <span data-i18n="menu.analysis.bool_synth">Boolesche Schaltalgebra &amp; Synthese...</span>
               <span class="menu-shortcut">Strg+B</span>
             </button>
           </div>
@@ -3408,7 +3418,7 @@
 
         <!-- Norm -->
         <div class="menubar-item" data-menu="norm">
-          <button class="menubar-btn" id="mbtn-norm">Norm</button>
+          <button class="menubar-btn" id="mbtn-norm" data-i18n="menu.norm">Norm</button>
           <div class="menubar-dropdown" id="mdropdown-norm" style="display: none;">
             <button class="app-menu-item" id="menu-norm-din40700">
               <span class="norm-check" id="check-norm-din40700">✓</span>
@@ -3427,16 +3437,16 @@
 
         <!-- Szenarien -->
         <div class="menubar-item" data-menu="demos">
-          <button class="menubar-btn" id="mbtn-demos">Szenarien</button>
+          <button class="menubar-btn" id="mbtn-demos" data-i18n="menu.demos">Szenarien</button>
           <div class="menubar-dropdown" id="mdropdown-demos" style="display: none; min-width: 300px;">
             <button class="app-menu-item" id="menu-item-gallery">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-              <span>Szenario-Galerie öffnen…</span>
+              <span data-i18n="menu.demos.gallery">Szenario-Galerie öffnen…</span>
               <span class="menu-shortcut">G</span>
             </button>
             <button class="app-menu-item" id="menu-item-guide-toggle">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-              <span>Szenario-Guide ein-/ausblenden</span>
+              <span data-i18n="menu.demos.guide">Szenario-Guide ein-/ausblenden</span>
             </button>
             <div class="app-menu-divider"></div>
             <div class="app-menu-header">Direkt zu einer Stufe</div>
@@ -3446,16 +3456,16 @@
 
         <!-- Hilfe -->
         <div class="menubar-item" data-menu="help">
-          <button class="menubar-btn" id="mbtn-help">Hilfe</button>
+          <button class="menubar-btn" id="mbtn-help" data-i18n="menu.help">Hilfe</button>
           <div class="menubar-dropdown" id="mdropdown-help" style="display: none; min-width: 260px;">
             <button class="app-menu-item" id="menu-item-help">
               <span style="font-size:13px; width:14px; text-align:center; font-weight:700;">?</span>
-              <span>Tastenkürzel &amp; Bedienung…</span>
+              <span data-i18n="menu.help.shortcuts">Tastenkürzel &amp; Bedienung…</span>
               <span class="menu-shortcut">?</span>
             </button>
             <button class="app-menu-item" id="menu-item-welcome">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
-              <span>Erste Schritte (Szenario 1 laden)</span>
+              <span data-i18n="menu.help.welcome">Erste Schritte (Szenario 1 laden)</span>
             </button>
           </div>
         </div>
@@ -3464,7 +3474,7 @@
         <div class="menubar-item">
           <button class="menubar-btn" id="mbtn-settings">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span>Einstellungen</span>
+            <span data-i18n="menu.settings">Einstellungen</span>
           </button>
         </div>
       </div>
@@ -3477,11 +3487,11 @@
         <div class="mode-switch" role="group" aria-label="Betriebsmodus">
           <button id="btn-mode-edit" class="mode-btn active-edit" title="Schaltung bearbeiten (Bauteile platzieren & verdrahten)">
             <span class="status-dot"></span>
-            <span class="btn-text-full">Edit-Modus</span>
+            <span class="btn-text-full" data-i18n="toolbar.mode.edit">Edit</span>
           </button>
           <button id="btn-mode-sim" class="mode-btn" title="Schaltung simulieren (Interaktion mit Schaltern & Takt)">
             <span class="status-dot"></span>
-            <span class="btn-text-full">Simulationsmodus</span>
+            <span class="btn-text-full" data-i18n="toolbar.mode.sim">Simulation</span>
           </button>
         </div>
 
@@ -3560,7 +3570,7 @@
           </button>
           <button id="btn-sim-start" class="btn btn-primary" disabled title="Simulation starten / pausieren (Leertaste)">
             <span id="sim-play-icon" class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
-            <span id="sim-play-text">Start</span>
+            <span id="sim-play-text" data-i18n="toolbar.sim.start">Start</span>
           </button>
           <button id="btn-sim-step" class="btn" disabled title="Einzelschritt (+1 Tick ausführen, gedrückt halten zum kontinuierlichen Vorlauf)">
             <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
@@ -3572,7 +3582,7 @@
           </button>
 
           <div class="freq-control disabled" id="freq-control-box">
-            <span class="freq-label">Takt:</span>
+            <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
             <input type="range" id="slider-freq" min="1" max="60" value="10" />
             <span class="freq-val" id="label-freq">10 Hz</span>
           </div>
@@ -3583,7 +3593,7 @@
       <div class="toolbar-group">
         <button id="btn-scenarios" class="btn btn-scenarios" title="Szenarien (G): Beispielschaltungen von leicht bis komplex">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-          <span>Szenarien</span>
+          <span data-i18n="toolbar.scenarios">Szenarien</span>
         </button>
 
         <div class="divider"></div>
@@ -3599,7 +3609,7 @@
 
         <button id="btn-toggle-split" class="btn" title="Split-Screen Ansicht umschalten (Zwei Schaltungen nebeneinander)">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
-          <span id="split-btn-text" class="btn-text">Split</span>
+          <span id="split-btn-text" class="btn-text" data-i18n="toolbar.split">Split</span>
         </button>
 
         <div class="divider"></div>
@@ -3619,74 +3629,74 @@
       <!-- 2. LEFT COMPONENT PALETTE -->
       <aside id="sidebar">
         <div class="panel-header">
-          <span>Bauteil-Palette</span>
+          <span data-i18n="palette.title">Bauteil-Palette</span>
           <span style="font-size: 10px; color: var(--text-dim);">Drag &amp; Drop</span>
         </div>
         <div class="palette-search">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
-          <input type="text" id="palette-search-input" placeholder="Bauteil suchen…  ( / )" autocomplete="off" spellcheck="false" />
+          <input type="text" id="palette-search-input" placeholder="Bauteil suchen…  ( / )" data-i18n-placeholder="palette.search" autocomplete="off" spellcheck="false" />
           <button id="palette-search-clear" title="Suche leeren" style="display: none;">&times;</button>
         </div>
-        <div id="palette-empty" class="palette-empty" style="display: none;">Kein Bauteil gefunden.</div>
+        <div id="palette-empty" class="palette-empty" style="display: none;" data-i18n="palette.empty">Kein Bauteil gefunden.</div>
 
         <!-- Quellen -->
         <div class="palette-category">
-          <div class="category-title">Quellen (Inputs)</div>
+          <div class="category-title" data-i18n="palette.cat.sources">Quellen (Inputs)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="SWITCH" title="Schalter (0/1 umschaltbar)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="7" y2="12"/><circle cx="7.5" cy="12" r="1.5" fill="currentColor"/><line x1="7.5" y1="12" x2="16" y2="6.5"/><circle cx="17.5" cy="6" r="1.5"/><circle cx="17.5" cy="18" r="1.5"/><line x1="19" y1="6" x2="22" y2="6"/><line x1="19" y1="18" x2="22" y2="18"/></svg></div>
-              <div class="palette-name">Schalter</div>
+              <div class="palette-name" data-i18n="comp.SWITCH">Schalter</div>
             </div>
             <div class="palette-item" draggable="true" data-type="BUTTON" title="Taster (1 während Mausklick)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="15" x2="8" y2="15"/><circle cx="8" cy="15" r="1.5"/><circle cx="16" cy="15" r="1.5"/><line x1="16" y1="15" x2="22" y2="15"/><line x1="6.5" y1="11" x2="17.5" y2="11" stroke-width="2.2"/><line x1="12" y1="11" x2="12" y2="4"/><line x1="8" y1="4" x2="16" y2="4" stroke-width="2.5"/></svg></div>
-              <div class="palette-name">Taster</div>
+              <div class="palette-name" data-i18n="comp.BUTTON">Taster</div>
             </div>
             <div class="palette-item" draggable="true" data-type="CLOCK" title="Taktgeber (konfigurierbare Halbperiode)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 14h3V10h6v4h3" stroke-width="1.8"/></svg></div>
-              <div class="palette-name">Taktgeber</div>
+              <div class="palette-name" data-i18n="comp.CLOCK">Taktgeber</div>
             </div>
             <div class="palette-item" draggable="true" data-type="CONST" title="Konstante: liefert dauerhaft 1 (oder 0)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M10.5 10l2-1.5V16" stroke-width="2.2"/></svg></div>
-              <div class="palette-name">Konstante</div>
+              <div class="palette-name" data-i18n="comp.CONST">Konstante</div>
             </div>
           </div>
         </div>
 
         <!-- Logikgatter -->
         <div class="palette-category">
-          <div class="category-title">Logikgatter (Gates)</div>
+          <div class="category-title" data-i18n="palette.cat.gates">Logikgatter (Gates)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negationspunkt (○): Auf Pin eines Gatters ziehen zum Invertieren">
               <div class="palette-icon" id="pal-icon-NEGATOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="8" y2="12"/><circle cx="12" cy="12" r="3.5" fill="#151a22"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
-              <div class="palette-name">Negator</div>
+              <div class="palette-name" data-i18n="comp.NEGATOR">Negator</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
               <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
-              <div class="palette-name">NOT</div>
+              <div class="palette-name" data-i18n="comp.NOT">NOT</div>
             </div>
             <div class="palette-item" draggable="true" data-type="AND" title="AND-Gatter (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-AND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h6a7 7 0 0 1 7 7 7 7 0 0 1-7 7H5z"/></svg></div>
-              <div class="palette-name">AND</div>
+              <div class="palette-name" data-i18n="comp.AND">AND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="OR" title="OR-Gatter (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-OR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3 3 3 11 0 14 7 0 12-2 16-7-4-5-9-7-16-7z"/></svg></div>
-              <div class="palette-name">OR</div>
+              <div class="palette-name" data-i18n="comp.OR">OR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NAND" title="NAND-Gatter (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-NAND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h5a6.5 6.5 0 0 1 6.5 6.5A6.5 6.5 0 0 1 9 18H4z"/><circle cx="18" cy="11.5" r="2"/></svg></div>
-              <div class="palette-name">NAND</div>
+              <div class="palette-name" data-i18n="comp.NAND">NAND</div>
             </div>
             <div class="palette-item" draggable="true" data-type="NOR" title="NOR-Gatter (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-NOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c2.5 2.5 2.5 10 0 13 6 0 10.5-2 14-6.5C14.5 7 10 5 4 5z"/><circle cx="19.5" cy="11.5" r="2"/></svg></div>
-              <div class="palette-name">NOR</div>
+              <div class="palette-name" data-i18n="comp.NOR">NOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XOR" title="XOR-Gatter / Ungerade Parität (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-XOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M6 5c2.5 3 2.5 11 0 14 6.5 0 11-2 15-7-4-5-8.5-7-15-7z"/></svg></div>
-              <div class="palette-name">XOR</div>
+              <div class="palette-name" data-i18n="comp.XOR">XOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR-Gatter / Gerade Parität (2–8 Eingänge)">
               <div class="palette-icon" id="pal-icon-XNOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg></div>
-              <div class="palette-name">XNOR</div>
+              <div class="palette-name" data-i18n="comp.XNOR">XNOR</div>
             </div>
             <div class="palette-item" draggable="true" data-type="BUFFER" title="Puffer / Treiber (Buffer, 1 Eingang)">
               <div class="palette-icon" id="pal-icon-BUFFER"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/></svg></div>
@@ -3694,18 +3704,18 @@
             </div>
             <div class="palette-item" draggable="true" data-type="TRI_STATE" title="Tri-State-Treiber mit Enable (IN, EN)">
               <div class="palette-icon" id="pal-icon-TRI_STATE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/><line x1="12" y1="21" x2="12" y2="15.5"/></svg></div>
-              <div class="palette-name">Tri-State</div>
+              <div class="palette-name" data-i18n="comp.TRI_STATE">Tri-State</div>
             </div>
             <div class="palette-item" draggable="true" data-type="MAJORITY" title="Mehrheitsgatter / Majority (3 Eingänge)">
               <div class="palette-icon" id="pal-icon-MAJORITY"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7a8 8 0 0 1 8 8 8 8 0 0 1-8 8H4z"/><text x="7" y="15" font-size="8" fill="currentColor" stroke="none" font-weight="bold">≥2</text></svg></div>
-              <div class="palette-name">Majority</div>
+              <div class="palette-name" data-i18n="comp.MAJORITY">Majority</div>
             </div>
           </div>
         </div>
 
         <!-- Anzeigen & Decoder -->
         <div class="palette-category">
-          <div class="category-title">Anzeigen &amp; Decoder</div>
+          <div class="category-title" data-i18n="palette.cat.displays">Anzeigen &amp; Decoder</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="LED" title="LED-Signallampe (Grün, Rot, Gelb, Blau)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="6.34" y1="6.34" x2="17.66" y2="17.66"/><line x1="17.66" y1="6.34" x2="6.34" y2="17.66"/></svg></div>
@@ -3728,15 +3738,15 @@
 
         <!-- Bausteine -->
         <div class="palette-category">
-          <div class="category-title">Bausteine (Kombinatorik)</div>
+          <div class="category-title" data-i18n="palette.cat.combinational">Bausteine (Kombinatorik)</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="FULL_ADDER" title="Volladdierer: A + B + Cin = S, Cout">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M15 8H9l3.5 4L9 16h6" stroke-width="2"/></svg></div>
-              <div class="palette-name">Volladdierer</div>
+              <div class="palette-name" data-i18n="comp.FULL_ADDER">Volladdierer</div>
             </div>
             <div class="palette-item" draggable="true" data-type="MUX" title="Multiplexer 2:1: S wählt D0 oder D1">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4l10 4v8L7 20z"/><path d="M3 9h4M3 15h4M17 12h4"/></svg></div>
-              <div class="palette-name">Multiplexer 2:1</div>
+              <div class="palette-name" data-i18n="comp.MUX_2TO1">Multiplexer 2:1</div>
             </div>
             <div class="palette-item" draggable="true" data-type="DECODER" title="Decoder 2-zu-4: genau ein Ausgang ist 1">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 8l10-4v16L7 16z"/><path d="M3 10h4M3 14h4M17 7h4M17 12h4M17 17h4"/></svg></div>
@@ -3747,7 +3757,7 @@
 
         <!-- Schaltwerke -->
         <div class="palette-category">
-          <div class="category-title">Schaltwerke (Sequential)</div>
+          <div class="category-title" data-i18n="palette.cat.sequential">Schaltwerke (Sequential)</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="COUNTER" title="4-Bit-Counter (Binär mod 16 / BCD mod 10)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h2v6M13 9h4v3h-4v3h4"/></svg></div>
@@ -3762,7 +3772,7 @@
 
         <!-- Flip-Flops & Speicher -->
         <div class="palette-category">
-          <div class="category-title">Flip-Flops &amp; Speicher</div>
+          <div class="category-title" data-i18n="palette.cat.memory">Flip-Flops &amp; Speicher</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="SR_FF" title="SR-Flipflop / Bistabile Kippstufe (S, CLK, R / Q, Q̅)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">SR</text><polyline points="4 10 7 12 4 14"/></svg></div>
@@ -3770,30 +3780,30 @@
             </div>
             <div class="palette-item" draggable="true" data-type="D_FF" title="D-Flipflop / Datenspeicher (D, CLK / Q, Q̅)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">D-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
-              <div class="palette-name">D-FF</div>
+              <div class="palette-name" data-i18n="comp.D_FF">D-FF</div>
             </div>
             <div class="palette-item" draggable="true" data-type="JK_FF" title="JK-Flipflop / Universal Master-Slave (J, CLK, K / Q, Q̅ mit Toggle)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">JK</text><polyline points="4 10 7 12 4 14"/></svg></div>
-              <div class="palette-name">JK-FF</div>
+              <div class="palette-name" data-i18n="comp.JK_FF">JK-FF</div>
             </div>
             <div class="palette-item" draggable="true" data-type="T_FF" title="T-Flipflop / Toggle &amp; Frequenzteiler (T, CLK / Q, Q̅)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">T-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
-              <div class="palette-name">T-FF</div>
+              <div class="palette-name" data-i18n="comp.T_FF">T-FF</div>
             </div>
             <div class="palette-item" draggable="true" data-type="D_LATCH" title="D-Latch / Pegelgesteuerter Speicher (D, EN / Q, Q̅)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="6.5" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">LATCH</text></svg></div>
-              <div class="palette-name">D-Latch</div>
+              <div class="palette-name" data-i18n="comp.D_LATCH">D-Latch</div>
             </div>
           </div>
         </div>
 
         <!-- Analyse -->
         <div class="palette-category">
-          <div class="category-title">Analyse</div>
+          <div class="category-title" data-i18n="palette.cat.analysis">Analyse</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt / Signal-Clip für Leitungen (Impulsdiagramm)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 13 5 13s5-9 5-13a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2" fill="currentColor"/></svg></div>
-              <div class="palette-name">Messpunkt (Probe)</div>
+              <div class="palette-name" data-i18n="comp.PROBE">Messpunkt (Probe)</div>
             </div>
           </div>
         </div>
@@ -4209,6 +4219,16 @@
             </div>
           </div>
 
+          <!-- Sprache / Language -->
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="settings.language_title">Sprache / Language:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;" data-i18n="settings.language_desc">Wähle die Sprache der Benutzeroberfläche:</div>
+            <div class="seg-control" id="settings-lang-seg" style="display: inline-flex; margin-top: 4px;">
+              <button data-lang="de" class="active">Deutsch (DE)</button>
+              <button data-lang="en">English (EN)</button>
+            </div>
+          </div>
+
           <!-- 3. Interaktion im Edit-Modus -->
           <div class="settings-section">
             <div class="settings-section-title">Interaktion &amp; Bedienung:</div>
@@ -4401,6 +4421,262 @@
      * 7. Standalone single-file HTML, zero external frameworks or CDNs
      * ============================================================================
      */
+
+    
+    const I18N = {
+      currentLang: 'de',
+      dicts: {
+        de: {
+          'app.title': 'LogicSim Pro — Digitaler Web-Logiksimulator',
+          'menu.file': 'Datei',
+          'menu.file.new': 'Neu (Leeren)',
+          'menu.file.open': 'Öffnen… (JSON)',
+          'menu.file.save': 'Speichern… (JSON)',
+          'menu.file.export_png': 'Bild exportieren (PNG)',
+          'menu.file.clear': 'Arbeitsfläche leeren',
+          'menu.edit': 'Bearbeiten',
+          'menu.edit.undo': 'Rückgängig',
+          'menu.edit.redo': 'Wiederholen',
+          'menu.edit.select_all': 'Alles auswählen',
+          'menu.edit.copy': 'Kopieren',
+          'menu.edit.paste': 'Einfügen',
+          'menu.edit.duplicate': 'Duplizieren',
+          'menu.edit.delete': 'Löschen',
+          'menu.edit.layout': 'Auto-Anordnen',
+          'menu.edit.reroute': 'Leitungen neu verlegen',
+          'menu.view': 'Ansicht',
+          'menu.view.single': 'Einzelansicht (Standard)',
+          'menu.view.split': 'Split-Screen (Nebeneinander)',
+          'menu.view.zoom_in': 'Hineinzoomen',
+          'menu.view.zoom_out': 'Herauszoomen',
+          'menu.view.zoom_reset': 'Ansicht zentrieren (100%)',
+          'menu.view.zoom_fit': 'Ganze Schaltung einpassen',
+          'menu.view.analyzer': 'Impulsdiagramm (Logic Analyzer)',
+          'menu.view.inspector': 'Eigenschaften (Inspector)',
+          'menu.view.bridges': 'Leitungsbrücken bei Kreuzungen',
+          'menu.view.theme': 'Design / Theme',
+          'menu.view.language': 'Sprache / Language',
+          'menu.analysis': 'Analyse',
+          'menu.analysis.truth_table': 'Wahrheitstabelle (Truth Table)…',
+          'menu.analysis.bool_synth': 'Boolesche Schaltalgebra & Synthese…',
+          'menu.norm': 'Norm',
+          'menu.norm.din40700': 'DIN 40700 (Historisch DE)',
+          'menu.norm.din60617': 'DIN EN 60617 (IEC / International)',
+          'menu.norm.ansi': 'ANSI / IEEE (US-Formen)',
+          'menu.demos': 'Szenarien',
+          'menu.demos.gallery': 'Szenario-Galerie öffnen…',
+          'menu.demos.guide': 'Szenario-Guide ein-/ausblenden',
+          'menu.help': 'Hilfe',
+          'menu.help.shortcuts': 'Tastenkürzel & Bedienung…',
+          'menu.help.welcome': 'Erste Schritte (Szenario 1 laden)',
+          'menu.settings': 'Einstellungen',
+
+          'toolbar.mode.edit': 'Edit',
+          'toolbar.mode.sim': 'Simulation',
+          'toolbar.auto_route': 'Auto-Anordnen',
+          'toolbar.sim.step_back': '-1',
+          'toolbar.sim.start': 'Start',
+          'toolbar.sim.pause': 'Pause',
+          'toolbar.sim.step': '+1',
+          'toolbar.sim.reset': 'Reset',
+          'toolbar.sim.clock': 'Takt:',
+          'toolbar.scenarios': 'Szenarien',
+          'toolbar.undo': 'Rückgängig',
+          'toolbar.redo': 'Wiederholen',
+          'toolbar.split': 'Split',
+
+          'palette.title': 'Bauteil-Palette',
+          'palette.search': 'Bauteil suchen…  ( / )',
+          'palette.empty': 'Kein Bauteil gefunden.',
+          'palette.cat.sources': 'Quellen (Inputs)',
+          'palette.cat.gates': 'Logikgatter (Gates)',
+          'palette.cat.displays': 'Anzeigen & Decoder',
+          'palette.cat.combinational': 'Bausteine (Kombinatorik)',
+          'palette.cat.sequential': 'Schaltwerke (Sequential)',
+          'palette.cat.memory': 'Flip-Flops & Speicher',
+          'palette.cat.analysis': 'Analyse',
+
+          'comp.SWITCH': 'Schalter',
+          'comp.BUTTON': 'Taster',
+          'comp.CLOCK': 'Taktgeber',
+          'comp.CONST': 'Konstante',
+          'comp.NEGATOR': 'Negator',
+          'comp.NOT': 'NOT',
+          'comp.AND': 'AND',
+          'comp.OR': 'OR',
+          'comp.NAND': 'NAND',
+          'comp.NOR': 'NOR',
+          'comp.XOR': 'XOR',
+          'comp.XNOR': 'XNOR',
+          'comp.BUFFER': 'Puffer',
+          'comp.TRI_STATE': 'Tri-State',
+          'comp.MAJORITY': 'Majority',
+          'comp.LED': 'LED (Lampe)',
+          'comp.SEVEN_SEG': '7-Segment',
+          'comp.HALF_ADDER': 'Halbaddierer',
+          'comp.FULL_ADDER': 'Volladdierer',
+          'comp.MUX_2TO1': 'Multiplexer 2:1',
+          'comp.DEMUX_1TO2': 'Demux 1:2',
+          'comp.SR_LATCH': 'SR-Latch',
+          'comp.D_FF': 'D-Flip-Flop',
+          'comp.JK_FF': 'JK-Flip-Flop',
+          'comp.T_FF': 'T-Flip-Flop',
+          'comp.D_LATCH': 'D-Latch',
+          'comp.COUNTER_4BIT': '4-Bit Zähler',
+          'comp.SHIFT_REG': 'Schieberegister',
+          'comp.PROBE': 'Messpunkt (Probe)',
+
+          'inspector.title': 'Eigenschaften (Inspector)',
+          'inspector.empty': 'Wähle ein Bauteil oder eine Leitung auf der Arbeitsfläche aus.',
+          'inspector.label': 'Bezeichnung',
+          'inspector.inputs': 'Eingänge',
+          'inspector.color': 'Farbe',
+          'inspector.delay': 'Gatter-Laufzeit (Ticks)',
+          'inspector.delete': 'Löschen',
+
+          'status.ready': 'Bereit',
+          'status.edit_mode': 'EDIT',
+          'status.sim_mode': 'SIM',
+          'status.tick': 'Tick',
+          'status.components': 'Bauteile',
+          'status.wires': 'Leitungen',
+          'status.hint_default': 'Tipp: Von Pin zu Pin ziehen verdrahtet. Gedrückt halten zum Abzweigen.',
+
+          'settings.title': 'Einstellungen & Personalisierung',
+          'settings.subtitle': 'Signalfarben, Schaltsymbol-Normen, Interaktion und Sprache anpassen',
+          'settings.language_title': 'Sprache / Language:',
+          'settings.language_desc': 'Wähle die Sprache der Benutzeroberfläche:',
+          'settings.close': 'Schließen'
+        },
+        en: {
+          'app.title': 'LogicSim Pro — Digital Logic Circuit Simulator',
+          'menu.file': 'File',
+          'menu.file.new': 'New (Clear)',
+          'menu.file.open': 'Open… (JSON)',
+          'menu.file.save': 'Save… (JSON)',
+          'menu.file.export_png': 'Export Image (PNG)',
+          'menu.file.clear': 'Clear Canvas',
+          'menu.edit': 'Edit',
+          'menu.edit.undo': 'Undo',
+          'menu.edit.redo': 'Redo',
+          'menu.edit.select_all': 'Select All',
+          'menu.edit.copy': 'Copy',
+          'menu.edit.paste': 'Paste',
+          'menu.edit.duplicate': 'Duplicate',
+          'menu.edit.delete': 'Delete',
+          'menu.edit.layout': 'Auto-Layout',
+          'menu.edit.reroute': 'Reroute Wires',
+          'menu.view': 'View',
+          'menu.view.single': 'Single View (Default)',
+          'menu.view.split': 'Split Screen (Side-by-Side)',
+          'menu.view.zoom_in': 'Zoom In',
+          'menu.view.zoom_out': 'Zoom Out',
+          'menu.view.zoom_reset': 'Reset Zoom (100%)',
+          'menu.view.zoom_fit': 'Fit Whole Circuit',
+          'menu.view.analyzer': 'Logic Analyzer (Waveform)',
+          'menu.view.inspector': 'Properties (Inspector)',
+          'menu.view.bridges': 'Wire Crossing Bridges',
+          'menu.view.theme': 'Design / Theme',
+          'menu.view.language': 'Language / Sprache',
+          'menu.analysis': 'Analysis',
+          'menu.analysis.truth_table': 'Truth Table…',
+          'menu.analysis.bool_synth': 'Boolean Algebra & Synthesis…',
+          'menu.norm': 'Standard',
+          'menu.norm.din40700': 'DIN 40700 (German / Classic)',
+          'menu.norm.din60617': 'DIN EN 60617 (IEC / International)',
+          'menu.norm.ansi': 'ANSI / IEEE (US Shapes)',
+          'menu.demos': 'Scenarios',
+          'menu.demos.gallery': 'Open Scenario Gallery…',
+          'menu.demos.guide': 'Toggle Scenario Guide',
+          'menu.help': 'Help',
+          'menu.help.shortcuts': 'Keyboard Shortcuts & Controls…',
+          'menu.help.welcome': 'Getting Started (Load Scenario 1)',
+          'menu.settings': 'Settings',
+
+          'toolbar.mode.edit': 'Edit',
+          'toolbar.mode.sim': 'Simulation',
+          'toolbar.auto_route': 'Auto-Layout',
+          'toolbar.sim.step_back': '-1',
+          'toolbar.sim.start': 'Start',
+          'toolbar.sim.pause': 'Pause',
+          'toolbar.sim.step': '+1',
+          'toolbar.sim.reset': 'Reset',
+          'toolbar.sim.clock': 'Clock:',
+          'toolbar.scenarios': 'Scenarios',
+          'toolbar.undo': 'Undo',
+          'toolbar.redo': 'Redo',
+          'toolbar.split': 'Split',
+
+          'palette.title': 'Component Palette',
+          'palette.search': 'Search component… ( / )',
+          'palette.empty': 'No component found.',
+          'palette.cat.sources': 'Sources (Inputs)',
+          'palette.cat.gates': 'Logic Gates',
+          'palette.cat.displays': 'Displays & Decoders',
+          'palette.cat.combinational': 'Modules (Combinational)',
+          'palette.cat.sequential': 'Sequential Circuits',
+          'palette.cat.memory': 'Flip-Flops & Storage',
+          'palette.cat.analysis': 'Analysis',
+
+          'comp.SWITCH': 'Switch',
+          'comp.BUTTON': 'Push Button',
+          'comp.CLOCK': 'Clock Generator',
+          'comp.CONST': 'Constant',
+          'comp.NEGATOR': 'Inverter Bubble',
+          'comp.NOT': 'NOT',
+          'comp.AND': 'AND',
+          'comp.OR': 'OR',
+          'comp.NAND': 'NAND',
+          'comp.NOR': 'NOR',
+          'comp.XOR': 'XOR',
+          'comp.XNOR': 'XNOR',
+          'comp.BUFFER': 'Buffer',
+          'comp.TRI_STATE': 'Tri-State',
+          'comp.MAJORITY': 'Majority',
+          'comp.LED': 'LED (Lamp)',
+          'comp.SEVEN_SEG': '7-Segment',
+          'comp.HALF_ADDER': 'Half Adder',
+          'comp.FULL_ADDER': 'Full Adder',
+          'comp.MUX_2TO1': 'Multiplexer 2:1',
+          'comp.DEMUX_1TO2': 'Demux 1:2',
+          'comp.SR_LATCH': 'SR Latch',
+          'comp.D_FF': 'D Flip-Flop',
+          'comp.JK_FF': 'JK Flip-Flop',
+          'comp.T_FF': 'T Flip-Flop',
+          'comp.D_LATCH': 'D Latch',
+          'comp.COUNTER_4BIT': '4-Bit Counter',
+          'comp.SHIFT_REG': 'Shift Register',
+          'comp.PROBE': 'Probe Point',
+
+          'inspector.title': 'Properties (Inspector)',
+          'inspector.empty': 'Select a component or wire on the canvas.',
+          'inspector.label': 'Label',
+          'inspector.inputs': 'Inputs',
+          'inspector.color': 'Color',
+          'inspector.delay': 'Gate Delay (Ticks)',
+          'inspector.delete': 'Delete',
+
+          'status.ready': 'Ready',
+          'status.edit_mode': 'EDIT',
+          'status.sim_mode': 'SIM',
+          'status.tick': 'Tick',
+          'status.components': 'Components',
+          'status.wires': 'Wires',
+          'status.hint_default': 'Tip: Drag between pins to connect. Press and drag on a wire to branch.',
+
+          'settings.title': 'Settings & Customization',
+          'settings.subtitle': 'Customize signal colors, gate standards, interaction, and language',
+          'settings.language_title': 'Language / Sprache:',
+          'settings.language_desc': 'Select user interface language:',
+          'settings.close': 'Close'
+        }
+      },
+      t(key, fallback) {
+        const lang = this.currentLang || 'de';
+        const dict = this.dicts[lang] || this.dicts.de;
+        return dict[key] !== undefined ? dict[key] : (fallback !== undefined ? fallback : key);
+      }
+    };
 
     const GRID_SIZE = 20;
 
@@ -19341,6 +19617,60 @@
         this.renderer.render();
         if (this.rendererRight) this.rendererRight.render();
         this.analyzer.render();
+      }
+
+      
+      setLanguage(lang) {
+        if (lang !== 'de' && lang !== 'en') lang = 'de';
+        I18N.currentLang = lang;
+        this.language = lang;
+
+        if (typeof document !== 'undefined') {
+          if (document.documentElement) document.documentElement.setAttribute('lang', lang);
+
+          // Update elements with data-i18n
+          document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const txt = I18N.t(key);
+            if (txt) el.textContent = txt;
+          });
+
+          // Update elements with data-i18n-title
+          document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            const txt = I18N.t(key);
+            if (txt) el.title = txt;
+          });
+
+          // Update elements with data-i18n-placeholder
+          document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const txt = I18N.t(key);
+            if (txt) el.placeholder = txt;
+          });
+
+          // Update menu checkmarks
+          const chkDe = document.getElementById('check-lang-de');
+          if (chkDe) chkDe.innerHTML = (lang === 'de') ? '✓' : '&nbsp;';
+          const chkEn = document.getElementById('check-lang-en');
+          if (chkEn) chkEn.innerHTML = (lang === 'en') ? '✓' : '&nbsp;';
+
+          // Update settings buttons
+          const langBtns = document.querySelectorAll('#settings-lang-seg button');
+          langBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+          });
+
+          // Update document title
+          document.title = I18N.t('app.title');
+
+          // Refresh status bar
+          this.updateStatusBar();
+        }
+
+        try {
+          localStorage.setItem('logicsim_language', lang);
+        } catch (_) {}
       }
 
       setAppTheme(theme) {

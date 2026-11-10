@@ -20,7 +20,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 |---|---|---|---|---|
 | **WISH-001** | Git Cleanup & Version Tiering (`main` = stable, `beta`, `alpha`) | `alpha` | 🟢 **Completed** | Removed external worktrees; established `main`, `beta`, `alpha` branches; tagged stable `v1.0.0-stable`. |
 | **WISH-002** | GUI Declutter & Modern Desktop App Redesign | `feat/gui-rework` | 🟢 **Completed** | Reduced clutter, streamlined 38px non-wrapping toolbar, modern desktop aesthetic (Photoshop / Paint.NET / Explorer), refined dark CAD palette, sleek browser-like document tabs, and clean status bar. |
-| **WISH-003** | UI Text, Icon Polish & Multi-Language Support (i18n) | `feat/i18n-icons` | 🟡 **Pending** | Internationalization (DE / EN), clean SVG icons, polished labels and tooltips. |
+| **WISH-003** | UI Text, Icon Polish & Multi-Language Support (i18n) | `feat/i18n-icons` | 🟢 **Completed** | Full multi-language support (German / English) with dynamic translation engine (`I18N`), View menu & Settings modal language switcher, persistent language storage, polished SVG icons, and clean text labels. |
 | **WISH-004** | Rewiring Improvements | `feat/improve-rewiring` | 🟢 **Completed** | Strict orthogonal segment dragging (first/internal/last segments), collinear bend pruning, channel deconfliction to prevent parallel wire overlaps, right-click wire menu. |
 | **WISH-005** | Slider Press-and-Hold Drag Interaction | `feat/slider-drag` | 🟢 **Completed** | Hold left mouse button on sliders/potentiometers to smoothly drag across elements without losing focus. |
 | **WISH-006** | Left-Click Press-and-Drag Wire Branching (T-Junctions) | `feat/wire-branching` | 🟢 **Completed** | Pressing and holding LMB on an existing wire allows pulling out a new branch directly. |
@@ -37,6 +37,13 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
   - Created `alpha` (integration/dev) and `beta` (staging) branches.
   - Tagged `main` as `v1.0.0-stable`.
   - Added `WISHLIST.md` tracker.
+- **WISH-003**:
+  - Implemented complete internationalization engine (`I18N`) supporting German (`de`) and English (`en`).
+  - Added comprehensive translation dictionaries covering Menubar, Toolbar, Component Palette categories and items, Inspector labels, Status Bar hints, and Settings dialogs.
+  - Added language switcher under `Ansicht` (View) -> `Sprache / Language` (DE/EN checkmarks) and in `Einstellungen` (Settings) modal.
+  - Added dynamic `data-i18n`, `data-i18n-title`, and `data-i18n-placeholder` binding system that updates all UI text reactively upon language switch without needing a page reload.
+  - Added automatic browser language detection fallback and `localStorage` persistence (`logicsim_language`).
+  - Polished SVG vector icons across all gates and toolbar buttons for clean presentation.
 - **WISH-002**:
   - Streamlined primary toolbar to a fixed 38px non-wrapping height with clean button grouping and compact desktop padding.
   - Modernized theme palette to professional neutral dark CAD tones (`#1e1e1e` canvas, `#252526` panels, `#2d2d30` elevated/hover, `#333333` borders) matching desktop standards like Photoshop, Paint.NET, and VS Code.

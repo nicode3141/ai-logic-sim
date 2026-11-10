@@ -49,9 +49,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N };'
 );
-const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -758,6 +758,38 @@ runTest('WISH-004', 'addWaypointToWire supports floating and branch wires safely
   assertEqual(w1.waypoints.length, 1, 'Waypoint added to floating wire');
   assertEqual(w1.waypoints[0].x, 160, 'Waypoint x matches snap grid');
   assertEqual(w1.waypoints[0].y, 120, 'Waypoint y matches snap grid');
+});
+
+runTest('WISH-003', 'I18N multi-language dictionary and setLanguage switches between DE and EN', () => {
+  assertEqual(typeof I18N, 'object', 'I18N object must be defined');
+  assertEqual(typeof I18N.t, 'function', 'I18N.t must be a function');
+
+  // Test German strings
+  I18N.currentLang = 'de';
+  assertEqual(I18N.t('menu.file'), 'Datei');
+  assertEqual(I18N.t('toolbar.mode.edit'), 'Edit');
+  assertEqual(I18N.t('comp.SWITCH'), 'Schalter');
+  assertEqual(I18N.t('palette.title'), 'Bauteil-Palette');
+
+  // Test English strings
+  I18N.currentLang = 'en';
+  assertEqual(I18N.t('menu.file'), 'File');
+  assertEqual(I18N.t('toolbar.mode.edit'), 'Edit');
+  assertEqual(I18N.t('comp.SWITCH'), 'Switch');
+  assertEqual(I18N.t('palette.title'), 'Component Palette');
+
+  // Test fallback on missing key
+  assertEqual(I18N.t('nonexistent.key', 'FallbackText'), 'FallbackText');
+
+  // Test LogicSimApp setLanguage
+  const app = new LogicSimApp();
+  app.setLanguage('en');
+  assertEqual(I18N.currentLang, 'en', 'app.setLanguage sets I18N.currentLang to en');
+  assertEqual(app.language, 'en', 'app.language is en');
+
+  app.setLanguage('de');
+  assertEqual(I18N.currentLang, 'de', 'app.setLanguage resets I18N.currentLang to de');
+  assertEqual(app.language, 'de', 'app.language is de');
 });
 
 console.log('\n================================================================');
