@@ -26,6 +26,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-006** | Left-Click Press-and-Drag Wire Branching (T-Junctions) | `feat/wire-branching` | 🟢 **Completed** | Pressing and holding LMB on an existing wire allows pulling out a new branch directly. |
 | **WISH-007** | Floating / Terminus-Free Connections (No module required at end) | `feat/floating-connections` | 🟢 **Completed** | Connections do not strictly require a module at both ends (support stubs, test points, dangling terminals). |
 | **WISH-008** | Code Quality Improvement & Comment Cleanup | `feat/code-cleanup` | 🟡 **Pending** | Streamline code, remove redundant/noisy comments, improve maintainability. |
+| **WISH-009** | Realistic Gate Propagation Delay & Global Configuration | `feat/gate-delay` | 🟢 **Completed** | Global gate delay (1–20 ticks), toggleable badge display (off by default), and realistic inertial transition timing ("wie im echten Leben"). |
 
 ---
 
@@ -46,3 +47,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 - **WISH-007**:
   - Added support for open-ended/floating connections terminating on the canvas grid without needing a target module.
   - Added clean visual terminal pad markers for floating/unconnected wire endpoints.
+- **WISH-009**:
+  - Global Gate Delay: Added `circuit.globalGateDelay` (1–20 ticks, default 1) with settings modal slider and JSON persistence.
+  - Toggle Gate Delay Display: Added toggle setting and view menu item to display `Δt <delay>` under gates, set to **OFF by default** (`showGateDelay = false`).
+  - Realistic Gate Transitions ("wie im echten Leben"): Implemented physical inertial gate delay model — gate output maintains its prior state until the propagation delay completes; input pulses shorter than the delay are filtered out; interactive switches/buttons in live SIM mode update wire levels without instantaneously snapping downstream gate outputs.

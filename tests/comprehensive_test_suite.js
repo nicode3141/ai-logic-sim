@@ -558,6 +558,146 @@ runTest('WISH-006 & WISH-007', 'Wire branching and floating terminus-free connec
   assertEqual(wBranch.level, 1, 'wBranch level preserved after engine step');
 });
 
+runTest('WISH-009', 'Global gate delay configuration, inheritance and JSON roundtrip', () => {
+  const circuit = new Circuit();
+  assertEqual(circuit.globalGateDelay, 1, 'Circuit globalGateDelay defaults to 1');
+
+  // Gate without explicit delay inherits circuit.globalGateDelay
+  const andGate = circuit.addComponent('AND', 100, 100);
+  assertEqual(andGate.getEffectiveDelay(), 1, 'Default gate inherits global delay 1');
+
+  // Change globalGateDelay to 3
+  circuit.globalGateDelay = 3;
+  assertEqual(andGate.getEffectiveDelay(), 3, 'Gate dynamically reflects new global gate delay');
+
+  // Custom delay overrides global delay
+  const notGate = circuit.addComponent('NOT', 200, 100, { delay: 5 });
+  assertEqual(notGate.getEffectiveDelay(), 5, 'Gate with explicit delay overrides global delay');
+
+  // JSON serialization preserves globalGateDelay
+  const json = circuit.toJSON();
+  assertEqual(json.globalGateDelay, 3, 'toJSON includes globalGateDelay');
+
+  const c2 = new Circuit();
+  c2.fromJSON(json);
+  assertEqual(c2.globalGateDelay, 3, 'fromJSON restores globalGateDelay');
+  const restoredAnd = c2.getComponent(andGate.id);
+  assertEqual(restoredAnd.getEffectiveDelay(), 3, 'Restored gate inherits globalGateDelay 3');
+});
+
+runTest('WISH-009', 'Realistic inertial gate delay and glitch filtering ("wie im echten Leben")', () => {
+  const circuit = new Circuit();
+  // NOT gate with delay = 3
+  const notGate = circuit.addComponent('NOT', 100, 100, { delay: 3 });
+  assertEqual(notGate.getEffectiveDelay(), 3, 'NOT gate delay is 3 ticks');
+
+  // Initial steady state: input 0, output 1
+  notGate.inputs[0].value = 0;
+  notGate.compute();
+  notGate.commit(true); // settle DC operating point
+  assertEqual(notGate.outputs[0].value, 1, 'Initial output is 1');
+
+  // Tick 1: input changes from 0 to 1
+  notGate.inputs[0].value = 1;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 1, 'Tick 1: output still holds previous value (1) during propagation delay');
+
+  // Tick 2: input sustained at 1
+  notGate.inputs[0].value = 1;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 1, 'Tick 2: output still holds 1 during delay');
+
+  // Tick 3: propagation delay elapsed (3 ticks) -> output transitions to 0
+  notGate.inputs[0].value = 1;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 0, 'Tick 3: output switches to 0 exactly after 3 ticks');
+
+  // GLITCH FILTERING (Inertial Delay):
+  // Steady state is 0. A glitch (pulse of 1 tick: input becomes 0 for 1 tick then back to 1)
+  // Tick 4: input glitches to 0 for 1 tick
+  notGate.inputs[0].value = 0;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 0, 'Tick 4: output holds 0 during glitch');
+
+  // Tick 5: input returns to 1 before delay of 3 expires!
+  notGate.inputs[0].value = 1;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 0, 'Tick 5: glitch filtered out, output remains 0');
+
+  // Tick 6: steady state continues
+  notGate.inputs[0].value = 1;
+  notGate.compute();
+  notGate.commit();
+  assertEqual(notGate.outputs[0].value, 0, 'Tick 6: output steady at 0, no spurious glitch emitted');
+});
+
+runTest('WISH-009', 'Gate delay display toggle under gates is disabled by default', () => {
+  const circuit = new Circuit();
+  const gate = circuit.addComponent('AND', 100, 100, { delay: 4 });
+  const engine = new SimulationEngine(circuit, new RingBuffer(10), () => {});
+  const mockCanvas = createMockElem('grid-canvas');
+  const renderer = new CanvasRenderer(mockCanvas, circuit, engine);
+
+  assertEqual(renderer.showGateDelay, false, 'showGateDelay must default to false');
+
+  // Render components with showGateDelay = false: no Δt text drawn
+  let deltaTextDrawn = false;
+  const mockTextCtx = Object.assign({}, mockCtx, {
+    fillText: (text) => {
+      if (typeof text === 'string' && text.includes('Δt')) {
+        deltaTextDrawn = true;
+      }
+    }
+  });
+
+  renderer.drawComponents(mockTextCtx);
+  assertEqual(deltaTextDrawn, false, 'No Δt badge drawn when showGateDelay is false (default)');
+
+  // Enable showGateDelay = true
+  renderer.showGateDelay = true;
+  deltaTextDrawn = false;
+  renderer.drawComponents(mockTextCtx);
+  assertEqual(deltaTextDrawn, true, 'Δt badge drawn under gate when showGateDelay is true');
+});
+
+runTest('WISH-009', 'Interactive input change propagates wires without bypassing gate delay in sim mode', () => {
+  const circuit = new Circuit();
+  const sw = circuit.addComponent('SWITCH', 50, 50);
+  const notGate = circuit.addComponent('NOT', 150, 50, { delay: 2 });
+  const w1 = circuit.addWire(sw.id, 0, notGate.id, 0);
+
+  // Settle DC initial state: switch 0 -> NOT input 0 -> NOT output 1
+  circuit.syncImmediateWireLevels();
+  assertEqual(sw.outputs[0].value, 0, 'Switch is initially 0');
+  assertEqual(notGate.inputs[0].value, 0, 'NOT input is 0');
+  assertEqual(notGate.outputs[0].value, 1, 'NOT output is 1');
+
+  // User flips SWITCH in live sim mode:
+  sw.state.value = 1;
+  sw.outputs[0].value = 1;
+  sw.nextOutputs[0] = 1;
+  circuit.updateWireLevelsFromDrivers();
+
+  // Wires and downstream inputs update immediately:
+  assertEqual(w1.level, 1, 'Wire 1 immediately carries switch output (1)');
+  assertEqual(notGate.inputs[0].value, 1, 'NOT gate input pin immediately receives 1');
+  // BUT the NOT gate output MUST NOT snap to 0 immediately (gate delay is preserved)!
+  assertEqual(notGate.outputs[0].value, 1, 'NOT gate output maintains previous value (1) - NOT bypassed!');
+
+  // Advance 1 tick:
+  circuit.step();
+  assertEqual(notGate.outputs[0].value, 1, 'After Tick 1: output still 1 (delay = 2)');
+
+  // Advance 2nd tick:
+  circuit.step();
+  assertEqual(notGate.outputs[0].value, 0, 'After Tick 2: output transitions to 0 after propagation delay');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

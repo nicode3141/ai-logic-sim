@@ -4842,12 +4842,27 @@
         const cleanParams = sanitizeParams(customParams);
         this.initDefaults(cleanParams);
         if (GATE_DELAY_TYPES[this.type]) {
-          // propagation delay in simulation ticks (1 = the normal unit delay)
-          const d = parseInt(cleanParams.delay ?? 1, 10);
-          this.params.delay = Number.isFinite(d) ? Math.max(1, Math.min(GATE_DELAY_MAX, d)) : 1;
+          // propagation delay in simulation ticks (null = inherit globalGateDelay, or custom integer 1..GATE_DELAY_MAX)
+          if (cleanParams.delay !== undefined && cleanParams.delay !== null) {
+            const d = parseInt(cleanParams.delay, 10);
+            this.params.delay = Number.isFinite(d) ? Math.max(1, Math.min(GATE_DELAY_MAX, d)) : null;
+          } else {
+            this.params.delay = null;
+          }
         }
         this.rebuildPins();
         this.resetState();
+      }
+
+      getEffectiveDelay() {
+        if (!GATE_DELAY_TYPES[this.type]) return 1;
+        if (this.params.delay !== undefined && this.params.delay !== null && Number.isFinite(this.params.delay)) {
+          return Math.max(1, Math.min(GATE_DELAY_MAX, this.params.delay));
+        }
+        if (this.circuit && Number.isFinite(this.circuit.globalGateDelay)) {
+          return Math.max(1, Math.min(GATE_DELAY_MAX, this.circuit.globalGateDelay));
+        }
+        return 1;
       }
 
       initDefaults(customParams) {
@@ -5290,6 +5305,9 @@
         for (const p of this.inputs) p.value = 0;
         for (const p of this.outputs) p.value = 0;
         this.nextOutputs.fill(0);
+        this.state = {};
+        this.state.delayTimer = 0;
+        this.state.pendingOutput = null;
 
         switch (this.type) {
           case 'SWITCH':
@@ -5725,23 +5743,44 @@
        * clocked simulation (edit mode, truth tables): gate delays are skipped there.
        */
       commit(immediate = false) {
-        const delay = this.params.delay;
-        if (delay > 1 && GATE_DELAY_TYPES[this.type]) {
-          if (immediate) {
-            this.state.delayLine = null;
-          } else {
-            // the new value travels through a delay line of (delay - 1) extra ticks
-            let line = this.state.delayLine;
-            if (!Array.isArray(line) || line.length !== delay - 1) {
-              line = new Array(delay - 1).fill(this.outputs[0].value);
-            }
-            line.push(this.nextOutputs[0]);
-            this.nextOutputs[0] = line.shift();
-            this.state.delayLine = line;
+        if (!GATE_DELAY_TYPES[this.type] || immediate) {
+          this.state.delayTimer = 0;
+          this.state.pendingOutput = null;
+          this.state.delayLine = null;
+          for (let i = 0; i < this.outputs.length; i++) {
+            this.outputs[i].value = this.nextOutputs[i];
           }
-        }
-        for (let i = 0; i < this.outputs.length; i++) {
-          this.outputs[i].value = this.nextOutputs[i];
+        } else {
+          // Gate with propagation delay
+          const delay = typeof this.getEffectiveDelay === 'function' ? this.getEffectiveDelay() : (this.params.delay || 1);
+          const target = this.nextOutputs[0];
+          const current = this.outputs[0].value;
+
+          if (delay <= 1) {
+            this.state.delayTimer = 0;
+            this.state.pendingOutput = null;
+            this.state.delayLine = null;
+            this.outputs[0].value = target;
+          } else {
+            if (target === current) {
+              // Steady state or return to previous value before delay finished (inertial filtering)
+              this.state.delayTimer = 0;
+              this.state.pendingOutput = null;
+            } else {
+              if (this.state.pendingOutput !== target) {
+                // New transition starting!
+                this.state.pendingOutput = target;
+                this.state.delayTimer = delay - 1;
+              } else if (this.state.delayTimer > 1) {
+                this.state.delayTimer--;
+              } else {
+                // Delay has elapsed: commit the transition
+                this.outputs[0].value = target;
+                this.state.pendingOutput = null;
+                this.state.delayTimer = 0;
+              }
+            }
+          }
         }
 
         if (this.type === 'CLOCK' && this.state.nextCounter !== undefined) {
