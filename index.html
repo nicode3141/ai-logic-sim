@@ -3450,11 +3450,11 @@
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-toggle-analyzer">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              <span data-i18n="menu.view.analyzer">Impulsdiagramm (Logic Analyzer)</span>
+              <span data-i18n="menu.view.analyzer">Impulsdiagramm</span>
             </button>
             <button class="app-menu-item" id="menu-item-toggle-inspector">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-              <span data-i18n="menu.view.inspector">Eigenschaften (Inspector)</span>
+              <span data-i18n="menu.view.inspector">Inspector</span>
             </button>
             <button class="app-menu-item" id="menu-item-toggle-bridges">
               <span class="norm-check" id="check-view-bridges">✓</span>
@@ -3464,23 +3464,23 @@
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
             <button class="app-menu-item" data-theme-btn="modern">
               <span class="norm-check" id="check-theme-modern">✓</span>
-              <span>Modern Dark (CAD Slate)</span>
+              <span>Modern Dark</span>
             </button>
             <button class="app-menu-item" data-theme-btn="pitch_black">
               <span class="norm-check" id="check-theme-pitch_black">&nbsp;</span>
-              <span>Pitch Black (OLED)</span>
+              <span>Pitch Black</span>
             </button>
             <button class="app-menu-item" data-theme-btn="java_swing">
               <span class="norm-check" id="check-theme-java_swing">&nbsp;</span>
-              <span>Java Swing Classic (Retro 90s)</span>
+              <span>Java Swing</span>
             </button>
             <button class="app-menu-item" data-theme-btn="blueprint">
               <span class="norm-check" id="check-theme-blueprint">&nbsp;</span>
-              <span>Nordic Blueprint (Technik-Papier)</span>
+              <span>Nordic Blueprint</span>
             </button>
             <button class="app-menu-item" data-theme-btn="light_cad">
               <span class="norm-check" id="check-theme-light_cad">&nbsp;</span>
-              <span>Clean Light (Ingenieurs-Weiß)</span>
+              <span>Clean Light</span>
             </button>
             <div class="app-menu-divider"></div>
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="menu.view.language">Sprache / Language</div>
@@ -3500,7 +3500,7 @@
           <div class="menubar-dropdown" id="mdropdown-analysis" style="display: none;">
             <button class="app-menu-item" id="menu-item-truth-table">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-              <span data-i18n="menu.analysis.truth_table">Wahrheitstabelle (Truth Table)...</span>
+              <span data-i18n="menu.analysis.truth_table">Wahrheitstabelle...</span>
               <span class="menu-shortcut">Strg+T</span>
             </button>
             <button class="app-menu-item" id="menu-item-bool-synth">
@@ -3558,11 +3558,11 @@
     <header id="toolbar">
       <div class="toolbar-group">
         <div class="mode-switch" role="group" aria-label="Betriebsmodus">
-          <button id="btn-mode-edit" class="mode-btn active-edit" title="Schaltung bearbeiten (Bauteile platzieren & verdrahten)">
+          <button id="btn-mode-edit" class="mode-btn active-edit" title="Bearbeiten: platzieren & verdrahten">
             <span class="status-dot"></span>
             <span class="btn-text-full" data-i18n="toolbar.mode.edit">Edit</span>
           </button>
-          <button id="btn-mode-sim" class="mode-btn" title="Schaltung simulieren (Interaktion mit Schaltern & Takt)">
+          <button id="btn-mode-sim" class="mode-btn" title="Simulieren: schalten & takten">
             <span class="status-dot"></span>
             <span class="btn-text-full" data-i18n="toolbar.mode.sim">Simulation</span>
           </button>
@@ -3571,28 +3571,28 @@
         <div class="divider"></div>
 
         <div class="align-split" id="align-split">
-          <button id="btn-auto-route" class="btn btn-accent" title="Auto-Anordnen (A): Bauteile sauber von links nach rechts anordnen und alle Leitungen kreuzungsarm neu verlegen. Sind mehrere Bauteile ausgewählt, wird nur die Auswahl angeordnet.">
+          <button id="btn-auto-route" class="btn btn-accent" title="Auto-Anordnen (A): Bauteile ordnen, Leitungen neu verlegen">
             <span class="btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8.5l-3.9 1.6L12 14l-1.6-3.9L6.5 8.5l3.9-1.6z"/><path d="M5 14l.8 2 2 .8-2 .8L5 19.6l-.8-2-2-.8 2-.8z"/><path d="M18.5 14.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z"/></svg></span>
             <span>Auto-Anordnen</span>
             <kbd class="btn-kbd">A</kbd>
           </button>
-          <button id="btn-align-menu" class="btn btn-accent btn-caret" title="Ausricht-Werkzeuge und Optionen" aria-haspopup="true" aria-expanded="false">
+          <button id="btn-align-menu" class="btn btn-accent btn-caret" title="Anordnen: Werkzeuge & Optionen" aria-haspopup="true" aria-expanded="false">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div id="align-popover" class="align-popover" style="display: none;" role="menu">
             <button class="align-row" data-align-action="all">
               <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8.5l-3.9 1.6L12 14l-1.6-3.9L6.5 8.5l3.9-1.6z"/><path d="M5 14l.8 2 2 .8-2 .8L5 19.6l-.8-2-2-.8 2-.8z"/><path d="M18.5 14.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z"/></svg></span>
-              <span class="align-row-text"><strong>Alles anordnen</strong><small>Bauteile platzieren, Leitungen verlegen, Ansicht einpassen</small></span>
+              <span class="align-row-text"><strong>Alles anordnen</strong><small>Bauteile, Leitungen und Ansicht</small></span>
               <kbd>A</kbd>
             </button>
             <button class="align-row" data-align-action="wires">
               <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5v12h5"/></svg></span>
-              <span class="align-row-text"><strong>Nur Leitungen neu verlegen</strong><small>Bauteile bleiben stehen, Leitungen weichen ihnen aus</small></span>
+              <span class="align-row-text"><strong>Nur Leitungen neu verlegen</strong><small>Bauteile bleiben stehen</small></span>
               <kbd>L</kbd>
             </button>
             <button class="align-row" data-align-action="fit">
               <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
-              <span class="align-row-text"><strong>Ansicht einpassen</strong><small>Ganze Schaltung zentriert anzeigen</small></span>
+              <span class="align-row-text"><strong>Ansicht einpassen</strong><small>Schaltung zentrieren</small></span>
               <kbd>F</kbd>
             </button>
 
@@ -3607,7 +3607,7 @@
                 <button data-spacing="wide">Weit</button>
               </div>
             </div>
-            <div class="align-option" title="Auto vergleicht beide Varianten und nimmt die Zeichnung mit weniger Kreuzungen und Knicken">
+            <div class="align-option" title="Auto wählt die Variante mit weniger Kreuzungen und Knicken">
               <span>Eingänge</span>
               <div class="seg-control" id="seg-layout-inputs">
                 <button data-inputs="auto" class="active">Auto</button>
@@ -3616,8 +3616,8 @@
               </div>
             </div>
             <label class="align-check"><input type="checkbox" id="chk-layout-animation" checked /> <span>Anordnen animieren</span></label>
-            <label class="align-check"><input type="checkbox" id="chk-smart-wires" checked /> <span>Leitungen beim Verschieben automatisch neu verlegen</span></label>
-            <label class="align-check"><input type="checkbox" id="chk-wire-bridges" checked /> <span>Leitungsbrücken (Bögen) bei Kreuzungen</span></label>
+            <label class="align-check"><input type="checkbox" id="chk-smart-wires" checked /> <span>Leitungen beim Verschieben neu verlegen</span></label>
+            <label class="align-check"><input type="checkbox" id="chk-wire-bridges" checked /> <span>Brücken an Kreuzungen</span></label>
             <div class="align-report" id="align-report">Noch nicht angeordnet.</div>
           </div>
         </div>
@@ -3625,19 +3625,19 @@
         <div class="divider"></div>
 
         <div class="toolbar-group sim-deck" id="sim-controls-group">
-          <button id="btn-sim-step-back" class="btn" disabled title="Einzelschritt zurück (-1 Tick, gedrückt halten zum kontinuierlichen Rücklauf)">
+          <button id="btn-sim-step-back" class="btn" disabled title="1 Tick zurück (halten: Rücklauf)">
             <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="0.8"/></svg></span>
             <span class="btn-text">-1 Tick</span>
           </button>
-          <button id="btn-sim-start" class="btn btn-primary" disabled title="Simulation starten / pausieren (Leertaste)">
+          <button id="btn-sim-start" class="btn btn-primary" disabled title="Start / Pause (Leertaste)">
             <span id="sim-play-icon" class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
             <span id="sim-play-text" data-i18n="toolbar.sim.start">Start</span>
           </button>
-          <button id="btn-sim-step" class="btn" disabled title="Einzelschritt (+1 Tick ausführen, gedrückt halten zum kontinuierlichen Vorlauf)">
+          <button id="btn-sim-step" class="btn" disabled title="1 Tick vor (halten: Vorlauf)">
             <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
             <span class="btn-text">+1 Tick</span>
           </button>
-          <button id="btn-sim-reset" class="btn" disabled title="Simulationszustände und Zähler zurücksetzen">
+          <button id="btn-sim-reset" class="btn" disabled title="Simulation zurücksetzen">
             <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
             <span class="btn-text">Reset</span>
           </button>
@@ -3651,7 +3651,7 @@
       </div>
 
       <div class="toolbar-group">
-        <button id="btn-scenarios" class="btn btn-scenarios" title="Szenarien (G): Beispielschaltungen von leicht bis komplex">
+        <button id="btn-scenarios" class="btn btn-scenarios" title="Szenarien (G)">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
           <span data-i18n="toolbar.scenarios">Szenarien</span>
         </button>
@@ -3667,14 +3667,14 @@
 
         <div class="divider"></div>
 
-        <button id="btn-toggle-split" class="btn" title="Split-Screen Ansicht umschalten (Zwei Schaltungen nebeneinander)">
+        <button id="btn-toggle-split" class="btn" title="Split-Screen: zwei Schaltungen nebeneinander">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
           <span id="split-btn-text" class="btn-text" data-i18n="toolbar.split">Split</span>
         </button>
 
 
 
-        <button id="btn-help" class="btn btn-round" title="Hilfe: Tastenkürzel und Bedienung (?)">?</button>
+        <button id="btn-help" class="btn btn-round" title="Hilfe & Tastenkürzel (?)">?</button>
 
         <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;" />
       </div>
@@ -3696,19 +3696,19 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.sources">Quellen (Inputs)</div>
           <div class="palette-grid">
-            <div class="palette-item" draggable="true" data-type="SWITCH" title="Schalter (0/1 umschaltbar)">
+            <div class="palette-item" draggable="true" data-type="SWITCH" title="Schalter: 0/1 umschalten">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="7" y2="12"/><circle cx="7.5" cy="12" r="1.5" fill="currentColor"/><line x1="7.5" y1="12" x2="16" y2="6.5"/><circle cx="17.5" cy="6" r="1.5"/><circle cx="17.5" cy="18" r="1.5"/><line x1="19" y1="6" x2="22" y2="6"/><line x1="19" y1="18" x2="22" y2="18"/></svg></div>
               <div class="palette-name" data-i18n="comp.SWITCH">Schalter</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="BUTTON" title="Taster (1 während Mausklick)">
+            <div class="palette-item" draggable="true" data-type="BUTTON" title="Taster: 1 solange gedrückt">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="15" x2="8" y2="15"/><circle cx="8" cy="15" r="1.5"/><circle cx="16" cy="15" r="1.5"/><line x1="16" y1="15" x2="22" y2="15"/><line x1="6.5" y1="11" x2="17.5" y2="11" stroke-width="2.2"/><line x1="12" y1="11" x2="12" y2="4"/><line x1="8" y1="4" x2="16" y2="4" stroke-width="2.5"/></svg></div>
               <div class="palette-name" data-i18n="comp.BUTTON">Taster</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="CLOCK" title="Taktgeber (konfigurierbare Halbperiode)">
+            <div class="palette-item" draggable="true" data-type="CLOCK" title="Taktgeber: einstellbare Halbperiode">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 14h3V10h6v4h3" stroke-width="1.8"/></svg></div>
               <div class="palette-name" data-i18n="comp.CLOCK">Taktgeber</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="CONST" title="Konstante: liefert dauerhaft 1 (oder 0)">
+            <div class="palette-item" draggable="true" data-type="CONST" title="Konstante: fest 1 oder 0">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M10.5 10l2-1.5V16" stroke-width="2.2"/></svg></div>
               <div class="palette-name" data-i18n="comp.CONST">Konstante</div>
             </div>
@@ -3718,49 +3718,49 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.gates">Logikgatter (Gates)</div>
           <div class="palette-grid">
-            <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negationspunkt (○): Auf Pin eines Gatters ziehen zum Invertieren">
+            <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negation ○: auf einen Gatter-Pin ziehen">
               <div class="palette-icon" id="pal-icon-NEGATOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="8" y2="12"/><circle cx="12" cy="12" r="3.5" fill="#151a22"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
               <div class="palette-name" data-i18n="comp.NEGATOR">Negator</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="NOT" title="Invertierer (NOT-Gatter, 1 Eingang)">
+            <div class="palette-item" draggable="true" data-type="NOT" title="NOT: invertiert das Signal">
               <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
               <div class="palette-name" data-i18n="comp.NOT">NOT</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="AND" title="AND-Gatter (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="AND" title="AND: 1, wenn alle Eingänge 1 sind">
               <div class="palette-icon" id="pal-icon-AND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h6a7 7 0 0 1 7 7 7 7 0 0 1-7 7H5z"/></svg></div>
               <div class="palette-name" data-i18n="comp.AND">AND</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="OR" title="OR-Gatter (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="OR" title="OR: 1, wenn mindestens ein Eingang 1 ist">
               <div class="palette-icon" id="pal-icon-OR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3 3 3 11 0 14 7 0 12-2 16-7-4-5-9-7-16-7z"/></svg></div>
               <div class="palette-name" data-i18n="comp.OR">OR</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="NAND" title="NAND-Gatter (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="NAND" title="NAND: invertiertes AND">
               <div class="palette-icon" id="pal-icon-NAND"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h5a6.5 6.5 0 0 1 6.5 6.5A6.5 6.5 0 0 1 9 18H4z"/><circle cx="18" cy="11.5" r="2"/></svg></div>
               <div class="palette-name" data-i18n="comp.NAND">NAND</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="NOR" title="NOR-Gatter (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="NOR" title="NOR: invertiertes OR">
               <div class="palette-icon" id="pal-icon-NOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c2.5 2.5 2.5 10 0 13 6 0 10.5-2 14-6.5C14.5 7 10 5 4 5z"/><circle cx="19.5" cy="11.5" r="2"/></svg></div>
               <div class="palette-name" data-i18n="comp.NOR">NOR</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="XOR" title="XOR-Gatter / Ungerade Parität (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="XOR" title="XOR: 1 bei ungerader Anzahl Einsen">
               <div class="palette-icon" id="pal-icon-XOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M6 5c2.5 3 2.5 11 0 14 6.5 0 11-2 15-7-4-5-8.5-7-15-7z"/></svg></div>
               <div class="palette-name" data-i18n="comp.XOR">XOR</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR-Gatter / Gerade Parität (2–8 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="XNOR" title="XNOR: 1 bei gerader Anzahl Einsen">
               <div class="palette-icon" id="pal-icon-XNOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5c2.5 3 2.5 11 0 14"/><path d="M5 5c2.5 3 2.5 11 0 14 5.5 0 9.5-2 13-7-3.5-5-7.5-7-13-7z"/><circle cx="19.5" cy="12" r="2"/></svg></div>
               <div class="palette-name" data-i18n="comp.XNOR">XNOR</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="BUFFER" title="Puffer / Treiber (Buffer, 1 Eingang)">
+            <div class="palette-item" draggable="true" data-type="BUFFER" title="Puffer: gibt das Signal unverändert weiter">
               <div class="palette-icon" id="pal-icon-BUFFER"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/></svg></div>
-              <div class="palette-name">BUFFER</div>
+              <div class="palette-name">Puffer</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="TRI_STATE" title="Tri-State-Treiber mit Enable (IN, EN)">
+            <div class="palette-item" draggable="true" data-type="TRI_STATE" title="Tri-State: leitet nur bei EN = 1">
               <div class="palette-icon" id="pal-icon-TRI_STATE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 5 18 12 6 19 6 5"/><line x1="12" y1="21" x2="12" y2="15.5"/></svg></div>
               <div class="palette-name" data-i18n="comp.TRI_STATE">Tri-State</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="MAJORITY" title="Mehrheitsgatter / Majority (3 Eingänge)">
+            <div class="palette-item" draggable="true" data-type="MAJORITY" title="Mehrheit: 1, wenn mindestens 2 von 3 Eingängen 1 sind">
               <div class="palette-icon" id="pal-icon-MAJORITY"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7a8 8 0 0 1 8 8 8 8 0 0 1-8 8H4z"/><text x="7" y="15" font-size="8" fill="currentColor" stroke="none" font-weight="bold">≥2</text></svg></div>
-              <div class="palette-name" data-i18n="comp.MAJORITY">Majority</div>
+              <div class="palette-name" data-i18n="comp.MAJORITY">Mehrheit</div>
             </div>
           </div>
         </div>
@@ -3768,21 +3768,21 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.displays">Anzeigen &amp; Decoder</div>
           <div class="palette-grid single-col">
-            <div class="palette-item" draggable="true" data-type="LED" title="LED-Signallampe (Grün, Rot, Gelb, Blau)">
+            <div class="palette-item" draggable="true" data-type="LED" title="LED: zeigt ein Signal an">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="6.34" y1="6.34" x2="17.66" y2="17.66"/><line x1="17.66" y1="6.34" x2="6.34" y2="17.66"/></svg></div>
-              <div class="palette-name">Lampe (LED)</div>
+              <div class="palette-name">LED</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="SEVEN_SEG" title="7-Segment-Anzeige (a–g, DP)">
+            <div class="palette-item" draggable="true" data-type="SEVEN_SEG" title="7-Segment-Anzeige: Segmente a–g, DP">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 6h8M8 12h8M8 18h8M8 6v6M16 6v6M8 12v6M16 12v6" stroke-width="1.6"/></svg></div>
-              <div class="palette-name">7-Segment-Anzeige</div>
+              <div class="palette-name">7-Segment</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="BCD_DEC" title="BCD-zu-7-Segment-Decoder (D0–D3 nach a–g)">
+            <div class="palette-item" draggable="true" data-type="BCD_DEC" title="Decoder: BCD (D0–D3) nach 7-Segment (a–g)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h3a1.5 1.5 0 0 1 0 3H8m0 0h3.5a1.5 1.5 0 0 1 0 3H8M13 14h3M14.5 11v6"/></svg></div>
-              <div class="palette-name">BCD-zu-7-Segment</div>
+              <div class="palette-name">BCD → 7-Segment</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="HEX_DISPLAY" title="Hex-Anzeige: zeigt 4 Bit direkt als Ziffer 0–F (Decoder eingebaut)">
+            <div class="palette-item" draggable="true" data-type="HEX_DISPLAY" title="Hex-Anzeige: 4 Bit als Ziffer 0–F">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6v5H9zM9 12v5h6v-5" stroke-width="1.6"/></svg></div>
-              <div class="palette-name">Hex-Anzeige (4 Bit)</div>
+              <div class="palette-name">Hex-Anzeige</div>
             </div>
           </div>
         </div>
@@ -3800,7 +3800,7 @@
             </div>
             <div class="palette-item" draggable="true" data-type="DECODER" title="Decoder 2-zu-4: genau ein Ausgang ist 1">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 8l10-4v16L7 16z"/><path d="M3 10h4M3 14h4M17 7h4M17 12h4M17 17h4"/></svg></div>
-              <div class="palette-name">Decoder 2-zu-4</div>
+              <div class="palette-name">Decoder 2:4</div>
             </div>
           </div>
         </div>
@@ -3808,13 +3808,13 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.sequential">Schaltwerke (Sequential)</div>
           <div class="palette-grid single-col">
-            <div class="palette-item" draggable="true" data-type="COUNTER" title="4-Bit-Counter (Binär mod 16 / BCD mod 10)">
+            <div class="palette-item" draggable="true" data-type="COUNTER" title="4-Bit-Zähler: binär (0–15) oder BCD (0–9)">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h2v6M13 9h4v3h-4v3h4"/></svg></div>
-              <div class="palette-name">4-Bit-Counter</div>
+              <div class="palette-name">4-Bit-Zähler</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="SHIFT_REG" title="4-Bit-Schieberegister (SIPO)">
+            <div class="palette-item" draggable="true" data-type="SHIFT_REG" title="4-Bit-Schieberegister: seriell rein, parallel raus">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 12h10M14 9l3 3-3 3M10 9l3 3-3 3"/></svg></div>
-              <div class="palette-name">4-Bit-Schieberegister</div>
+              <div class="palette-name">Schieberegister</div>
             </div>
           </div>
         </div>
@@ -3822,23 +3822,23 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.memory">Flip-Flops &amp; Speicher</div>
           <div class="palette-grid">
-            <div class="palette-item" draggable="true" data-type="SR_FF" title="SR-Flipflop / Bistabile Kippstufe (S, CLK, R / Q, Q̅)">
+            <div class="palette-item" draggable="true" data-type="SR_FF" title="SR-Flipflop: setzen / rücksetzen">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">SR</text><polyline points="4 10 7 12 4 14"/></svg></div>
               <div class="palette-name">SR-FF</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="D_FF" title="D-Flipflop / Datenspeicher (D, CLK / Q, Q̅)">
+            <div class="palette-item" draggable="true" data-type="D_FF" title="D-Flipflop: übernimmt D bei Taktflanke">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">D-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
               <div class="palette-name" data-i18n="comp.D_FF">D-FF</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="JK_FF" title="JK-Flipflop / Universal Master-Slave (J, CLK, K / Q, Q̅ mit Toggle)">
+            <div class="palette-item" draggable="true" data-type="JK_FF" title="JK-Flipflop: setzen, rücksetzen, kippen">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">JK</text><polyline points="4 10 7 12 4 14"/></svg></div>
               <div class="palette-name" data-i18n="comp.JK_FF">JK-FF</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="T_FF" title="T-Flipflop / Toggle &amp; Frequenzteiler (T, CLK / Q, Q̅)">
+            <div class="palette-item" draggable="true" data-type="T_FF" title="T-Flipflop: kippt bei T = 1">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="7" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">T-FF</text><polyline points="4 14 7 16 4 18"/></svg></div>
               <div class="palette-name" data-i18n="comp.T_FF">T-FF</div>
             </div>
-            <div class="palette-item" draggable="true" data-type="D_LATCH" title="D-Latch / Pegelgesteuerter Speicher (D, EN / Q, Q̅)">
+            <div class="palette-item" draggable="true" data-type="D_LATCH" title="D-Latch: folgt D, solange EN = 1">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><text x="12" y="14" font-size="6.5" fill="currentColor" stroke="none" text-anchor="middle" font-weight="bold">LATCH</text></svg></div>
               <div class="palette-name" data-i18n="comp.D_LATCH">D-Latch</div>
             </div>
@@ -3848,7 +3848,7 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.analysis">Analyse</div>
           <div class="palette-grid single-col">
-            <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt / Signal-Clip für Leitungen (Impulsdiagramm)">
+            <div class="palette-item" draggable="true" data-type="PROBE" title="Messpunkt: Leitung im Impulsdiagramm aufzeichnen">
               <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 13 5 13s5-9 5-13a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2" fill="currentColor"/></svg></div>
               <div class="palette-name" data-i18n="comp.PROBE">Messpunkt (Probe)</div>
             </div>
@@ -3859,7 +3859,7 @@
       <main id="canvas-container">
         <div id="tabs-bar" class="tabs-bar">
           <div id="tabs-container" class="tabs-container"></div>
-          <button id="btn-new-tab" class="tab-add-btn" title="Neuen Schaltungs-Tab hinzufügen (+)">
+          <button id="btn-new-tab" class="tab-add-btn" title="Neuer Tab">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
@@ -3898,7 +3898,7 @@
             <div id="empty-hint" class="empty-hint" style="display: none;">
               <div class="empty-hint-icon">&amp;</div>
               <div class="empty-hint-title">Die Arbeitsfläche ist leer</div>
-              <div class="empty-hint-text">Ziehe Bauteile aus der Palette hierher – oder starte mit einem fertigen Szenario.</div>
+              <div class="empty-hint-text">Ziehe Bauteile aus der Palette hierher oder starte mit einem Szenario.</div>
               <button class="btn btn-primary" id="empty-hint-gallery">Szenarien ansehen</button>
             </div>
 
@@ -3918,7 +3918,7 @@
             <div class="pane-header" id="pane-header-right">
               <span class="pane-title" id="pane-title-right">Rechte Schaltung</span>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <select id="select-pane-right-tab" class="select-pane-tab" title="Schaltungs-Tab für rechte Ansicht wählen"></select>
+                <select id="select-pane-right-tab" class="select-pane-tab" title="Tab für die rechte Ansicht"></select>
                 <button id="btn-close-split" class="tab-close-btn" title="Split-Screen schließen">✕</button>
               </div>
             </div>
@@ -3939,45 +3939,45 @@
       </main>
 
       <aside id="inspector">
-        <div id="inspector-resizer" title="Ziehen zum Ändern der Breite (nach links/rechts)"></div>
+        <div id="inspector-resizer" title="Breite ziehen"></div>
         <div class="panel-header">
-          <span>Eigenschaften (Inspector)</span>
+          <span>Inspector</span>
           <button id="btn-inspector-toggle" class="collapse-btn" title="Inspector einklappen" style="font-size: 11px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
         <div id="inspector-content">
           <div class="empty-inspector">
-            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus (oder klicke mit rechts darauf), um dessen Einstellungen zu öffnen.
+            Wähle ein Bauteil oder eine Leitung aus.
           </div>
         </div>
       </aside>
     </div>
 
     <section id="analyzer-panel">
-      <div id="analyzer-resizer" title="Ziehen zum Ändern der Höhe"></div>
+      <div id="analyzer-resizer" title="Höhe ziehen"></div>
       <div id="analyzer-header">
         <div class="analyzer-title-group">
           <button class="collapse-btn" id="btn-analyzer-toggle" title="Impulsdiagramm ein-/ausklappen">
             <span id="analyzer-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            <span>Impulsdiagramm (Logic Analyzer)</span>
+            <span>Impulsdiagramm</span>
           </button>
-          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 256 Ticks Ringpuffer)</span>
+          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 0/256 Ticks)</span>
         </div>
 
         <div class="toolbar-group">
           <div class="analyzer-loop-group">
-            <button id="btn-analyzer-set-in" class="btn" style="padding: 2px 7px; font-size: 11px;" title="In-Klammer '[' an aktueller Cursor-Position setzen (Taste I)">
+            <button id="btn-analyzer-set-in" class="btn" style="padding: 2px 7px; font-size: 11px;" title="Loop-Anfang am Cursor setzen (I)">
               <span style="font-weight:700; color:var(--accent-blue);">[</span> In
             </button>
-            <button id="btn-analyzer-set-out" class="btn" style="padding: 2px 7px; font-size: 11px;" title="Out-Klammer ']' an aktueller Cursor-Position setzen (Taste O)">
+            <button id="btn-analyzer-set-out" class="btn" style="padding: 2px 7px; font-size: 11px;" title="Loop-Ende am Cursor setzen (O)">
               <span style="font-weight:700; color:var(--accent-blue);">]</span> Out
             </button>
-            <button id="btn-analyzer-loop" class="btn" style="padding: 2px 8px; font-size: 11px;" title="Eingeklammerten Bereich in einer Animation abspielen (Taste L)">
+            <button id="btn-analyzer-loop" class="btn" style="padding: 2px 8px; font-size: 11px;" title="Bereich in Schleife abspielen (L)">
               <span class="btn-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
               <span id="analyzer-loop-text">Loop Play</span>
             </button>
-            <button id="btn-analyzer-clear-range" class="btn" style="padding: 2px 6px; font-size: 11px;" title="Klammern / Loop-Bereich aufheben">
+            <button id="btn-analyzer-clear-range" class="btn" style="padding: 2px 6px; font-size: 11px;" title="Loop-Bereich aufheben">
               <span>✕</span>
             </button>
           </div>
@@ -3995,9 +3995,9 @@
             <input type="range" id="slider-time-scroll" min="0" max="100" value="100" style="width: 80px;" />
           </div>
 
-          <button id="btn-analyzer-clear" class="btn" style="padding: 3px 9px; font-size: 11px;" title="Aufzeichnung im Ringpuffer zurücksetzen">
+          <button id="btn-analyzer-clear" class="btn" style="padding: 3px 9px; font-size: 11px;" title="Aufzeichnung löschen">
             <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
-            <span>Aufzeichnung leeren</span>
+            <span>Leeren</span>
           </button>
         </div>
       </div>
@@ -4010,13 +4010,13 @@
     </section>
 
     <footer id="statusbar">
-      <span class="status-item status-coords" id="status-coords" title="Doppelklick: Zu Koordinate springen / Viewport zentrieren (Feld: -5000 bis +5000 px)">X: 0 px, Y: 0 px</span>
+      <span class="status-item status-coords" id="status-coords" title="Doppelklick: zu Koordinate springen">X: 0 px, Y: 0 px</span>
       <span class="status-pill" id="status-mode-pill"><span class="status-dot"></span><span id="hud-mode">EDIT</span></span>
       <span class="status-item" title="Simulationsschritt">Tick <strong id="hud-tick">0</strong></span>
       <span class="status-item" title="Bauteile / Leitungen"><strong id="hud-comp-count">0</strong> Bauteile · <strong id="hud-wire-count">0</strong> Leitungen</span>
       <span class="status-item" id="status-selection" style="display: none;"></span>
       <span class="status-item status-quality" id="status-quality" style="display: none;" title="Ergebnis der letzten Auto-Anordnung"></span>
-      <span class="status-hint" id="status-hint">Tipp: Von Pin zu Pin ziehen verdrahtet. A ordnet die Schaltung automatisch an.</span>
+      <span class="status-hint" id="status-hint">Von Pin zu Pin ziehen verdrahtet · A: anordnen</span>
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
 
@@ -4043,8 +4043,8 @@
           <div class="modal-title-group">
             <span class="modal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
             <div>
-              <h3 id="tt-title" class="modal-title">Wahrheitstabelle (Truth Table)</h3>
-              <div id="tt-subtitle" class="modal-subtitle">Automatische kombinatorische Analyse der Schaltung</div>
+              <h3 id="tt-title" class="modal-title">Wahrheitstabelle</h3>
+              <div id="tt-subtitle" class="modal-subtitle">Alle Eingangskombinationen der Schaltung</div>
             </div>
           </div>
           <button class="modal-close-btn" id="btn-close-tt" title="Schließen">&times;</button>
@@ -4053,11 +4053,11 @@
         </div>
         <div class="modal-footer">
           <div class="footer-left" id="tt-footer-info">
-            <span>Tipp: Klicke auf eine Zeile, um die Schalter live auf diese Belegung zu setzen.</span>
+            <span>Tipp: Klick auf eine Zeile setzt die Schalter entsprechend.</span>
           </div>
           <div class="footer-right">
-            <button id="btn-copy-tt-csv" class="btn" title="Tabelle im CSV-Format in die Zwischenablage kopieren">CSV Kopieren</button>
-            <button id="btn-copy-tt-md" class="btn" title="Tabelle als Markdown in die Zwischenablage kopieren">Markdown Kopieren</button>
+            <button id="btn-copy-tt-csv" class="btn" title="Als CSV kopieren">CSV kopieren</button>
+            <button id="btn-copy-tt-md" class="btn" title="Als Markdown kopieren">Markdown kopieren</button>
             <button id="btn-close-tt-footer" class="btn btn-primary">Schließen</button>
           </div>
         </div>
@@ -4068,15 +4068,15 @@
           <div class="modal-title-group">
             <span class="modal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l7-16h5"/><path d="M9 12h6"/><circle cx="19" cy="18" r="2"/></svg></span>
             <div>
-              <h3 id="synth-title" class="modal-title">Boolesche Schaltalgebra &amp; Gatter-Synthese</h3>
-              <div class="modal-subtitle">Booleschen Term eingeben und automatisch in Gatter-Schaltung umwandeln</div>
+              <h3 id="synth-title" class="modal-title">Schaltalgebra &amp; Synthese</h3>
+              <div class="modal-subtitle">Term eingeben, Schaltung erzeugen</div>
             </div>
           </div>
           <button class="modal-close-btn" id="btn-close-synth" title="Schließen">&times;</button>
         </div>
         <div class="modal-body">
           <div style="display:flex; flex-direction:column; gap:4px;">
-            <span style="font-size:11px; font-weight:600; color:var(--text-muted);">Vorlagen &amp; Beispiele:</span>
+            <span style="font-size:11px; font-weight:600; color:var(--text-muted);">Beispiele:</span>
             <div class="synth-chips-row" id="synth-examples-row">
               <span class="synth-op-chip" data-example="Y = A & B | !C" title="Einfaches Glied">Y = A &amp; B | !C</span>
               <span class="synth-op-chip" data-example="S = A ^ B; Cout = A & B" title="1-Bit Halbaddierer">Halbaddierer</span>
@@ -4089,8 +4089,8 @@
 
           <div style="display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <label for="synth-input" style="font-size:11px; font-weight:600; color:var(--text-muted);">Boolescher Term / Formel(n):</label>
-              <span style="font-size:10.5px; color:var(--text-dim);">Trennzeichen für mehrere Ausgänge: Semikolon (;) oder Zeilenumbruch</span>
+              <label for="synth-input" style="font-size:11px; font-weight:600; color:var(--text-muted);">Formel(n):</label>
+              <span style="font-size:10.5px; color:var(--text-dim);">Mehrere Ausgänge mit ; oder Zeilenumbruch trennen</span>
             </div>
             <textarea id="synth-input" class="synth-input-area" placeholder="z. B. Y = (A AND B) OR NOT C   oder   S = A ^ B ^ Cin; Cout = (A &amp; B) | (Cin &amp; (A ^ B))" spellcheck="false">Y = (A AND B) OR NOT C</textarea>
           </div>
@@ -4115,7 +4115,7 @@
           <div class="synth-legend-box" id="synth-legend-box">
             <div class="synth-legend-title">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              <span>Syntax-Legende der Booleschen Schaltalgebra:</span>
+              <span>Syntax:</span>
             </div>
             <div class="synth-legend-grid">
               <div class="synth-legend-item">
@@ -4155,7 +4155,7 @@
 
           <div class="synth-preview-card" id="synth-preview-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim);">Live-Analyse &amp; Vorschau:</span>
+              <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim);">Vorschau:</span>
               <span id="synth-status-badge" style="font-size:10.5px; font-weight:600; color:var(--accent-green);">Gültige Formel</span>
             </div>
             <div id="synth-math-preview" class="synth-math-display">Y = (A ∧ B) ∨ ¬C</div>
@@ -4171,19 +4171,19 @@
             </label>
             <label class="synth-radio-label">
               <input type="radio" name="synth-placement" value="replace" />
-              <span>Neue Schaltung (Arbeitsfläche leeren)</span>
+              <span>Neue Schaltung (ersetzt die aktuelle)</span>
             </label>
           </div>
         </div>
         <div class="modal-footer">
           <div class="footer-left">
-            <span>Erzeugt Schalter (Eingänge), DIN-Gatter und LEDs (Ausgänge) mit automatischer Verdrahtung.</span>
+            <span>Erzeugt Schalter, Gatter und LEDs – fertig verdrahtet.</span>
           </div>
           <div class="footer-right">
             <button id="btn-close-synth-footer" class="btn">Abbrechen</button>
             <button id="btn-run-synth" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>In Gatter umwandeln &amp; platzieren</span>
+              <span>Schaltung erzeugen</span>
             </button>
           </div>
         </div>
@@ -4194,34 +4194,34 @@
           <div class="modal-title-group">
             <span class="modal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
             <div>
-              <h3 id="settings-title" class="modal-title">Einstellungen &amp; Personalisierung</h3>
-              <div class="modal-subtitle">Signalfarben, Schaltsymbol-Normen, Interaktion und Layout anpassen</div>
+              <h3 id="settings-title" class="modal-title">Einstellungen</h3>
+              <div class="modal-subtitle">Farben, Symbole, Bedienung</div>
             </div>
           </div>
           <button class="modal-close-btn" id="btn-close-settings" title="Schließen">&times;</button>
         </div>
         <div class="modal-body" style="gap: 16px;">
           <div class="settings-section">
-            <div class="settings-section-title">Leitungs- &amp; Signalfarben (HIGH-Zustand 1):</div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Wähle die Leuchtfarbe für aktive Signale, Leitungen und Glüheffekte:</div>
+            <div class="settings-section-title">Signalfarbe:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Farbe für Signale mit Pegel 1:</div>
             <div class="color-swatch-group" id="settings-color-swatches">
-              <button class="color-swatch-btn active" data-color="#00e676" style="--c: #00e676;" title="Neon-Grün (Standard DIN/IEC)">
+              <button class="color-swatch-btn active" data-color="#00e676" style="--c: #00e676;" title="Neon-Grün (Standard)">
                 <span class="color-dot" style="background: #00e676; color: #00e676;"></span>
                 <span>Neon-Grün</span>
               </button>
-              <button class="color-swatch-btn" data-color="#00e5ff" style="--c: #00e5ff;" title="Cyan / Cyber-Blau">
+              <button class="color-swatch-btn" data-color="#00e5ff" style="--c: #00e5ff;" title="Cyan">
                 <span class="color-dot" style="background: #00e5ff; color: #00e5ff;"></span>
                 <span>Cyan</span>
               </button>
-              <button class="color-swatch-btn" data-color="#ffb300" style="--c: #ffb300;" title="Bernstein / Amber Vintage">
+              <button class="color-swatch-btn" data-color="#ffb300" style="--c: #ffb300;" title="Bernstein">
                 <span class="color-dot" style="background: #ffb300; color: #ffb300;"></span>
                 <span>Bernstein</span>
               </button>
-              <button class="color-swatch-btn" data-color="#ff1744" style="--c: #ff1744;" title="Neon-Rot / Alert">
+              <button class="color-swatch-btn" data-color="#ff1744" style="--c: #ff1744;" title="Rot">
                 <span class="color-dot" style="background: #ff1744; color: #ff1744;"></span>
                 <span>Rot</span>
               </button>
-              <button class="color-swatch-btn" data-color="#d500f9" style="--c: #d500f9;" title="Pink / Violett">
+              <button class="color-swatch-btn" data-color="#d500f9" style="--c: #d500f9;" title="Violett">
                 <span class="color-dot" style="background: #d500f9; color: #d500f9;"></span>
                 <span>Violett</span>
               </button>
@@ -4233,23 +4233,23 @@
           </div>
 
           <div class="settings-section">
-            <div class="settings-section-title">Schaltsymbol-Norm:</div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Darstellung aller Logikgatter nach historischem oder internationalem Standard:</div>
+            <div class="settings-section-title">Symbol-Norm:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Symbolsatz für alle Gatter:</div>
             <div class="norm-card-group" id="settings-norm-cards">
               <div class="norm-card active" data-norm="DIN_40700">
                 <div class="norm-card-badge">Historisch DE</div>
                 <div class="norm-card-title">DIN 40700</div>
-                <div class="norm-card-desc">Klassisch deutsche Symbole mit Halbkreis, Pfeilspitzen und Dreiecken.</div>
+                <div class="norm-card-desc">Klassische deutsche Symbole.</div>
               </div>
               <div class="norm-card" data-norm="DIN_EN_60617">
                 <div class="norm-card-badge">IEC Standard</div>
                 <div class="norm-card-title">DIN EN 60617</div>
-                <div class="norm-card-desc">Internationale Rechteck-Gatter mit Kennzeichnungen (&amp;, &ge;1, =1, 1). Bündige Anschlüsse.</div>
+                <div class="norm-card-desc">Rechtecke mit &amp;, &ge;1, =1.</div>
               </div>
               <div class="norm-card" data-norm="ANSI">
                 <div class="norm-card-badge">US Standard</div>
                 <div class="norm-card-title">ANSI / IEEE</div>
-                <div class="norm-card-desc">Amerikanische Kurven-Symbole (D-Shape für AND, Curved Shield für OR/XOR).</div>
+                <div class="norm-card-desc">Geschwungene US-Symbole.</div>
               </div>
             </div>
           </div>
@@ -4264,35 +4264,35 @@
           </div>
 
           <div class="settings-section">
-            <div class="settings-section-title">Interaktion &amp; Bedienung:</div>
+            <div class="settings-section-title">Bedienung:</div>
             <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
               <label class="settings-checkbox-label">
                 <input type="checkbox" id="settings-edit-interactive" checked />
                 <div>
-                  <div style="font-weight: 600; color: var(--text-main);">Schalter &amp; Taster im Edit-Modus direkt schaltbar</div>
-                  <div style="font-size: 11px; color: var(--text-dim);">Ein Klick (ohne Ziehen) auf Schalter schaltet ihren Zustand sofort um, ohne erst in den Sim-Modus zu wechseln.</div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schalter im Edit-Modus klickbar</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Ein Klick schaltet um – ohne Wechsel in den Sim-Modus.</div>
                 </div>
               </label>
               <label class="settings-checkbox-label">
                 <input type="checkbox" id="settings-auto-save" checked />
                 <div>
-                  <div style="font-weight: 600; color: var(--text-main);">Schaltung automatisch im Browser sichern (localStorage)</div>
-                  <div style="font-size: 11px; color: var(--text-dim);">Behält deine Schaltung beim Schließen oder Neuladen des Browsers automatisch bei.</div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schaltung automatisch im Browser sichern</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Die Schaltung bleibt nach dem Neuladen erhalten.</div>
                 </div>
               </label>
               <label class="settings-checkbox-label">
                 <input type="checkbox" id="settings-wire-bridges" checked />
                 <div>
-                  <div style="font-weight: 600; color: var(--text-main);">Leitungsbrücken bei Kreuzungen (Bögen)</div>
-                  <div style="font-size: 11px; color: var(--text-dim);">Zeigt bei überkreuzenden Leitungen Halbkreis-Bögen an. Deaktiviert für glatte, gerade Kreuzungen ohne Wölbungen (DigitalSimulator / Logisim Stil).</div>
+                  <div style="font-weight: 600; color: var(--text-main);">Leitungsbrücken an Kreuzungen</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Kreuzende Leitungen als Bogen zeichnen. Aus: gerade Kreuzungen.</div>
                 </div>
               </label>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="settings-section-title">Erscheinungsbild &amp; Workbench-Design:</div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Wähle dein bevorzugtes CAD-Erscheinungsbild von modernem OLED-Dunkel bis retro Java Swing:</div>
+            <div class="settings-section-title">Design:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Aussehen der Oberfläche:</div>
             <div class="theme-card-group" id="settings-theme-cards">
               <div class="theme-card active" data-theme="modern">
                 <div class="theme-card-preview theme-preview-modern">
@@ -4300,7 +4300,7 @@
                   <div class="theme-preview-gate"></div>
                 </div>
                 <div class="theme-card-title">Modern Dark</div>
-                <div class="theme-card-desc">Schnittiges CAD Slate mit dezentem Kontrast.</div>
+                <div class="theme-card-desc">Dunkles Schiefergrau, dezenter Kontrast.</div>
               </div>
               <div class="theme-card" data-theme="pitch_black">
                 <div class="theme-card-preview theme-preview-pitch-black">
@@ -4308,7 +4308,7 @@
                   <div class="theme-preview-gate"></div>
                 </div>
                 <div class="theme-card-title">Pitch Black</div>
-                <div class="theme-card-desc">Reines OLED #000000, 2px Kanten, kein Glow.</div>
+                <div class="theme-card-desc">Reines Schwarz, ohne Glow.</div>
               </div>
               <div class="theme-card" data-theme="java_swing">
                 <div class="theme-card-preview theme-preview-java-swing">
@@ -4316,7 +4316,7 @@
                   <div class="theme-preview-gate"></div>
                 </div>
                 <div class="theme-card-title">Java Swing</div>
-                <div class="theme-card-desc">Retro 90s Workbench, 3D-Relief, 0px Kanten, weißes Papier.</div>
+                <div class="theme-card-desc">Retro-Look der 90er, weißes Papier.</div>
               </div>
               <div class="theme-card" data-theme="blueprint">
                 <div class="theme-card-preview theme-preview-blueprint">
@@ -4324,7 +4324,7 @@
                   <div class="theme-preview-gate"></div>
                 </div>
                 <div class="theme-card-title">Nordic Blueprint</div>
-                <div class="theme-card-desc">Technisches Marineblau mit feinem Reißbrett-Raster.</div>
+                <div class="theme-card-desc">Marineblau mit Reißbrett-Raster.</div>
               </div>
               <div class="theme-card" data-theme="light_cad">
                 <div class="theme-card-preview theme-preview-light-cad">
@@ -4332,7 +4332,7 @@
                   <div class="theme-preview-gate"></div>
                 </div>
                 <div class="theme-card-title">Clean Light</div>
-                <div class="theme-card-desc">Helles Labor-Design mit klaren Konturen.</div>
+                <div class="theme-card-desc">Hell, klare Konturen.</div>
               </div>
             </div>
             <select id="settings-canvas-theme" style="display: none;">
@@ -4344,7 +4344,7 @@
         </div>
         <div class="modal-footer">
           <div class="footer-left">
-            <span>Alle Änderungen werden sofort angewendet und gespeichert.</span>
+            <span>Änderungen gelten sofort.</span>
           </div>
           <div class="footer-right">
             <button id="btn-reset-settings" class="btn">Auf Standard zurücksetzen</button>
@@ -4359,7 +4359,7 @@
             <span class="modal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
             <div>
               <h3 id="scenario-modal-title" class="modal-title">Szenarien – von leicht bis komplex</h3>
-              <div class="modal-subtitle" id="scenario-modal-subtitle">Fertige Schaltungen zum Ausprobieren, Verstehen und Weiterbauen</div>
+              <div class="modal-subtitle" id="scenario-modal-subtitle">Fertige Schaltungen zum Ausprobieren und Weiterbauen</div>
             </div>
           </div>
           <button class="modal-close-btn" id="btn-close-scenarios" title="Schließen">&times;</button>
@@ -4389,7 +4389,7 @@
           <div class="modal-title-group">
             <span class="modal-icon" style="font-weight: 800; font-size: 16px;">?</span>
             <div>
-              <h3 id="help-modal-title" class="modal-title">Bedienung &amp; Tastenkürzel</h3>
+              <h3 id="help-modal-title" class="modal-title">Tastenkürzel</h3>
               <div class="modal-subtitle">Alles Wichtige auf einen Blick</div>
             </div>
           </div>
@@ -4399,13 +4399,13 @@
           <div class="help-col">
             <div class="help-title">Bauen</div>
             <div class="help-row"><span>Bauteil platzieren</span><span>aus der Palette ziehen oder doppelklicken</span></div>
-            <div class="help-row"><span>Leitung ziehen</span><span>von Pin zu Pin ziehen (Klicks dazwischen setzen Stützpunkte)</span></div>
+            <div class="help-row"><span>Leitung ziehen</span><span>von Pin zu Pin ziehen, Klicks setzen Knicke</span></div>
             <div class="help-row"><span>Eingang/Ausgang negieren</span><span>Doppelklick auf einen Gatter-Pin</span></div>
             <div class="help-row"><span>Messpunkt setzen</span><span>„Messpunkt“ auf eine Leitung ziehen</span></div>
             <div class="help-row"><span>Mehrfachauswahl</span><span>Rahmen ziehen oder <kbd>Umschalt</kbd>+Klick</span></div>
             <div class="help-row"><span>Kontextmenü</span><span>Rechtsklick auf Bauteil, Leitung oder Fläche</span></div>
             <div class="help-title">Anordnen</div>
-            <div class="help-row"><span>Auto-Anordnen</span><span><kbd>A</kbd> (Auswahl: <kbd>Umschalt</kbd>+<kbd>A</kbd>)</span></div>
+            <div class="help-row"><span>Auto-Anordnen</span><span><kbd>A</kbd></span></div>
             <div class="help-row"><span>Leitungen neu verlegen</span><span><kbd>L</kbd></span></div>
             <div class="help-row"><span>Auswahl verschieben</span><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> (ein Rasterschritt)</span></div>
             <div class="help-row"><span>Ausrichten / Verteilen</span><span>Pfeil neben „Auto-Anordnen“</span></div>
@@ -4428,7 +4428,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <div class="footer-left">Tipp: Im Edit-Modus lassen sich Schalter direkt anklicken – kombinatorische Schaltungen reagieren sofort.</div>
+          <div class="footer-left">Tipp: Schalter lassen sich auch im Edit-Modus anklicken.</div>
           <div class="footer-right"><button id="btn-close-help-footer" class="btn btn-primary">Verstanden</button></div>
         </div>
       </div>
@@ -4457,12 +4457,12 @@
       currentLang: 'de',
       dicts: {
         de: {
-          'app.title': 'LogicSim Pro — Digitaler Web-Logiksimulator',
+          'app.title': 'LogicSim Pro — Logiksimulator',
           'menu.file': 'Datei',
-          'menu.file.new': 'Neu (Leeren)',
-          'menu.file.open': 'Öffnen… (JSON)',
-          'menu.file.save': 'Speichern… (JSON)',
-          'menu.file.export_png': 'Bild exportieren (PNG)',
+          'menu.file.new': 'Neu',
+          'menu.file.open': 'Öffnen…',
+          'menu.file.save': 'Speichern…',
+          'menu.file.export_png': 'Als PNG exportieren',
           'menu.file.clear': 'Arbeitsfläche leeren',
           'menu.edit': 'Bearbeiten',
           'menu.edit.undo': 'Rückgängig',
@@ -4475,30 +4475,30 @@
           'menu.edit.layout': 'Auto-Anordnen',
           'menu.edit.reroute': 'Leitungen neu verlegen',
           'menu.view': 'Ansicht',
-          'menu.view.single': 'Einzelansicht (Standard)',
-          'menu.view.split': 'Split-Screen (Nebeneinander)',
+          'menu.view.single': 'Einzelansicht',
+          'menu.view.split': 'Split-Screen',
           'menu.view.zoom_in': 'Hineinzoomen',
           'menu.view.zoom_out': 'Herauszoomen',
-          'menu.view.zoom_reset': 'Ansicht zentrieren (100%)',
-          'menu.view.zoom_fit': 'Ganze Schaltung einpassen',
-          'menu.view.analyzer': 'Impulsdiagramm (Logic Analyzer)',
-          'menu.view.inspector': 'Eigenschaften (Inspector)',
-          'menu.view.bridges': 'Leitungsbrücken bei Kreuzungen',
-          'menu.view.theme': 'Design / Theme',
-          'menu.view.language': 'Sprache / Language',
+          'menu.view.zoom_reset': 'Zoom 100 %',
+          'menu.view.zoom_fit': 'Schaltung einpassen',
+          'menu.view.analyzer': 'Impulsdiagramm',
+          'menu.view.inspector': 'Inspector',
+          'menu.view.bridges': 'Leitungsbrücken',
+          'menu.view.theme': 'Theme',
+          'menu.view.language': 'Sprache',
           'menu.analysis': 'Analyse',
-          'menu.analysis.truth_table': 'Wahrheitstabelle (Truth Table)…',
-          'menu.analysis.bool_synth': 'Boolesche Schaltalgebra & Synthese…',
+          'menu.analysis.truth_table': 'Wahrheitstabelle…',
+          'menu.analysis.bool_synth': 'Schaltalgebra & Synthese…',
           'menu.norm': 'Norm',
-          'menu.norm.din40700': 'DIN 40700 (Historisch DE)',
-          'menu.norm.din60617': 'DIN EN 60617 (IEC / International)',
-          'menu.norm.ansi': 'ANSI / IEEE (US-Formen)',
+          'menu.norm.din40700': 'DIN 40700 (klassisch)',
+          'menu.norm.din60617': 'DIN EN 60617 (IEC)',
+          'menu.norm.ansi': 'ANSI / IEEE (US)',
           'menu.demos': 'Szenarien',
-          'menu.demos.gallery': 'Szenario-Galerie öffnen…',
-          'menu.demos.guide': 'Szenario-Guide ein-/ausblenden',
+          'menu.demos.gallery': 'Galerie öffnen…',
+          'menu.demos.guide': 'Guide ein/aus',
           'menu.help': 'Hilfe',
-          'menu.help.shortcuts': 'Tastenkürzel & Bedienung…',
-          'menu.help.welcome': 'Erste Schritte (Szenario 1 laden)',
+          'menu.help.shortcuts': 'Tastenkürzel…',
+          'menu.help.welcome': 'Erste Schritte',
           'menu.settings': 'Einstellungen',
 
           'toolbar.mode.edit': 'Edit',
@@ -4515,22 +4515,22 @@
           'toolbar.redo': 'Wiederholen',
           'toolbar.split': 'Split',
 
-          'palette.title': 'Bauteil-Palette',
-          'palette.search': 'Bauteil suchen…  ( / )',
+          'palette.title': 'Bauteile',
+          'palette.search': 'Suchen…  ( / )',
           'palette.empty': 'Kein Bauteil gefunden.',
-          'palette.cat.sources': 'Quellen (Inputs)',
-          'palette.cat.gates': 'Logikgatter (Gates)',
+          'palette.cat.sources': 'Eingänge',
+          'palette.cat.gates': 'Gatter',
           'palette.cat.displays': 'Anzeigen & Decoder',
-          'palette.cat.combinational': 'Bausteine (Kombinatorik)',
-          'palette.cat.sequential': 'Schaltwerke (Sequential)',
-          'palette.cat.memory': 'Flip-Flops & Speicher',
+          'palette.cat.combinational': 'Bausteine',
+          'palette.cat.sequential': 'Zähler & Register',
+          'palette.cat.memory': 'Flipflops',
           'palette.cat.analysis': 'Analyse',
 
           'comp.SWITCH': 'Schalter',
           'comp.BUTTON': 'Taster',
           'comp.CLOCK': 'Taktgeber',
           'comp.CONST': 'Konstante',
-          'comp.NEGATOR': 'Negator',
+          'comp.NEGATOR': 'Negation',
           'comp.NOT': 'NOT',
           'comp.AND': 'AND',
           'comp.OR': 'OR',
@@ -4540,8 +4540,8 @@
           'comp.XNOR': 'XNOR',
           'comp.BUFFER': 'Puffer',
           'comp.TRI_STATE': 'Tri-State',
-          'comp.MAJORITY': 'Majority',
-          'comp.LED': 'LED (Lampe)',
+          'comp.MAJORITY': 'Mehrheit',
+          'comp.LED': 'LED',
           'comp.SEVEN_SEG': '7-Segment',
           'comp.HALF_ADDER': 'Halbaddierer',
           'comp.FULL_ADDER': 'Volladdierer',
@@ -4554,9 +4554,9 @@
           'comp.D_LATCH': 'D-Latch',
           'comp.COUNTER_4BIT': '4-Bit Zähler',
           'comp.SHIFT_REG': 'Schieberegister',
-          'comp.PROBE': 'Messpunkt (Probe)',
+          'comp.PROBE': 'Messpunkt',
 
-          'inspector.title': 'Eigenschaften (Inspector)',
+          'inspector.title': 'Inspector',
           'inspector.empty': 'Wähle ein Bauteil oder eine Leitung auf der Arbeitsfläche aus.',
           'inspector.label': 'Bezeichnung',
           'inspector.inputs': 'Eingänge',
@@ -4570,21 +4570,21 @@
           'status.tick': 'Tick',
           'status.components': 'Bauteile',
           'status.wires': 'Leitungen',
-          'status.hint_default': 'Tipp: Von Pin zu Pin ziehen verdrahtet. Gedrückt halten zum Abzweigen.',
+          'status.hint_default': 'Von Pin zu Pin ziehen verdrahtet · A: anordnen',
 
-          'settings.title': 'Einstellungen & Personalisierung',
-          'settings.subtitle': 'Signalfarben, Schaltsymbol-Normen, Interaktion und Sprache anpassen',
-          'settings.language_title': 'Sprache / Language:',
-          'settings.language_desc': 'Wähle die Sprache der Benutzeroberfläche:',
+          'settings.title': 'Einstellungen',
+          'settings.subtitle': 'Farben, Symbole, Bedienung, Sprache',
+          'settings.language_title': 'Sprache:',
+          'settings.language_desc': 'Sprache der Oberfläche:',
           'settings.close': 'Schließen'
         },
         en: {
-          'app.title': 'LogicSim Pro — Digital Logic Circuit Simulator',
+          'app.title': 'LogicSim Pro — Logic Simulator',
           'menu.file': 'File',
-          'menu.file.new': 'New (Clear)',
-          'menu.file.open': 'Open… (JSON)',
-          'menu.file.save': 'Save… (JSON)',
-          'menu.file.export_png': 'Export Image (PNG)',
+          'menu.file.new': 'New',
+          'menu.file.open': 'Open…',
+          'menu.file.save': 'Save…',
+          'menu.file.export_png': 'Export PNG',
           'menu.file.clear': 'Clear Canvas',
           'menu.edit': 'Edit',
           'menu.edit.undo': 'Undo',
@@ -4594,38 +4594,38 @@
           'menu.edit.paste': 'Paste',
           'menu.edit.duplicate': 'Duplicate',
           'menu.edit.delete': 'Delete',
-          'menu.edit.layout': 'Auto-Layout',
+          'menu.edit.layout': 'Auto-Align',
           'menu.edit.reroute': 'Reroute Wires',
           'menu.view': 'View',
-          'menu.view.single': 'Single View (Default)',
-          'menu.view.split': 'Split Screen (Side-by-Side)',
+          'menu.view.single': 'Single View',
+          'menu.view.split': 'Split Screen',
           'menu.view.zoom_in': 'Zoom In',
           'menu.view.zoom_out': 'Zoom Out',
-          'menu.view.zoom_reset': 'Reset Zoom (100%)',
-          'menu.view.zoom_fit': 'Fit Whole Circuit',
-          'menu.view.analyzer': 'Logic Analyzer (Waveform)',
-          'menu.view.inspector': 'Properties (Inspector)',
-          'menu.view.bridges': 'Wire Crossing Bridges',
-          'menu.view.theme': 'Design / Theme',
-          'menu.view.language': 'Language / Sprache',
+          'menu.view.zoom_reset': 'Zoom 100%',
+          'menu.view.zoom_fit': 'Zoom to Fit',
+          'menu.view.analyzer': 'Timing Diagram',
+          'menu.view.inspector': 'Inspector',
+          'menu.view.bridges': 'Wire Bridges',
+          'menu.view.theme': 'Theme',
+          'menu.view.language': 'Language',
           'menu.analysis': 'Analysis',
           'menu.analysis.truth_table': 'Truth Table…',
-          'menu.analysis.bool_synth': 'Boolean Algebra & Synthesis…',
-          'menu.norm': 'Standard',
-          'menu.norm.din40700': 'DIN 40700 (German / Classic)',
-          'menu.norm.din60617': 'DIN EN 60617 (IEC / International)',
-          'menu.norm.ansi': 'ANSI / IEEE (US Shapes)',
+          'menu.analysis.bool_synth': 'Boolean Synthesis…',
+          'menu.norm': 'Symbols',
+          'menu.norm.din40700': 'DIN 40700 (classic)',
+          'menu.norm.din60617': 'DIN EN 60617 (IEC)',
+          'menu.norm.ansi': 'ANSI / IEEE (US)',
           'menu.demos': 'Scenarios',
-          'menu.demos.gallery': 'Open Scenario Gallery…',
-          'menu.demos.guide': 'Toggle Scenario Guide',
+          'menu.demos.gallery': 'Open Gallery…',
+          'menu.demos.guide': 'Toggle Guide',
           'menu.help': 'Help',
-          'menu.help.shortcuts': 'Keyboard Shortcuts & Controls…',
-          'menu.help.welcome': 'Getting Started (Load Scenario 1)',
+          'menu.help.shortcuts': 'Shortcuts…',
+          'menu.help.welcome': 'Getting Started',
           'menu.settings': 'Settings',
 
           'toolbar.mode.edit': 'Edit',
           'toolbar.mode.sim': 'Simulation',
-          'toolbar.auto_route': 'Auto-Layout',
+          'toolbar.auto_route': 'Auto-Align',
           'toolbar.sim.step_back': '-1',
           'toolbar.sim.start': 'Start',
           'toolbar.sim.pause': 'Pause',
@@ -4637,22 +4637,22 @@
           'toolbar.redo': 'Redo',
           'toolbar.split': 'Split',
 
-          'palette.title': 'Component Palette',
-          'palette.search': 'Search component… ( / )',
-          'palette.empty': 'No component found.',
-          'palette.cat.sources': 'Sources (Inputs)',
-          'palette.cat.gates': 'Logic Gates',
+          'palette.title': 'Parts',
+          'palette.search': 'Search…  ( / )',
+          'palette.empty': 'No part found.',
+          'palette.cat.sources': 'Inputs',
+          'palette.cat.gates': 'Gates',
           'palette.cat.displays': 'Displays & Decoders',
-          'palette.cat.combinational': 'Modules (Combinational)',
-          'palette.cat.sequential': 'Sequential Circuits',
-          'palette.cat.memory': 'Flip-Flops & Storage',
+          'palette.cat.combinational': 'Modules',
+          'palette.cat.sequential': 'Counters & Registers',
+          'palette.cat.memory': 'Flip-Flops',
           'palette.cat.analysis': 'Analysis',
 
           'comp.SWITCH': 'Switch',
-          'comp.BUTTON': 'Push Button',
-          'comp.CLOCK': 'Clock Generator',
+          'comp.BUTTON': 'Button',
+          'comp.CLOCK': 'Clock',
           'comp.CONST': 'Constant',
-          'comp.NEGATOR': 'Inverter Bubble',
+          'comp.NEGATOR': 'Negation',
           'comp.NOT': 'NOT',
           'comp.AND': 'AND',
           'comp.OR': 'OR',
@@ -4663,7 +4663,7 @@
           'comp.BUFFER': 'Buffer',
           'comp.TRI_STATE': 'Tri-State',
           'comp.MAJORITY': 'Majority',
-          'comp.LED': 'LED (Lamp)',
+          'comp.LED': 'LED',
           'comp.SEVEN_SEG': '7-Segment',
           'comp.HALF_ADDER': 'Half Adder',
           'comp.FULL_ADDER': 'Full Adder',
@@ -4676,9 +4676,9 @@
           'comp.D_LATCH': 'D Latch',
           'comp.COUNTER_4BIT': '4-Bit Counter',
           'comp.SHIFT_REG': 'Shift Register',
-          'comp.PROBE': 'Probe Point',
+          'comp.PROBE': 'Probe',
 
-          'inspector.title': 'Properties (Inspector)',
+          'inspector.title': 'Inspector',
           'inspector.empty': 'Select a component or wire on the canvas.',
           'inspector.label': 'Label',
           'inspector.inputs': 'Inputs',
@@ -4692,12 +4692,12 @@
           'status.tick': 'Tick',
           'status.components': 'Components',
           'status.wires': 'Wires',
-          'status.hint_default': 'Tip: Drag between pins to connect. Press and drag on a wire to branch.',
+          'status.hint_default': 'Drag from pin to pin to wire · A: align',
 
-          'settings.title': 'Settings & Customization',
-          'settings.subtitle': 'Customize signal colors, gate standards, interaction, and language',
-          'settings.language_title': 'Language / Sprache:',
-          'settings.language_desc': 'Select user interface language:',
+          'settings.title': 'Settings',
+          'settings.subtitle': 'Colors, symbols, controls, language',
+          'settings.language_title': 'Language:',
+          'settings.language_desc': 'Interface language:',
           'settings.close': 'Close'
         }
       },
@@ -4705,6 +4705,486 @@
         const lang = this.currentLang || 'de';
         const dict = this.dicts[lang] || this.dicts.de;
         return dict[key] !== undefined ? dict[key] : (fallback !== undefined ? fallback : key);
+      }
+    };
+
+    /* German → English phrase dictionary (German is the source language of the UI). */
+    const I18N_PHRASES_EN = {
+      // --- menus, toolbar ---
+      'Arbeitsfläche leeren': 'Clear canvas', 'Design / Theme': 'Theme', 'Deutsch (DE)': 'German (DE)',
+      'Direkt zu einer Stufe': 'Jump to a level', 'Betriebsmodus': 'Mode',
+      'Bearbeiten: platzieren & verdrahten': 'Edit: place & wire', 'Simulieren: schalten & takten': 'Simulate: switch & clock',
+      'Auto-Anordnen (A): Bauteile ordnen, Leitungen neu verlegen': 'Auto-Align (A): arrange parts, reroute wires',
+      'Auto-Anordnen': 'Auto-Align', 'Anordnen: Werkzeuge & Optionen': 'Align: tools & options',
+      'Alles anordnen': 'Align all', 'Bauteile, Leitungen und Ansicht': 'Parts, wires and view',
+      'Nur Leitungen neu verlegen': 'Reroute wires only', 'Bauteile bleiben stehen': 'Parts stay in place',
+      'Ansicht einpassen': 'Zoom to fit', 'Schaltung zentrieren': 'Center the circuit',
+      'Optionen': 'Options', 'Abstand': 'Spacing', 'Kompakt': 'Compact', 'Weit': 'Wide',
+      'Auto wählt die Variante mit weniger Kreuzungen und Knicken': 'Auto picks the variant with fewer crossings and bends',
+      'Eingänge': 'Inputs', 'Links': 'Left', 'Am Bauteil': 'Near part', 'Anordnen animieren': 'Animate',
+      'Leitungen beim Verschieben neu verlegen': 'Reroute wires while moving', 'Brücken an Kreuzungen': 'Bridges at crossings',
+      'Letztes Ergebnis:': 'Last result:', 'Leitungen gerade,': 'wires straight,', 'Kreuzungen,': 'crossings,', 'Überlappungen.': 'overlaps.',
+      '1 Tick zurück (halten: Rücklauf)': '1 tick back (hold: rewind)', 'Start / Pause (Leertaste)': 'Start / Pause (Space)',
+      '1 Tick vor (halten: Vorlauf)': '1 tick forward (hold: run)', 'Simulation zurücksetzen': 'Reset simulation',
+      'Szenarien (G)': 'Scenarios (G)', 'Rückgängig': 'Undo', 'Wiederholen': 'Redo',
+      'Split-Screen: zwei Schaltungen nebeneinander': 'Split screen: two circuits side by side',
+      'Hilfe & Tastenkürzel (?)': 'Help & shortcuts (?)', 'Suche leeren': 'Clear search',
+      // --- palette ---
+      'Schalter: 0/1 umschalten': 'Switch: toggles 0/1', 'Taster: 1 solange gedrückt': 'Button: 1 while pressed',
+      'Taktgeber: einstellbare Halbperiode': 'Clock: adjustable half period', 'Konstante: fest 1 oder 0': 'Constant: fixed 1 or 0',
+      'Negation ○: auf einen Gatter-Pin ziehen': 'Negation ○: drop on a gate pin', 'NOT: invertiert das Signal': 'NOT: inverts the signal',
+      'AND: 1, wenn alle Eingänge 1 sind': 'AND: 1 if all inputs are 1', 'OR: 1, wenn mindestens ein Eingang 1 ist': 'OR: 1 if any input is 1',
+      'NAND: invertiertes AND': 'NAND: inverted AND', 'NOR: invertiertes OR': 'NOR: inverted OR',
+      'XOR: 1 bei ungerader Anzahl Einsen': 'XOR: 1 for an odd number of ones', 'XNOR: 1 bei gerader Anzahl Einsen': 'XNOR: 1 for an even number of ones',
+      'Puffer: gibt das Signal unverändert weiter': 'Buffer: passes the signal unchanged', 'Puffer': 'Buffer',
+      'Tri-State: leitet nur bei EN = 1': 'Tri-state: passes only while EN = 1',
+      'Mehrheit: 1, wenn mindestens 2 von 3 Eingängen 1 sind': 'Majority: 1 if at least 2 of 3 inputs are 1',
+      'LED: zeigt ein Signal an': 'LED: shows a signal', '7-Segment-Anzeige: Segmente a–g, DP': '7-segment display: segments a–g, DP',
+      'Decoder: BCD (D0–D3) nach 7-Segment (a–g)': 'Decoder: BCD (D0–D3) to 7-segment (a–g)', 'BCD → 7-Segment': 'BCD → 7-Segment',
+      'Hex-Anzeige: 4 Bit als Ziffer 0–F': 'Hex display: 4 bits as digit 0–F', 'Hex-Anzeige': 'Hex Display',
+      'Volladdierer: A + B + Cin = S, Cout': 'Full adder: A + B + Cin = S, Cout', 'Multiplexer 2:1: S wählt D0 oder D1': 'Multiplexer 2:1: S selects D0 or D1',
+      'Decoder 2-zu-4: genau ein Ausgang ist 1': 'Decoder 2:4: exactly one output is 1', 'Decoder 2:4': 'Decoder 2:4',
+      '4-Bit-Zähler: binär (0–15) oder BCD (0–9)': '4-bit counter: binary (0–15) or BCD (0–9)', '4-Bit-Zähler': '4-Bit Counter',
+      '4-Bit-Schieberegister: seriell rein, parallel raus': '4-bit shift register: serial in, parallel out',
+      'Schieberegister': 'Shift Register', '4-Bit-Schieberegister': '4-Bit Shift Register',
+      'SR-Flipflop: setzen / rücksetzen': 'SR flip-flop: set / reset', 'D-Flipflop: übernimmt D bei Taktflanke': 'D flip-flop: stores D on the clock edge',
+      'JK-Flipflop: setzen, rücksetzen, kippen': 'JK flip-flop: set, reset, toggle', 'T-Flipflop: kippt bei T = 1': 'T flip-flop: toggles while T = 1',
+      'D-Latch: folgt D, solange EN = 1': 'D latch: follows D while EN = 1',
+      'Messpunkt: Leitung im Impulsdiagramm aufzeichnen': 'Probe: record a wire in the timing diagram',
+      // --- workspace, tabs ---
+      'Klicken zum Aktivieren, Doppelklick zum Umbenennen': 'Click to activate, double-click to rename', 'Tab schließen': 'Close tab', 'Neuer Tab': 'New tab',
+      'Fokus': 'Focus', 'Die Arbeitsfläche ist leer': 'The canvas is empty',
+      'Ziehe Bauteile aus der Palette hierher oder starte mit einem Szenario.': 'Drag parts here from the palette or start with a scenario.',
+      'Szenarien ansehen': 'Browse scenarios', 'Ganze Schaltung einpassen': 'Zoom to fit', 'Herauszoomen': 'Zoom out', 'Hineinzoomen': 'Zoom in',
+      'Ansicht zentrieren (100%)': 'Zoom 100%', 'Rechte Schaltung': 'Right circuit', 'Tab für die rechte Ansicht': 'Tab for the right view',
+      'Split-Screen schließen': 'Close split screen', 'Inspector wieder einblenden': 'Show inspector', 'Eigenschaften': 'Properties',
+      'Breite ziehen': 'Drag to resize', 'Höhe ziehen': 'Drag to resize', 'Inspector einklappen': 'Collapse inspector',
+      // --- guide ---
+      'Guide ein-/ausklappen': 'Collapse / expand guide', 'Guide schließen': 'Close guide', 'Ausprobieren': 'Try it',
+      '▶ Simulation starten': '▶ Start simulation', 'Wahrheitstabelle der Schaltung anzeigen': 'Show the truth table', '↺ Neu laden': '↺ Reload',
+      'Vorheriges Szenario': 'Previous scenario', '‹ Zurück': '‹ Back', 'Nächstes Szenario': 'Next scenario', 'Weiter ›': 'Next ›',
+      'Wahrheitstabelle': 'Truth Table',
+      // --- analyzer ---
+      'Impulsdiagramm ein-/ausklappen': 'Collapse / expand timing diagram', 'Impulsdiagramm': 'Timing Diagram',
+      'Loop-Anfang am Cursor setzen (I)': 'Set loop start at cursor (I)', 'Loop-Ende am Cursor setzen (O)': 'Set loop end at cursor (O)',
+      'Bereich in Schleife abspielen (L)': 'Play range in a loop (L)', 'Loop-Bereich aufheben': 'Clear loop range',
+      'Zeit-Zoom:': 'Zoom:', 'Aufzeichnung löschen': 'Clear recording', 'Leeren': 'Clear',
+      'KANAL': 'CHANNEL', '0, 0 px (Zentrum)': '0, 0 px (center)', '5000, 5000 px (Feldgrenze)': '5000, 5000 px (limit)',
+      // --- status bar ---
+      'Doppelklick: zu Koordinate springen': 'Double-click: jump to coordinate', 'EDIT-MODUS': 'EDIT', 'Simulationsschritt': 'Simulation step',
+      'Bauteile / Leitungen': 'Parts / wires', 'Bauteile ·': 'parts ·', 'Bauteile': 'parts', 'Leitungen': 'wires',
+      'Ergebnis der letzten Auto-Anordnung': 'Result of the last auto-align',
+      'Rechtsklick auf Leitung: abzweigen · A: anordnen · F: einpassen · ?: Kürzel': 'Right-click a wire: branch · A: align · F: fit · ?: shortcuts',
+      'Simulation: Schalter klicken, Taster halten · Leertaste: Start/Pause · Tab: zurück zu Edit': 'Simulation: click switches, hold buttons · Space: start/pause · Tab: back to edit',
+      'Auswahl: Pfeiltasten verschieben · Entf löscht · A ordnet alles an': 'Selection: arrows move · Del deletes · A aligns all',
+      'Bauteile aus der Palette ziehen · G öffnet die Szenarien': 'Drag parts from the palette · G opens the scenarios',
+      'Leitung ziehen: Pin, Leitung oder freie Stelle klicken · Enter: fertig · Esc: abbrechen · Umschalt: diagonal': 'Wiring: click a pin, a wire or empty space · Enter: finish · Esc: cancel · Shift: diagonal',
+      'Von Pin zu Pin ziehen verdrahtet · A: anordnen': 'Drag from pin to pin to wire · A: align',
+      'SIMULATION PAUSIERT': 'PAUSED', 'SIMULATION LÄUFT': 'RUNNING', 'SIM-MODUS': 'SIM',
+      '📍 Zu Koordinate springen': '📍 Jump to coordinate', '-5000 bis +5000 px': '-5000 to +5000 px', 'Zentrieren': 'Center', 'Abbrechen': 'Cancel',
+      // --- truth table ---
+      'Alle Eingangskombinationen der Schaltung': 'All input combinations of the circuit', 'Schließen': 'Close',
+      'Tipp: Klick auf eine Zeile setzt die Schalter entsprechend.': 'Tip: click a row to set the switches accordingly.',
+      'Als CSV kopieren': 'Copy as CSV', 'CSV kopieren': 'Copy CSV', 'Als Markdown kopieren': 'Copy as Markdown', 'Markdown kopieren': 'Copy Markdown',
+      '● AKTUELLER ZUSTAND': '● CURRENT STATE', 'Normalformen:': 'Normal forms:', 'DNF (Minterme):': 'DNF (minterms):', 'KNF (Maxterme):': 'CNF (maxterms):',
+      '0 (Kontradiktion / immer 0)': '0 (always 0)', '1 (Tautologie / immer 1)': '1 (always 1)', 'DNF kopieren': 'Copy DNF', 'KNF kopieren': 'Copy CNF', 'Kopieren': 'Copy',
+      'Keine Auswertung möglich': 'Nothing to evaluate', 'Keine Eingänge gefunden. Füge mindestens einen Schalter hinzu.': 'No inputs found. Add at least one switch.',
+      // --- Boolean synthesis ---
+      'Schaltalgebra & Synthese': 'Boolean Synthesis', 'Term eingeben, Schaltung erzeugen': 'Enter a term, get a circuit', 'Beispiele:': 'Examples:',
+      'Einfaches Glied': 'Simple term', '1-Bit Halbaddierer': '1-bit half adder', 'Halbaddierer': 'Half Adder', '1-Bit Volladdierer': '1-bit full adder',
+      'Volladdierer': 'Full Adder', '2-zu-1 Multiplexer': '2-to-1 multiplexer', 'NAND-Logik': 'NAND logic', 'Ingenieur-Notation (Prime)': 'Prime notation',
+      'Formel(n):': 'Formula(s):', 'Mehrere Ausgänge mit ; oder Zeilenumbruch trennen': 'Separate several outputs with ; or a line break',
+      'z. B. Y = (A AND B) OR NOT C   oder   S = A ^ B ^ Cin; Cout = (A & B) | (Cin & (A ^ B))': 'e.g. Y = (A AND B) OR NOT C   or   S = A ^ B ^ Cin; Cout = (A & B) | (Cin & (A ^ B))',
+      'Operatoren einfügen:': 'Insert operator:', '→ Implikation (->)': '→ Implication (->)', '↔ Äquivalenz (<->)': '↔ Equivalence (<->)',
+      "' (Negationsstrich)": "' (prime)", '( ) Klammern': '( ) Parentheses', 'Syntax:': 'Syntax:', 'Negation / Invertierung': 'Negation',
+      'Konjunktion (AND)': 'Conjunction (AND)', 'Disjunktion (OR)': 'Disjunction (OR)', 'Antivalenz (XOR)': 'Exclusive or (XOR)',
+      'Implikation (¬A ∨ B)': 'Implication (¬A ∨ B)', 'Äquivalenz (XNOR)': 'Equivalence (XNOR)', 'Invertierte Verknüpfungen': 'Inverted operators',
+      'Klammer-Priorität': 'Grouping', 'Vorschau:': 'Preview:', 'Gültige Formel': 'Valid formula', 'Platzierung:': 'Placement:',
+      'Zur aktuellen Schaltung hinzufügen': 'Add to the current circuit', 'Neue Schaltung (ersetzt die aktuelle)': 'New circuit (replaces the current one)',
+      'Erzeugt Schalter, Gatter und LEDs – fertig verdrahtet.': 'Creates switches, gates and LEDs – fully wired.', 'Schaltung erzeugen': 'Build circuit',
+      // --- settings ---
+      'Einstellungen': 'Settings', 'Farben, Symbole, Bedienung': 'Colors, symbols, controls', 'Signalfarbe:': 'Signal color:',
+      'Farbe für Signale mit Pegel 1:': 'Color of signals at level 1:', 'Neon-Grün (Standard)': 'Neon green (default)', 'Neon-Grün': 'Neon green',
+      'Bernstein': 'Amber', 'Rot': 'Red', 'Violett': 'Violet', 'Eigene Farbe wählen': 'Pick a custom color', 'Individuell': 'Custom',
+      'Symbol-Norm:': 'Symbol standard:', 'Symbolsatz für alle Gatter:': 'Symbol set for all gates:', 'Historisch DE': 'German classic',
+      'Klassische deutsche Symbole.': 'Classic German symbols.', 'IEC Standard': 'IEC standard', 'Rechtecke mit &, ≥1, =1.': 'Rectangles with &, ≥1, =1.',
+      'US Standard': 'US standard', 'Geschwungene US-Symbole.': 'Curved US shapes.', 'Bedienung:': 'Controls:',
+      'Schalter im Edit-Modus klickbar': 'Switches clickable in edit mode', 'Ein Klick schaltet um – ohne Wechsel in den Sim-Modus.': 'One click toggles – no need to enter sim mode.',
+      'Schaltung automatisch im Browser sichern': 'Auto-save the circuit in the browser', 'Die Schaltung bleibt nach dem Neuladen erhalten.': 'The circuit survives a reload.',
+      'Leitungsbrücken an Kreuzungen': 'Wire bridges at crossings', 'Kreuzende Leitungen als Bogen zeichnen. Aus: gerade Kreuzungen.': 'Draw crossing wires as arcs. Off: plain crossings.',
+      'Design:': 'Theme:', 'Aussehen der Oberfläche:': 'Look of the interface:', 'Dunkles Schiefergrau, dezenter Kontrast.': 'Dark slate, subtle contrast.',
+      'Reines Schwarz, ohne Glow.': 'Pure black, no glow.', 'Retro-Look der 90er, weißes Papier.': '90s retro look, white paper.',
+      'Marineblau mit Reißbrett-Raster.': 'Navy blue with a drafting grid.', 'Hell, klare Konturen.': 'Light, crisp outlines.',
+      'Änderungen gelten sofort.': 'Changes apply instantly.', 'Auf Standard zurücksetzen': 'Reset to defaults', 'Fertig': 'Done',
+      // --- gallery ---
+      'Szenarien – von leicht bis komplex': 'Scenarios – from easy to complex', 'Fertige Schaltungen zum Ausprobieren und Weiterbauen': 'Ready-made circuits to try and extend',
+      'Szenario suchen…': 'Search scenarios…', 'In neuem Tab öffnen': 'Open in a new tab', 'Leere Arbeitsfläche': 'Empty canvas', 'Bereits geöffnet': 'Open',
+      'Einstieg': 'Starter', 'Grundlagen': 'Basics', 'Aufbau': 'Building', 'Fortgeschritten': 'Advanced', 'Meister': 'Master',
+      'Ein Schalter, ein Gatter, eine Lampe': 'One switch, one gate, one lamp', 'Mehrere Gatter arbeiten zusammen': 'Several gates work together',
+      'Rechnen, Auswählen und erstes Speichern': 'Arithmetic, selection and first memory', 'Takt, Zähler und Schieberegister': 'Clock, counters and shift registers',
+      'Rechenwerke und Automaten': 'Arithmetic units and state machines', 'mit Takt': 'clocked',
+      // --- help ---
+      'Tastenkürzel': 'Shortcuts', 'Alles Wichtige auf einen Blick': 'Everything at a glance', 'Bauen': 'Build', 'Bauteil platzieren': 'Place a part',
+      'aus der Palette ziehen oder doppelklicken': 'drag from the palette or double-click', 'Leitung ziehen': 'Draw a wire',
+      'von Pin zu Pin ziehen, Klicks setzen Knicke': 'drag from pin to pin, clicks add bends', 'Eingang/Ausgang negieren': 'Negate input/output',
+      'Doppelklick auf einen Gatter-Pin': 'double-click a gate pin', 'Messpunkt setzen': 'Add probe', '„Messpunkt“ auf eine Leitung ziehen': 'drag “Probe” onto a wire',
+      'Mehrfachauswahl': 'Multi-select', 'Rahmen ziehen oder': 'drag a box or', '+Klick': '+click', 'Kontextmenü': 'Context menu',
+      'Rechtsklick auf Bauteil, Leitung oder Fläche': 'right-click a part, a wire or the canvas', 'Anordnen': 'Align',
+      'Leitungen neu verlegen': 'Reroute wires', 'Auswahl verschieben': 'Move selection', '(ein Rasterschritt)': '(one grid step)',
+      'Ausrichten / Verteilen': 'Align / distribute', 'Pfeil neben „Auto-Anordnen“': 'arrow next to “Auto-Align”', 'Ansicht': 'View', 'Zoomen': 'Zoom',
+      'Mausrad,': 'mouse wheel,', 'Verschieben': 'Pan', 'halten + ziehen, oder mittlere Maustaste': 'hold + drag, or middle mouse button',
+      'Alles einpassen': 'Fit all', 'Szenarien': 'Scenarios', '(im Simulationsmodus)': '(in simulation mode)', 'Einzelschritt': 'Single step',
+      'vor,': 'forward,', 'zurück': 'back', 'Bearbeiten': 'Edit', 'Rückgängig / Wiederholen': 'Undo / redo',
+      'Kopieren / Einfügen / Duplizieren': 'Copy / paste / duplicate', 'Löschen': 'Delete', 'Wahrheitstabelle / Schaltalgebra': 'Truth table / Boolean synthesis',
+      'Tipp: Schalter lassen sich auch im Edit-Modus anklicken.': 'Tip: switches can also be clicked in edit mode.', 'Verstanden': 'Got it',
+      // --- keys ---
+      'Strg': 'Ctrl', 'Umschalt': 'Shift', 'Entf': 'Del', 'Leertaste': 'Space',
+      // --- inspector ---
+      'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
+      '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
+      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay',
+      'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
+      'XOR bei mehr als 2 Eingängen': 'XOR with more than 2 inputs', 'Exklusiv: genau ein Eingang 1': 'Exclusive: exactly one input is 1',
+      'Parität: ungerade Anzahl 1': 'Parity: odd number of ones', 'Leuchtfarbe': 'Color', 'Leuchtfarbe:': 'Color:',
+      'Grün (#00e676)': 'Green (#00e676)', 'Rot (#ff5252)': 'Red (#ff5252)', 'Gelb (#ffd600)': 'Yellow (#ffd600)', 'Blau (#00b0ff)': 'Blue (#00b0ff)',
+      'Grün': 'Green', 'Gelb': 'Yellow', 'Blau': 'Blue', 'Werte 10–15 als A–F': 'Show 10–15 as A–F', 'An (A–F)': 'On (A–F)', 'Aus (dunkel)': 'Off (blank)',
+      'Zählmodus': 'Count mode', 'Binär (0–15)': 'Binary (0–15)', 'Taktflanke': 'Clock edge', 'Steigend (↑)': 'Rising (↑)', 'Fallend (↓)': 'Falling (↓)',
+      'Pegelgesteuert': 'Level-sensitive', 'Startzustand Q': 'Initial state Q', '0 (rückgesetzt)': '0 (reset)', '1 (gesetzt)': '1 (set)',
+      'Typ:': 'Type:', 'Leitung': 'Wire', 'Quelle:': 'From:', 'Ziel:': 'To:', 'Pegel:': 'Level:', 'Verlauf': 'Routing', 'Verlegungsart:': 'Style:',
+      'Rechtwinklig': 'Orthogonal', 'Begradigen': 'Straighten', 'Neu verlegen (Auto)': 'Reroute (auto)', 'Tipp:': 'Tip:',
+      'Griffe ziehen verschiebt die Leitung. Der': 'Drag the handles to move the wire. The',
+      '-Griff oder ein Doppelklick aufs Segment setzt einen Knick. Doppelklick auf einen Griff löscht ihn.': ' handle or a double-click on a segment adds a bend. Double-click a handle to remove it.',
+      'Leitung löschen': 'Delete wire', 'Eckpunkt löschen': 'Delete bend', 'Leitung:': 'Wire:', 'Signalpegel:': 'Level:', 'Kanalname': 'Channel name',
+      '🗑 Messpunkt entfernen': '🗑 Remove probe', 'Mehrfachauswahl:': 'Selection:',
+      'Strg+C/V: kopieren/einfügen · Strg+D: duplizieren · Entf: löschen': 'Ctrl+C/V: copy/paste · Ctrl+D: duplicate · Del: delete',
+      // --- part names ---
+      'Schalter': 'Switch', 'Taster': 'Button', 'Taktgeber': 'Clock', 'Konstante': 'Constant', 'NOT-Gatter': 'NOT gate', 'AND-Gatter': 'AND gate',
+      'OR-Gatter': 'OR gate', 'NAND-Gatter': 'NAND gate', 'NOR-Gatter': 'NOR gate', 'XOR-Gatter': 'XOR gate', 'XNOR-Gatter': 'XNOR gate',
+      'Tri-State-Puffer': 'Tri-state buffer', 'Mehrheitsgatter': 'Majority gate', '7-Segment-Anzeige': '7-segment display',
+      'BCD-zu-7-Segment-Decoder': 'BCD to 7-segment decoder', 'SR-Flipflop': 'SR flip-flop', 'D-Flipflop': 'D flip-flop', 'JK-Flipflop': 'JK flip-flop',
+      'T-Flipflop': 'T flip-flop', 'Messpunkt': 'Probe',
+      // --- context menus ---
+      'Im Inspector anzeigen': 'Show in inspector', 'Bauteil duplizieren': 'Duplicate part', 'Bauteil löschen': 'Delete part',
+      'Links bündig ausrichten': 'Align left', 'Rechts bündig ausrichten': 'Align right', 'Oben bündig ausrichten': 'Align top', 'Unten bündig ausrichten': 'Align bottom',
+      'Vertikal gleichmäßig verteilen': 'Distribute vertically', 'Horizontal gleichmäßig verteilen': 'Distribute horizontally',
+      'Auswahl duplizieren': 'Duplicate selection', 'Auswahl löschen': 'Delete selection', '📋 Auswahl duplizieren': '📋 Duplicate selection',
+      'Hier abzweigen': 'Branch from here', 'Eckpunkt hier hinzufügen': 'Add bend here', 'Arbeitsfläche': 'Canvas',
+      'Gatter einfügen:': 'Insert gate:', 'Quellen & Anzeigen:': 'Inputs & displays:', 'Symbol-Norm umschalten:': 'Symbol standard:',
+      'Wahrheitstabelle anzeigen': 'Show truth table', 'Boolescher Term / Synthese': 'Boolean synthesis', 'Auf Arbeitsfläche anzeigen': 'Show on canvas',
+      'Messpunkt entfernen': 'Remove probe',
+      // --- messages ---
+      '↶ Rückgängig ausgeführt': '↶ Undone', '↷ Wiederholen ausgeführt': '↷ Redone', 'Wähle mindestens zwei Bauteile aus.': 'Select at least two parts.',
+      'Wähle zum Verteilen mindestens drei Bauteile aus.': 'Select at least three parts to distribute.', 'Split-Screen aktiv': 'Split screen on',
+      'Einzelansicht aktiv': 'Single view on', '📸 Als PNG exportiert': '📸 Exported as PNG', 'Anordnen geht nur im Edit-Modus (Tab).': 'Aligning only works in edit mode (Tab).',
+      'Die Arbeitsfläche ist leer – es gibt nichts anzuordnen.': 'The canvas is empty – nothing to align.', 'Es gibt noch keine Leitungen.': 'There are no wires yet.',
+      'Keine Bauteile zum Anordnen vorhanden.': 'No parts to align.', 'Die Datei ist zu groß (maximal 5 MB erlaubt).': 'The file is too large (5 MB max).',
+      '📍 Erstelle zuerst eine Leitung oder ziehe den Messpunkt auf eine Leitung.': '📍 Draw a wire first or drop the probe on a wire.',
+      '○ Invertierer platziert. Ziehe den Negator auf einen Pin zum Invertieren.': '○ NOT gate placed. Drop the negation on a pin to invert it.',
+      '📍 Ziehe den Messpunkt direkt auf eine Leitung.': '📍 Drop the probe directly on a wire.', '○ Invertierer (NOT-Gatter) platziert.': '○ NOT gate placed.',
+      'Leitung begradigt': 'Wire straightened', 'Alle Leitungen neu verlegt': 'All wires rerouted',
+      'Der Guide erscheint, sobald ein Szenario geladen ist.': 'The guide appears once a scenario is loaded.',
+      'Wahrheitstabelle als CSV in die Zwischenablage kopiert!': 'Truth table copied as CSV', 'Wahrheitstabelle als Markdown in die Zwischenablage kopiert!': 'Truth table copied as Markdown',
+      'Formel in Zwischenablage kopiert!': 'Formula copied', 'Möchtest du die Schaltung wirklich leeren?': 'Really clear the circuit?',
+      'Einstellungen auf Standard zurückgesetzt.': 'Settings reset to defaults.', 'Die Schaltung ist leer.': 'The circuit is empty.',
+      'Ungültiges JSON-Schaltungsformat.': 'Invalid circuit file.',
+      'Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen).': 'Circuit exceeds the limit (5000 parts, 10000 wires).',
+      'Ausdruck zu lang (maximal 20.000 Zeichen erlaubt).': 'Expression too long (20,000 characters max).',
+      'Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).': 'Nesting too deep (100 levels max).',
+      'Maximale Auswertungstiefe überschritten (max. 150 Ebenen).': 'Evaluation too deep (150 levels max).',
+      'keine Kreuzungen': 'no crossings', 'linksbündig': 'left', 'rechtsbündig': 'right', 'horizontal zentriert': 'centered horizontally',
+      'oben bündig': 'top', 'unten bündig': 'bottom', 'vertikal zentriert': 'centered vertically'
+    };
+    Object.assign(I18N_PHRASES_EN, {
+      // --- scenarios: titles ---
+      'Schalter & Lampe': 'Switch & Lamp', 'Der Inverter (NICHT)': 'The Inverter (NOT)', 'UND: Zwei-Hand-Sicherung': 'AND: Two-Hand Safety',
+      'ODER: Die Türklingel': 'OR: The Doorbell', 'XOR: Wechselschaltung im Treppenhaus': 'XOR: Staircase Light', 'Alle Grundgatter im Vergleich': 'All Basic Gates Compared',
+      '2:1-Multiplexer (Datenselektor)': '2:1 Multiplexer', 'Mehrheitsentscheid (2 aus 3)': 'Majority Vote (2 of 3)', '2-zu-4-Decoder aus Gattern': '2-to-4 Decoder from Gates',
+      '1-Bit-Vergleicher': '1-Bit Comparator', 'Die De-Morgan-Regel': "De Morgan's Law", 'NAND als Universalgatter': 'NAND as Universal Gate',
+      'XOR aus vier NAND-Gattern': 'XOR from Four NAND Gates', '1-Bit-Volladdierer': '1-Bit Full Adder', 'Paritätsbit (Fehlererkennung)': 'Parity Bit (Error Detection)',
+      '7-Segment-Anzeige von Hand': '7-Segment Display by Hand', '4:1-Multiplexer aus Bausteinen': '4:1 Multiplexer from Modules', 'RS-Speicher (NOR-Latch)': 'SR Latch (NOR)',
+      'D-Latch aus NAND-Gattern': 'D Latch from NAND Gates', 'Stromstoßschalter (Taster-Toggle)': 'Push-Button Toggle', 'Frequenzteiler (f/2 und f/4)': 'Frequency Divider (f/2 and f/4)',
+      'Schieberegister aus D-Flipflops': 'Shift Register from D Flip-Flops', '4-Bit-Binärzähler': '4-Bit Binary Counter', 'Asynchroner Zähler (JK-Flipflops)': 'Ripple Counter (JK Flip-Flops)',
+      'Synchroner 3-Bit-Zähler': 'Synchronous 3-Bit Counter', 'Johnson-Zähler (Lauflicht)': 'Johnson Counter', 'Lauflicht mit Zähler und Decoder': 'Chaser Light with Counter and Decoder',
+      'Digitale Ziffer 0–9': 'Digital Digit 0–9', 'Pseudo-Zufall mit Schieberegister (LFSR)': 'Pseudo-Random with Shift Register (LFSR)', 'Ampelsteuerung': 'Traffic Light',
+      '4-Bit-Addierer mit Anzeige': '4-Bit Adder with Display', 'Addierer / Subtrahierer (Zweierkomplement)': "Adder / Subtractor (Two's Complement)",
+      '4-Bit-Addierer auf Gatterebene': '4-Bit Adder at Gate Level', 'Stoppuhr 00–99': 'Stopwatch 00–99', 'Automat: Erkennung der Folge 1-0-1': 'State Machine: Detecting 1-0-1',
+      'Fußgängerampel mit Anforderungstaster': 'Pedestrian Crossing with Request Button',
+      // --- scenarios: summaries ---
+      'Die kleinste Schaltung überhaupt: Ein Schalter gibt 1 oder 0 aus, die Lampe zeigt das Signal an.': 'The smallest circuit of all: a switch outputs 1 or 0, the lamp shows the signal.',
+      'Ein NOT-Gatter dreht das Signal um: aus 1 wird 0, aus 0 wird 1.': 'A NOT gate flips the signal: 1 becomes 0, 0 becomes 1.',
+      'Eine Presse darf nur laufen, wenn beide Hände am Schalter sind. Das AND-Gatter gibt nur dann 1 aus, wenn alle Eingänge 1 sind.': 'A press may only run with both hands on the switches. The AND gate outputs 1 only if all inputs are 1.',
+      'Es klingelt, wenn an der Haustür ODER an der Wohnungstür gedrückt wird. Das OR-Gatter gibt 1 aus, sobald mindestens ein Eingang 1 ist.': 'The bell rings when the front door OR the flat door button is pressed. The OR gate outputs 1 as soon as any input is 1.',
+      'Das Licht lässt sich von oben und von unten schalten. XOR gibt 1 aus, wenn die Eingänge verschieden sind.': 'The light can be switched from upstairs and downstairs. XOR outputs 1 when the inputs differ.',
+      'Zwei Eingänge, sechs Gatter: So siehst du auf einen Blick, wie sich AND, OR, NAND, NOR, XOR und XNOR unterscheiden.': 'Two inputs, six gates: see at a glance how AND, OR, NAND, NOR, XOR and XNOR differ.',
+      'Addiert zwei Bits: XOR liefert die Summe, AND den Übertrag. 1 + 1 ergibt binär 10.': 'Adds two bits: XOR gives the sum, AND the carry. 1 + 1 is binary 10.',
+      'Der Select-Eingang entscheidet, welcher der beiden Dateneingänge zum Ausgang durchgeschaltet wird.': 'The select input decides which of the two data inputs reaches the output.',
+      'Drei Sensoren stimmen ab. Der Ausgang folgt der Mehrheit – einmal aus Gattern gebaut, einmal als fertiges Mehrheitsgatter.': 'Three sensors vote. The output follows the majority – built from gates and as a ready-made majority gate.',
+      'Zwei Adressbits wählen genau eine von vier Leitungen aus – das Grundprinzip jeder Speicheradressierung.': 'Two address bits select exactly one of four lines – the principle behind memory addressing.',
+      'Vergleicht zwei Bits und meldet größer, gleich oder kleiner. Genau eine der drei Lampen leuchtet.': 'Compares two bits and reports greater, equal or less. Exactly one of the three lamps is lit.',
+      'NICHT (A UND B) ist dasselbe wie (NICHT A) ODER (NICHT B). Beide Wege liefern immer das gleiche Ergebnis.': 'NOT (A AND B) equals (NOT A) OR (NOT B). Both paths always give the same result.',
+      'Aus NAND-Gattern allein lassen sich NOT, AND und OR nachbauen – deshalb heißt NAND „universell“.': 'NOT, AND and OR can all be built from NAND gates alone – that is why NAND is called “universal”.',
+      'Ein Klassiker der Digitaltechnik: Vier NAND-Gatter ergeben zusammen ein XOR. Die Kontrolllampe zeigt ein echtes XOR-Gatter zum Vergleich.': 'A classic: four NAND gates form an XOR. The check lamp shows a real XOR gate for comparison.',
+      'Addiert drei Bits (A, B und den Übertrag von rechts). Aus zwei Halbaddierern und einem OR aufgebaut.': 'Adds three bits (A, B and the carry-in). Built from two half adders and an OR.',
+      'Drei XOR-Gatter zählen, ob eine ungerade Anzahl Einsen anliegt. So erkennt man einzelne Übertragungsfehler.': 'Three XOR gates check for an odd number of ones. This detects single transmission errors.',
+      'Vier Schalter bilden eine Binärzahl. Der Decoder übersetzt sie in die sieben Segmente a–g.': 'Four switches form a binary number. The decoder turns it into the seven segments a–g.',
+      'Drei 2:1-Multiplexer wählen einen von vier Kanälen aus. S0 entscheidet in der ersten Stufe, S1 in der zweiten.': 'Three 2:1 multiplexers select one of four channels. S0 decides in the first stage, S1 in the second.',
+      'Zwei über Kreuz verbundene NOR-Gatter merken sich ein Bit: Set schaltet ein, Reset schaltet aus.': 'Two cross-coupled NOR gates remember one bit: Set turns it on, Reset turns it off.',
+      'Solange Enable 1 ist, folgt der Ausgang den Daten. Bei Enable 0 bleibt der letzte Wert gespeichert.': 'While Enable is 1 the output follows the data. With Enable 0 the last value is kept.',
+      'Jeder Tastendruck schaltet das Licht um: Ein T-Flipflop wechselt bei jeder steigenden Flanke seinen Zustand.': 'Every press toggles the light: a T flip-flop changes state on each rising edge.',
+      'Jedes T-Flipflop halbiert die Frequenz. Im Impulsdiagramm unten siehst du die drei Rechtecksignale übereinander.': 'Each T flip-flop halves the frequency. The timing diagram below shows the three square waves.',
+      'Mit jedem Takt wandert das Datenbit eine Stufe weiter – aus seriellen Daten werden parallele.': 'With every clock the data bit moves one stage on – serial data becomes parallel.',
+      'Der Zählerbaustein zählt mit jeder Taktflanke von 0 bis 15. Enable hält ihn an, Reset setzt ihn auf 0.': 'The counter counts from 0 to 15 on each clock edge. Enable halts it, Reset sets it to 0.',
+      'Jedes Flipflop taktet das nächste: ein „Ripple Counter“. Die Bits kippen nacheinander wie umfallende Dominosteine.': 'Each flip-flop clocks the next one. The bits toggle one after another like falling dominoes.',
+      'Alle Flipflops hängen am selben Takt. Ein Bit kippt genau dann, wenn alle niedrigeren Bits 1 sind.': 'All flip-flops share one clock. A bit toggles exactly when all lower bits are 1.',
+      'Ein Schieberegister, dessen invertierter Ausgang zurück an den Anfang führt. Es füllt sich mit Einsen und leert sich wieder.': 'A shift register whose inverted output feeds its input. It fills with ones and empties again.',
+      'Der Zähler liefert eine Adresse, der Decoder schaltet genau die passende Lampe ein – so entsteht ein Lauflicht.': 'The counter provides an address, the decoder lights the matching lamp – a chaser light.',
+      'Takt → BCD-Zähler → Decoder → 7-Segment-Anzeige: die Grundschaltung jeder Digitaluhr.': 'Clock → BCD counter → decoder → 7-segment display: the core of every digital clock.',
+      'Ein XOR führt zwei Ausgänge des Schieberegisters zurück an den Eingang. Es entsteht eine scheinbar zufällige Bitfolge.': 'An XOR feeds two shift register outputs back to the input. The result is a seemingly random bit sequence.',
+      'Zwei Zählerbits bestimmen die Phase: Rot → Rot+Gelb → Grün → Gelb. Drei kleine Gatter erzeugen daraus die Lampensignale.': 'Two counter bits set the phase: red → red+yellow → green → yellow. Three small gates derive the lamp signals.',
+      'Vier Volladdierer in Reihe addieren zwei 4-Bit-Zahlen. Die Hex-Anzeigen zeigen A, B und die Summe.': 'Four full adders in a row add two 4-bit numbers. The hex displays show A, B and the sum.',
+      'Ein Schalter macht aus dem Addierer einen Subtrahierer: XOR-Gatter invertieren B, und der Übertragseingang addiert die fehlende 1.': 'One switch turns the adder into a subtractor: XOR gates invert B and the carry-in adds the missing 1.',
+      'Derselbe Addierer, aber komplett aus 20 Einzelgattern. Ideal, um „Auto-Anordnen“ und das Wandern des Übertrags zu beobachten.': 'The same adder, built from 20 single gates. Ideal for watching “Auto-Align” and the carry rippling through.',
+      'Zwei kaskadierte BCD-Zähler: Der Übertrag der Einer gibt die Zehner frei. Jede Stelle hat ihren eigenen Decoder und ihre eigene Anzeige.': 'Two cascaded BCD counters: the carry of the ones enables the tens. Each digit has its own decoder and display.',
+      'Ein endlicher Automat mit zwei D-Flipflops merkt sich, wie weit die Bitfolge 1-0-1 schon erkannt ist, und meldet einen Treffer.': 'A state machine with two D flip-flops tracks how much of the sequence 1-0-1 has been seen and signals a match.',
+      'Ein RS-Speicher merkt sich den Tastendruck und gibt den Zähler frei. Der Zähler steuert die Phasen und löscht am Ende den Speicher wieder.': 'An SR latch remembers the request and enables the counter. The counter runs the phases and finally clears the latch.',
+      // --- scenarios: try it ---
+      'Klicke auf den Schalter – die Leitung leuchtet grün, sobald sie eine 1 führt.': 'Click the switch – the wire glows green as soon as it carries a 1.',
+      'Ziehe weitere Bauteile aus der Palette links auf die Fläche.': 'Drag more parts from the palette onto the canvas.',
+      'Schalte A um und vergleiche die beiden Lampen – sie sind immer gegensätzlich.': 'Toggle A and compare the two lamps – they are always opposite.',
+      'Schalte erst eine, dann beide Hände ein.': 'Switch on one hand first, then both.',
+      'Öffne „Analyse → Wahrheitstabelle“ (Strg+T) für alle vier Kombinationen.': 'Open “Analysis → Truth Table” (Ctrl+T) for all four combinations.',
+      'Halte einen Taster gedrückt – Taster liefern nur während des Klicks eine 1.': 'Hold a button – buttons output 1 only while pressed.',
+      'Schalte das Licht unten ein und oben wieder aus.': 'Switch the light on downstairs and off again upstairs.',
+      'Probiere alle vier Kombinationen von A und B durch.': 'Try all four combinations of A and B.',
+      'Wechsle unter „Norm“ zwischen DIN-, IEC- und ANSI-Symbolen.': 'Switch between DIN, IEC and ANSI symbols under “Symbols”.',
+      'Schalte A und B ein: Summe 0, Übertrag 1.': 'Switch on A and B: sum 0, carry 1.',
+      'Stelle D0 = 1, D1 = 0 ein und schalte Select um.': 'Set D0 = 1, D1 = 0 and toggle Select.',
+      'Schalte zwei beliebige Sensoren ein – beide Lampen müssen gleich reagieren.': 'Switch on any two sensors – both lamps must react alike.',
+      'Zähle mit A1 A0 von 00 bis 11 und beobachte, wie die 1 von Y0 nach Y3 wandert.': 'Count A1 A0 from 00 to 11 and watch the 1 move from Y0 to Y3.',
+      'Prüfe alle vier Kombinationen – es leuchtet immer genau eine Lampe.': 'Check all four combinations – exactly one lamp is lit each time.',
+      'Die Lampe „Gleich?“ bleibt bei jeder Kombination an – das ist der Beweis.': 'The “Equal?” lamp stays on for every combination – that is the proof.',
+      'Vergleiche die drei Lampen mit dem, was du von NOT, AND und OR erwartest.': 'Compare the three lamps with what you expect from NOT, AND and OR.',
+      'Beide Lampen müssen sich immer gleich verhalten.': 'Both lamps must always behave alike.',
+      'Schalte alle drei Eingänge ein: 1 + 1 + 1 = 11 (Summe 1, Übertrag 1).': 'Switch on all three inputs: 1 + 1 + 1 = 11 (sum 1, carry 1).',
+      'Kippe ein einzelnes Datenbit – das Paritätsbit wechselt sofort.': 'Flip a single data bit – the parity bit changes at once.',
+      'Stelle 1001 ein – die Anzeige zeigt eine 9.': 'Set 1001 – the display shows a 9.',
+      'Werte über 9 erscheinen als A, b, C, d, E, F.': 'Values above 9 appear as A, b, C, d, E, F.',
+      'Stelle S1 S0 = 10 ein: Jetzt bestimmt allein Kanal 2 den Ausgang.': 'Set S1 S0 = 10: now channel 2 alone drives the output.',
+      'Drücke kurz Set – die Lampe bleibt an, auch wenn du loslässt.': 'Tap Set – the lamp stays on even after you let go.',
+      'Drücke Reset zum Löschen.': 'Press Reset to clear.',
+      'Enable ein, D umschalten: Q folgt.': 'Enable on, toggle D: Q follows.',
+      'Enable aus, D umschalten: Q bleibt stehen.': 'Enable off, toggle D: Q holds.',
+      'Starte die Simulation und klicke mehrmals auf den Taster.': 'Start the simulation and click the button several times.',
+      'Starte die Simulation und beobachte das Impulsdiagramm.': 'Start the simulation and watch the timing diagram.',
+      'Starte die Simulation und schalte den Dateneingang zwischendurch um.': 'Start the simulation and toggle the data input now and then.',
+      'Schalte Enable aus – der Zähler bleibt stehen.': 'Switch Enable off – the counter stops.',
+      'Starte die Simulation und vergleiche Q0, Q1, Q2 im Impulsdiagramm.': 'Start the simulation and compare Q0, Q1, Q2 in the timing diagram.',
+      'Starte die Simulation – die Hex-Anzeige zählt 0 bis 7.': 'Start the simulation – the hex display counts 0 to 7.',
+      'Starte die Simulation: erst laufen die Lampen an, dann wieder aus.': 'Start the simulation: the lamps light up one by one, then go out again.',
+      'Ändere im Inspector die Halbperiode des Taktgebers.': 'Change the half period of the clock in the inspector.',
+      'Starte die Simulation.': 'Start the simulation.', 'Halte Reset gedrückt, um auf 0 zurückzuspringen.': 'Hold Reset to jump back to 0.',
+      'Schalte „Seed“ aus, sobald die erste 1 im Register ist.': 'Switch “Seed” off once the first 1 is in the register.',
+      'Starte die Simulation und beobachte die vier Phasen.': 'Start the simulation and watch the four phases.',
+      'Stelle A = 7 und B = 5 ein: Die Summe zeigt C (= 12).': 'Set A = 7 and B = 5: the sum shows C (= 12).',
+      'Bei mehr als 15 leuchtet der Übertrag.': 'Above 15 the carry lights up.',
+      'Stelle A = 9, B = 3 ein und schalte „Subtrahieren“ ein: Ergebnis 6.': 'Set A = 9, B = 3 and switch “Subtract” on: result 6.',
+      'Schalte A0 und B0 ein und verfolge den Übertrag durch die Stufen.': 'Switch on A0 and B0 and follow the carry through the stages.',
+      'Starte die Simulation, „Start/Stopp“ hält die Uhr an.': 'Start the simulation; “Start/Stop” halts the clock.',
+      'Der Reset-Taster setzt beide Stellen auf 0.': 'The Reset button sets both digits to 0.',
+      'Starte die Simulation und schalte X im Rhythmus 1 – 0 – 1.': 'Start the simulation and toggle X in the rhythm 1 – 0 – 1.',
+      'Verfolge Q0 und Q1 im Impulsdiagramm.': 'Follow Q0 and Q1 in the timing diagram.',
+      'Starte die Simulation – die Autos haben Grün.': 'Start the simulation – the cars have green.',
+      'Drücke kurz den Anforderungstaster und beobachte den kompletten Ablauf.': 'Tap the request button and watch the whole sequence.',
+      // --- scenarios: tags ---
+      'Eingang': 'Input', 'Ausgang': 'Output', 'Überblick': 'Overview', 'Arithmetik': 'Arithmetic', 'Auswahl': 'Selection', 'Abstimmung': 'Voting',
+      'Fehlertoleranz': 'Fault tolerance', 'Adressierung': 'Addressing', 'Vergleich': 'Comparison', 'Schaltalgebra': 'Boolean algebra',
+      'Datenübertragung': 'Data transfer', 'Anzeige': 'Display', 'Bausteine': 'Modules', 'Speicher': 'Memory', 'Rückkopplung': 'Feedback',
+      'Flipflop': 'Flip-flop', 'Flanke': 'Edge', 'Takt': 'Clock', 'Schieben': 'Shifting', 'Zähler': 'Counter', 'Synchron': 'Synchronous',
+      'Steuerung': 'Control', 'Zweierkomplement': "Two's complement", 'Groß': 'Large', 'Automat': 'State machine'
+    });
+
+    /** Labels drawn on the canvas (scenario circuits): exact names first, then word by word. */
+    const I18N_LABELS_EN = {
+      'Lampe': 'Lamp', 'NICHT A': 'NOT A', 'Hand links': 'Left hand', 'Hand rechts': 'Right hand', 'UND': 'AND', 'ODER': 'OR', 'Presse läuft': 'Press runs',
+      'Haustür': 'Front door', 'Wohnungstür': 'Flat door', 'Klingel': 'Bell', 'Schalter unten': 'Switch down', 'Schalter oben': 'Switch up', 'Treppenlicht': 'Stair light',
+      'Gleich?': 'Equal?', 'Dauer-1': 'Const 1', 'Licht': 'Light', 'Zählerstand': 'Count', 'Digitalziffer': 'Digit', 'Ziffer': 'Digit', 'System-Takt': 'System clock',
+      'Phasenzähler': 'Phase counter', 'Subtrahieren': 'Subtract', 'Ergebnis': 'Result', 'Start/Stopp': 'Start/Stop', 'Einer': 'Ones', 'Zehner': 'Tens',
+      'Anforderung': 'Request', 'Treffer': 'Match', 'Setzen': 'Set', 'Rücksetzen': 'Reset', '4-Bit Binärzähler': '4-bit counter', 'Fuß Grün': 'Ped green'
+    };
+    const I18N_LABEL_WORDS_EN = [
+      [/Volladdierer/g, 'Full adder'], [/Fußgänger/g, 'Pedestrian'], [/Übertrag/g, 'Carry'], [/Summe/g, 'Sum'], [/Eingang/g, 'Input'], [/Ausgang/g, 'Output'],
+      [/Daten-In/g, 'Data in'], [/Daten/g, 'Data'], [/Kanal/g, 'Channel'], [/Stufe/g, 'Stage'], [/Taktgeber/g, 'Clock'], [/Takt/g, 'Clock'],
+      [/Zähler/g, 'Counter'], [/Schalter/g, 'Switch'], [/Taster/g, 'Button'], [/Lampe/g, 'Lamp'], [/Mehrheit/g, 'Majority'], [/Gatter/g, 'gates'],
+      [/Baustein/g, 'module'], [/Speicher/g, 'Latch'], [/Parität \(ungerade\)/g, 'Parity (odd)'], [/Wert/g, 'value'], [/Kontrolle/g, 'Check'],
+      [/Vergleich/g, 'Compare'], [/Zustand/g, 'State'], [/Zahl/g, 'Number'], [/\bNICHT\b/g, 'NOT'], [/\bUND\b/g, 'AND'], [/\bODER\b/g, 'OR'],
+      [/\baus\b/g, 'from'], [/\bals\b/g, 'as'], [/Rot/g, 'Red'], [/Gelb/g, 'Yellow'], [/Grün/g, 'Green'], [/T-Flipflop/g, 'T flip-flop']
+    ];
+
+    const I18N_KEYS_EN = (s) => s.replace(/Strg/g, 'Ctrl').replace(/Umschalt/g, 'Shift').replace(/Entf\b/g, 'Del').replace(/Leertaste/g, 'Space').replace(/Pfeiltasten/g, 'Arrows');
+    const I18N_PLURAL = (n, one, many) => `${n} ${Number(n) === 1 ? one : many}`;
+    const I18N_PATTERNS_EN = [
+      [/^(.+) laden$/, (m, tr) => `Load ${tr(m[1])}`],
+      [/^Szenario geladen: (.+)$/, (m, tr) => `Scenario loaded: ${tr(m[1])}`],
+      [/^(.+) \((Links|Rechts|aktiv)\)$/, (m, tr) => `${tr(m[1])} (${{ Links: 'left', Rechts: 'right', aktiv: 'active' }[m[2]]})`],
+      [/^Schaltung (\d+)$/, (m) => `Circuit ${m[1]}`],
+      [/^\((\d+) Kan(?:al|äle) \| (.+) Ticks\)$/, (m) => `(${I18N_PLURAL(m[1], 'channel', 'channels')} | ${m[2]} ticks)`],
+      [/^✓ angeordnet: (\d+)\/(\d+) gerade, (\d+) Kreuzung(?:en)?$/, (m) => `✓ aligned: ${m[1]}/${m[2]} straight, ${I18N_PLURAL(m[3], 'crossing', 'crossings')}`],
+      [/^Stufe (\d)( · |: )(.+)$/, (m, tr) => `Level ${m[1]}${m[2]}${tr(m[3])}`],
+      [/^STUFE (\d)$/, (m) => `LEVEL ${m[1]}`],
+      [/^(\d) · (.+)$/, (m, tr) => `${m[1]} · ${tr(m[2])}`],
+      [/^(\d+) von (\d+) erkundet$/, (m) => `${m[1]} of ${m[2]} explored`],
+      [/^(\d+) von (\d+)$/, (m) => `${m[1]} of ${m[2]}`],
+      [/^Alle \((\d+)\)$/, (m) => `All (${m[1]})`],
+      [/^Ausgang: (.+)$/, (m) => `Output: ${m[1]}`],
+      [/^Auswahl: (.+)$/, (m, tr) => `Selection: ${tr(m[1])}`],
+      [/^(\d+) Bauteil(?:e|\(e\))?, (\d+) Leitung(?:en|\(en\))?$/, (m) => `${I18N_PLURAL(m[1], 'part', 'parts')}, ${I18N_PLURAL(m[2], 'wire', 'wires')}`],
+      [/^(\d+) Bauteile?$/, (m) => I18N_PLURAL(m[1], 'part', 'parts')],
+      [/^(🗑️ )?Auswahl löschen \((\d+) Elemente?\)$/, (m) => `${m[1] || ''}Delete selection (${I18N_PLURAL(m[2], 'item', 'items')})`],
+      [/^✨ (Schaltung|Auswahl) angeordnet(?: · (\d+) Spalten?)? · (\d+)\/(\d+) Leitungen gerade · (?:keine Kreuzungen|(\d+) Kreuzung(?:en)?)$/,
+        (m) => `✨ Aligned${m[2] ? ` · ${I18N_PLURAL(m[2], 'column', 'columns')}` : ''} · ${m[3]}/${m[4]} wires straight · ${m[5] ? I18N_PLURAL(m[5], 'crossing', 'crossings') : 'no crossings'}`],
+      [/^Leitungen neu verlegt · (\d+)\/(\d+) gerade · (?:keine Kreuzungen|(\d+) Kreuzung(?:en)?)$/,
+        (m) => `Wires rerouted · ${m[1]}/${m[2]} straight · ${m[3] ? I18N_PLURAL(m[3], 'crossing', 'crossings') : 'no crossings'}`],
+      [/^➕ Neuer Tab "(.*)" erstellt$/, (m, tr) => `➕ New tab "${tr(m[1])}"`],
+      [/^Tab "(.*)" geschlossen$/, (m, tr) => `Tab "${tr(m[1])}" closed`],
+      [/^🗑️ Schaltung "(.*)" geleert$/, (m, tr) => `🗑️ "${tr(m[1])}" cleared`],
+      [/^💾 Schaltung "(.*)" als JSON gespeichert!$/, (m, tr) => `💾 "${tr(m[1])}" saved as JSON`],
+      [/^📂 Schaltung "(.*)" erfolgreich geladen!$/, (m) => `📂 "${m[1]}" loaded`],
+      [/^✓ Schaltung erzeugt: (\d+) Ausgang\/Ausgänge$/, (m) => `✓ Circuit built: ${I18N_PLURAL(m[1], 'output', 'outputs')}`],
+      [/^(\d+) Bauteile (.*) ausgerichtet$/, (m, tr) => `${m[1]} parts aligned ${tr(m[2])}`],
+      [/^(\d+) Bauteile (horizontal|vertikal) gleichmäßig verteilt$/, (m) => `${m[1]} parts distributed ${m[2] === 'vertikal' ? 'vertically' : 'horizontally'}`],
+      [/^○ (Ausgang|Eingang) (.*?) ?von (.*) (negiert \(○\)|normal)$/, (m) => `○ ${m[1] === 'Ausgang' ? 'Output' : 'Input'} ${m[2] ? m[2] + ' ' : ''}of ${m[3]} ${m[4] === 'normal' ? 'normal' : 'negated (○)'}`],
+      [/^Viewport auf (X: .*) zentriert$/, (m) => `Centered on ${m[1]}`],
+      [/^Eingänge live geschaltet: (.*)$/, (m) => `Inputs set: ${m[1]}`],
+      [/^Leitungsbrücken (aktiviert|deaktiviert)$/, (m) => `Wire bridges ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
+      [/^Gatterverzögerungs-Anzeige (aktiviert|deaktiviert)$/, (m) => `Gate delay display ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
+      [/^Schalter im Edit-Modus (klickbar|nur verschiebbar)$/, (m) => `Switches in edit mode: ${m[1] === 'klickbar' ? 'clickable' : 'move only'}`],
+      [/^Fehler beim Laden der JSON-Datei: (.*)$/, (m, tr) => `Could not load the JSON file: ${tr(m[1])}`],
+      [/^Synthese-Fehler: (.*)$/, (m, tr) => `Synthesis error: ${tr(m[1])}`],
+      [/^Fehler beim PNG-Export: (.*)$/, (m) => `PNG export failed: ${m[1]}`],
+      [/^Unerwartetes Zeichen '(.*)', '(.*)' erwartet\.$/, (m) => `Unexpected '${m[1]}', expected '${m[2]}'.`],
+      [/^Syntaxfehler bei '(.*)': Variable oder Ausdruck erwartet\.$/, (m) => `Syntax error at '${m[1]}': variable or expression expected.`],
+      [/^Messpunkt: (.*)$/, (m) => `Probe: ${m[1]}`],
+      [/^Umschalten auf ([01])$/, (m) => `Set to ${m[1]}`],
+      [/^(○ )?Eingang (\S+) negieren$/, (m) => `${m[1] || ''}Negate input ${m[2]}`],
+      [/^Modus: Zu (.*)$/, (m, tr) => `Mode: switch to ${tr(m[1])}`],
+      [/^Verlegungsart: Zu (.*)$/, (m, tr) => `Style: switch to ${tr(m[1]).toLowerCase()}`],
+      [/^(\d+) manuell$/, (m) => `${m[1]} manual`],
+      [/^Gültige Formel \((\d+) Gleichung(?:en)?\)$/, (m) => `Valid formula (${I18N_PLURAL(m[1], 'equation', 'equations')})`],
+      [/^(\d+) Kanäle$/, (m) => I18N_PLURAL(m[1], 'channel', 'channels')],
+      // "Text (Strg+Z)" → translated text + translated key names
+      [/^(.+) \(((?:Strg|Umschalt|Alt|Entf|Leertaste|Delete|Tab|[A-Z?]|F\d)(?:\+[^()]+)?)\)$/, (m, tr) => `${tr(m[1])} (${I18N_KEYS_EN(m[2])})`],
+      [/^(?:Strg|Umschalt|Entf|Leertaste)(?:\+.+)?$/, (m) => I18N_KEYS_EN(m[0])],
+      // language-neutral texts: identifiers, numbers with units, coordinates, formulas
+      [/^[A-Z0-9_\->→:·'\/+ .,()&|!^=<>≥½○⊕∧∨¬↔≡*~-]+$/, (m) => m[0]],
+      [/^-?[\d.,]+ ?(?:Hz|px|px\/T|Ticks?|Pins?|T|%)$/, (m) => m[0]],
+      [/^[XY][:=] ?-?\d+.*$/, (m) => m[0]],
+      [/[∧∨¬⊕]|^\(.*·.*\)$/, (m) => m.input],
+      // comma separated list of known names
+      [/^([^,]+)(?:, [^,]+)+$/, (m, tr) => m[0].split(', ').map(tr).join(', ')]
+    ];
+
+    /**
+     * Phrase layer of the translation engine. German is the source language of the UI;
+     * every text that has no `data-i18n` key (dynamic panels, menus, messages, scenario
+     * texts) is translated here by its German wording or by a pattern.
+     */
+    I18N.missing = new Set();
+    I18N.phrase = function (text) {
+      if (this.currentLang !== 'en' || typeof text !== 'string') return text;
+      const core = text.trim();
+      if (!core || !/[A-Za-zÄÖÜäöü]/.test(core)) return text;
+      let out = Object.prototype.hasOwnProperty.call(I18N_PHRASES_EN, core) ? I18N_PHRASES_EN[core] : undefined;
+      if (out === undefined) {
+        for (let i = 0; i < I18N_PATTERNS_EN.length; i++) {
+          const m = core.match(I18N_PATTERNS_EN[i][0]);
+          if (m) { out = I18N_PATTERNS_EN[i][1](m, (x) => I18N.phrase(x)); break; }
+        }
+      }
+      if (out === undefined) { this.missing.add(core); return text; }
+      return text.replace(core, () => out);
+    };
+
+    /** Translates a label that is drawn on the canvas (scenario circuits). */
+    I18N.label = function (text) {
+      if (this.currentLang !== 'en' || typeof text !== 'string' || !text) return text;
+      if (Object.prototype.hasOwnProperty.call(I18N_LABELS_EN, text)) return I18N_LABELS_EN[text];
+      if (Object.prototype.hasOwnProperty.call(I18N_PHRASES_EN, text)) return I18N_PHRASES_EN[text];
+      let out = text;
+      for (const [re, en] of I18N_LABEL_WORDS_EN) out = out.replace(re, en);
+      return out;
+    };
+
+    /** Keeps the whole document (also content created later) in the active language. */
+    I18N.dom = {
+      originals: new WeakMap(),   // text node -> German source
+      attrOriginals: new WeakMap(),
+      observer: null,
+      busy: false,
+      ATTRS: ['title', 'placeholder', 'aria-label'],
+      skip(el) {
+        if (!el || el.nodeType !== 1) return false;
+        const tag = el.tagName;
+        return tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CANVAS'
+          || el.hasAttribute('data-i18n') || el.hasAttribute('data-no-i18n');
+      },
+      textNode(node) {
+        const parent = node.parentElement;
+        if (!parent || this.skip(parent) || (parent.closest && parent.closest('[data-no-i18n]'))) return;
+        const known = this.originals.get(node);
+        // the app wrote a new (German) text into this node
+        if (!known || (node.nodeValue !== known.shown && node.nodeValue !== known.source)) {
+          this.originals.set(node, { source: node.nodeValue, shown: node.nodeValue });
+        }
+        const rec = this.originals.get(node);
+        const want = I18N.phrase(rec.source);
+        if (node.nodeValue !== want) node.nodeValue = want;
+        rec.shown = want;
+      },
+      attrs(el) {
+        if (this.skip(el) && !el.hasAttribute('data-i18n')) return;
+        let rec = this.attrOriginals.get(el);
+        for (const name of this.ATTRS) {
+          if (!el.hasAttribute(name)) continue;
+          if (name === 'title' && el.hasAttribute('data-i18n-title')) continue;
+          if (name === 'placeholder' && el.hasAttribute('data-i18n-placeholder')) continue;
+          const cur = el.getAttribute(name);
+          if (!rec) { rec = {}; this.attrOriginals.set(el, rec); }
+          if (!rec[name] || (cur !== rec[name].shown && cur !== rec[name].source)) rec[name] = { source: cur, shown: cur };
+          const want = I18N.phrase(rec[name].source);
+          if (cur !== want) el.setAttribute(name, want);
+          rec[name].shown = want;
+        }
+      },
+      walk(root) {
+        if (!root) return;
+        if (root.nodeType === 3) { this.textNode(root); return; }
+        if (root.nodeType !== 1 || root.tagName === 'SCRIPT' || root.tagName === 'STYLE') return;
+        this.attrs(root);
+        const walker = document.createTreeWalker(root, 5 /* elements + text */);
+        let n = walker.nextNode();
+        while (n) {
+          if (n.nodeType === 3) this.textNode(n); else this.attrs(n);
+          n = walker.nextNode();
+        }
+      },
+      refresh() {
+        if (typeof document === 'undefined' || !document.body || typeof document.createTreeWalker !== 'function') return;
+        this.busy = true;
+        try { this.walk(document.body); } finally { this.busy = false; }
+        if (!this.observer && typeof MutationObserver !== 'undefined') {
+          this.observer = new MutationObserver((list) => {
+            if (this.busy) return;
+            this.busy = true;
+            try {
+              for (const mu of list) {
+                if (mu.type === 'characterData') this.textNode(mu.target);
+                else if (mu.type === 'attributes') this.attrs(mu.target);
+                else mu.addedNodes.forEach(node => this.walk(node));
+              }
+            } finally { this.busy = false; }
+          });
+          this.observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: this.ATTRS });
+        }
       }
     };
 
@@ -8886,19 +9366,27 @@
     const SCENARIO_MAP = new Map(SCENARIOS.map(sc => [sc.key, sc]));
 
     /** Returns a fresh circuit JSON for the scenario (legacy presets keep their probes). */
+    /** Scenario circuits are written in German; labels follow the active language. */
+    function localizeScenarioCircuit(json) {
+      if (!json || I18N.currentLang !== 'en') return json;
+      (json.components || []).forEach(c => { if (c.params && c.params.label) c.params.label = I18N.label(c.params.label); });
+      (json.probes || []).forEach(p => { if (p.name) p.name = I18N.label(p.name); });
+      return json;
+    }
+
     function buildScenarioCircuit(key) {
       const sc = SCENARIO_MAP.get(key);
       if (!sc) return null;
       if (typeof sc.build === 'function') {
         const builder = new ScenarioBuilder();
         sc.build(builder);
-        return builder.toJSON();
+        return localizeScenarioCircuit(builder.toJSON());
       }
       const preset = DEMO_PRESETS[sc.legacy];
       if (!preset) return null;
       const json = JSON.parse(JSON.stringify(preset));
       json.wires.forEach(w => { delete w.waypoints; });
-      return json;
+      return localizeScenarioCircuit(json);
     }
 
     /**
@@ -9835,8 +10323,8 @@
         ctx.fillStyle = pal.gridText;
         ctx.font = '10px monospace';
         ctx.fillText('-5000, -5000 px', FIELD_MIN + 8, FIELD_MIN + 16);
-        ctx.fillText('0, 0 px (Zentrum)', 8, -6);
-        ctx.fillText('5000, 5000 px (Feldgrenze)', FIELD_MAX - 165, FIELD_MAX - 10);
+        ctx.fillText(I18N.phrase('0, 0 px (Zentrum)'), 8, -6);
+        ctx.fillText(I18N.phrase('5000, 5000 px (Feldgrenze)'), FIELD_MAX - 165, FIELD_MAX - 10);
         ctx.restore();
       }
 
@@ -11769,7 +12257,7 @@
         ctx.fillStyle = textColor;
         ctx.font = '600 10px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText('KANAL / PROBE', 10, 14);
+        ctx.fillText(I18N.phrase('KANAL'), 10, 14);
 
         if (this.loopRange && totalSamples > 0) {
           const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
@@ -12074,14 +12562,14 @@
           const info = document.createElement('div');
           info.className = 'prop-info-box';
           info.innerHTML = `
-            <div><strong>Typ:</strong> Messpunkt (Logic Probe)</div>
+            <div><strong>Typ:</strong> Messpunkt</div>
             <div><strong>ID:</strong> ${escapeHtml(probe.id)}</div>
             <div><strong>Leitung:</strong> ${escapeHtml(probe.wireId)} (${escapeHtml(fromComp?.params.label || wire?.fromCompId || '?')} &rarr; ${escapeHtml(toComp?.params.label || wire?.toCompId || '?')})</div>
             <div><strong>Signalpegel:</strong> <span style="color:${(wire && wire.level) ? '#00e676' : '#94a3b8'};font-weight:700;">${wire ? wire.level : 0} (${(wire && wire.level) ? 'HIGH' : 'LOW'})</span></div>
           `;
           this.container.appendChild(info);
 
-          this.addTextControl('Kanalname (Probe)', probe.name, isSim, (val) => {
+          this.addTextControl('Kanalname', probe.name, isSim, (val) => {
             probe.name = val.trim() || 'PRB';
             this.onChange(false);
           });
@@ -12144,7 +12632,7 @@
           const info = document.createElement('div');
           info.className = 'prop-info-box';
           info.innerHTML = `
-            <div><strong>Typ:</strong> Signalleitung (Wire)</div>
+            <div><strong>Typ:</strong> Leitung</div>
             <div><strong>ID:</strong> ${escapeHtml(wire.id)}</div>
             <div><strong>Quelle:</strong> ${escapeHtml(fromLabel)}</div>
             <div><strong>Ziel:</strong> ${escapeHtml(toLabel)}</div>
@@ -12162,7 +12650,7 @@
           wpHeader.style.justifyContent = 'space-between';
           wpHeader.style.marginBottom = '6px';
           wpHeader.innerHTML = `
-            <span style="font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;">Eckpunkte &amp; Routing</span>
+            <span style="font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;">Verlauf</span>
             <span style="font-size:10px;color:var(--text-dim);">${wire.waypoints && wire.waypoints.length > 0 ? `${wire.waypoints.length} manuell` : (wire.style === 'diagonal' ? 'Diagonal' : 'Auto-Route')}</span>
           `;
           wpSection.appendChild(wpHeader);
@@ -12178,8 +12666,8 @@
           styleSelect.style.padding = '3px 6px';
           styleSelect.style.fontSize = '11px';
           styleSelect.innerHTML = `
-            <option value="orthogonal"${wire.style !== 'diagonal' ? ' selected' : ''}>Orthogonal (90°)</option>
-            <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}>Diagonal (Direkt)</option>
+            <option value="orthogonal"${wire.style !== 'diagonal' ? ' selected' : ''}>Rechtwinklig</option>
+            <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}>Diagonal</option>
           `;
           styleSelect.addEventListener('change', () => {
             wire.style = styleSelect.value;
@@ -12196,7 +12684,7 @@
           cleanBtn.style.width = '100%';
           cleanBtn.style.marginBottom = '4px';
           cleanBtn.disabled = isSim || (!wire.waypoints || wire.waypoints.length === 0);
-          cleanBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Knicke säubern / Begradigen</span>`;
+          cleanBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Begradigen</span>`;
           cleanBtn.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             if (window.logicSimApp) {
@@ -12212,7 +12700,7 @@
           autoBtn.style.width = '100%';
           autoBtn.style.marginBottom = '8px';
           autoBtn.disabled = isSim || (!wire.waypoints || wire.waypoints.length === 0);
-          autoBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto)</span>`;
+          autoBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Neu verlegen (Auto)</span>`;
           autoBtn.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             wire.waypoints = [];
@@ -12268,7 +12756,7 @@
           tip.style.color = 'var(--text-dim)';
           tip.style.lineHeight = '1.4';
           tip.style.marginBottom = '8px';
-          tip.innerHTML = `💡 <b>Tipp:</b> Ziehe die Griffe der Leitung auf dem Raster. Ziehe den <b>+</b>-Griff oder doppelklicke auf ein Segment für neue Knicke. Doppelklick auf Griff löscht ihn.`;
+          tip.innerHTML = `💡 <b>Tipp:</b> Griffe ziehen verschiebt die Leitung. Der <b>+</b>-Griff oder ein Doppelklick aufs Segment setzt einen Knick. Doppelklick auf einen Griff löscht ihn.`;
           wpSection.appendChild(tip);
 
           this.container.appendChild(wpSection);
@@ -12309,12 +12797,12 @@
         this.container.appendChild(info);
 
         if (comp.type === 'PROBE') {
-          this.addTextControl('Kanalname (Probe)', comp.params.name, isSim, (val) => {
+          this.addTextControl('Kanalname', comp.params.name, isSim, (val) => {
             comp.params.name = val.trim() || 'PRB';
             this.onChange(false);
           });
         } else {
-          this.addTextControl('Beschriftung (Label)', comp.params.label, isSim, (val) => {
+          this.addTextControl('Beschriftung', comp.params.label, isSim, (val) => {
             comp.params.label = val;
             this.onChange(false);
           });
@@ -12322,7 +12810,7 @@
 
         if (GATE_DELAY_TYPES[comp.type]) {
           const currentEff = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : (comp.params.delay || 1);
-          this.addRangeControl('Verzögerung (Gatterlaufzeit)', currentEff, 1, GATE_DELAY_MAX, 'Ticks', isSim, (val) => {
+          this.addRangeControl('Verzögerung', currentEff, 1, GATE_DELAY_MAX, 'Ticks', isSim, (val) => {
             comp.params.delay = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(val, 10) || 1));
             comp.state.delayTimer = 0;
             comp.state.pendingOutput = null;
@@ -12334,11 +12822,11 @@
         switch (comp.type) {
           case 'SWITCH': {
             this.addSelectControl(
-              'Startwert (Initial State)',
+              'Startwert',
               String(comp.params.initialValue),
               [
-                { value: '0', label: '0 (Low / Aus)' },
-                { value: '1', label: '1 (High / Ein)' }
+                { value: '0', label: '0 (aus)' },
+                { value: '1', label: '1 (ein)' }
               ],
               isSim,
               (val) => {
@@ -12360,7 +12848,7 @@
 
           case 'CLOCK': {
             this.addRangeControl(
-              'Halbperiode T½ (Ticks)',
+              'Halbperiode (Ticks)',
               comp.params.halfPeriod,
               1,
               50,
@@ -12383,7 +12871,7 @@
           case 'XNOR': {
             if (comp.type !== 'NOT') {
               this.addRangeControl(
-                'Eingangsanzahl n (2–8)',
+                'Eingänge (2–8)',
                 comp.params.numInputs,
                 2,
                 8,
@@ -12399,11 +12887,11 @@
 
             if (comp.type === 'XOR' || comp.type === 'XNOR') {
               this.addSelectControl(
-                'XOR-Modus für >2 Eingänge',
+                'XOR bei mehr als 2 Eingängen',
                 comp.params.xorMode || 'exact_one',
                 [
-                  { value: 'exact_one', label: 'Exklusiv: Genau 1 aktiv (=1 IEC)' },
-                  { value: 'parity',    label: 'Parität: Ungerade Anzahl aktiv' }
+                  { value: 'exact_one', label: 'Exklusiv: genau ein Eingang 1' },
+                  { value: 'parity',    label: 'Parität: ungerade Anzahl 1' }
                 ],
                 isSim,
                 (val) => {
@@ -12416,7 +12904,7 @@
 
             const isCurOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
             this.addCheckboxControl(
-              'Ausgang (Y) invertieren (Negation ○)',
+              'Ausgang invertieren (○)',
               isCurOutInv,
               isSim,
               (checked) => {
@@ -12475,8 +12963,8 @@
               'Festwert',
               String(comp.params.value ? 1 : 0),
               [
-                { value: '1', label: '1 (High / dauerhaft an)' },
-                { value: '0', label: '0 (Low / dauerhaft aus)' }
+                { value: '1', label: '1 (immer an)' },
+                { value: '0', label: '0 (immer aus)' }
               ],
               isSim,
               (val) => {
@@ -12513,11 +13001,11 @@
 
           case 'BCD_DEC': {
             this.addSelectControl(
-              'Hex-Anzeige für 10–15 (A–F)',
+              'Werte 10–15 als A–F',
               comp.params.hexMode ? '1' : '0',
               [
-                { value: '1', label: 'An (Hex A, b, C, d, E, F)' },
-                { value: '0', label: 'Aus (Segmente dunkel bei 10–15)' }
+                { value: '1', label: 'An (A–F)' },
+                { value: '0', label: 'Aus (dunkel)' }
               ],
               isSim,
               (val) => {
@@ -12533,11 +13021,11 @@
 
           case 'COUNTER': {
             this.addSelectControl(
-              'Zählmodus (Modulus)',
+              'Zählmodus',
               comp.params.mode,
               [
-                { value: 'binary', label: 'Binär (mod 16: 0..15)' },
-                { value: 'bcd',    label: 'BCD (mod 10: 0..9)' }
+                { value: 'binary', label: 'Binär (0–15)' },
+                { value: 'bcd',    label: 'BCD (0–9)' }
               ],
               isSim,
               (val) => {
@@ -12556,14 +13044,14 @@
           case 'JK_FF':
           case 'T_FF': {
             const trigOptions = [
-              { value: 'rising',  label: 'Steigende Taktflanke (↑)' },
-              { value: 'falling', label: 'Fallende Taktflanke (↓)' }
+              { value: 'rising',  label: 'Steigend (↑)' },
+              { value: 'falling', label: 'Fallend (↓)' }
             ];
             if (comp.type === 'SR_FF') {
-              trigOptions.push({ value: 'transparent', label: 'Pegelgesteuert (Transparent / Ohne Takt)' });
+              trigOptions.push({ value: 'transparent', label: 'Pegelgesteuert' });
             }
             this.addSelectControl(
-              'Takt-Flankensteuerung',
+              'Taktflanke',
               comp.params.trigger || 'rising',
               trigOptions,
               isSim,
@@ -12573,11 +13061,11 @@
               }
             );
             this.addSelectControl(
-              'Initialer Zustand (Q beim Reset)',
+              'Startzustand Q',
               String(comp.params.initialValue ?? 0),
               [
-                { value: '0', label: '0 (Reset / Low)' },
-                { value: '1', label: '1 (Set / High)' }
+                { value: '0', label: '0 (rückgesetzt)' },
+                { value: '1', label: '1 (gesetzt)' }
               ],
               isSim,
               (val) => {
@@ -12597,11 +13085,11 @@
 
           case 'D_LATCH': {
             this.addSelectControl(
-              'Initialer Zustand (Q beim Reset)',
+              'Startzustand Q',
               String(comp.params.initialValue ?? 0),
               [
-                { value: '0', label: '0 (Reset / Low)' },
-                { value: '1', label: '1 (Set / High)' }
+                { value: '0', label: '0 (rückgesetzt)' },
+                { value: '1', label: '1 (gesetzt)' }
               ],
               isSim,
               (val) => {
@@ -12690,7 +13178,7 @@
         hint.style.fontSize = '11px';
         hint.style.color = 'var(--text-muted)';
         hint.style.marginTop = '4px';
-        hint.textContent = 'Tipp: Strg+C / Strg+V zum Kopieren & Einfügen, Strg+D zum Duplizieren, Entf zum Löschen.';
+        hint.textContent = 'Strg+C/V: kopieren/einfügen · Strg+D: duplizieren · Entf: löschen';
         this.container.appendChild(hint);
 
         const dupBtn = document.createElement('button');
@@ -12719,7 +13207,7 @@
       renderEmpty() {
         this.container.innerHTML = `
           <div class="empty-inspector">
-            Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus (oder klicke mit rechts darauf), um dessen Einstellungen zu öffnen.
+            Wähle ein Bauteil oder eine Leitung aus.
           </div>
         `;
         if (typeof this.onEmpty === 'function') this.onEmpty(this.container);
@@ -12825,35 +13313,35 @@
 
       getReadableTypeName(type) {
         const names = {
-          SWITCH: 'Schalter (Switch)',
-          BUTTON: 'Taster (Button)',
-          CLOCK: 'Taktgeber (Clock)',
-          NOT: 'NOT-Gatter (Inverter)',
-          BUFFER: 'Puffer / Treiber (Buffer)',
-          TRI_STATE: 'Tri-State-Puffer (Treiber)',
-          MAJORITY: 'Mehrheitsgatter (Majority)',
-          AND: 'AND-Gatter (Konjunktion)',
-          OR: 'OR-Gatter (Disjunktion)',
+          SWITCH: 'Schalter',
+          BUTTON: 'Taster',
+          CLOCK: 'Taktgeber',
+          NOT: 'NOT-Gatter',
+          BUFFER: 'Puffer',
+          TRI_STATE: 'Tri-State-Puffer',
+          MAJORITY: 'Mehrheitsgatter',
+          AND: 'AND-Gatter',
+          OR: 'OR-Gatter',
           NAND: 'NAND-Gatter',
           NOR: 'NOR-Gatter',
-          XOR: 'XOR-Gatter (Antivalenz)',
-          XNOR: 'XNOR-Gatter (Äquivalenz)',
-          LED: 'Signallampe (LED)',
+          XOR: 'XOR-Gatter',
+          XNOR: 'XNOR-Gatter',
+          LED: 'LED',
           SEVEN_SEG: '7-Segment-Anzeige',
           BCD_DEC: 'BCD-zu-7-Segment-Decoder',
-          COUNTER: '4-Bit-Counter',
-          SHIFT_REG: '4-Bit-Schieberegister (SIPO)',
-          SR_FF: 'SR-Flipflop (Bistabile Kippstufe)',
-          D_FF: 'D-Flipflop (Edge-Triggered)',
-          JK_FF: 'JK-Flipflop (Master-Slave mit Toggle)',
-          T_FF: 'T-Flipflop (Toggle / Frequenzteiler)',
-          D_LATCH: 'D-Latch (Pegelgesteuerter Speicher)',
-          CONST: 'Konstante (Festwert 0/1)',
-          HEX_DISPLAY: 'Hex-Anzeige (4 Bit, mit Decoder)',
-          FULL_ADDER: 'Volladdierer-Baustein (1 Bit)',
+          COUNTER: '4-Bit-Zähler',
+          SHIFT_REG: '4-Bit-Schieberegister',
+          SR_FF: 'SR-Flipflop',
+          D_FF: 'D-Flipflop',
+          JK_FF: 'JK-Flipflop',
+          T_FF: 'T-Flipflop',
+          D_LATCH: 'D-Latch',
+          CONST: 'Konstante',
+          HEX_DISPLAY: 'Hex-Anzeige',
+          FULL_ADDER: 'Volladdierer',
           MUX: 'Multiplexer 2:1',
-          DECODER: 'Adress-Decoder 2-zu-4',
-          PROBE: 'Messpunkt (Logic Probe)'
+          DECODER: 'Decoder 2:4',
+          PROBE: 'Messpunkt'
         };
         return names[type] || type;
       }
@@ -13428,7 +13916,7 @@
 
         if (inputs.length === 0) {
           return {
-            error: 'Keine Eingangskomponenten (Schalter, Taster, Taktgeber) auf der Arbeitsfläche gefunden. Bitte fügen Sie mindestens einen Schalter als Eingang hinzu.'
+            error: 'Keine Eingänge gefunden. Füge mindestens einen Schalter hinzu.'
           };
         }
 
@@ -13896,6 +14384,15 @@
         this.updateScenarioGuide();
         this.updateStatusBar();
 
+        // saved language, otherwise the browser language (German stays the default)
+        let lang = null;
+        try { lang = localStorage.getItem('logicsim_language'); } catch (e) { lang = null; }
+        if (lang !== 'de' && lang !== 'en') {
+          const nav = typeof navigator !== 'undefined' && navigator.language ? String(navigator.language).toLowerCase() : 'de';
+          lang = nav.startsWith('de') ? 'de' : 'en';
+        }
+        this.setLanguage(lang);
+
         let welcomed = true;
         try { welcomed = Boolean(localStorage.getItem('logicsim_welcomed')); } catch (e) { welcomed = true; }
         if (!restored && !welcomed && typeof requestAnimationFrame === 'function') {
@@ -14170,7 +14667,7 @@
           const titleRight = document.getElementById('pane-title-right');
           if (titleRight && rTab) titleRight.textContent = `${rTab.title} (Rechts)`;
 
-          this.showToast('Split-Screen Modus aktiviert (Zwei Schaltungen nebeneinander)');
+          this.showToast('Split-Screen aktiv');
         } else {
           if (splitter) splitter.style.display = 'none';
           if (paneRight) paneRight.style.display = 'none';
@@ -14184,7 +14681,7 @@
           if (checkSingle) checkSingle.innerHTML = '✓';
           if (checkSplit) checkSplit.innerHTML = '&nbsp;';
 
-          this.showToast('Einzelansicht wiederhergestellt');
+          this.showToast('Einzelansicht aktiv');
         }
 
         this.renderTabsBar();
@@ -14225,7 +14722,7 @@
         this.tabs.forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.id;
-          opt.textContent = t.title + (t.id === this.activeTabId ? ' (Aktiv Links)' : '');
+          opt.textContent = t.title + (t.id === this.activeTabId ? ' (aktiv)' : '');
           if (t.id === this.rightTabId) opt.selected = true;
           sel.appendChild(opt);
         });
@@ -14529,7 +15026,7 @@
       handleFileImport(file) {
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-          alert('Die Datei ist zu groß (maximal 5 MB erlaubt).');
+          alert(I18N.phrase('Die Datei ist zu groß (maximal 5 MB erlaubt).'));
           return;
         }
         const reader = new FileReader();
@@ -14549,7 +15046,7 @@
             this.saveTabsToStorage();
             this.showToast(`📂 Schaltung "${file.name}" erfolgreich geladen!`);
           } catch (err) {
-            alert('Fehler beim Laden der JSON-Datei: ' + err.message);
+            alert(I18N.phrase('Fehler beim Laden der JSON-Datei: ' + err.message));
           }
         };
         reader.readAsText(file);
@@ -16599,7 +17096,7 @@
 
         const resetWpsItem = document.createElement('div');
         resetWpsItem.className = 'ctx-item';
-        resetWpsItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto)</span>`;
+        resetWpsItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Neu verlegen (Auto)</span>`;
         resetWpsItem.addEventListener('click', () => {
           hitWp.wire.waypoints = [];
           hitWp.wire.channelOffset = 0;
@@ -16611,7 +17108,7 @@
 
         const inspectItem = document.createElement('div');
         inspectItem.className = 'ctx-item';
-        inspectItem.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
+        inspectItem.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
         inspectItem.addEventListener('click', () => {
           this.selectItem(null, hitWp.wire.id);
           this.highlightInspector();
@@ -16667,7 +17164,7 @@
             const sep = document.createElement('div');
             sep.className = 'ctx-divider';
             menu.appendChild(sep);
-            addAction(ICONS.autoLayout, 'Schaltung automatisch anordnen (A)', () => this.runAlignAction('all'));
+            addAction(ICONS.autoLayout, 'Alles anordnen (A)', () => this.runAlignAction('all'));
             addAction(ICONS.chevronRight, 'Links bündig ausrichten', () => this.alignSelection('left'));
             addAction(ICONS.chevronUp, 'Oben bündig ausrichten', () => this.alignSelection('top'));
             if (selComps.size >= 3) {
@@ -16694,7 +17191,7 @@
 
           const delItem = document.createElement('div');
           delItem.className = 'ctx-item danger';
-          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Auswahl löschen (Delete)</span>`;
+          delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Auswahl löschen (Entf)</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             const wireIds = Array.from(selWires);
@@ -16718,7 +17215,7 @@
 
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
-          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Einstellungen im Inspector öffnen</span>`;
+          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
           openInspect.addEventListener('click', () => {
             this.highlightInspector();
             this.hideContextMenu();
@@ -16915,14 +17412,14 @@
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
-            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.wire} Signalleitung</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.wire} Leitung</span>
             <span style="font-size:9.5px;color:var(--text-muted);">${wire.level ? 'HIGH (1)' : 'LOW (0)'}</span>
           `;
           menu.appendChild(header);
 
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
-          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
+          openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
           openInspect.addEventListener('click', () => {
             this.highlightInspector();
             this.hideContextMenu();
@@ -16931,7 +17428,7 @@
 
           const branchItem = document.createElement('div');
           branchItem.className = 'ctx-item';
-          branchItem.innerHTML = `<span>${ICONS.wire}</span> <span>Neue Verbindung ab hier starten</span>`;
+          branchItem.innerHTML = `<span>${ICONS.wire}</span> <span>Hier abzweigen</span>`;
           branchItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             const pts = this.renderer.getWirePolyline(wire);
@@ -16957,7 +17454,7 @@
           const styleItem = document.createElement('div');
           styleItem.className = 'ctx-item';
           const isDiag = wire.style === 'diagonal';
-          styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Orthogonal (90°)' : 'Zu Diagonal (Direkt)'}</span>`;
+          styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Rechtwinklig' : 'Zu Diagonal'}</span>`;
           styleItem.addEventListener('click', () => {
             wire.style = isDiag ? 'orthogonal' : 'diagonal';
             this.renderer.render();
@@ -16980,7 +17477,7 @@
 
           const cleanBendsWire = document.createElement('div');
           cleanBendsWire.className = 'ctx-item';
-          cleanBendsWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Überflüssige Knicke entfernen (Begradigen)</span>`;
+          cleanBendsWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Begradigen</span>`;
           cleanBendsWire.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
             this.cleanWireWaypoints(wire);
@@ -16993,7 +17490,7 @@
 
           const autoRouteWire = document.createElement('div');
           autoRouteWire.className = 'ctx-item';
-          autoRouteWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto-Route)</span>`;
+          autoRouteWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Neu verlegen (Auto)</span>`;
           autoRouteWire.addEventListener('click', () => {
             wire.waypoints = [];
             wire.channelOffset = 0;
@@ -17005,7 +17502,7 @@
 
           const addProbeItem = document.createElement('div');
           addProbeItem.className = 'ctx-item';
-          addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt (Probe) an dieser Leitung anbringen</span>`;
+          addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt setzen</span>`;
           addProbeItem.addEventListener('click', () => {
             const pts = this.renderer.getWirePolyline(wire);
             const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
@@ -17128,7 +17625,7 @@
 
           const autoLayoutAll = document.createElement('div');
           autoLayoutAll.className = 'ctx-item';
-          autoLayoutAll.innerHTML = `<span>${ICONS.autoLayout}</span> <span>Schaltung & Gatter sauber anordnen</span>`;
+          autoLayoutAll.innerHTML = `<span>${ICONS.autoLayout}</span> <span>Alles anordnen</span>`;
           autoLayoutAll.addEventListener('click', () => {
             this.hideContextMenu();
             this.autoAlign({ scope: 'all' });
@@ -17137,7 +17634,7 @@
 
           const autoRouteAll = document.createElement('div');
           autoRouteAll.className = 'ctx-item';
-          autoRouteAll.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Nur Leitungen rechtwinklig ordnen</span>`;
+          autoRouteAll.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Nur Leitungen neu verlegen</span>`;
           autoRouteAll.addEventListener('click', () => {
             this.hideContextMenu();
             this.checkpointHistory();
@@ -17206,7 +17703,7 @@
 
         const openInspect = document.createElement('div');
         openInspect.className = 'ctx-item';
-        openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector öffnen</span>`;
+        openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
         openInspect.addEventListener('click', () => {
           this.selectItem(null, null, probe.id);
           this.highlightInspector();
@@ -17995,7 +18492,7 @@
       alignSelection(mode) {
         const comps = Array.from(this.renderer.selectedCompIds || []).map(id => this.circuit.getComponent(id)).filter(Boolean);
         if (comps.length < 2) {
-          this.showToast('Wähle mindestens zwei Bauteile aus (Rahmen ziehen oder Umschalt+Klick).');
+          this.showToast('Wähle mindestens zwei Bauteile aus.');
           return false;
         }
         this.checkpointHistory();
@@ -18023,7 +18520,7 @@
       distributeSelection(axis) {
         const comps = Array.from(this.renderer.selectedCompIds || []).map(id => this.circuit.getComponent(id)).filter(Boolean);
         if (comps.length < 3) {
-          this.showToast('Zum Verteilen werden mindestens drei ausgewählte Bauteile benötigt.');
+          this.showToast('Wähle zum Verteilen mindestens drei Bauteile aus.');
           return false;
         }
         this.checkpointHistory();
@@ -18168,7 +18665,7 @@
 
       runAlignAction(action) {
         if (this.engine.mode !== 'edit' && action !== 'fit') {
-          this.showToast('Anordnen ist nur im Edit-Modus möglich – wechsle oben links den Modus (Tab).');
+          this.showToast('Anordnen geht nur im Edit-Modus (Tab).');
           return;
         }
         const btn = document.getElementById('btn-auto-route');
@@ -18236,6 +18733,11 @@
         document.getElementById('empty-hint-gallery')?.addEventListener('click', () => this.openScenarioGallery());
         document.getElementById('btn-close-scenarios')?.addEventListener('click', () => this.closeAllModals());
         document.getElementById('menu-item-welcome')?.addEventListener('click', () => this.loadScenario(SCENARIOS[0].key));
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('[data-lang-btn], #settings-lang-seg button').forEach(btn => {
+            btn.addEventListener('click', () => this.setLanguage(btn.getAttribute('data-lang-btn') || btn.getAttribute('data-lang')));
+          });
+        }
         document.getElementById('menu-item-guide-toggle')?.addEventListener('click', () => {
           this.guideHidden = !this.guideHidden;
           this.updateScenarioGuide();
@@ -18668,15 +19170,15 @@
       updateStatusHint() {
         let text;
         if (this.renderer.activeWireDrag) {
-          text = 'Verbindung ziehen: Ziel-Pin, Leitung oder freie Stelle anklicken · Doppelklick/Rechtsklick/Enter schließt ab · Esc bricht ab · Umschalt für diagonal';
+          text = 'Leitung ziehen: Pin, Leitung oder freie Stelle klicken · Enter: fertig · Esc: abbrechen · Umschalt: diagonal';
         } else if (this.engine.mode === 'sim') {
-          text = 'Simulation: Schalter anklicken, Taster gedrückt halten · Leertaste startet/pausiert · Tab wechselt zurück in den Edit-Modus';
+          text = 'Simulation: Schalter klicken, Taster halten · Leertaste: Start/Pause · Tab: zurück zu Edit';
         } else if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size >= 2) {
-          text = 'Mehrere Bauteile gewählt: A ordnet die gesamte Schaltung an · Pfeiltasten verschieben · Entf löscht';
+          text = 'Auswahl: Pfeiltasten verschieben · Entf löscht · A ordnet alles an';
         } else if (this.circuit.components.length === 0) {
-          text = 'Ziehe Bauteile aus der Palette auf die Fläche oder öffne mit G ein Szenario';
+          text = 'Bauteile aus der Palette ziehen · G öffnet die Szenarien';
         } else {
-          text = 'Rechtsklick auf Leitung zweigt ab · A ordnet automatisch an · F passt die Ansicht ein · ? zeigt alle Kürzel';
+          text = 'Rechtsklick auf Leitung: abzweigen · A: anordnen · F: einpassen · ?: Kürzel';
         }
         if (text === this._statusHintText) return;
         this._statusHintText = text;
@@ -18946,7 +19448,7 @@
           modalBody.innerHTML = `
             <div style="padding: 30px; text-align: center; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 12px;">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <div style="font-size: 14px; font-weight: 600; color: #f87171;">Keine Schaltungsauswertung möglich</div>
+              <div style="font-size: 14px; font-weight: 600; color: #f87171;">Keine Auswertung möglich</div>
               <div style="font-size: 12.5px; max-width: 440px; line-height: 1.5;">${escapeHtml(data.error)}</div>
             </div>
           `;
@@ -19004,7 +19506,7 @@
         html += `
           <div class="tt-formula-box">
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 8px;">
-              Kanonische Normalformen (Schaltalgebra):
+              Normalformen:
             </div>
         `;
 
@@ -19236,9 +19738,9 @@
           this.refreshAll();
           this.closeAllModals();
 
-          this.showToast(`✓ Schaltung erfolgreich mit ${equations.length} Ausgang/Ausgängen synthetisiert und angeordnet!`);
+          this.showToast(`✓ Schaltung erzeugt: ${equations.length} Ausgang/Ausgänge`);
         } catch (err) {
-          alert('Synthese-Fehler: ' + err.message);
+          alert(I18N.phrase('Synthese-Fehler: ' + err.message));
         }
       }
 
@@ -19361,7 +19863,7 @@
         });
         document.getElementById('menu-item-clear')?.addEventListener('click', () => {
           closeAllMenus();
-          if (confirm('Möchtest du die Schaltung wirklich leeren?')) {
+          if (confirm(I18N.phrase('Möchtest du die Schaltung wirklich leeren?'))) {
             this.clearCurrentCircuit();
           }
         });
@@ -19680,6 +20182,35 @@
       }
 
       
+      /** Scenario circuits keep their untouched labels in step with the language. */
+      relabelScenarioTabs() {
+        if (!Array.isArray(this.tabs)) return;
+        const active = I18N.currentLang;
+        let changed = false;
+        try {
+          for (const tab of this.tabs) {
+            if (!tab || !tab.scenarioKey || !tab.circuit) continue;
+            const variants = ['de', 'en'].map(l => { I18N.currentLang = l; return buildScenarioCircuit(tab.scenarioKey); });
+            I18N.currentLang = active;
+            if (!variants[0] || !variants[1]) continue;
+            const target = variants[active === 'en' ? 1 : 0];
+            const known = (list, key, id) => variants.map(v => { const o = (v[list] || []).find(x => x.id === id); return o ? (key === 'label' ? o.params && o.params.label : o.name) : undefined; });
+            const pick = (list, key, id) => { const o = (target[list] || []).find(x => x.id === id); return o ? (key === 'label' ? o.params && o.params.label : o.name) : undefined; };
+            for (const c of tab.circuit.components || []) {
+              const want = pick('components', 'label', c.id);
+              if (want && c.params && c.params.label !== want && known('components', 'label', c.id).includes(c.params.label)) { c.params.label = want; changed = true; }
+            }
+            for (const pr of tab.circuit.probes || []) {
+              const want = pick('probes', 'name', pr.id);
+              if (want && pr.name !== want && known('probes', 'name', pr.id).includes(pr.name)) { pr.name = want; changed = true; }
+            }
+          }
+        } catch (e) { /* labels stay as they are */ }
+        I18N.currentLang = active;
+        if (changed && typeof this.saveTabsToStorage === 'function') this.saveTabsToStorage();
+        try { if (this.renderer && this.circuit && typeof this.refreshAll === 'function') this.refreshAll(); } catch (e) { /* not ready yet */ }
+      }
+
       setLanguage(lang) {
         if (lang !== 'de' && lang !== 'en') lang = 'de';
         I18N.currentLang = lang;
@@ -19717,9 +20248,11 @@
           });
 
           document.title = I18N.t('app.title');
+          I18N.dom.refresh();
 
           this.updateStatusBar();
         }
+        this.relabelScenarioTabs();
 
         try {
           localStorage.setItem('logicsim_language', lang);
@@ -20003,7 +20536,7 @@
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          this.showToast('📸 Schaltung erfolgreich als PNG-Bild exportiert!');
+          this.showToast('📸 Als PNG exportiert');
         } catch (err) {
           console.error('PNG export error:', err);
           this.showToast('Fehler beim PNG-Export: ' + err.message);
