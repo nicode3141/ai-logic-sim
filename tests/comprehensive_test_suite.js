@@ -53,9 +53,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS };'
 );
-const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -934,6 +934,107 @@ runTest('WISH-016', 'Consistent design colors, module styling, and high contrast
     analyzer.appTheme = theme;
     analyzer.render();
   }
+});
+
+runTest('WISH-017', 'Complete English language support and phrase dictionary parity', () => {
+  assertEqual(typeof I18N, 'object');
+  assertEqual(typeof I18N.t, 'function');
+  assertEqual(typeof I18N.phrase, 'function');
+
+  // Verify critical UI strings exist in English phrase dictionary
+  const criticalPhrases = [
+    'Interaktion & Bedienung:',
+    'Erscheinungsbild & Workbench-Design:',
+    'Schaltsymbol-Norm:',
+    'Leitungs- & Signalfarben (HIGH-Zustand 1):',
+    'Eckpunkte & Routing',
+    'Wahrheitstabelle (Truth Table)',
+    'Boolesche Schaltalgebra & Gatter-Synthese',
+    '📍 Zu Koordinate springen',
+    'Im Inspector anzeigen',
+    'Bauteil duplizieren',
+    'Bauteil löschen'
+  ];
+  for (const phrase of criticalPhrases) {
+    const en = I18N.phrase(phrase);
+    assertEqual(typeof en, 'string', `Translation for "${phrase}" must be a string`);
+    assertEqual(en !== phrase, true, `Translation for "${phrase}" must not be identical to German source: got "${en}"`);
+  }
+});
+
+runTest('WISH-018', 'GUI contrast and context menu consistency across themes', () => {
+  // Verify HTML contains high contrast rules for context menu in light themes
+  assertEqual(html.includes('[data-theme="java_swing"] .context-menu'), true, 'Java Swing context menu overrides present');
+  assertEqual(html.includes('[data-theme="java_swing"] .ctx-item:hover'), true, 'Java Swing context menu hover overrides present');
+  assertEqual(html.includes('#0a246a'), true, 'Classic Java Swing dark blue selection highlight present');
+  assertEqual(html.includes('[data-theme="light_cad"] .context-menu'), true, 'Light CAD context menu overrides present');
+  assertEqual(html.includes('[data-theme="light_cad"] .ctx-item:hover'), true, 'Light CAD context menu hover overrides present');
+});
+
+runTest('WISH-019', 'Clean pin labels without overlapping OUT/IN text on simple components', () => {
+  const c = new Circuit();
+  const sw = c.addComponent('SWITCH', 0, 0);
+  const btn = c.addComponent('BUTTON', 100, 0);
+  const clk = c.addComponent('CLOCK', 200, 0);
+  const konst = c.addComponent('CONST', 300, 0);
+  const led = c.addComponent('LED', 400, 0);
+  const dff = c.addComponent('D_FF', 500, 0);
+
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, c);
+
+  const drawnTexts = [];
+  mockCtx.fillText = (txt, x, y) => {
+    drawnTexts.push(String(txt));
+  };
+
+  renderer.drawComponentPins(mockCtx, sw);
+  renderer.drawComponentPins(mockCtx, btn);
+  renderer.drawComponentPins(mockCtx, clk);
+  renderer.drawComponentPins(mockCtx, konst);
+  renderer.drawComponentPins(mockCtx, led);
+
+  // Redundant OUT / IN labels should NOT be drawn on simple components
+  assertEqual(drawnTexts.includes('OUT'), false, 'SWITCH/BUTTON/CONST must not draw overlapping OUT pin text');
+  assertEqual(drawnTexts.includes('IN'), false, 'LED must not draw overlapping IN pin text');
+
+  // Complex multi-pin components MUST still draw their pins (e.g. Q, Q̅)
+  drawnTexts.length = 0;
+  renderer.drawComponentPins(mockCtx, dff);
+  assertEqual(drawnTexts.includes('D'), true, 'D-FF must draw input pin D');
+  assertEqual(drawnTexts.includes('Q'), true, 'D-FF must draw output pin Q');
+  assertEqual(drawnTexts.includes('Q̅'), true, 'D-FF must draw output pin Q̅');
+});
+
+runTest('WISH-020', 'Circular lamp indicator symbol with X and vibrant saturated colors', () => {
+  const c = new Circuit();
+  const led = c.addComponent('LED', 100, 80, { color: 'green' });
+  assertEqual(led.width, 40, 'LED component width is 40px (compact lamp)');
+  assertEqual(led.height, 40, 'LED component height is 40px (compact lamp)');
+  assertEqual(led.inputs.length, 1, 'LED has 1 input pin');
+  assertEqual(led.inputs[0].relY, 20, 'LED input pin centered vertically');
+
+  // Verify saturated LED color palette
+  assertEqual(LED_COLORS.green.on, '#00ff66', 'Vibrant neon green ON');
+  assertEqual(LED_COLORS.red.on, '#ff1744', 'Vibrant neon red ON');
+  assertEqual(LED_COLORS.yellow.on, '#ffee00', 'Vibrant neon yellow ON');
+  assertEqual(LED_COLORS.blue.on, '#00b4ff', 'Vibrant neon blue ON');
+
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, c);
+  let arcDrawn = false;
+  let linesDrawn = 0;
+
+  mockCtx.arc = (cx, cy, r) => {
+    if (r === 14) arcDrawn = true;
+  };
+  mockCtx.lineTo = () => {
+    linesDrawn++;
+  };
+
+  renderer.drawLampComponent(mockCtx, led, false);
+  assertEqual(arcDrawn, true, 'Lamp circle with radius 14 drawn');
+  assertEqual(linesDrawn >= 2, true, 'Diagonal cross X drawn inside circle');
 });
 
 console.log('\n================================================================');

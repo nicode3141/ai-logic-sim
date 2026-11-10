@@ -167,6 +167,37 @@
       color: #ffffff !important;
     }
 
+    [data-theme="java_swing"] .context-menu {
+      background: #ece9d8 !important;
+      border: 1px solid #808080 !important;
+      box-shadow: 2px 2px 0px #000000 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .ctx-header {
+      color: #000080 !important;
+      border-bottom: 1px solid #808080 !important;
+    }
+    [data-theme="java_swing"] .ctx-item {
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .ctx-item:hover {
+      background: #0a246a !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item:hover svg {
+      stroke: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger {
+      color: #b00000 !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger:hover {
+      background: #b00000 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-divider {
+      background: #808080 !important;
+    }
+
     [data-theme="blueprint"] {
       --bg-deep: #071527;
       --bg-canvas: #071527;
@@ -229,6 +260,37 @@
     [data-theme="light_cad"] .app-menu-item:hover {
       background: #e2e8f0 !important;
       color: #0f172a !important;
+    }
+
+    [data-theme="light_cad"] .context-menu {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .ctx-header {
+      color: #0284c7 !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+    [data-theme="light_cad"] .ctx-item {
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .ctx-item:hover {
+      background: #e0f2fe !important;
+      color: #0284c7 !important;
+    }
+    [data-theme="light_cad"] .ctx-item:hover svg {
+      stroke: #0284c7 !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger {
+      color: #dc2626 !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger:hover {
+      background: #fee2e2 !important;
+      color: #dc2626 !important;
+    }
+    [data-theme="light_cad"] .ctx-divider {
+      background: #e2e8f0 !important;
     }
 
     * {
@@ -1104,7 +1166,7 @@
       gap: 8px;
       color: var(--text-main);
       cursor: pointer;
-      transition: background 0.12s ease;
+      transition: background 0.12s ease, color 0.12s ease;
     }
 
     .ctx-item svg, .ctx-header svg {
@@ -1115,7 +1177,7 @@
 
     .ctx-item:hover {
       background: var(--bg-hover);
-      color: #ffffff;
+      color: var(--text-main);
     }
 
     .ctx-item.danger {
@@ -4515,7 +4577,7 @@
           'toolbar.redo': 'Wiederholen',
           'toolbar.split': 'Split',
 
-          'palette.title': 'Bauteile',
+          'palette.title': 'Bauteil-Palette',
           'palette.search': 'Suchen…  ( / )',
           'palette.empty': 'Kein Bauteil gefunden.',
           'palette.cat.sources': 'Eingänge',
@@ -4637,7 +4699,7 @@
           'toolbar.redo': 'Redo',
           'toolbar.split': 'Split',
 
-          'palette.title': 'Parts',
+          'palette.title': 'Component Palette',
           'palette.search': 'Search…  ( / )',
           'palette.empty': 'No part found.',
           'palette.cat.sources': 'Inputs',
@@ -4816,6 +4878,55 @@
       'Reines Schwarz, ohne Glow.': 'Pure black, no glow.', 'Retro-Look der 90er, weißes Papier.': '90s retro look, white paper.',
       'Marineblau mit Reißbrett-Raster.': 'Navy blue with a drafting grid.', 'Hell, klare Konturen.': 'Light, crisp outlines.',
       'Änderungen gelten sofort.': 'Changes apply instantly.', 'Auf Standard zurücksetzen': 'Reset to defaults', 'Fertig': 'Done',
+      'Interaktion & Bedienung:': 'Interaction & Controls:',
+      'Erscheinungsbild & Workbench-Design:': 'Appearance & Workbench Theme:',
+      'Wähle dein bevorzugtes CAD-Erscheinungsbild von modernem OLED-Dunkel bis retro Java Swing:': 'Choose your preferred CAD appearance from modern OLED dark to retro Java Swing:',
+      'Schnittiges CAD Slate mit dezentem Kontrast.': 'Sleek CAD slate with subtle contrast.',
+      'Reines OLED #000000, 2px Kanten, kein Glow.': 'Pure OLED #000000, 2px borders, no glow.',
+      'Retro 90s Workbench, 3D-Relief, 0px Kanten, weißes Papier.': 'Retro 90s workbench, 3D relief, 0px radius, white canvas.',
+      'Technisches Marineblau mit feinem Reißbrett-Raster.': 'Technical navy blue with drafting grid.',
+      'Helles Labor-Design mit klaren Konturen.': 'Bright lab theme with crisp outlines.',
+      'Leitungs- & Signalfarben (HIGH-Zustand 1):': 'Wire & Signal Colors (HIGH state 1):',
+      'Wähle die Leuchtfarbe für aktive Signale, Leitungen und Glüheffekte:': 'Choose the glow color for active signals, wires and glow effects:',
+      'Schaltsymbol-Norm:': 'Gate Symbol Standard:',
+      'Darstellung aller Logikgatter nach historischem oder internationalem Standard:': 'Rendering of all logic gates according to historic or international standards:',
+      'Klassisch deutsche Symbole mit Halbkreis, Pfeilspitzen und Dreiecken.': 'Classic German symbols with semicircles, arrows and triangles.',
+      'Internationale Rechteck-Gatter mit Kennzeichnungen (&, ≥1, =1, 1). Bündige Anschlüsse.': 'International rectangular gates with qualifiers (&, ≥1, =1, 1). Flush connections.',
+      'Amerikanische Kurven-Symbole (D-Shape für AND, Curved Shield für OR/XOR).': 'American curved symbols (D-shape for AND, curved shield for OR/XOR).',
+      'Schalter & Taster im Edit-Modus direkt schaltbar': 'Toggle switches & buttons directly in Edit mode',
+      'Ein Klick (ohne Ziehen) auf Schalter schaltet ihren Zustand sofort um, ohne erst in den Sim-Modus zu wechseln.': 'Clicking a switch toggles its state immediately without needing to switch to Sim mode.',
+      'Schaltung automatisch im Browser sichern (localStorage)': 'Auto-save circuit in browser (localStorage)',
+      'Behält deine Schaltung beim Schließen oder Neuladen des Browsers automatisch bei.': 'Automatically keeps your circuit when closing or reloading the browser.',
+      'Leitungsbrücken bei Kreuzungen (Bögen)': 'Wire crossing bridges (arcs)',
+      'Zeigt bei überkreuzenden Leitungen Halbkreis-Bögen an. Deaktiviert für glatte, gerade Kreuzungen ohne Wölbungen (DigitalSimulator / Logisim Stil).': 'Renders semicircular bridge arcs for crossing wires. Disabled for flat perpendicular crossings (DigitalSimulator / Logisim style).',
+      'Alle Änderungen werden sofort angewendet und gespeichert.': 'All changes are applied and saved immediately.',
+      'Eckpunkte & Routing': 'Waypoints & Routing',
+      'Knicke säubern / Begradigen': 'Straighten / clean bends',
+      'Wegpunkte zurücksetzen (Auto)': 'Reset waypoints (auto)',
+      'Diesen Eckpunkt löschen': 'Delete this waypoint',
+      'Überflüssige Knicke entfernen (Begradigen)': 'Remove redundant bends (straighten)',
+      'Messpunkt (Probe) an dieser Leitung anbringen': 'Attach probe to this wire',
+      'Neue Verbindung ab hier starten': 'Start new connection from here',
+      'Wegpunkte zurücksetzen (Auto-Route)': 'Reset waypoints (auto-route)',
+      'Schaltung & Gatter sauber anordnen': 'Cleanly auto-layout circuit & gates',
+      'Verzögerung (Gatterlaufzeit)': 'Gate delay (ticks)',
+      'Startwert (Initial State)': 'Initial value (initial state)',
+      'Halbperiode T½ (Ticks)': 'Half-period T½ (ticks)',
+      'Eingangsanzahl n (2–8)': 'Number of inputs n (2–8)',
+      'XOR-Modus für >2 Eingänge': 'XOR mode for >2 inputs',
+      'Ausgang (Y) invertieren (Negation ○)': 'Invert output (Y) (negation ○)',
+      'Eingänge invertieren (○):': 'Invert inputs (○):',
+      'Zählmodus (Modulus)': 'Count mode (modulus)',
+      'Takt-Flankensteuerung': 'Clock edge trigger',
+      'Initialer Zustand (Q beim Reset)': 'Initial state (Q on reset)',
+      'Kurvenfarbe': 'Waveform color',
+      'Hinweis: Im Simulationsmodus sind Bauteilparameter und Topologie gesperrt.': 'Note: In simulation mode, component parameters and topology are locked.',
+      'Erzeugt Schalter (Eingänge), DIN-Gatter und LEDs (Ausgänge) mit automatischer Verdrahtung.': 'Creates switches (inputs), DIN gates and LEDs (outputs) with auto-wiring.',
+      'In Gatter umwandeln & platzieren': 'Synthesize into gates & place',
+      'Wahrheitstabelle (Truth Table)': 'Truth Table',
+      'Automatische kombinatorische Analyse der Schaltung': 'Automated combinational circuit analysis',
+      'Boolesche Schaltalgebra & Gatter-Synthese': 'Boolean Algebra & Gate Synthesis',
+      'Booleschen Term eingeben und automatisch in Gatter-Schaltung umwandeln': 'Enter a Boolean expression and automatically synthesize into logic gates',
       // --- gallery ---
       'Szenarien – von leicht bis komplex': 'Scenarios – from easy to complex', 'Fertige Schaltungen zum Ausprobieren und Weiterbauen': 'Ready-made circuits to try and extend',
       'Szenario suchen…': 'Search scenarios…', 'In neuem Tab öffnen': 'Open in a new tab', 'Leere Arbeitsfläche': 'Empty canvas', 'Bereits geöffnet': 'Open',
@@ -5218,10 +5329,10 @@
     const GATE_DELAY_MAX = 20;
 
     const LED_COLORS = {
-      green:  { on: '#00e676', glow: 'rgba(0, 230, 118, 0.65)', off: '#143325', label: 'Grün' },
-      red:    { on: '#ff5252', glow: 'rgba(255, 82, 82, 0.65)',  off: '#38161a', label: 'Rot' },
-      yellow: { on: '#ffd600', glow: 'rgba(255, 214, 0, 0.65)',  off: '#383012', label: 'Gelb' },
-      blue:   { on: '#00b0ff', glow: 'rgba(0, 176, 255, 0.65)',  off: '#122b3d', label: 'Blau' }
+      green:  { on: '#00ff66', glow: 'rgba(0, 255, 102, 0.75)', off: '#0f381e', border: '#00cc44', label: 'Grün' },
+      red:    { on: '#ff1744', glow: 'rgba(255, 23, 68, 0.75)',  off: '#420e14', border: '#d50000', label: 'Rot' },
+      yellow: { on: '#ffee00', glow: 'rgba(255, 238, 0, 0.75)',  off: '#423706', border: '#ffc400', label: 'Gelb' },
+      blue:   { on: '#00b4ff', glow: 'rgba(0, 180, 255, 0.75)',  off: '#0b2b4d', border: '#0091ea', label: 'Blau' }
     };
 
     const PROBE_PALETTE = [
@@ -5900,7 +6011,7 @@
             break;
 
           case 'LED':
-            this.width = 60;
+            this.width = 40;
             this.height = 40;
             inNames = ['IN'];
             inOffsets = [20];
@@ -10660,6 +10771,8 @@
           } else {
             this.drawGateShape(ctx, comp, isSelected, 'DIN_40700');
           }
+        } else if (type === 'LED') {
+          this.drawLampComponent(ctx, comp, isSelected);
         } else {
           this.drawChassisBox(ctx, x, y, width, height, isSelected);
           this.drawComponentInterior(ctx, comp);
@@ -10704,6 +10817,75 @@
         this.roundRect(ctx, x, y, width, height, pal.boxRadius);
         ctx.fill();
         ctx.shadowBlur = 0;
+        ctx.stroke();
+      }
+
+      drawLampComponent(ctx, comp, isSelected) {
+        const { x, y, width, height } = comp;
+        const w = width || 40;
+        const h = height || 40;
+        const cx = x + w / 2;
+        const cy = y + (comp.inputs[0]?.relY ?? h / 2);
+        const r = 14;
+        const pal = this.getThemePalette();
+        const isOn = comp.inputs[0]?.value === 1;
+        const cObj = LED_COLORS[comp.params.color] || LED_COLORS.green;
+        const highColor = this.highSignalColor || '#00ff66';
+
+        // 1. Lead line from pin on left edge to circle edge
+        const inPinX = x + (comp.inputs[0]?.relX ?? 0);
+        const circleLeftX = cx - r;
+        if (circleLeftX > inPinX) {
+          ctx.beginPath();
+          ctx.moveTo(inPinX, cy);
+          ctx.lineTo(circleLeftX, cy);
+          ctx.strokeStyle = isOn ? highColor : pal.leadLine;
+          ctx.lineWidth = isOn ? 2.2 : 1.5;
+          ctx.stroke();
+        }
+
+        // 2. Selection ring / aura
+        if (isSelected) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = '#00b0ff';
+          ctx.lineWidth = 2.4;
+          ctx.shadowColor = 'rgba(0, 176, 255, 0.6)';
+          ctx.shadowBlur = 10;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        // 3. Lamp Circle Fill
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        if (isOn) {
+          if (this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+            ctx.shadowColor = cObj.glow || cObj.on;
+            ctx.shadowBlur = 18;
+          }
+          ctx.fillStyle = cObj.on;
+        } else {
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = cObj.off;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 4. Circle Stroke
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = isOn ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') : (cObj.border || pal.chassisStroke);
+        ctx.stroke();
+
+        // 5. Cross ('X') inside lamp
+        const crossExtent = r * 0.707;
+        ctx.beginPath();
+        ctx.moveTo(cx - crossExtent, cy - crossExtent);
+        ctx.lineTo(cx + crossExtent, cy + crossExtent);
+        ctx.moveTo(cx + crossExtent, cy - crossExtent);
+        ctx.lineTo(cx - crossExtent, cy + crossExtent);
+        ctx.strokeStyle = isOn ? (this.appTheme === 'java_swing' ? '#000000' : 'rgba(0, 0, 0, 0.65)') : pal.leadLine;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
       }
 
@@ -11479,12 +11661,14 @@
           }
 
           if (!isGateComp && pin.name) {
-            const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
-            const textOffsetX = isInv ? 15 : 7;
-            ctx.fillStyle = pal.textLabel;
-            ctx.font = '500 9.5px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText(pin.name, px + textOffsetX, py + 3);
+            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED'].includes(comp.type)) {
+              const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+              const textOffsetX = isInv ? 16 : 9;
+              ctx.fillStyle = pal.textLabel;
+              ctx.font = '600 9px monospace';
+              ctx.textAlign = 'left';
+              ctx.fillText(pin.name, px + textOffsetX, py + 3);
+            }
           }
         }
 
@@ -11503,26 +11687,28 @@
           }
 
           if (!isGateComp && pin.name) {
-            const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
-            const isNegatedQ = isFF && pin.name === '!Q';
-            const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
+            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED'].includes(comp.type)) {
+              const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
+              const isNegatedQ = isFF && pin.name === '!Q';
+              const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
 
-            if (isNegatedQ) {
-              ctx.beginPath();
-              ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
-              ctx.fillStyle = pal.bg;
-              ctx.fill();
-              ctx.strokeStyle = pal.wireLow;
-              ctx.lineWidth = 1.3;
-              ctx.stroke();
+              if (isNegatedQ) {
+                ctx.beginPath();
+                ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
+                ctx.fillStyle = pal.bg;
+                ctx.fill();
+                ctx.strokeStyle = pal.wireLow;
+                ctx.lineWidth = 1.3;
+                ctx.stroke();
+              }
+
+              const textOffsetX = isInv ? 16 : 9;
+              ctx.fillStyle = pal.textLabel;
+              ctx.font = '600 9px monospace';
+              ctx.textAlign = 'right';
+              const displayName = isNegatedQ ? 'Q̅' : pin.name;
+              ctx.fillText(displayName, px - textOffsetX, py + 3);
             }
-
-            const textOffsetX = isInv ? 15 : 7;
-            ctx.fillStyle = pal.textLabel;
-            ctx.font = '500 9.5px monospace';
-            ctx.textAlign = 'right';
-            const displayName = isNegatedQ ? 'Q̅' : pin.name;
-            ctx.fillText(displayName, px - textOffsetX, py + 3);
           }
         }
       }

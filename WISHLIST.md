@@ -34,10 +34,32 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-014** | Spielfeld-Koordinaten von -5000,-5000 bis 5000,5000 & Start bei 0 | `alpha` | 🟢 **Completed** | Spielfeld auf -5000 bis 5000 px skaliert (10000x10000 px zentriert); Viewport startet bei (0, 0); Reset View und Neuer Tab zentrieren auf Ursprung (0, 0); Raster mit Achsenkreuz bei (0, 0). |
 | **WISH-015** | Premiere Pro Playhead-Scrubbing & Zeitrahmen-Dynamik im Impulsdiagramm | `alpha` | 🟢 **Completed** | Zeitrahmen ändert sich beim Bewegen des Playheads wie in Premiere Pro: Edge Auto-Scrolling an den Rändern der Zeitleiste; vertikales Ziehen in der Zeitachse zoomt den sichtbaren Zeitrahmen stufenlos; Navigator-Leiste im Header und Anzeige des aktiven Zeitrahmens. |
 | **WISH-016** | Einheitliche Theme-Farben, Modul-Styling & Kontraste über alle 5 Themes | `alpha` | 🟢 **Completed** | Durchgehend harmonische Farbgebung für Modern, Pitch Black, Java Swing, Nordic Blueprint und Clean Light; Modul-Innenseiten (Flip-Flops, Zähler, Schieberegister, BCD-Decoder, 7-Segment, Anzeigen, Schalter, Taster, Messpunkte) passen sich dem gewählten Design an; hohe Kontraste und einheitliche CSS-Variablen. |
+| **WISH-017** | Vollständiger English-Support (Lückenlose Übersetzung aller Menüs, Dialoge & Inspector-Texte) | `alpha` | 🟢 **Completed** | Lückenlose Übersetzung aller UI-Texte, Modale (Settings, Help, Truth Table, Synthesizer), Inspector-Eigenschaften, Statusleiste und Szenario-Texte ins Englische mit dynamischer Umschaltung. |
+| **WISH-018** | GUI-Kontraste & Kontextmenü-Inkonsistenzen beheben | `alpha` | 🟢 **Completed** | Behebung von weißem Text auf beigem Hintergrund im Java Swing Kontextmenü; themenspezifische High-Contrast-Regeln für Hover-Zustände in Java Swing (`#0a246a` mit weißer Schrift) und Clean Light (`#e0f2fe` mit blauem Text). |
+| **WISH-019** | Saubere Pin-Labels ohne Überlappungen | `alpha` | 🟢 **Completed** | Entfernung redundanter, kollidierender Pin-Texte (`OUT`, `IN`, `CLK`) auf einfachen Bauteilen (Schalter, Taster, Taktgeber, Konstanten, Lampen); saubere Ausrichtung, Polsterung und Schrift für komplexe IC-Module. |
+| **WISH-020** | Meldeleuchten / Lampen als reines Kreis-mit-X-Symbol & sattere Leuchtfarben | `alpha` | 🟢 **Completed** | Lampen (LED) werden nach DIN EN 60617 / IEC als reines Kreissymbol mit Diagonalkreuz ohne rechteckigen Chassis-Kasten gezeichnet; sattere und leuchtstärkere Farbpalette (vibrant green, red, yellow, blue) mit hohem Kontrast im Ein- und Aus-Zustand. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-017, WISH-018, WISH-019, WISH-020**:
+  - **WISH-017 (Complete English Support)**:
+    - Alle verbliebenen Texte in Einstellungen, Tastenkürzel-Hilfe, Wahrheitstabelle, Boolescher Schaltalgebra, Koordinaten-Popover und Kontextmenüs vollständig zweisprachig (Deutsch und Englisch) erfasst.
+    - Phrase-Dictionary `I18N_PHRASES_EN` und Wörterbücher `I18N.dicts.de` / `I18N.dicts.en` lückenlos synchronisiert.
+    - Umschaltung der Sprache aktualisiert sofort alle DOM-Elemente, Inspector-Titel und Statusmeldungen.
+  - **WISH-018 (GUI-Kontraste & Kontextmenü)**:
+    - Behebung des Kontrastfehlers aus Screenshot 1: Im Java Swing-Design wurde Hover-Text weiß auf hellem Grund gezeichnet.
+    - High-Contrast-Hover-Regeln hinzugefügt: Java Swing nutzt nun stilechtes Windows-95/Swing-Menüblau (`#0a246a`) mit gestochen scharfem Weiß; Light CAD nutzt sanftes Blau `#e0f2fe` mit `#0284c7`.
+    - Basis-CSS von hartkodiertem Weiß auf themenadaptive Variablen umgestellt.
+  - **WISH-019 (Saubere Pin-Labels)**:
+    - Überlappende Beschriftungen aus Screenshot 2 behoben: Redundante `OUT`- und `IN`-Texte bei Schaltern, Tastern, Taktgebern, Konstanten und Lampen entfernt.
+    - Pins und Leber/Symbole werden frei und sauber ohne Textüberlagerung dargestellt.
+    - Komplexe ICs (Flip-Flops, Zähler, Addierer, Decoder) behalten ihre Pinbezeichnungen mit verbessertem Padding und `600 9px monospace`-Typografie.
+  - **WISH-020 (Lampen als reiner Kreis mit X & sattere Farben)**:
+    - Lampen (LED) werden nun exakt wie im elektrotechnischen Standard DIN EN 60617 als reines Kreissymbol mit Diagonalkreuz dargestellt (kein störender rechteckiger Kasten mehr).
+    - Zuleitung verbindet den linken Pin direkt bündig mit dem Lampenkreis; Auswahl zeigt eine zentrierte leuchtende Cyan-Aura.
+    - Leuchtfarben gesättigt und intensiviert: Neon-Grün (`#00ff66`), Signal-Rot (`#ff1744`), Sonnengelb (`#ffee00`), Cyan-Blau (`#00b4ff`) mit sattem Kontrast auch im ausgeschalteten Zustand.
 
 - **WISH-016**:
   - Farbkonzept und Kontraste über alle 5 Themes (`modern`, `pitch_black`, `java_swing`, `blueprint`, `light_cad`) vereinheitlicht:
