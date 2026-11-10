@@ -6,31 +6,51 @@
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
     :root, [data-theme="modern"] {
-      --bg-deep: #0b0d10;
-      --bg-panel: #12161c;
-      --bg-panel-alt: #171c24;
-      --bg-elevated: #1e2530;
-      --bg-hover: #262f3d;
-      --border-dim: #263040;
-      --border-bright: #3d4d66;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --accent-green: #00e676;
-      --accent-green-dim: rgba(0, 230, 118, 0.16);
-      --accent-blue: #00b0ff;
-      --accent-blue-dim: rgba(0, 176, 255, 0.16);
-      --accent-amber: #ffb300;
-      --accent-amber-dim: rgba(255, 179, 0, 0.16);
-      --accent-red: #ff5252;
-      --accent-red-dim: rgba(255, 82, 82, 0.16);
-      --wire-low: #33455a;
-      --wire-high: #00e676;
+      --bg-deep: #1e1e1e;
+      --bg-panel: #252526;
+      --bg-panel-alt: #1f1f1f;
+      --bg-elevated: #2d2d30;
+      --bg-hover: #37373d;
+      --border-dim: #333333;
+      --border-bright: #3e3e42;
+      --text-main: #f1f5f9;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --accent-green: #10b981;
+      --accent-green-dim: rgba(16, 185, 129, 0.16);
+      --accent-blue: #0ea5e9;
+      --accent-blue-dim: rgba(14, 165, 233, 0.16);
+      --accent-amber: #f59e0b;
+      --accent-amber-dim: rgba(245, 158, 11, 0.16);
+      --accent-red: #ef4444;
+      --accent-red-dim: rgba(239, 68, 68, 0.16);
+      --wire-low: #475569;
+      --wire-high: #10b981;
       --btn-radius: 4px;
-      --card-radius: 6px;
+      --card-radius: 4px;
       --control-radius: 4px;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    /* Custom Sleek Desktop Scrollbars (Photoshop / Paint.NET / VS Code style) */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #424242;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #424242 transparent;
     }
 
     [data-theme="pitch_black"] {
@@ -206,27 +226,30 @@
       overflow: hidden;
     }
 
-    /* 1. Top Toolbar */
+    /* 1. Top Toolbar (Decluttered, modern single-row desktop toolbar like Photoshop/Paint.NET) */
     #toolbar {
-      min-height: 48px;
-      height: auto;
+      height: 38px;
+      min-height: 38px;
+      max-height: 38px;
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      padding: 4px 12px;
-      gap: 6px 10px;
+      flex-wrap: nowrap;
+      padding: 0 10px;
+      gap: 6px;
       z-index: 20;
       box-sizing: border-box;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .toolbar-group {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
+      flex-wrap: nowrap;
+      gap: 5px;
     }
 
     .brand {
@@ -241,25 +264,25 @@
     }
 
     .brand-icon {
-      width: 26px;
-      height: 26px;
+      width: 22px;
+      height: 22px;
       border-radius: var(--control-radius);
-      background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #061014;
       font-family: var(--font-mono);
       font-weight: 800;
-      font-size: 13px;
-      box-shadow: 0 0 12px rgba(0, 230, 118, 0.35);
+      font-size: 12px;
     }
 
     .divider {
       width: 1px;
-      height: 26px;
+      height: 20px;
       background: var(--border-dim);
-      margin: 0 4px;
+      margin: 0 3px;
+      flex-shrink: 0;
     }
 
     /* Mode Switcher */
@@ -269,21 +292,25 @@
       padding: 2px;
       border-radius: var(--control-radius);
       border: 1px solid var(--border-dim);
+      height: 26px;
+      box-sizing: border-box;
     }
 
     .mode-btn {
       border: none;
       background: transparent;
       color: var(--text-muted);
-      padding: 4px 11px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: var(--btn-radius);
+      padding: 0 9px;
+      font-size: 11.5px;
+      font-weight: 500;
+      border-radius: 3px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
+      gap: 5px;
+      height: 100%;
+      transition: all 0.1s ease;
+      white-space: nowrap;
     }
 
     .mode-btn:hover {
@@ -293,18 +320,18 @@
     .mode-btn.active-edit {
       background: var(--accent-blue-dim);
       color: var(--accent-blue);
-      box-shadow: inset 0 0 0 1px rgba(0, 176, 255, 0.4);
+      font-weight: 600;
     }
 
     .mode-btn.active-sim {
       background: var(--accent-green-dim);
       color: var(--accent-green);
-      box-shadow: inset 0 0 0 1px rgba(0, 230, 118, 0.45), 0 0 10px rgba(0, 230, 118, 0.15);
+      font-weight: 600;
     }
 
     .status-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: currentColor;
     }
@@ -312,23 +339,25 @@
     /* Buttons & Controls */
     .btn {
       background: var(--bg-elevated);
-      border: 1px solid var(--border-bright);
+      border: 1px solid var(--border-dim);
       color: var(--text-main);
-      padding: 5px 10px;
+      padding: 3px 9px;
+      height: 26px;
       border-radius: var(--btn-radius);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      transition: all 0.12s ease;
+      transition: background 0.1s ease, border-color 0.1s ease;
       white-space: nowrap;
+      box-sizing: border-box;
     }
 
     .btn:hover:not(:disabled) {
       background: var(--bg-hover);
-      border-color: #475569;
+      border-color: var(--border-bright);
     }
 
     .btn:active:not(:disabled) {
@@ -340,31 +369,47 @@
       cursor: not-allowed;
     }
 
+    .btn-square {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      justify-content: center;
+    }
+
+    .btn-round {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      padding: 0;
+      justify-content: center;
+      font-weight: 600;
+    }
+
     .btn-primary {
-      background: rgba(0, 230, 118, 0.15);
-      border-color: rgba(0, 230, 118, 0.5);
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.45);
       color: var(--accent-green);
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: rgba(0, 230, 118, 0.25);
+      background: rgba(16, 185, 129, 0.25);
       border-color: var(--accent-green);
     }
 
     .btn-warning {
-      background: rgba(255, 179, 0, 0.15);
-      border-color: rgba(255, 179, 0, 0.5);
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.5);
       color: var(--accent-amber);
     }
 
     .btn-danger {
-      background: rgba(255, 82, 82, 0.14);
-      border-color: rgba(255, 82, 82, 0.45);
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.45);
       color: var(--accent-red);
     }
 
     .btn-danger:hover:not(:disabled) {
-      background: rgba(255, 82, 82, 0.24);
+      background: rgba(239, 68, 68, 0.24);
       border-color: var(--accent-red);
     }
 
@@ -373,32 +418,31 @@
       display: inline-flex;
       align-items: center;
       background: var(--bg-deep);
-      border: 1px solid var(--border-bright);
+      border: 1px solid var(--border-dim);
       border-radius: var(--control-radius);
-      padding: 2px 4px;
-      gap: 4px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+      padding: 1px 3px;
+      gap: 3px;
+      height: 26px;
+      box-sizing: border-box;
     }
 
     #btn-sim-start {
-      min-width: 82px;
+      min-width: 68px;
       justify-content: center;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
     }
 
     #btn-sim-start.btn-primary {
-      background: rgba(0, 230, 118, 0.18);
-      border-color: rgba(0, 230, 118, 0.6);
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.55);
       color: var(--accent-green);
-      box-shadow: 0 0 12px rgba(0, 230, 118, 0.22);
     }
 
     #btn-sim-start.btn-warning {
-      background: rgba(255, 179, 0, 0.2);
-      border-color: rgba(255, 179, 0, 0.65);
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.6);
       color: var(--accent-amber);
-      box-shadow: 0 0 14px rgba(255, 179, 0, 0.3);
     }
 
     .btn svg, .btn-icon svg {
@@ -417,11 +461,13 @@
     .freq-control {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       background: var(--bg-deep);
-      padding: 4px 10px;
+      padding: 0 6px;
       border-radius: var(--control-radius);
       border: 1px solid var(--border-dim);
+      height: 24px;
+      box-sizing: border-box;
     }
 
     .freq-control.disabled {
@@ -436,8 +482,12 @@
 
     .freq-val {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
+      color: var(--accent-green);
+      min-width: 38px;
+      text-align: right;
+    }
       color: var(--accent-green);
       min-width: 42px;
       text-align: right;
@@ -589,10 +639,10 @@
       overflow: hidden;
     }
 
-    /* 2. Left Component Palette (Sidebar) */
+    /* 2. Left Component Palette (Sidebar - Photoshop / Paint.NET Toolbox style) */
     #sidebar {
-      width: 235px;
-      min-width: 235px;
+      width: 220px;
+      min-width: 220px;
       background: var(--bg-panel);
       border-right: 1px solid var(--border-dim);
       display: flex;
@@ -606,11 +656,11 @@
     }
 
     .panel-header {
-      padding: 10px 14px;
+      padding: 8px 10px;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.6px;
       color: var(--text-muted);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
@@ -620,23 +670,23 @@
     }
 
     .palette-category {
-      padding: 8px 10px 4px 10px;
+      padding: 6px 8px 3px 8px;
     }
 
     .category-title {
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
+      letter-spacing: 0.6px;
       color: var(--text-dim);
-      margin-bottom: 6px;
-      padding-left: 4px;
+      margin-bottom: 4px;
+      padding-left: 2px;
     }
 
     .palette-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 4px;
     }
 
     .palette-grid.single-col {
@@ -647,56 +697,54 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border-dim);
       border-radius: var(--card-radius);
-      padding: 6px 8px;
+      padding: 4px 6px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       cursor: grab;
-      transition: all 0.15s ease;
+      transition: background 0.1s ease, border-color 0.1s ease;
       position: relative;
       overflow: hidden;
+      height: 32px;
+      box-sizing: border-box;
     }
 
     .palette-item:hover {
       background: var(--bg-hover);
       border-color: var(--accent-blue);
-      transform: translateY(-1.5px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     }
 
     .palette-item:active {
       cursor: grabbing;
-      transform: translateY(0);
     }
 
     .palette-icon {
-      width: 32px;
-      height: 26px;
-      border-radius: var(--control-radius);
-      background: linear-gradient(145deg, #161c24, #0d1117);
-      border: 1px solid var(--border-bright);
+      width: 24px;
+      height: 22px;
+      border-radius: 3px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent-green);
+      color: var(--text-main);
       flex-shrink: 0;
-      transition: all 0.15s ease;
+      transition: color 0.1s ease, border-color 0.1s ease;
     }
 
     .palette-icon svg {
-      width: 22px;
-      height: 18px;
+      width: 17px;
+      height: 15px;
       display: block;
     }
 
     .palette-item:hover .palette-icon {
       border-color: var(--accent-blue);
       color: var(--accent-blue);
-      box-shadow: 0 0 8px rgba(0, 176, 255, 0.3);
     }
 
     .palette-name {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 500;
       color: var(--text-main);
       overflow: hidden;
@@ -1838,16 +1886,16 @@
       font-size: 10.5px;
     }
 
-    /* Top Desktop Menubar */
+    /* Top Desktop Menubar (Photoshop / Paint.NET / Desktop App style) */
     .app-menubar {
-      height: 32px;
-      min-height: 32px;
-      background: #0d1117;
+      height: 28px;
+      min-height: 28px;
+      background: var(--bg-panel-alt);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
-      padding: 0 10px;
-      gap: 10px;
+      padding: 0 8px;
+      gap: 4px;
       z-index: 30;
       user-select: none;
       box-sizing: border-box;
@@ -1855,18 +1903,25 @@
     .menubar-brand {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-weight: 700;
-      font-size: 13px;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 12px;
       color: var(--text-main);
       padding-right: 10px;
+      margin-right: 4px;
       border-right: 1px solid var(--border-dim);
     }
     .menubar-brand .brand-icon {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       font-size: 11px;
-      border-radius: 4px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+      color: #061014;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
     }
     .menubar-menus {
       display: flex;
@@ -1882,9 +1937,9 @@
       color: var(--text-muted);
       font-size: 12px;
       font-family: var(--font-sans);
-      font-weight: 500;
-      padding: 4px 9px;
-      border-radius: 4px;
+      font-weight: 400;
+      padding: 3px 8px;
+      border-radius: 3px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -1893,32 +1948,32 @@
     }
     .menubar-btn:hover, .menubar-btn.active {
       background: var(--bg-hover);
-      color: #fff;
+      color: #ffffff;
     }
     .menubar-dropdown {
       position: absolute;
       top: 100%;
       left: 0;
-      margin-top: 4px;
+      margin-top: 2px;
       z-index: 1000;
-      background: #141820;
+      background: var(--bg-panel);
       border: 1px solid var(--border-bright);
-      border-radius: 7px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
       min-width: 220px;
-      padding: 5px;
+      padding: 4px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      backdrop-filter: blur(14px);
-      animation: ctxFadeIn 0.12s ease-out;
+      gap: 1px;
+      backdrop-filter: blur(12px);
+      animation: ctxFadeIn 0.1s ease-out;
     }
     .menu-shortcut {
       margin-left: auto;
       font-size: 10.5px;
       color: var(--text-dim);
       font-family: var(--font-mono);
-      padding-left: 12px;
+      padding-left: 14px;
     }
     .norm-check {
       display: inline-block;
@@ -1927,16 +1982,16 @@
       font-weight: bold;
     }
 
-    /* Tab Bar */
+    /* Tab Bar (Desktop Browser / Photoshop Document Tabs) */
     .tabs-bar {
-      height: 34px;
-      min-height: 34px;
-      background: #0f131a;
+      height: 32px;
+      min-height: 32px;
+      background: var(--bg-panel-alt);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
-      align-items: center;
-      padding: 0 8px;
-      gap: 4px;
+      align-items: flex-end;
+      padding: 0 6px;
+      gap: 2px;
       user-select: none;
       z-index: 10;
       overflow-x: auto;
@@ -1945,35 +2000,36 @@
     }
     .tabs-container {
       display: flex;
-      align-items: center;
-      gap: 4px;
+      align-items: flex-end;
+      gap: 2px;
       height: 100%;
     }
     .tab-item {
       display: flex;
       align-items: center;
-      gap: 7px;
-      height: 28px;
-      padding: 0 10px;
+      gap: 6px;
+      height: 27px;
+      padding: 0 9px;
       background: var(--bg-panel);
       border: 1px solid var(--border-dim);
       border-bottom: none;
-      border-radius: var(--btn-radius) var(--btn-radius) 0 0;
+      border-radius: 5px 5px 0 0;
       color: var(--text-muted);
       font-size: 11.5px;
-      font-weight: 500;
+      font-weight: 400;
       cursor: pointer;
-      transition: all 0.12s ease;
+      transition: background 0.1s, color 0.1s;
       white-space: nowrap;
+      position: relative;
     }
     .tab-item:hover {
       background: var(--bg-hover);
       color: var(--text-main);
     }
     .tab-item.active {
-      background: #19202a;
+      background: var(--bg-deep);
       border-color: var(--border-bright);
-      color: #fff;
+      color: var(--text-main);
       font-weight: 600;
       box-shadow: 0 -2px 0 var(--accent-blue) inset;
     }
@@ -1997,29 +2053,29 @@
       cursor: pointer;
       line-height: 1;
       padding: 0;
-      transition: all 0.12s;
+      transition: all 0.1s;
     }
     .tab-close-btn:hover {
-      background: rgba(255, 82, 82, 0.25);
+      background: rgba(239, 68, 68, 0.25);
       color: var(--accent-red);
     }
     .tab-add-btn {
       background: transparent;
-      border: 1px dashed var(--border-dim);
+      border: none;
       color: var(--text-muted);
-      padding: 3px 8px;
-      height: 26px;
-      border-radius: 5px;
-      font-size: 11px;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      transition: all 0.12s ease;
+      justify-content: center;
+      padding: 0;
+      margin-bottom: 2px;
+      transition: background 0.1s, color 0.1s;
     }
     .tab-add-btn:hover {
       background: var(--bg-hover);
-      border-color: var(--border-bright);
       color: var(--text-main);
     }
 
@@ -2697,13 +2753,14 @@
       margin-bottom: 4px;
     }
 
-    /* --- Status bar --------------------------------------------------------------- */
+    /* --- Status bar (Windows File Explorer / Paint.NET style) ----------------------- */
     #statusbar {
       height: 24px;
       min-height: 24px;
+      max-height: 24px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
       padding: 0 10px;
       background: var(--bg-panel-alt);
       border-top: 1px solid var(--border-dim);
@@ -2712,6 +2769,7 @@
       white-space: nowrap;
       overflow: hidden;
       z-index: 20;
+      box-sizing: border-box;
     }
 
     #statusbar strong {
@@ -2720,17 +2778,31 @@
       font-weight: 600;
     }
 
+    .status-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-right: 1px solid var(--border-dim);
+      padding-right: 10px;
+      height: 14px;
+      line-height: 14px;
+    }
+    .status-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
     .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 1px 8px;
-      border-radius: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
       background: var(--accent-blue-dim);
       color: var(--accent-blue);
       font-family: var(--font-mono);
       font-weight: 700;
-      font-size: 10.5px;
+      font-size: 10px;
     }
 
     .status-pill.sim {
@@ -2739,8 +2811,10 @@
     }
 
     .status-pill .status-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
     }
 
     .status-pill.running .status-dot {
@@ -2757,6 +2831,8 @@
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--text-dim);
+      font-size: 10.5px;
+      padding-left: 4px;
     }
 
     .status-quality {
@@ -2765,6 +2841,7 @@
 
     .status-coords, #status-zoom {
       font-family: var(--font-mono);
+      font-size: 10.5px;
     }
 
     /* --- Scenario gallery ---------------------------------------------------------- */
@@ -3728,8 +3805,7 @@
         <div id="tabs-bar" class="tabs-bar">
           <div id="tabs-container" class="tabs-container"></div>
           <button id="btn-new-tab" class="tab-add-btn" title="Neuen Schaltungs-Tab hinzufügen (+)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>Neuer Tab</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
 
@@ -3895,7 +3971,7 @@
       <span class="status-item" id="status-selection" style="display: none;"></span>
       <span class="status-item status-quality" id="status-quality" style="display: none;" title="Ergebnis der letzten Auto-Anordnung"></span>
       <span class="status-hint" id="status-hint">Tipp: Von Pin zu Pin ziehen verdrahtet. A ordnet die Schaltung automatisch an.</span>
-      <span class="status-item status-coords" id="status-coords">x 0 · y 0</span>
+      <span class="status-item status-coords" id="status-coords">X: 0 px, Y: 0 px</span>
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
 
@@ -8704,17 +8780,17 @@
           case 'modern':
           default:
             return {
-              bg: '#0d1117',
-              gridDot: '#1e2633',
-              gridMajor: '#2e3b4e',
-              gateFill: '#151a22',
-              gateStroke: '#3b4d66',
-              chassisFill: '#151a22',
-              chassisStroke: '#314259',
-              wireLow: '#33455a',
-              textLabel: '#cbd5e1',
-              leadLine: '#33455a',
-              shadowBlur: 6,
+              bg: '#1e1e1e',
+              gridDot: '#2d2d30',
+              gridMajor: '#3e3e42',
+              gateFill: '#252526',
+              gateStroke: '#4b5563',
+              chassisFill: '#252526',
+              chassisStroke: '#3f3f46',
+              wireLow: '#475569',
+              textLabel: '#e2e8f0',
+              leadLine: '#475569',
+              shadowBlur: 4,
               boxRadius: 4
             };
         }
@@ -18348,7 +18424,7 @@
         const el = document.getElementById('status-coords');
         if (!el || !world) return;
         const x = Math.round(world.x / GRID_SIZE) * GRID_SIZE, y = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
-        const text = `x ${x} · y ${y}`;
+        const text = `X: ${x} px, Y: ${y} px`;
         if (text !== this._statusCoordText) { this._statusCoordText = text; el.textContent = text; }
       }
 

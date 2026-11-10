@@ -19,7 +19,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | ID | Title | Git Branch | Status | Notes |
 |---|---|---|---|---|
 | **WISH-001** | Git Cleanup & Version Tiering (`main` = stable, `beta`, `alpha`) | `alpha` | 🟢 **Completed** | Removed external worktrees; established `main`, `beta`, `alpha` branches; tagged stable `v1.0.0-stable`. |
-| **WISH-002** | GUI Declutter & Modern Desktop App Redesign | `feat/gui-rework` | 🟡 **Pending** | Reduce clutter, clean toolbar/ribbon, modern desktop aesthetic (Photoshop / Paint.NET / Explorer). |
+| **WISH-002** | GUI Declutter & Modern Desktop App Redesign | `feat/gui-rework` | 🟢 **Completed** | Reduced clutter, streamlined 38px non-wrapping toolbar, modern desktop aesthetic (Photoshop / Paint.NET / Explorer), refined dark CAD palette, sleek browser-like document tabs, and clean status bar. |
 | **WISH-003** | UI Text, Icon Polish & Multi-Language Support (i18n) | `feat/i18n-icons` | 🟡 **Pending** | Internationalization (DE / EN), clean SVG icons, polished labels and tooltips. |
 | **WISH-004** | Rewiring Improvements | `feat/improve-rewiring` | 🟢 **Completed** | Strict orthogonal segment dragging (first/internal/last segments), collinear bend pruning, channel deconfliction to prevent parallel wire overlaps, right-click wire menu. |
 | **WISH-005** | Slider Press-and-Hold Drag Interaction | `feat/slider-drag` | 🟢 **Completed** | Hold left mouse button on sliders/potentiometers to smoothly drag across elements without losing focus. |
@@ -37,6 +37,13 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
   - Created `alpha` (integration/dev) and `beta` (staging) branches.
   - Tagged `main` as `v1.0.0-stable`.
   - Added `WISHLIST.md` tracker.
+- **WISH-002**:
+  - Streamlined primary toolbar to a fixed 38px non-wrapping height with clean button grouping and compact desktop padding.
+  - Modernized theme palette to professional neutral dark CAD tones (`#1e1e1e` canvas, `#252526` panels, `#2d2d30` elevated/hover, `#333333` borders) matching desktop standards like Photoshop, Paint.NET, and VS Code.
+  - Reworked Document Tabs (`.tabs-bar`): browser/IDE-style soft rounded tabs with seamless canvas integration for the active tab, clear dirty status indicator, and minimalist `+` new tab icon.
+  - Refined Left Sidebar (Toolbox / Component Palette): 220px compact width, native Windows/Explorer-style search box, and 32px height component cards with smooth instant hover feedback (eliminating disruptive jump/scale animations).
+  - Modernized Bottom Status Bar (`#statusbar`): Explorer/Paint.NET style with clear segmented dividers, mode indicator, component/wire counters, zoom percentage, and precise cursor coordinates (`X: ... px, Y: ... px`).
+  - Added custom sleek 7px dark scrollbars across the entire application.
 - **Wire Crossing Bridges Restoration**:
   - Restored original crossing jumper arches (enabled by default as in `11dfd45`).
 - **WISH-004**:
