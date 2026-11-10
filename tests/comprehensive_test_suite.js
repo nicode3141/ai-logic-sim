@@ -1115,6 +1115,67 @@ runTest('WISH-021', 'Signal colors (HIGH & LOW) configuration, enhanced presets 
   assertEqual(app.lowSignalColor, '#143823', 'App lowSignalColor reset to #143823');
 });
 
+runTest('WISH-022', 'Moving and reconnecting open wire ends (findOpenTerminusAt, drag polyline update & pin drop)', () => {
+  const circuit = new Circuit();
+  const sw = circuit.addComponent('SWITCH', 100, 100);
+  const led = circuit.addComponent('LED', 400, 100);
+
+  // 1. Create an open wire ending at a free world point
+  const openWire = circuit.addWire(sw.id, 0, null, null);
+  openWire.toPoint = { x: 260, y: 100 };
+
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, circuit);
+
+  // 2. Test findOpenTerminusAt hit detection
+  const hitExact = renderer.findOpenTerminusAt(260, 100, 12);
+  assertEqual(hitExact !== null, true, 'findOpenTerminusAt detects open end at exact coords');
+  assertEqual(hitExact.wire.id, openWire.id, 'Detected wire matches openWire');
+  assertEqual(hitExact.isEnd, true, 'Identified as wire end terminus');
+  assertEqual(hitExact.isStart, false, 'Not a wire start');
+
+  const hitNear = renderer.findOpenTerminusAt(265, 103, 12);
+  assertEqual(hitNear !== null, true, 'findOpenTerminusAt detects open end within tolerance');
+
+  const hitMiss = renderer.findOpenTerminusAt(350, 350, 12);
+  assertEqual(hitMiss, null, 'findOpenTerminusAt returns null for distant coords');
+
+  // 3. Move open end point and verify getWirePolyline dynamically routes to new position
+  openWire.toPoint.x = 280;
+  openWire.toPoint.y = 140;
+  const polylineAfterMove = renderer.getWirePolyline(openWire);
+  assertEqual(polylineAfterMove.length >= 2, true, 'Wire polyline has valid points');
+  const lastPoint = polylineAfterMove[polylineAfterMove.length - 1];
+  assertEqual(lastPoint.x, 280, 'Polyline ends at updated x coordinate 280');
+  assertEqual(lastPoint.y, 140, 'Polyline ends at updated y coordinate 140');
+
+  // 4. Test floating start wire terminus
+  const floatingStartWire = circuit.addWire(null, null, led.id, 0);
+  floatingStartWire.fromPoint = { x: 320, y: 100 };
+  const hitStart = renderer.findOpenTerminusAt(320, 100, 12);
+  assertEqual(hitStart !== null, true, 'findOpenTerminusAt detects open start terminus');
+  assertEqual(hitStart.isStart, true, 'Identified as wire start terminus');
+  assertEqual(hitStart.isEnd, false, 'Not an end terminus');
+
+  // 5. Connect open wire end by dropping on target pin
+  const pinPos = led.getPinWorldPos(false, 0);
+  const ledPin = renderer.findPinAt(pinPos.x, pinPos.y, 15);
+  assertEqual(ledPin !== null, true, `LED input pin located at (${pinPos.x}, ${pinPos.y})`);
+  assertEqual(ledPin.isOutput, false, 'LED pin is an input pin');
+
+  // Simulate dropping terminus onto ledPin
+  openWire.toCompId = ledPin.compId;
+  openWire.toPin = ledPin.pinIndex;
+  openWire.toPoint = null;
+
+  const polylineConnected = renderer.getWirePolyline(openWire);
+  const connectedEnd = polylineConnected[polylineConnected.length - 1];
+  assertEqual(openWire.toPoint, null, 'toPoint cleared when wire is connected');
+  assertEqual(connectedEnd.x, pinPos.x, `Connected wire ends exactly at LED pin x (${pinPos.x})`);
+  assertEqual(connectedEnd.y, pinPos.y, `Connected wire ends exactly at LED pin y (${pinPos.y})`);
+  assertEqual(renderer.findOpenTerminusAt(280, 140, 12), null, 'Old open terminus no longer detected after connection');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

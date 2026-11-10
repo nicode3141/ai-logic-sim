@@ -9787,8 +9787,10 @@
         this.hoveredWaypoint = null;
         this.hoveredMidpoint = null;
         this.hoveredSegment = null;
+        this.hoveredTerminus = null;
         this.activeWaypointDrag = null;
         this.activeWireDrag = null;
+        this.activeTerminusDrag = null;
         this.selectionBox = null;
         this.showWireBridges = true;
         this.showGateDelay = false;
@@ -10321,6 +10323,32 @@
         return junctions;
       }
 
+
+      findOpenTerminusAt(worldX, worldY, radius = 12) {
+        if (!this.circuit || !this.circuit.wires) return null;
+        const rSq = radius * radius;
+        const wires = this.selectedWireId
+          ? [this.circuit.wires.find(w => w.id === this.selectedWireId), ...this.circuit.wires.filter(w => w.id !== this.selectedWireId)].filter(Boolean)
+          : this.circuit.wires;
+
+        for (const wire of wires) {
+          if (!wire.toCompId && !wire.toWireId && wire.toPoint) {
+            const dx = worldX - wire.toPoint.x;
+            const dy = worldY - wire.toPoint.y;
+            if (dx * dx + dy * dy <= rSq) {
+              return { wire, isEnd: true, isStart: false, point: wire.toPoint, x: wire.toPoint.x, y: wire.toPoint.y };
+            }
+          }
+          if (!wire.fromCompId && !wire.fromWireId && wire.fromPoint) {
+            const dx = worldX - wire.fromPoint.x;
+            const dy = worldY - wire.fromPoint.y;
+            if (dx * dx + dy * dy <= rSq) {
+              return { wire, isEnd: false, isStart: true, point: wire.fromPoint, x: wire.fromPoint.x, y: wire.fromPoint.y };
+            }
+          }
+        }
+        return null;
+      }
 
       findWaypointAt(worldX, worldY, radius = 9) {
         const rSq = radius * radius;
@@ -10888,25 +10916,53 @@
 
           if (!w.toCompId && !w.toWireId && w.toPoint && pts.length > 0) {
             const endPt = pts[pts.length - 1];
+            const isHovered = this.hoveredTerminus && this.hoveredTerminus.wire.id === w.id && this.hoveredTerminus.isEnd;
+            const isDragging = this.activeTerminusDrag && this.activeTerminusDrag.wire.id === w.id && this.activeTerminusDrag.isEnd;
+            const isWireSel = this.selectedWireId === w.id;
+
             ctx.save();
+            if (isHovered || isDragging || isWireSel) {
+              ctx.beginPath();
+              ctx.arc(endPt.x, endPt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
+              ctx.strokeStyle = isDragging ? '#ffffff' : '#00b0ff';
+              ctx.lineWidth = isDragging ? 2.2 : 1.6;
+              ctx.shadowColor = isDragging ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 176, 255, 0.6)';
+              ctx.shadowBlur = 8;
+              ctx.stroke();
+            }
+
             ctx.beginPath();
-            ctx.arc(endPt.x, endPt.y, 3.8, 0, Math.PI * 2);
-            ctx.fillStyle = termColor;
+            ctx.arc(endPt.x, endPt.y, isDragging ? 5.2 : (isHovered ? 4.8 : 4), 0, Math.PI * 2);
+            ctx.fillStyle = isDragging ? '#00b0ff' : termColor;
             ctx.fill();
-            ctx.lineWidth = 1.3;
-            ctx.strokeStyle = '#080b10';
+            ctx.lineWidth = 1.4;
+            ctx.strokeStyle = isHovered ? '#ffffff' : '#080b10';
             ctx.stroke();
             ctx.restore();
           }
           if (!w.fromCompId && !w.fromWireId && w.fromPoint && pts.length > 0) {
             const startPt = pts[0];
+            const isHovered = this.hoveredTerminus && this.hoveredTerminus.wire.id === w.id && this.hoveredTerminus.isStart;
+            const isDragging = this.activeTerminusDrag && this.activeTerminusDrag.wire.id === w.id && this.activeTerminusDrag.isStart;
+            const isWireSel = this.selectedWireId === w.id;
+
             ctx.save();
+            if (isHovered || isDragging || isWireSel) {
+              ctx.beginPath();
+              ctx.arc(startPt.x, startPt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
+              ctx.strokeStyle = isDragging ? '#ffffff' : '#00b0ff';
+              ctx.lineWidth = isDragging ? 2.2 : 1.6;
+              ctx.shadowColor = isDragging ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 176, 255, 0.6)';
+              ctx.shadowBlur = 8;
+              ctx.stroke();
+            }
+
             ctx.beginPath();
-            ctx.arc(startPt.x, startPt.y, 3.8, 0, Math.PI * 2);
-            ctx.fillStyle = termColor;
+            ctx.arc(startPt.x, startPt.y, isDragging ? 5.2 : (isHovered ? 4.8 : 4), 0, Math.PI * 2);
+            ctx.fillStyle = isDragging ? '#00b0ff' : termColor;
             ctx.fill();
-            ctx.lineWidth = 1.3;
-            ctx.strokeStyle = '#080b10';
+            ctx.lineWidth = 1.4;
+            ctx.strokeStyle = isHovered ? '#ffffff' : '#080b10';
             ctx.stroke();
             ctx.restore();
           }
@@ -14761,6 +14817,7 @@
         this.draggingProbe = null;
         this.draggingWaypoint = null;
         this.draggingSegment = null;
+        this.draggingTerminus = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
         this.compMouseDownPos = null;
@@ -16623,6 +16680,26 @@
             return;
           }
 
+          if (this.engine.mode === 'edit') {
+            const hitTerminus = this.renderer.findOpenTerminusAt(world.x, world.y, 12);
+            if (hitTerminus) {
+              this.selectItem(null, hitTerminus.wire.id);
+              this.ensureWireWaypoints(hitTerminus.wire);
+              this.pushHistory(this.getActiveTab());
+              this.draggingTerminus = {
+                wire: hitTerminus.wire,
+                isEnd: hitTerminus.isEnd,
+                isStart: hitTerminus.isStart,
+                startX: hitTerminus.x,
+                startY: hitTerminus.y
+              };
+              this.renderer.activeTerminusDrag = this.draggingTerminus;
+              canvas.style.cursor = 'grabbing';
+              this.renderer.render();
+              return;
+            }
+          }
+
           if (this.engine.mode === 'edit' && this.renderer.selectedWireId) {
             const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
             if (hitWp && hitWp.wire.id === this.renderer.selectedWireId) {
@@ -16825,6 +16902,47 @@
             return;
           }
 
+          if (this.draggingTerminus && this.engine.mode === 'edit') {
+            const dragTerm = this.draggingTerminus;
+            const wire = dragTerm.wire;
+
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            let snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            let snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+
+            if (hitPin) {
+              if (dragTerm.isEnd && !hitPin.isOutput && (!wire.fromCompId || hitPin.compId !== wire.fromCompId)) {
+                snapX = hitPin.x;
+                snapY = hitPin.y;
+                this.renderer.hoveredPin = hitPin;
+              } else if (dragTerm.isStart && hitPin.isOutput && (!wire.toCompId || hitPin.compId !== wire.toCompId)) {
+                snapX = hitPin.x;
+                snapY = hitPin.y;
+                this.renderer.hoveredPin = hitPin;
+              } else {
+                this.renderer.hoveredPin = null;
+              }
+            } else {
+              this.renderer.hoveredPin = null;
+            }
+
+            snapX = Math.max(-5000, Math.min(5000, snapX));
+            snapY = Math.max(-5000, Math.min(5000, snapY));
+
+            if (dragTerm.isEnd && wire.toPoint) {
+              wire.toPoint.x = snapX;
+              wire.toPoint.y = snapY;
+            } else if (dragTerm.isStart && wire.fromPoint) {
+              wire.fromPoint.x = snapX;
+              wire.fromPoint.y = snapY;
+            }
+
+            this.renderer.render();
+            if (this.inspector) this.inspector.render(null, wire.id);
+            canvas.style.cursor = 'grabbing';
+            return;
+          }
+
           if (this.draggingWaypoint && this.engine.mode === 'edit') {
             const wpWire = this.draggingWaypoint.wire;
             const idx = this.draggingWaypoint.index;
@@ -16949,10 +17067,11 @@
           if (e.target === canvas) {
             const probe = this.renderer.findProbeAt(world.x, world.y);
             const pin = !probe ? this.renderer.findPinAt(world.x, world.y) : null;
-            const hitWp = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
-            const hitMid = (!probe && !pin && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
-            const hitSeg = (!probe && !pin && !hitWp && !hitMid && this.engine.mode === 'edit') ? this.renderer.findWireSegmentAt(world.x, world.y, 6) : null;
-            const wire = (!probe && !pin && !hitWp && !hitMid && !hitSeg) ? this.renderer.findWireAt(world.x, world.y) : null;
+            const hitTerminus = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findOpenTerminusAt(world.x, world.y, 12) : null;
+            const hitWp = (!probe && !pin && !hitTerminus && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
+            const hitMid = (!probe && !pin && !hitTerminus && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
+            const hitSeg = (!probe && !pin && !hitTerminus && !hitWp && !hitMid && this.engine.mode === 'edit') ? this.renderer.findWireSegmentAt(world.x, world.y, 6) : null;
+            const wire = (!probe && !pin && !hitTerminus && !hitWp && !hitMid && !hitSeg) ? this.renderer.findWireAt(world.x, world.y) : null;
 
             const prevProbe = this.renderer.hoveredProbeId;
             const prevPin = this.renderer.hoveredPin;
@@ -16960,6 +17079,7 @@
             const prevWp = this.renderer.hoveredWaypoint;
             const prevMid = this.renderer.hoveredMidpoint;
             const prevSeg = this.renderer.hoveredSegment;
+            const prevTerm = this.renderer.hoveredTerminus;
 
             this.renderer.hoveredProbeId = probe ? probe.id : null;
             this.renderer.hoveredPin = pin;
@@ -16967,6 +17087,7 @@
             this.renderer.hoveredWaypoint = hitWp;
             this.renderer.hoveredMidpoint = hitMid;
             this.renderer.hoveredSegment = hitSeg;
+            this.renderer.hoveredTerminus = hitTerminus;
 
             if (this.spacePressed) {
               canvas.style.cursor = 'grab';
@@ -16974,6 +17095,8 @@
               canvas.style.cursor = 'pointer';
             } else if (pin && this.engine.mode === 'edit') {
               canvas.style.cursor = 'crosshair';
+            } else if (hitTerminus) {
+              canvas.style.cursor = 'grab';
             } else if (hitWp) {
               canvas.style.cursor = 'grab';
             } else if (hitMid) {
@@ -16999,7 +17122,8 @@
               prevWire !== this.renderer.hoveredWireId ||
               prevWp !== hitWp ||
               prevMid !== hitMid ||
-              prevSeg !== hitSeg
+              prevSeg !== hitSeg ||
+              prevTerm !== hitTerminus
             ) {
               this.renderer.render();
             }
@@ -17029,6 +17153,36 @@
               this.refreshAll();
             }
             this.isMouseDraggingWire = false;
+          }
+
+          if (this.draggingTerminus) {
+            const dragTerm = this.draggingTerminus;
+            const wire = dragTerm.wire;
+            this.draggingTerminus = null;
+            this.renderer.activeTerminusDrag = null;
+            this.renderer.hoveredPin = null;
+
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            if (hitPin) {
+              if (dragTerm.isEnd && !hitPin.isOutput && (!wire.fromCompId || hitPin.compId !== wire.fromCompId)) {
+                wire.toCompId = hitPin.compId;
+                wire.toPin = hitPin.pinIndex;
+                wire.toPoint = null;
+                wire.toWireId = null;
+              } else if (dragTerm.isStart && hitPin.isOutput && (!wire.toCompId || hitPin.compId !== wire.toCompId)) {
+                wire.fromCompId = hitPin.compId;
+                wire.fromPin = hitPin.pinIndex;
+                wire.fromPoint = null;
+                wire.fromWireId = null;
+              }
+            }
+
+            if (wire) {
+              this.cleanWireWaypoints(wire);
+              this.circuit.syncImmediateWireLevels();
+            }
+            this.commitHistory(this.getActiveTab());
+            this.refreshAll();
           }
 
           if (this.draggingWaypoint) {
@@ -17448,6 +17602,14 @@
             this.selectItem(null, null, hitProbe.id);
             this.highlightInspector();
             this.showProbeContextMenu(e.clientX, e.clientY, hitProbe);
+            return;
+          }
+
+          const hitTerminus = this.engine.mode === 'edit' ? this.renderer.findOpenTerminusAt(world.x, world.y, 12) : null;
+          if (hitTerminus) {
+            this.selectItem(null, hitTerminus.wire.id);
+            this.highlightInspector();
+            this.showWireContextMenu(e.clientX, e.clientY, hitTerminus.wire, world);
             return;
           }
 

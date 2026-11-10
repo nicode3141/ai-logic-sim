@@ -39,10 +39,24 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-019** | Saubere Pin-Labels ohne Überlappungen | `alpha` | 🟢 **Completed** | Entfernung redundanter, kollidierender Pin-Texte (`OUT`, `IN`, `CLK`) auf einfachen Bauteilen (Schalter, Taster, Taktgeber, Konstanten, Lampen); saubere Ausrichtung, Polsterung und Schrift für komplexe IC-Module. |
 | **WISH-020** | Meldeleuchten / Lampen als reines Kreis-mit-X-Symbol & sattere Leuchtfarben | `alpha` | 🟢 **Completed** | Lampen (LED) werden nach DIN EN 60617 / IEC als reines Kreissymbol mit Diagonalkreuz ohne rechteckigen Chassis-Kasten gezeichnet; sattere und leuchtstärkere Farbpalette (vibrant green, red, yellow, blue) mit hohem Kontrast im Ein- und Aus-Zustand. |
 | **WISH-021** | Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker | `alpha` | 🟢 **Completed** | HIGH (1) und LOW (0) Signalfarben konfigurierbar in Renderer, UI und CSS; 8 neue abgestimmte Preset-Paare mit Leuchteffekten; Live-Vorschauleiste; flüssige Echtzeit-Farbwahl (60fps) mit synchronisierten Hex-Feldern und Standard-Reset. |
+| **WISH-022** | Offene Leitungs-Enden verschieben & interaktiv verbinden | `alpha` | 🟢 **Completed** | Freie Leitungs-Endpunkte (offene Drähte) lassen sich per Maus greifen, im Raster verschieben und direkt auf Bauteil-Pins fallen lassen, um die Verbindung herzustellen. Visuelles Feedback mit Fang-Aura, Drag-Cursor und Kontextmenü. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-022 (Offene Leitungs-Enden verschieben & interaktiv verbinden)**:
+  - **Interaktives Greifen & Verschieben von offenen Leitungs-Enden**:
+    - `CanvasRenderer.findOpenTerminusAt(x, y)` erkennt offene Endpunkte (`toPoint` und freie `fromPoint`) im Fangradius (12px), bevorzugt die aktuell ausgewählte Leitung.
+    - Freie Enden werden im Edit-Modus mit einem interaktiven Cyan-Ring (`r = 6.5px`) hervorgehoben und erhalten beim Hovern den `grab`-Cursor.
+    - Beim Ziehen (`mousedown` + Drag) wechselt der Cursor zu `grabbing`, und ein leuchtender Halo-Ring (`r = 8px`) folgt der Maus unter Einhaltung des Rasters (`GRID_SIZE = 20`) und der Arbeitsflächen-Grenzen `[-5000, 5000]`.
+    - Leitungs-Polylinie und Wegpunkte aktualisieren sich in Echtzeit bei jeder Mausbewegung.
+  - **Automatisches Verbinden beim Ablegen auf Bauteil-Pins (Snap & Connect)**:
+    - Wird das offene Ende über einem gültigen Bauteil-Pin losgelassen (`mouseup`), wird die Leitung automatisch an den Pin angeschlossen (`toCompId = pin.compId`, `toPin = pin.pinIndex`, `toPoint = null`).
+    - Wegpunkte werden automatisch begradigt (`cleanWireWaypoints`) und Signalpegel sofort synchronisiert.
+    - Änderung wird in der Historie (Undo/Redo) protokolliert.
+  - **Kontextmenü & Inspector**:
+    - Rechtsklick auf ein offenes Leitungsende öffnet sofort das Leitungs-Kontextmenü zur Inspektion, Pegelanzeige und Begradigung.
 
 - **WISH-021 (Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker)**:
   - **Beide Signalpegel (HIGH & LOW) konfigurierbar**:
