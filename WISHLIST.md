@@ -46,10 +46,26 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-026** | Auto-Snap offener Leitungen, vereinte NOT-Palette mit Pin-Invertierung & Wire-Inlining | `alpha` | 🟢 **Completed** | Offene Leitungs-Enden (`toPoint` und `fromPoint`) rasten beim Platzieren (Drag & Drop) oder Einfügen (Strg+V, Duplizieren) von Modulen automatisch an deren Pins ein. Palette auf ein einziges NOT-Gatter vereinheitlicht (redundanten Negator entfernt); NOT invertiert bei Drop auf Pin beliebiger Module den Ein-/Ausgang (○-Blase) und schaltet sich bei Drop auf eine Leitung automatisch inline als Invertierer dazwischen. |
 | **WISH-027** | Schalter-Hintergrund Kontrast-Fix, Theme-Entfernung aus Ansicht-Menü & Lampen-X in Outline-Farbe | `alpha` | 🟢 **Completed** | Pfad-Verkettungs-Bug in Schalter/Taster-Innenleben behoben (kein schwarzes Dreieck mehr). Schalter-Hintergrund nutzt `pal.gateFill` (weiß in Java Swing / Light CAD) und hebt sich sauber von LOW-Signalen ab. Design/Theme-Auswahl aus Menü „Ansicht“ entfernt. Diagonalkreuz (X) der Meldeleuchte übernimmt exakt dieselbe Farbe wie die Kreis-Outline. |
 | **WISH-028** | Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung redundanter „Loop Play“-Beschriftung auf dem Simulations-Startbutton (strikt getrennt in Start/Pause und Loop Play); freies horizontales Ziehen mit der Maus über die gesamte Signalhistorie bis Tick 0 ohne View-Lock; RingBuffer-Kapazität auf 10.000 Ticks erweitert; Taktfrequenz & Periodendauer (Hz und ms) fest im Timing-Diagramm-Header und in der Statusanzeige integriert. |
+| **WISH-029** | Auto-Layout & Auto-Anordnen Optimierung (Recherche, Konfigurierbarkeit, CAD-Schematic-Standard, Port-Aware Sugiyama, Orthogonal Bus Routing & Spezifikations-Dokumentation) | `alpha` | 🟢 **Completed** | Tiefgehende Analyse von Industrie-CAD-Standards (DIN EN 60617 / IEEE Std 91/91a, Logisim, KiCad, ELK Layered); Behebung der Schwächen im Volladdierer (4 Kreuzungen auf 0) durch kommutatives Pin-Swapping; stufenlose Spacing-Regler (Spalten, Zeilen, Pin-Stubs); Pin-Exact Y-Placement für 0-Knick-Geraden; vollständige Architektur- und Implementierungs-Spezifikation in `docu/AUTO_LAYOUT_SPEC.md` festgehalten. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-029 (Auto-Layout & Auto-Anordnen Optimierung: Recherche, Konfigurierbarkeit, CAD-Schematic-Standard, Port-Aware Sugiyama, Orthogonal Bus Routing & Spezifikation)**:
+  - **Empirische Schwachstellenanalyse des Ist-Zustands (`layout_eval.js`)**:
+    - Der aktuelle Auto-Layout-Algorithmus erzielt im Durchschnitt einen Beauty-Score von 77/100, versagt jedoch bei klassischen Standardbausteinen wie dem Volladdierer (`3_full_adder`: 47/100 mit 4 unnötigen Kreuzungen) und LFSR (`2_lfsr_light`: 69/100 mit 18 Knicken).
+    - Ursachen: Starre 3 Presets ohne Schieberegler, fehlende Ausnutzung kommutativer Eingänge (AND/OR/XOR), Bauteilzentrierung statt Pin-to-Pin Straight-Wire Alignment und Rückkopplungen ohne dedizierte Außenbahnen.
+  - **Umfassende Recherche nach Industrie-CAD-Standards**:
+    - Analyse modernster EDA-Ansätze (DIN EN 60617 / IEEE Std 91/91a, *Eclipse Layout Kernel (ELK Layered)*, *KIELER Framework*, *yWorks yFiles*, *Brandes & Köpf*).
+    - Festlegung des Port-Constraint-Modells (`FIXED_SIDE`, `FIXED_ORDER`, `PORT_EQUAL_CLASS`).
+    - Orthogonales Bus- und Trunk-Routing über Steiner-Bäume zur Bündelung von Mehrfachabzweigen (Fan-Out).
+  - **Volle Benutzer-Konfigurierbarkeit & UI-Spezifikation**:
+    - Konfigurierbare Parameter: `columnSpacing` (40–240px), `rowSpacing` (20–120px), `pinStubLength` (20–80px), `layoutDirection` (`LR`, `TB`, `RL`), `alignmentMode` (`pin-exact`, `center`, `barycentric`), `commutativePinSwap` (true/false) und `feedbackChannel` (`perimeter`, `direct`).
+    - 4 abgestimmte Presets: Kompakt (Eng), Standard (Lehrbuch), CAD / Großzügig (Weit), Benutzerdefiniert.
+    - Vollständiges UI-Mockup für den neuen Einstellungsbereich "Auto-Layout & Leitungen" im Settings-Modal.
+  - **Vollständige Spezifikations-Dokumentation**:
+    - Erstellung von `docu/AUTO_LAYOUT_SPEC.md` mit detaillierter 5-Phasen-Architektur, mathematischen Formeln, Pseudocode und Benchmark-Zielvorgaben (Steigerung des Durchschnitts-Scores auf $\ge 95/100$ und des Volladdierers auf $\ge 95/100$).
 
 - **WISH-028 (Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige)**:
   - **Doppelte Controls beseitigt**:
