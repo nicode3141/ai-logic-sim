@@ -48,10 +48,30 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-028** | Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung redundanter „Loop Play“-Beschriftung auf dem Simulations-Startbutton (strikt getrennt in Start/Pause und Loop Play); freies horizontales Ziehen mit der Maus über die gesamte Signalhistorie bis Tick 0 ohne View-Lock; RingBuffer-Kapazität auf 10.000 Ticks erweitert; Taktfrequenz & Periodendauer (Hz und ms) fest im Timing-Diagramm-Header und in der Statusanzeige integriert. |
 | **WISH-029** | Auto-Layout & Auto-Anordnen Optimierung (Recherche, Konfigurierbarkeit, CAD-Schematic-Standard, Port-Aware Sugiyama, Orthogonal Bus Routing & Spezifikations-Dokumentation) | `alpha` | 🟢 **Completed** | Tiefgehende Analyse von Industrie-CAD-Standards (DIN EN 60617 / IEEE Std 91/91a, Logisim, KiCad, ELK Layered); Behebung der Schwächen im Volladdierer (4 Kreuzungen auf 0) durch kommutatives Pin-Swapping; stufenlose Spacing-Regler (Spalten, Zeilen, Pin-Stubs); Pin-Exact Y-Placement für 0-Knick-Geraden; vollständige Architektur- und Implementierungs-Spezifikation in `docu/AUTO_LAYOUT_SPEC.md` festgehalten. |
 | **WISH-030** | Taster (BUTTON) Hebel-Geometrie & Stößel-Refactor, Beseitigung verwirrender 256/256 Ticks Kapazitäts-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung der alten verwirrenden Kapazitätsanzeige `256/256 Ticks` im Impulsdiagramm (saubere Kanal- und Gesamttick-Anzeige ohne Bruch oder Limit-Verwirrung); vollständige Überarbeitung des Taster-Hebels (`BUTTON`): im Ruhezustand saubere Rastung auf `0` (botY), im gedrückten Zustand saubere Kontaktierung von `1` (topY), DIN EN 60617 Stößel und Betätigungstaste exakt auf Hebelmitte ohne Kollisionen mit Kontakt-Pins oder Beschriftung. |
+| **WISH-031** | Grundlegendes Schema der Themes überarbeiten (Kohärentes 5-Stufen Surface Elevation Modell, neutrales Schiefergrau für LOW-Signale statt Schlammgrün, optische Linsen & Radial-Illumination für Meldeleuchten) | `feat/theme-system-overhaul` | 🟢 **Completed** | Vollständiges Redesign aller 5 Themes (`modern`, `pitch_black`, `java_swing`, `blueprint`, `light_cad`) nach professionellen EDA/CAD-Standards. Inaktive Leitungen (LOW) als neutrales, gestochen scharfes Schiefergrau (`#38465c` / `#52525b` / `#64748b`) statt unleserlichem Sumpfgrün (`#143823`); Meldeleuchten (LED/Lampe) im Ruhezustand (0) als edle unbeleuchtete Linsenfassung im Display-Well statt grellem Fadenkreuz-Zielsucher; im aktiven Zustand (1) spektakuläre Radial-Glanzausleuchtung mit Licht-Bloom; Migration und Bereinigung alter gespeicherter Schlammfarben. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-031 (Grundlegendes Schema der Themes überarbeiten: Kohärentes 5-Stufen Surface Elevation Modell, neutrales Schiefergrau für LOW-Signale statt Schlammgrün, optische Linsen & Radial-Illumination für Meldeleuchten)**:
+  - **Neues 5-Stufen Surface Elevation System über alle 5 Themes**:
+    - `L0 Canvas Background`: Modern Dark (`#10141d`), Pitch Black OLED (`#000000`), Blueprint (`#071527`), Clean Light CAD (`#f8fafc`), Classic Desktop Java Swing (`#ffffff`).
+    - `L1 Module Background`: Einheitliche, zurückgesetzte IC- und Sub-Circuit-Container (`#0e131d` / `#09090b` / `#071527` / `#f1f5f9` / `#ece9d8`).
+    - `L2 Gates & Chassis`: Erhabene technische Arbeitsflächen für Gatter und Bedienelemente (`#182030` / `#09090b` / `#0c233f` / `#ffffff`).
+    - `L3 Display Wells & Linsen`: Tief liegende optische Wannen für 7-Segment, Zähler und Meldeleuchten (`#090d14` / `#000000` / `#030b14` / `#0f172a`).
+    - `L4 Overlays & Signals`: Hochkontrastige Interaktionselemente und Leuchtsignale.
+  - **Neutrales Schiefergrau für inaktive Leitungen (LOW = 0)**:
+    - Beseitigung des alten, schlammig-düsteren Grüntons (`#143823`) auf inaktiven Leitungen und in den Preset-Paletten.
+    - LOW-Signale werden standardmäßig in präzisem, ruhigem Schiefergrau (`#38465c` in Modern, `#52525b` in OLED, `#255994` in Blueprint, `#64748b` in Light CAD, `#555555` in Java Swing) gezeichnet. Dadurch heben sich aktive HIGH-Signale (1) mit spektakulärer Leuchtkraft vom Schaltplan ab.
+    - Automatische Migration in `loadSettings`: Zuvor in `localStorage` gespeicherte alte `#143823`-Werte werden beim Laden automatisch auf `null` bereinigt, sodass bestehende Schaltungen sofort das neue Theme-Design nutzen.
+  - **Meldeleuchten (LED/Lampe) nach DIN EN 60617 / IEC**:
+    - **Im AUS-Zustand (0)**: Das Innere der Lampe ist keine braun-schlammige Masse mehr und das Fadenkreuz-Diagonalkreuz schreit nicht mehr mit neonfarbener Sättigung. Stattdessen bildet die unbeleuchtete Lampe eine dezente, edle Linsenwanne (`displayWellFill`) mit präziser Einfassung.
+    - **Im EIN-Zustand (1)**: Vollflächige Radial-Illumination mit hellem Glanzzentrum (`#ffffff` Kern zu Sättigung), weichem Licht-Bloom (18px) und hinterleuchtetem Diagonalkreuz. Der Kontrast zwischen 0 und 1 ist nun unmittelbar und fotometrisch überzeugend.
+  - **Timing-Diagramm (Analyzer) & Messpunkte (Probes)**:
+    - Hintergrund und Gutter des Impulsdiagramms sind exakt auf das gewählte Theme abgestimmt (`#10141d` mit `#161d2a` Header).
+    - Messpunkt-Pills (`Probes`) stellen den Pegel `0` auf Leitungen in ruhiger, gut lesbarer Schrift (`pal.textMuted`) dar, statt in unleserlichem Schlammgrün.
+  - **Test-Abdeckung**: Neuer Test `[WISH-031]` in `tests/comprehensive_test_suite.js`, alle 50 Tests und 6 Suiten bestehen fehlerfrei.
 
 - **WISH-030 (Taster (BUTTON) Hebel-Geometrie & Stößel-Refactor, Beseitigung verwirrender 256/256 Ticks Kapazitäts-Anzeige)**:
   - **Beseitigung von `256/256 Ticks`**:
