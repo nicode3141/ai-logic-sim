@@ -1739,6 +1739,56 @@ runTest('WISH-030', 'Pushbutton (Taster) lever geometry & DIN EN 60617 actuator 
   assertEqual(countLabel.textContent, '(1 Kanal | 256 Ticks)', 'Count label shows clean single channel with tick count, no /256 capacity fraction');
 });
 
+runTest('WISH-031', 'Overhauled theme system, cohesive surface elevation, neutral slate wireLow, and optical lamp illumination', () => {
+  const circuit = new Circuit();
+  const canvas = createMockElem('canvas');
+  const renderer = new CanvasRenderer(canvas, circuit);
+
+  // 1. Verify neutral slate wireLow across dark/OLED/Blueprint/Light CAD themes
+  renderer.appTheme = 'modern';
+  const palModern = renderer.getThemePalette();
+  assertEqual(palModern.wireLow, '#38465c', 'Modern theme wireLow is crisp neutral slate #38465c');
+  assertEqual(palModern.bg, '#10141d', 'Modern theme background is deep charcoal slate #10141d');
+  assertEqual(palModern.leadLine, '#38465c', 'Modern theme leadLine matches neutral slate');
+
+  renderer.appTheme = 'pitch_black';
+  const palOled = renderer.getThemePalette();
+  assertEqual(palOled.wireLow, '#52525b', 'OLED theme wireLow is clean zinc slate #52525b');
+
+  renderer.appTheme = 'light_cad';
+  const palLight = renderer.getThemePalette();
+  assertEqual(palLight.wireLow, '#64748b', 'Light CAD wireLow is crisp drafting slate #64748b');
+
+  // 2. Verify signal presets use neutral slate low lines (never muddy green)
+  for (const preset of SIGNAL_COLOR_PRESETS) {
+    assertEqual(preset.low !== '#143823', true, `Preset ${preset.id} does not use muddy swamp green`);
+    assertEqual(preset.low.startsWith('#3') || preset.low.startsWith('#4') || preset.low.startsWith('#1'), true, `Preset ${preset.id} uses clean slate`);
+  }
+
+  // 3. Verify lamp unlit state uses optical lens well (displayWellFill) rather than dirty sludge
+  const led = circuit.addComponent('LED', 100, 100, { color: 'green' });
+  led.inputs[0].value = 0; // OFF
+  let lastFill = null;
+  const origFill = mockCtx.fill;
+  mockCtx.fill = () => {
+    lastFill = mockCtx.fillStyle;
+    origFill.call(mockCtx);
+  };
+  renderer.appTheme = 'modern';
+  renderer.drawLampComponent(mockCtx, led, false);
+  mockCtx.fill = origFill;
+  assertEqual(lastFill, palModern.displayWellFill, 'Unlit lamp fill uses clean optical display well instead of dirty green sludge');
+
+  // 4. Verify settings migration sanitizes legacy #143823 in localStorage
+  const app = new LogicSimApp();
+  localStorage.setItem('logicsim_user_settings', JSON.stringify({
+    lowSignalColor: '#143823'
+  }));
+  app.loadSettings();
+  assertEqual(app.lowSignalColor, null, 'Legacy muddy low color #143823 successfully sanitized to null');
+  assertEqual(app.renderer.lowSignalColor, null, 'Renderer lowSignalColor successfully sanitized to null');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

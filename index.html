@@ -6,18 +6,18 @@
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
     :root, [data-theme="modern"] {
-      --bg-deep: #1e1e1e;
-      --bg-canvas: #1e1e1e;
-      --bg-surface: #252526;
-      --bg-panel: #252526;
-      --bg-panel-alt: #1f1f1f;
-      --bg-elevated: #2d2d30;
-      --bg-hover: #37373d;
-      --border-dim: #333333;
-      --border-bright: #3e3e42;
+      --bg-deep: #10141d;
+      --bg-canvas: #10141d;
+      --bg-surface: #182030;
+      --bg-panel: #161d2a;
+      --bg-panel-alt: #131822;
+      --bg-elevated: #1e2638;
+      --bg-hover: #26334a;
+      --border-dim: #253144;
+      --border-bright: #334155;
       --text-main: #f1f5f9;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
       --accent-green: #10b981;
       --accent-green-dim: rgba(16, 185, 129, 0.16);
       --accent-blue: #0ea5e9;
@@ -27,8 +27,8 @@
       --accent-amber-dim: rgba(245, 158, 11, 0.16);
       --accent-red: #ef4444;
       --accent-red-dim: rgba(239, 68, 68, 0.16);
-      --wire-low: #475569;
-      --wire-high: #10b981;
+      --wire-low: #38465c;
+      --wire-high: #00ff66;
       --btn-radius: 4px;
       --card-radius: 4px;
       --control-radius: 4px;
@@ -1743,7 +1743,7 @@
       box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
       --preview-high: #00ff66;
       --preview-high-glow: rgba(0, 255, 102, 0.7);
-      --preview-low: #143823;
+      --preview-low: #38465c;
     }
     .preview-channel {
       flex: 1;
@@ -4550,8 +4550,8 @@
                     <span>LOW (Pegel 0)</span>
                   </label>
                   <div class="picker-input-group">
-                    <input type="color" id="settings-color-low" class="smooth-color-swatch" value="#143823" title="LOW Signalfarbe flüssig wählen" />
-                    <input type="text" id="settings-hex-low" class="smooth-hex-input" value="#143823" maxlength="7" spellcheck="false" title="Hexadezimalcode" />
+                    <input type="color" id="settings-color-low" class="smooth-color-swatch" value="#38465c" title="LOW Signalfarbe flüssig wählen" />
+                    <input type="text" id="settings-hex-low" class="smooth-hex-input" value="#38465c" maxlength="7" spellcheck="false" title="Hexadezimalcode" />
                   </div>
                 </div>
               </div>
@@ -5592,13 +5592,13 @@
     };
 
     const SIGNAL_COLOR_PRESETS = [
-      { id: 'cyber_green',   name: 'Cyber Grün',    nameEn: 'Cyber Green',   high: '#00ff66', low: '#143823', highGlow: 'rgba(0, 255, 102, 0.7)' },
-      { id: 'electric_cyan', name: 'Cyber Cyan',    nameEn: 'Cyber Cyan',    high: '#00e5ff', low: '#0e2a3e', highGlow: 'rgba(0, 229, 255, 0.7)' },
-      { id: 'amber_gold',    name: 'Bernstein',     nameEn: 'Amber Gold',    high: '#ffb300', low: '#3d280e', highGlow: 'rgba(255, 179, 0, 0.7)' },
-      { id: 'alert_red',     name: 'Alarm Rot',     nameEn: 'Alert Red',     high: '#ff1744', low: '#3f1015', highGlow: 'rgba(255, 23, 68, 0.7)' },
-      { id: 'synth_purple',  name: 'Synthwave',     nameEn: 'Synthwave',     high: '#e040fb', low: '#2e123d', highGlow: 'rgba(224, 64, 251, 0.7)' },
-      { id: 'blueprint_sky', name: 'Blueprint',     nameEn: 'Blueprint',     high: '#38bdf8', low: '#132c4a', highGlow: 'rgba(56, 189, 248, 0.7)' },
-      { id: 'pure_white',    name: 'Monokai Weiß',  nameEn: 'Pure White',    high: '#ffffff', low: '#334155', highGlow: 'rgba(255, 255, 255, 0.7)' },
+      { id: 'cyber_green',   name: 'Cyber Grün',    nameEn: 'Cyber Green',   high: '#00ff66', low: '#38465c', highGlow: 'rgba(0, 255, 102, 0.7)' },
+      { id: 'electric_cyan', name: 'Cyber Cyan',    nameEn: 'Cyber Cyan',    high: '#00e5ff', low: '#38465c', highGlow: 'rgba(0, 229, 255, 0.7)' },
+      { id: 'amber_gold',    name: 'Bernstein',     nameEn: 'Amber Gold',    high: '#ffb300', low: '#38465c', highGlow: 'rgba(255, 179, 0, 0.7)' },
+      { id: 'alert_red',     name: 'Alarm Rot',     nameEn: 'Alert Red',     high: '#ff1744', low: '#38465c', highGlow: 'rgba(255, 23, 68, 0.7)' },
+      { id: 'synth_purple',  name: 'Synthwave',     nameEn: 'Synthwave',     high: '#e040fb', low: '#38465c', highGlow: 'rgba(224, 64, 251, 0.7)' },
+      { id: 'blueprint_sky', name: 'Blueprint',     nameEn: 'Blueprint',     high: '#38bdf8', low: '#1e3a5f', highGlow: 'rgba(56, 189, 248, 0.7)' },
+      { id: 'pure_white',    name: 'Monokai Weiß',  nameEn: 'Pure White',    high: '#ffffff', low: '#38465c', highGlow: 'rgba(255, 255, 255, 0.7)' },
       { id: 'classic_ttl',   name: 'Klassisch TTL',  nameEn: 'Classic TTL',   high: '#00e676', low: '#475569', highGlow: 'rgba(0, 230, 118, 0.65)' }
     ];
 
@@ -5632,10 +5632,10 @@
     const GATE_DELAY_MAX = 20;
 
     const LED_COLORS = {
-      green:  { on: '#00ff66', glow: 'rgba(0, 255, 102, 0.75)', off: '#0f381e', border: '#00cc44', label: 'Grün' },
-      red:    { on: '#ff1744', glow: 'rgba(255, 23, 68, 0.75)',  off: '#420e14', border: '#d50000', label: 'Rot' },
-      yellow: { on: '#ffee00', glow: 'rgba(255, 238, 0, 0.75)',  off: '#423706', border: '#ffc400', label: 'Gelb' },
-      blue:   { on: '#00b4ff', glow: 'rgba(0, 180, 255, 0.75)',  off: '#0b2b4d', border: '#0091ea', label: 'Blau' }
+      green:  { on: '#00ff66', glow: 'rgba(0, 255, 102, 0.75)', off: '#0d1a12', border: '#00cc44', label: 'Grün' },
+      red:    { on: '#ff1744', glow: 'rgba(255, 23, 68, 0.75)',  off: '#1f090c', border: '#d50000', label: 'Rot' },
+      yellow: { on: '#ffee00', glow: 'rgba(255, 238, 0, 0.75)',  off: '#1f1904', border: '#ffc400', label: 'Gelb' },
+      blue:   { on: '#00b4ff', glow: 'rgba(0, 180, 255, 0.75)',  off: '#061424', border: '#0091ea', label: 'Blau' }
     };
 
     const PROBE_PALETTE = [
@@ -10011,7 +10011,7 @@
               gateStroke: '#000000',
               chassisFill: '#ece9d8',
               chassisStroke: '#000000',
-              moduleFill: '#ffffff',
+              moduleFill: '#ece9d8',
               moduleStroke: '#808080',
               moduleTitle: '#000080',
               moduleText: '#000000',
@@ -10021,7 +10021,7 @@
               segOff: '#222222',
               pinFill: '#ffffff',
               pinStroke: '#000000',
-              wireLow: '#222222',
+              wireLow: '#555555',
               textLabel: '#000000',
               textMuted: '#222222',
               leadLine: '#000000',
@@ -10079,40 +10079,40 @@
               segOff: '#1e293b',
               pinFill: '#f1f5f9',
               pinStroke: '#0f172a',
-              wireLow: '#334155',
+              wireLow: '#64748b',
               textLabel: '#0f172a',
-              textMuted: '#334155',
-              leadLine: '#475569',
+              textMuted: '#475569',
+              leadLine: '#64748b',
               shadowBlur: 0,
               boxRadius: 4
             };
           case 'modern':
           default:
             return {
-              bg: '#1e1e1e',
-              gridDot: '#2d2d30',
-              gridMajor: '#3e3e42',
-              gridCrosshair: 'rgba(14, 165, 233, 0.22)',
-              gridBorder: 'rgba(14, 165, 233, 0.35)',
-              gridText: 'rgba(14, 165, 233, 0.75)',
-              gateFill: '#252526',
-              gateStroke: '#64748b',
-              chassisFill: '#252526',
-              chassisStroke: '#475569',
-              moduleFill: '#18181b',
-              moduleStroke: '#334155',
+              bg: '#10141d',
+              gridDot: '#1e2638',
+              gridMajor: '#2c3b54',
+              gridCrosshair: 'rgba(56, 189, 248, 0.22)',
+              gridBorder: 'rgba(56, 189, 248, 0.35)',
+              gridText: 'rgba(56, 189, 248, 0.75)',
+              gateFill: '#182030',
+              gateStroke: '#3b4d6b',
+              chassisFill: '#161d2a',
+              chassisStroke: '#334155',
+              moduleFill: '#0e131d',
+              moduleStroke: '#2c3b52',
               moduleTitle: '#94a3b8',
-              moduleText: '#cbd5e1',
+              moduleText: '#f1f5f9',
               moduleSub: '#64748b',
-              displayWellFill: '#090d13',
+              displayWellFill: '#090d14',
               displayWellStroke: '#1e293b',
-              segOff: '#1e2633',
-              pinFill: '#1e293b',
-              pinStroke: '#64748b',
-              wireLow: '#64748b',
+              segOff: '#151c28',
+              pinFill: '#182030',
+              pinStroke: '#475569',
+              wireLow: '#38465c',
               textLabel: '#f1f5f9',
-              textMuted: '#94a3b8',
-              leadLine: '#475569',
+              textMuted: '#8294ad',
+              leadLine: '#38465c',
               shadowBlur: 4,
               boxRadius: 4
             };
@@ -10780,7 +10780,7 @@
           ctx.textAlign = 'left';
           ctx.fillText(nameStr, bx + 7.5, by + 10);
 
-          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00ff66') : (this.lowSignalColor || pal.wireLow);
+          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00ff66') : (pal.textMuted || '#8294ad');
           ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 4.5, by + 10.5);
@@ -11346,16 +11346,27 @@
             ctx.shadowColor = cObj.glow || cObj.on;
             ctx.shadowBlur = 18;
           }
-          ctx.fillStyle = cObj.on;
+          if (typeof ctx.createRadialGradient === 'function') {
+            const grad = ctx.createRadialGradient(cx - 3, cy - 3, 2, cx, cy, r);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.35, cObj.on);
+            grad.addColorStop(1, cObj.border || cObj.on);
+            ctx.fillStyle = grad;
+          } else {
+            ctx.fillStyle = cObj.on;
+          }
+          ctx.fill();
         } else {
           ctx.shadowBlur = 0;
-          ctx.fillStyle = cObj.off;
+          ctx.fillStyle = pal.displayWellFill || '#090d14';
+          ctx.fill();
         }
-        ctx.fill();
         ctx.shadowBlur = 0;
 
         // 4. Circle Stroke
-        const outlineColor = isOn ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') : (cObj.border || pal.chassisStroke);
+        const outlineColor = isOn 
+          ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') 
+          : (cObj.border || pal.chassisStroke);
         ctx.lineWidth = 2;
         ctx.strokeStyle = outlineColor;
         ctx.stroke();
@@ -11825,29 +11836,46 @@
           case 'LED': {
             const isOn = comp.inputs[0]?.value === 1;
             const cObj = LED_COLORS[comp.params.color] || LED_COLORS.green;
+            const lr = 13;
+            const lcx = cx + 4;
 
             ctx.save();
             ctx.beginPath();
-            ctx.arc(cx + 4, cy, 13, 0, Math.PI * 2);
+            ctx.arc(lcx, cy, lr, 0, Math.PI * 2);
             if (isOn) {
-              ctx.shadowColor = cObj.on;
-              ctx.shadowBlur = 16;
-              ctx.fillStyle = cObj.on;
+              if (this.appTheme !== 'java_swing' && this.appTheme !== 'pitch_black') {
+                ctx.shadowColor = cObj.glow || cObj.on;
+                ctx.shadowBlur = 16;
+              }
+              if (typeof ctx.createRadialGradient === 'function') {
+                const grad = ctx.createRadialGradient(lcx - 3, cy - 3, 2, lcx, cy, lr);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.35, cObj.on);
+                grad.addColorStop(1, cObj.border || cObj.on);
+                ctx.fillStyle = grad;
+              } else {
+                ctx.fillStyle = cObj.on;
+              }
+              ctx.fill();
             } else {
-              ctx.fillStyle = cObj.off;
+              ctx.fillStyle = pal.displayWellFill || '#090d14';
+              ctx.fill();
             }
-            ctx.fill();
-            const outlineColor = isOn ? '#ffffff' : (cObj.border || pal.chassisStroke);
+            ctx.shadowBlur = 0;
+
+            const outlineColor = isOn 
+              ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') 
+              : (cObj.border || pal.chassisStroke);
             ctx.lineWidth = 2;
             ctx.strokeStyle = outlineColor;
             ctx.stroke();
 
             const cr = 7;
             ctx.beginPath();
-            ctx.moveTo(cx + 4 - cr * 0.7, cy - cr * 0.7);
-            ctx.lineTo(cx + 4 + cr * 0.7, cy + cr * 0.7);
-            ctx.moveTo(cx + 4 + cr * 0.7, cy - cr * 0.7);
-            ctx.lineTo(cx + 4 - cr * 0.7, cy + cr * 0.7);
+            ctx.moveTo(lcx - cr * 0.7, cy - cr * 0.7);
+            ctx.lineTo(lcx + cr * 0.7, cy + cr * 0.7);
+            ctx.moveTo(lcx + cr * 0.7, cy - cr * 0.7);
+            ctx.lineTo(lcx - cr * 0.7, cy + cr * 0.7);
             ctx.strokeStyle = outlineColor;
             ctx.lineWidth = 1.6;
             ctx.stroke();
@@ -13052,16 +13080,16 @@
         const isLight = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
         const isOled = this.appTheme === 'pitch_black';
         const isBlue = this.appTheme === 'blueprint';
-        const bgColor = isLight ? (this.appTheme === 'java_swing' ? '#ffffff' : '#f8fafc') : (isOled ? '#000000' : (isBlue ? '#071527' : '#1e1e1e'));
-        const headerBg = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#e2e8f0') : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#252526'));
-        const gutterBg = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#ffffff') : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#1f1f1f'));
+        const bgColor = isLight ? (this.appTheme === 'java_swing' ? '#ffffff' : '#f8fafc') : (isOled ? '#000000' : (isBlue ? '#071527' : '#10141d'));
+        const headerBg = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#e2e8f0') : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#161d2a'));
+        const gutterBg = isLight ? (this.appTheme === 'java_swing' ? '#ece9d8' : '#ffffff') : (isOled ? '#09090b' : (isBlue ? '#0b1d3a' : '#131822'));
         const textColor = isLight ? '#0f172a' : (isBlue ? '#93c5fd' : '#94a3b8');
-        const gutterTextColor = isLight ? '#0f172a' : (isBlue ? '#e0f2fe' : '#e2e8f0');
-        const gridBorder = isLight ? '#cbd5e1' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#333333'));
-        const rowDivider = isLight ? (this.appTheme === 'java_swing' ? '#d4d0c8' : '#e2e8f0') : (isOled ? '#18181b' : (isBlue ? '#143261' : '#2d2d30'));
-        const tickDividerMajor = isLight ? '#cbd5e1' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#333333'));
-        const tickDividerMinor = isLight ? '#f1f5f9' : (isOled ? '#121215' : (isBlue ? '#10243e' : '#252526'));
-        const tickLabelColor = isLight ? '#475569' : (isBlue ? '#60a5fa' : '#94a3b8');
+        const gutterTextColor = isLight ? '#0f172a' : (isBlue ? '#e0f2fe' : '#f1f5f9');
+        const gridBorder = isLight ? '#cbd5e1' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#253144'));
+        const rowDivider = isLight ? (this.appTheme === 'java_swing' ? '#d4d0c8' : '#e2e8f0') : (isOled ? '#18181b' : (isBlue ? '#143261' : '#1e2638'));
+        const tickDividerMajor = isLight ? '#cbd5e1' : (isOled ? '#27272a' : (isBlue ? '#1e3a66' : '#2c3b54'));
+        const tickDividerMinor = isLight ? '#f1f5f9' : (isOled ? '#121215' : (isBlue ? '#10243e' : '#1a2233'));
+        const tickLabelColor = isLight ? '#475569' : (isBlue ? '#60a5fa' : '#8294ad');
 
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
@@ -21161,7 +21189,7 @@
         const btnResetSignal = document.getElementById('btn-reset-signal-colors');
         if (btnResetSignal) {
           btnResetSignal.addEventListener('click', () => {
-            this.setSignalColors('#00ff66', '#143823');
+            this.setSignalColors('#00ff66', null);
             this.saveSettings();
           });
         }
@@ -21227,7 +21255,7 @@
               this.setLowSignalColor(val);
               this.saveSettings();
             } else {
-              hexLow.value = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823');
+              hexLow.value = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#38465c');
             }
           });
         }
@@ -21314,7 +21342,7 @@
         const btnReset = document.getElementById('btn-reset-settings');
         if (btnReset) {
           btnReset.addEventListener('click', () => {
-            this.setSignalColors('#00ff66', '#143823');
+            this.setSignalColors('#00ff66', null);
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
             this.setShowWireBridges(false);
@@ -21391,7 +21419,7 @@
         if (this.rendererRight) this.rendererRight.lowSignalColor = this.lowSignalColor;
 
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
-          const effectiveLow = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823');
+          const effectiveLow = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#38465c');
           document.documentElement.style.setProperty('--wire-low', effectiveLow);
         }
 
@@ -21406,7 +21434,7 @@
       updateSettingsColorUi() {
         if (typeof document === 'undefined') return;
         const currentHigh = (this.highSignalColor || '#00ff66').toLowerCase();
-        const effectiveLow = (this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823')).toLowerCase();
+        const effectiveLow = (this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#38465c')).toLowerCase();
 
         // 1. Live Wire Preview Bar
         const preview = document.getElementById('signal-live-preview');
@@ -21633,7 +21661,10 @@
           if (raw) {
             const s = JSON.parse(raw);
             if (s.highSignalColor) this.setHighSignalColor(s.highSignalColor, false);
-            if (s.lowSignalColor !== undefined) this.setLowSignalColor(s.lowSignalColor, false);
+            if (s.lowSignalColor !== undefined) {
+              const sanitizedLow = (s.lowSignalColor === '#143823' || s.lowSignalColor === '#0e2a3e' || s.lowSignalColor === '#3d280e' || s.lowSignalColor === '#3f1015') ? null : s.lowSignalColor;
+              this.setLowSignalColor(sanitizedLow, false);
+            }
             if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
