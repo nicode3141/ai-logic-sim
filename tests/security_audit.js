@@ -279,6 +279,61 @@ checkVulnerability('INPUT_VALIDATION', 'Validation & hardening of settings color
   return { vulnerable: false };
 });
 
+// 13. Waypoint coordinate poisoning defense
+checkVulnerability('INPUT_VALIDATION', 'Defense against NaN / Infinity waypoint coordinate poisoning in wires', () => {
+  const wire = new exported.Wire('w1', 'c1', 0, 'c2', 0, [
+    { x: NaN, y: Infinity },
+    { x: 'eval(alert(1))', y: undefined },
+    { x: 100, y: 200 }
+  ]);
+  for (const wp of wire.waypoints) {
+    if (!Number.isFinite(wp.x) || !Number.isFinite(wp.y)) {
+      return { vulnerable: true, severity: 'HIGH', details: `Waypoint accepted non-finite coordinate: x=${wp.x}, y=${wp.y}` };
+    }
+  }
+  return { vulnerable: false };
+});
+
+// 14. Probe color & name injection hardening
+checkVulnerability('XSS', 'Sanitization of probe color hex values and channel name length', () => {
+  const maliciousJSON = {
+    components: [{ id: 'c1', type: 'SWITCH' }, { id: 'c2', type: 'LED' }],
+    wires: [{ id: 'w1', fromCompId: 'c1', fromPin: 0, toCompId: 'c2', toPin: 0 }],
+    probes: [{ id: 'p1', wireId: 'w1', name: 'X'.repeat(500), color: '"><script>alert(1)</script>' }]
+  };
+  const circuit = new exported.Circuit();
+  circuit.fromJSON(maliciousJSON);
+  const probe = circuit.getProbe('p1');
+  if (!probe) {
+    return { vulnerable: false };
+  }
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(probe.color)) {
+    return { vulnerable: true, severity: 'HIGH', details: `Probe accepted unvalidated color string: ${probe.color}` };
+  }
+  if (probe.name.length > 100) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Probe name exceeded maximum safe length: ${probe.name.length}` };
+  }
+  return { vulnerable: false };
+});
+
+// 15. DoS limit on circuit element counts
+checkVulnerability('DOS', 'Protection against oversized circuit component flood DoS', () => {
+  const bomb = {
+    components: Array.from({ length: 6000 }, (_, i) => ({ id: `c_${i}`, type: 'BUFFER' })),
+    wires: []
+  };
+  try {
+    const circuit = new exported.Circuit();
+    circuit.fromJSON(bomb);
+    return { vulnerable: true, severity: 'HIGH', details: 'Circuit accepted > 5000 components without rejecting or rate-limiting' };
+  } catch (err) {
+    if (err.message.includes('Sicherheitslimit')) {
+      return { vulnerable: false };
+    }
+    return { vulnerable: false };
+  }
+});
+
 console.log('================================================================');
 console.log(`AUDIT COMPLETE: Found ${findings.length} vulnerabilities/issues.`);
 console.log('================================================================');

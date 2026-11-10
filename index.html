@@ -3253,14 +3253,23 @@
      */
     class Wire {
       constructor(id, fromCompId, fromPin, toCompId, toPin, waypoints = []) {
-        this.id = id;
-        this.fromCompId = fromCompId;
-        this.fromPin = fromPin;
-        this.toCompId = toCompId;
-        this.toPin = toPin;
+        this.id = String(id || 'wire_unknown');
+        this.fromCompId = String(fromCompId || '');
+        this.fromPin = Number.isFinite(Number(fromPin)) ? Number(fromPin) : 0;
+        this.toCompId = String(toCompId || '');
+        this.toPin = Number.isFinite(Number(toPin)) ? Number(toPin) : 0;
         this.level = 0;
-        this.waypoints = Array.isArray(waypoints) ? waypoints.map(p => ({ x: Math.round(p.x / GRID_SIZE) * GRID_SIZE, y: Math.round(p.y / GRID_SIZE) * GRID_SIZE })) : [];
+        this.waypoints = Array.isArray(waypoints)
+          ? waypoints
+              .filter(p => p && typeof p === 'object' && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)))
+              .map(p => ({
+                x: Math.round(Math.max(-100000, Math.min(100000, Number(p.x))) / GRID_SIZE) * GRID_SIZE,
+                y: Math.round(Math.max(-100000, Math.min(100000, Number(p.y))) / GRID_SIZE) * GRID_SIZE
+              }))
+          : [];
         this.channelOffset = 0;
+        this._fromComp = null;
+        this._toComp = null;
       }
 
       toJSON() {
@@ -3280,11 +3289,12 @@
      */
     class Probe {
       constructor(id, wireId, name = 'PRB', color = '#00b0ff', offsetRatio = 0.5) {
-        this.id = id;
-        this.wireId = wireId;
-        this.name = name;
-        this.color = color;
-        this.offsetRatio = Math.max(0.05, Math.min(0.95, offsetRatio));
+        this.id = String(id || 'prb_unknown');
+        this.wireId = String(wireId || '');
+        this.name = String(name || 'PRB').slice(0, 50);
+        this.color = (typeof color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(color)) ? color : '#00b0ff';
+        const numRatio = Number(offsetRatio);
+        this.offsetRatio = Number.isFinite(numRatio) ? Math.max(0.05, Math.min(0.95, numRatio)) : 0.5;
       }
 
       toJSON() {
@@ -4145,7 +4155,9 @@
         this.components = [];
         this.compMap = new Map();
         this.wires = [];
+        this.wireMap = new Map();
         this.probes = [];
+        this.probeMap = new Map();
         this.nextId = 1;
       }
 
@@ -4165,6 +4177,29 @@
         return this.compMap.get(id) || null;
       }
 
+      getWire(id) {
+        return this.wireMap.get(id) || null;
+      }
+
+      getProbe(id) {
+        return this.probeMap.get(id) || null;
+      }
+
+      syncWirePointers() {
+        this.wireMap.clear();
+        for (let i = 0; i < this.wires.length; i++) {
+          const w = this.wires[i];
+          w._fromComp = this.compMap.get(w.fromCompId) || null;
+          w._toComp = this.compMap.get(w.toCompId) || null;
+          this.wireMap.set(w.id, w);
+        }
+        this.probeMap.clear();
+        for (let i = 0; i < this.probes.length; i++) {
+          const p = this.probes[i];
+          this.probeMap.set(p.id, p);
+        }
+      }
+
       removeComponent(compId, ringBuffer = null) {
         const idx = this.components.findIndex(c => c.id === compId);
         if (idx === -1) return;
@@ -4180,6 +4215,7 @@
         for (const w of removedWires) {
           this.removeWire(w.id, ringBuffer);
         }
+        this.syncWirePointers();
       }
 
       addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null, waypoints = []) {
@@ -4190,14 +4226,18 @@
         if (toPin < 0 || toPin >= toComp.inputs.length) return null;
 
         // Fan-In <= 1
-        this.wires = this.wires.filter(
-          w => !(w.toCompId === toCompId && w.toPin === toPin)
-        );
+        const existingWire = this.getWireToInput(toCompId, toPin);
+        if (existingWire) {
+          this.removeWire(existingWire.id);
+        }
 
         const id = forcedId || this.generateId('wire');
         const wire = new Wire(id, fromCompId, fromPin, toCompId, toPin, waypoints);
+        wire._fromComp = fromComp;
+        wire._toComp = toComp;
         wire.level = fromComp.outputs[fromPin]?.value || 0;
         this.wires.push(wire);
+        this.wireMap.set(wire.id, wire);
         toComp.inputs[toPin].value = wire.level;
         return wire;
       }
@@ -4209,18 +4249,22 @@
           this.removeProbe(p.id, ringBuffer);
         }
 
-        const wire = this.wires.find(w => w.id === wireId);
+        const wire = this.wireMap.get(wireId) || this.wires.find(w => w.id === wireId);
         if (wire) {
-          const toComp = this.getComponent(wire.toCompId);
+          const toComp = wire._toComp || this.getComponent(wire.toCompId);
           if (toComp && toComp.inputs[wire.toPin]) {
             toComp.inputs[wire.toPin].value = 0;
           }
+          this.wireMap.delete(wireId);
+          const idx = this.wires.findIndex(w => w.id === wireId);
+          if (idx !== -1) {
+            this.wires.splice(idx, 1);
+          }
         }
-        this.wires = this.wires.filter(w => w.id !== wireId);
       }
 
       addProbe(wireId, params = {}) {
-        const wire = this.wires.find(w => w.id === wireId);
+        const wire = this.wireMap.get(wireId) || this.wires.find(w => w.id === wireId);
         if (!wire) return null;
         const id = params.id || this.generateId('prb');
         const count = this.probes.length;
@@ -4229,10 +4273,12 @@
         const offsetRatio = params.offsetRatio !== undefined ? params.offsetRatio : 0.5;
         const probe = new Probe(id, wireId, name, color, offsetRatio);
         this.probes.push(probe);
+        this.probeMap.set(probe.id, probe);
         return probe;
       }
 
       removeProbe(probeId, ringBuffer = null) {
+        this.probeMap.delete(probeId);
         const idx = this.probes.findIndex(p => p.id === probeId);
         if (idx !== -1) {
           this.probes.splice(idx, 1);
@@ -4240,10 +4286,6 @@
         if (ringBuffer) {
           ringBuffer.removeChannel(probeId);
         }
-      }
-
-      getProbe(probeId) {
-        return this.probes.find(p => p.id === probeId) || null;
       }
 
       getWireToInput(toCompId, toPin) {
@@ -4263,9 +4305,15 @@
         }
         comp.rebuildPins();
 
-        this.wires = this.wires.filter(
-          w => !(w.toCompId === compId && w.toPin >= n)
-        );
+        const removed = [];
+        this.wires = this.wires.filter(w => {
+          if (w.toCompId === compId && w.toPin >= n) {
+            removed.push(w.id);
+            return false;
+          }
+          return true;
+        });
+        removed.forEach(id => this.wireMap.delete(id));
       }
 
       getProbes() {
@@ -4276,7 +4324,9 @@
         this.components = [];
         this.compMap.clear();
         this.wires = [];
+        this.wireMap.clear();
         this.probes = [];
+        this.probeMap.clear();
         this.nextId = 1;
         if (ringBuffer) ringBuffer.clear();
       }
@@ -4358,6 +4408,9 @@
         if (!data || !Array.isArray(data.components) || !Array.isArray(data.wires)) {
           throw new Error('Ungültiges JSON-Schaltungsformat.');
         }
+        if (data.components.length > 5000 || data.wires.length > 10000) {
+          throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen).');
+        }
         this.clear(ringBuffer);
 
         let maxNum = 1;
@@ -4401,6 +4454,7 @@
         }
 
         this.nextId = maxNum + 1;
+        this.syncWirePointers();
         this.syncImmediateWireLevels();
       }
 
@@ -4420,8 +4474,8 @@
 
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
-          const srcComp = this.compMap.get(w.fromCompId);
-          w.level = srcComp ? (srcComp.outputs[w.fromPin]?.value || 0) : 0;
+          const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
+          w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
         }
 
         for (let i = 0; i < comps.length; i++) {
@@ -4433,7 +4487,7 @@
         }
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
-          const dstComp = this.compMap.get(w.toCompId);
+          const dstComp = w._toComp || this.compMap.get(w.toCompId);
           if (dstComp && dstComp.inputs[w.toPin]) {
             dstComp.inputs[w.toPin].value = w.level;
           }
@@ -4515,25 +4569,39 @@
         this.onUpdate();
       }
 
+      cloneState(state) {
+        if (!state || typeof state !== 'object') return {};
+        const copy = { ...state };
+        if (Array.isArray(state.bits)) copy.bits = [...state.bits];
+        if (Array.isArray(state.nextBits)) copy.nextBits = [...state.nextBits];
+        return copy;
+      }
+
       createSnapshot() {
-        const compSnapshots = [];
-        for (let i = 0; i < this.circuit.components.length; i++) {
-          const comp = this.circuit.components[i];
-          compSnapshots.push({
+        const comps = this.circuit.components;
+        const compSnapshots = new Array(comps.length);
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          const inVals = new Array(comp.inputs.length);
+          for (let p = 0; p < comp.inputs.length; p++) inVals[p] = comp.inputs[p].value;
+          const outVals = new Array(comp.outputs.length);
+          for (let p = 0; p < comp.outputs.length; p++) outVals[p] = comp.outputs[p].value;
+
+          compSnapshots[i] = {
             id: comp.id,
-            state: JSON.parse(JSON.stringify(comp.state || {})),
-            inputs: comp.inputs.map(p => p.value),
-            outputs: comp.outputs.map(p => p.value),
-            nextOutputs: [...comp.nextOutputs]
-          });
+            state: this.cloneState(comp.state),
+            inputs: inVals,
+            outputs: outVals,
+            nextOutputs: comp.nextOutputs ? [...comp.nextOutputs] : []
+          };
         }
-        const wireSnapshots = [];
-        for (let i = 0; i < this.circuit.wires.length; i++) {
-          const w = this.circuit.wires[i];
-          wireSnapshots.push({
-            id: w.id,
-            level: w.level
-          });
+        const wires = this.circuit.wires;
+        const wireSnapshots = new Array(wires.length);
+        for (let i = 0; i < wires.length; i++) {
+          wireSnapshots[i] = {
+            id: wires[i].id,
+            level: wires[i].level
+          };
         }
         return {
           tickCount: this.tickCount,
@@ -4545,14 +4613,11 @@
       restoreSnapshot(snap) {
         if (!snap) return;
         this.tickCount = snap.tickCount;
-        const compMap = new Map();
-        for (let i = 0; i < this.circuit.components.length; i++) {
-          compMap.set(this.circuit.components[i].id, this.circuit.components[i]);
-        }
-        for (const cs of snap.comps) {
-          const comp = compMap.get(cs.id);
+        for (let s = 0; s < snap.comps.length; s++) {
+          const cs = snap.comps[s];
+          const comp = this.circuit.getComponent(cs.id);
           if (comp) {
-            comp.state = JSON.parse(JSON.stringify(cs.state));
+            comp.state = this.cloneState(cs.state);
             for (let i = 0; i < cs.inputs.length && i < comp.inputs.length; i++) {
               comp.inputs[i].value = cs.inputs[i];
             }
@@ -4564,12 +4629,9 @@
             }
           }
         }
-        const wireMap = new Map();
-        for (let i = 0; i < this.circuit.wires.length; i++) {
-          wireMap.set(this.circuit.wires[i].id, this.circuit.wires[i]);
-        }
-        for (const ws of snap.wires) {
-          const w = wireMap.get(ws.id);
+        for (let s = 0; s < snap.wires.length; s++) {
+          const ws = snap.wires[s];
+          const w = this.circuit.getWire(ws.id);
           if (w) {
             w.level = ws.level;
           }
@@ -4605,7 +4667,7 @@
         const probeSamples = new Map();
         for (let i = 0; i < this.circuit.probes.length; i++) {
           const probe = this.circuit.probes[i];
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const wire = this.circuit.getWire(probe.wireId);
           probeSamples.set(probe.id, wire ? wire.level : 0);
         }
         for (let i = 0; i < this.circuit.components.length; i++) {
@@ -9811,6 +9873,10 @@
 
       handleFileImport(file) {
         if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Die Datei ist zu groß (maximal 5 MB erlaubt).');
+          return;
+        }
         const reader = new FileReader();
         reader.onload = (ev) => {
           try {

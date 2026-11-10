@@ -49,9 +49,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, Circuit, Component, Wire, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams };'
+  scriptMatch[1] + '; return { LogicSimApp, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams };'
 );
-const { LogicSimApp, Circuit, Component, Wire, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams } = evalFn(window, document, localStorage);
+const { LogicSimApp, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -111,6 +111,49 @@ runTest('SECURITY', 'Component constructor prevents coordinate poisoning (NaN/In
   assertEqual(Number.isFinite(cNaN.y), true, 'y must be finite');
   assertEqual(cNaN.x, 0);
   assertEqual(cNaN.y, 0);
+});
+
+runTest('SECURITY', 'Wire waypoints sanitize NaN, Infinity, and extreme coordinate injections', () => {
+  const wire = new Wire('w1', 'c1', 0, 'c2', 0, [
+    { x: NaN, y: Infinity },
+    { x: 'not_a_num', y: null },
+    { x: 500000, y: -500000 },
+    { x: 100, y: 200 }
+  ]);
+  // Invalid points must be filtered out
+  assertEqual(wire.waypoints.length, 2);
+  // Extreme point clamped to [-100000, 100000]
+  assertEqual(wire.waypoints[0].x, 100000);
+  assertEqual(wire.waypoints[0].y, -100000);
+  // Valid point snapped to grid
+  assertEqual(wire.waypoints[1].x, 100);
+  assertEqual(wire.waypoints[1].y, 200);
+});
+
+runTest('SECURITY', 'Probe constructor sanitizes color injection and bounds name length', () => {
+  const probe = new Probe('p1', 'w1', 'A'.repeat(200), 'javascript:alert(1)');
+  assertEqual(probe.name.length <= 50, true, 'Probe name must be capped at 50 chars');
+  assertEqual(probe.color, '#00b0ff', 'Malicious color should fallback to default palette hex');
+
+  const validProbe = new Probe('p2', 'w1', 'SafeProbe', '#00e676', 0.8);
+  assertEqual(validProbe.color, '#00e676');
+  assertEqual(validProbe.offsetRatio, 0.8);
+});
+
+runTest('SECURITY', 'Circuit fromJSON rejects oversized circuits (DoS limit)', () => {
+  const oversized = {
+    components: Array.from({ length: 5001 }, (_, i) => ({ id: `c_${i}`, type: 'BUFFER' })),
+    wires: []
+  };
+  let rejected = false;
+  try {
+    const c = new Circuit();
+    c.fromJSON(oversized);
+  } catch (err) {
+    rejected = true;
+    assertEqual(err.message.includes('Sicherheitslimit'), true);
+  }
+  assertEqual(rejected, true, 'Oversized circuit must be rejected');
 });
 
 runTest('SECURITY', 'CLOCK halfPeriod is hardened against invalid or non-numeric inputs', () => {
@@ -267,15 +310,47 @@ runTest('LOGIC', '4-Bit Binary & BCD Counter', () => {
 // CATEGORY 3: SYSTEMS ARCHITECTURE & ZERO-ALLOCATION HOT PATH
 // -----------------------------------------------------------------------------
 
-runTest('PERFORMANCE', 'Circuit compMap provides O(1) component lookups', () => {
+runTest('PERFORMANCE', 'Circuit compMap, wireMap, and probeMap provide O(1) lookups', () => {
   const circuit = new Circuit();
   const c1 = circuit.addComponent('AND', 0, 0, {}, 'custom_and');
+  const c2 = circuit.addComponent('LED', 100, 0, {}, 'custom_led');
   assertEqual(circuit.getComponent('custom_and'), c1);
   assertEqual(circuit.compMap.get('custom_and'), c1);
+
+  const wire = circuit.addWire(c1.id, 0, c2.id, 0, 'custom_wire');
+  assertEqual(circuit.getWire('custom_wire'), wire);
+  assertEqual(circuit.wireMap.get('custom_wire'), wire);
+
+  const probe = circuit.addProbe(wire.id, { id: 'custom_probe' });
+  assertEqual(circuit.getProbe('custom_probe'), probe);
+  assertEqual(circuit.probeMap.get('custom_probe'), probe);
+
+  circuit.removeProbe('custom_probe');
+  assertEqual(circuit.getProbe('custom_probe'), null);
+  assertEqual(circuit.probeMap.has('custom_probe'), false);
+
+  circuit.removeWire('custom_wire');
+  assertEqual(circuit.getWire('custom_wire'), null);
+  assertEqual(circuit.wireMap.has('custom_wire'), false);
 
   circuit.removeComponent('custom_and');
   assertEqual(circuit.getComponent('custom_and'), null);
   assertEqual(circuit.compMap.has('custom_and'), false);
+});
+
+runTest('PERFORMANCE', 'Direct cached wire pointers accelerate propagation loop with direct references', () => {
+  const circuit = new Circuit();
+  const c1 = circuit.addComponent('SWITCH', 0, 0, { initialValue: 1 });
+  const c2 = circuit.addComponent('NOT', 100, 0);
+  const wire = circuit.addWire(c1.id, 0, c2.id, 0);
+
+  assertEqual(wire._fromComp, c1);
+  assertEqual(wire._toComp, c2);
+
+  c1.state.value = 1;
+  circuit.step();
+  assertEqual(wire.level, 1);
+  assertEqual(c2.outputs[0].value, 0);
 });
 
 runTest('PERFORMANCE', '1,000 gates cascade simulation execution under 50ms for 200 steps', () => {
@@ -303,6 +378,26 @@ runTest('PERFORMANCE', '1,000 gates cascade simulation execution under 50ms for 
 // -----------------------------------------------------------------------------
 // CATEGORY 4: ROUNDTRIP SERIALIZATION & RESILIENCE
 // -----------------------------------------------------------------------------
+
+runTest('RESILIENCE', 'Fast cloneState preserves exact sequential state across ticks and rollbacks', () => {
+  const circuit = new Circuit();
+  const rb = new RingBuffer(100);
+  const clk = circuit.addComponent('CLOCK', 0, 0, { halfPeriod: 1 });
+  const en = circuit.addComponent('SWITCH', 0, 50, { initialValue: 1 });
+  const cnt = circuit.addComponent('COUNTER', 100, 0, { mode: 'bcd' });
+  circuit.addWire(clk.id, 0, cnt.id, 0); // CLK -> pin 0
+  circuit.addWire(en.id, 0, cnt.id, 1);  // EN  -> pin 1
+
+  const engine = new SimulationEngine(circuit, rb, () => {});
+  engine.setMode('sim');
+
+  for (let i = 0; i < 14; i++) engine.stepTick();
+  const countAfter14 = cnt.state.count;
+  assertEqual(countAfter14 > 0, true, 'Counter must have counted up');
+
+  for (let i = 0; i < 4; i++) engine.stepBackTick();
+  assertEqual(cnt.state.count < countAfter14, true, 'Rollback should decrement counter state');
+});
 
 runTest('RESILIENCE', 'Circuit roundtrip JSON export and import matches topology', () => {
   const c1 = new Circuit();
