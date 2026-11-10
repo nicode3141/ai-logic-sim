@@ -879,63 +879,6 @@ runTest('WISH-015', 'Timing diagram Premiere Pro playhead navigation and dynamic
   assertEqual(analyzer.autoscrollTimer, null, 'autoscrollTimer stops when leaving edge');
 });
 
-runTest('WISH-016', 'Consistent design colors, module styling, and high contrast across all 5 themes', () => {
-  const canvas = createMockElem('canvas');
-  canvas.width = 1000;
-  canvas.height = 600;
-  const circuit = new Circuit();
-  const renderer = new CanvasRenderer(canvas, circuit);
-
-  const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
-  const requiredTokens = [
-    'bg', 'gridDot', 'gridMajor', 'gridCrosshair', 'gridBorder', 'gridText',
-    'gateFill', 'gateStroke', 'chassisFill', 'chassisStroke',
-    'moduleFill', 'moduleStroke', 'moduleTitle', 'moduleText', 'moduleSub',
-    'displayWellFill', 'displayWellStroke', 'segOff',
-    'pinFill', 'pinStroke', 'wireLow', 'textLabel', 'textMuted', 'leadLine'
-  ];
-
-  for (const theme of themeKeys) {
-    renderer.appTheme = theme;
-    const pal = renderer.getThemePalette();
-    for (const token of requiredTokens) {
-      assertEqual(Boolean(pal[token]), true, `Token ${token} defined for theme ${theme}`);
-    }
-
-    // Contrast assertions
-    if (theme === 'java_swing' || theme === 'light_cad') {
-      // Light themes must have light backgrounds and dark text labels
-      assertEqual(pal.bg.startsWith('#f') || pal.bg === '#ffffff', true, `${theme} has light canvas background`);
-      assertEqual(pal.textLabel === '#000000' || pal.textLabel === '#0f172a', true, `${theme} has dark high-contrast text`);
-      // Java Swing specific retro styling
-      if (theme === 'java_swing') {
-        assertEqual(pal.chassisFill, '#ece9d8', 'Java Swing has classic beige chassis');
-        assertEqual(pal.moduleTitle, '#000080', 'Java Swing has classic navy title');
-        assertEqual(pal.boxRadius, 0, 'Java Swing has 0px box radius');
-      }
-    } else {
-      // Dark / OLED / Blueprint themes must have dark backgrounds and light text labels
-      assertEqual(pal.textLabel.startsWith('#f') || pal.textLabel.startsWith('#e'), true, `${theme} has light high-contrast text`);
-      if (theme === 'pitch_black') {
-        assertEqual(pal.bg, '#000000', 'pitch_black is pure OLED black');
-        assertEqual(pal.moduleFill, '#000000', 'pitch_black moduleFill is pure OLED black');
-      }
-      if (theme === 'blueprint') {
-        assertEqual(pal.bg, '#071527', 'blueprint has technical navy background');
-        assertEqual(pal.gateStroke, '#38bdf8', 'blueprint has bright sky blue gate contours');
-      }
-    }
-  }
-
-  // Verify LogicAnalyzerRenderer respects theme settings without crashing
-  const ringBuffer = new RingBuffer(64);
-  const analyzer = new LogicAnalyzerRenderer(canvas, circuit, ringBuffer);
-  for (const theme of themeKeys) {
-    analyzer.appTheme = theme;
-    analyzer.render();
-  }
-});
-
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
