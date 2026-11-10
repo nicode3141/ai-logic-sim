@@ -198,6 +198,84 @@ checkVulnerability('XSS', 'HTML entity escaping function availability and correc
   if (typeof exported.escapeHtml !== 'function' && typeof exported.sanitizeHtml !== 'function') {
     return { vulnerable: true, severity: 'HIGH', details: 'No centralized HTML entity escaping function exported or implemented in index.html' };
   }
+  const esc = exported.escapeHtml || exported.sanitizeHtml;
+  const payload = '<script>alert(1)</script><img src=x onerror=alert(2)>"\'&';
+  const sanitized = esc(payload);
+  if (sanitized.includes('<script>') || sanitized.includes('<img') || sanitized.includes('"') || sanitized.includes("'")) {
+    return { vulnerable: true, severity: 'HIGH', details: `Unescaped dangerous characters in output: ${sanitized}` };
+  }
+  return { vulnerable: false };
+});
+
+// 9. Prototype Pollution via Wire & Probe payloads
+checkVulnerability('PROTOTYPE_POLLUTION', 'Payload attacking Object.prototype via probes or wires in fromJSON', () => {
+  const maliciousJSON = JSON.parse(`{
+    "components": [{ "id": "c1", "type": "SWITCH" }, { "id": "c2", "type": "LED" }],
+    "wires": [{
+      "id": "w1",
+      "fromCompId": "c1", "fromPin": 0, "toCompId": "c2", "toPin": 0,
+      "__proto__": { "pollutedWire": "YES_PWNED" }
+    }],
+    "probes": [{
+      "id": "p1", "wireId": "w1",
+      "__proto__": { "pollutedProbe": "YES_PWNED" }
+    }]
+  }`);
+  const circuit = new exported.Circuit();
+  circuit.fromJSON(maliciousJSON);
+  const testObj = {};
+  if (testObj.pollutedWire === 'YES_PWNED' || testObj.pollutedProbe === 'YES_PWNED' ||
+      Object.prototype.pollutedWire === 'YES_PWNED' || Object.prototype.pollutedProbe === 'YES_PWNED') {
+    delete Object.prototype.pollutedWire;
+    delete Object.prototype.pollutedProbe;
+    return { vulnerable: true, severity: 'CRITICAL', details: 'Object.prototype polluted via wires or probes in fromJSON' };
+  }
+  return { vulnerable: false };
+});
+
+// 10. Out-of-bounds wire pins and missing components
+checkVulnerability('SYSTEMS_RESILIENCE', 'Resilience against out-of-bounds wire pins and missing component references', () => {
+  const circuit = new exported.Circuit();
+  const c1 = circuit.addComponent('AND', 0, 0);
+  const c2 = circuit.addComponent('OR', 100, 0);
+  circuit.addWire(c1.id, 9999, c2.id, -5);
+  circuit.addWire('non_existent_1', 0, c2.id, 0);
+  circuit.addWire(c1.id, 0, 'non_existent_2', 0);
+  try {
+    circuit.step();
+    circuit.syncImmediateWireLevels();
+    return { vulnerable: false };
+  } catch (err) {
+    return { vulnerable: true, severity: 'HIGH', details: `Crash during step or sync with corrupted pins: ${err.message}` };
+  }
+});
+
+// 11. ReDoS resistance in BooleanParser
+checkVulnerability('DOS', 'ReDoS resistance in BooleanParser on repeated operators & whitespace', () => {
+  const t0 = Date.now();
+  try {
+    exported.BooleanParser.parse('A ' + '& '.repeat(2000) + 'B');
+  } catch (err) {
+    // Syntax error expected and healthy, as long as it doesn't hang or crash stack
+  }
+  const elapsed = Date.now() - t0;
+  if (elapsed > 500) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Tokenizer took ${elapsed}ms on 2,000 repeated tokens (possible ReDoS)` };
+  }
+  return { vulnerable: false };
+});
+
+// 12. Settings injection hardening
+checkVulnerability('INPUT_VALIDATION', 'Validation & hardening of settings color and theme inputs', () => {
+  const app = new exported.LogicSimApp();
+  app.setHighSignalColor('javascript:alert(1);/*');
+  if (app.highSignalColor !== '#00e676') {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Malicious color was accepted: ${app.highSignalColor}` };
+  }
+  app.setAppTheme('<script>evil()</script>');
+  if (app.appTheme !== 'modern') {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Malicious theme was accepted: ${app.appTheme}` };
+  }
   return { vulnerable: false };
 });
 
