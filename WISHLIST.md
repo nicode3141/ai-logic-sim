@@ -47,10 +47,22 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-027** | Schalter-Hintergrund Kontrast-Fix, Theme-Entfernung aus Ansicht-Menü & Lampen-X in Outline-Farbe | `alpha` | 🟢 **Completed** | Pfad-Verkettungs-Bug in Schalter/Taster-Innenleben behoben (kein schwarzes Dreieck mehr). Schalter-Hintergrund nutzt `pal.gateFill` (weiß in Java Swing / Light CAD) und hebt sich sauber von LOW-Signalen ab. Design/Theme-Auswahl aus Menü „Ansicht“ entfernt. Diagonalkreuz (X) der Meldeleuchte übernimmt exakt dieselbe Farbe wie die Kreis-Outline. |
 | **WISH-028** | Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung redundanter „Loop Play“-Beschriftung auf dem Simulations-Startbutton (strikt getrennt in Start/Pause und Loop Play); freies horizontales Ziehen mit der Maus über die gesamte Signalhistorie bis Tick 0 ohne View-Lock; RingBuffer-Kapazität auf 10.000 Ticks erweitert; Taktfrequenz & Periodendauer (Hz und ms) fest im Timing-Diagramm-Header und in der Statusanzeige integriert. |
 | **WISH-029** | Auto-Layout & Auto-Anordnen Optimierung (Recherche, Konfigurierbarkeit, CAD-Schematic-Standard, Port-Aware Sugiyama, Orthogonal Bus Routing & Spezifikations-Dokumentation) | `alpha` | 🟢 **Completed** | Tiefgehende Analyse von Industrie-CAD-Standards (DIN EN 60617 / IEEE Std 91/91a, Logisim, KiCad, ELK Layered); Behebung der Schwächen im Volladdierer (4 Kreuzungen auf 0) durch kommutatives Pin-Swapping; stufenlose Spacing-Regler (Spalten, Zeilen, Pin-Stubs); Pin-Exact Y-Placement für 0-Knick-Geraden; vollständige Architektur- und Implementierungs-Spezifikation in `docu/AUTO_LAYOUT_SPEC.md` festgehalten. |
+| **WISH-030** | Taster (BUTTON) Hebel-Geometrie & Stößel-Refactor, Beseitigung verwirrender 256/256 Ticks Kapazitäts-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung der alten verwirrenden Kapazitätsanzeige `256/256 Ticks` im Impulsdiagramm (saubere Kanal- und Gesamttick-Anzeige ohne Bruch oder Limit-Verwirrung); vollständige Überarbeitung des Taster-Hebels (`BUTTON`): im Ruhezustand saubere Rastung auf `0` (botY), im gedrückten Zustand saubere Kontaktierung von `1` (topY), DIN EN 60617 Stößel und Betätigungstaste exakt auf Hebelmitte ohne Kollisionen mit Kontakt-Pins oder Beschriftung. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-030 (Taster (BUTTON) Hebel-Geometrie & Stößel-Refactor, Beseitigung verwirrender 256/256 Ticks Kapazitäts-Anzeige)**:
+  - **Beseitigung von `256/256 Ticks`**:
+    - Das Label `#analyzer-probe-count` und die Zeitachsen-Anzeigen zeigen keine verwirrende Bruch-Darstellung (`count/capacity` wie z. B. `256/256 Ticks`) mehr an. Stattdessen wird eine saubere, unmissverständliche Anzeige verwendet: z. B. `(0 Kanäle)` im Leerlauf bzw. `(1 Kanal | 256 Ticks)` während der Aufzeichnung mit dem auf 10.000 Ticks erweiterten Puffer.
+    - Vollständige Synchronisierung in `I18N` mit korrekter Pluralisierung für Deutsch und Englisch.
+  - **Taster (BUTTON) Hebel- & Stößel-Geometrie**:
+    - Der Hebel des Tasters schwebte zuvor in der Ruhestellung bei `cy + 3` unverbunden im Raum und der Stößel überdeckte bei Betätigung mit einem roten Balken den oberen Kontakt `1`.
+    - Im unbetätigten Zustand (Ruhestellung) liegt der Hebel nun präzise und sauber auf dem `0`-Kontakt (`botY = cy + 9`) auf.
+    - Im betätigten Zustand verbindet der Hebel exakt mit dem `1`-Kontakt (`topY = cy - 9`).
+    - Der Betätigungsstößel (DIN EN 60617 Stößel mit Betätigungstaste) ist mathematisch exakt auf der Mitte des Hebels (`midX = 46`) verankert. Dadurch gibt es einen Sicherheitsabstand von über 20 Pixeln zu den Kontaktpunkten und Beschriftungen – null Überlappungen, saubere isolierte Pfade und perfekte Schaltplan-Ästhetik.
+  - **Test-Abdeckung**: Neuer Test `[WISH-030]` in `tests/comprehensive_test_suite.js`, alle 49 Tests bestehen fehlerfrei.
 
 - **WISH-029 (Auto-Layout & Auto-Anordnen Optimierung: Recherche, Konfigurierbarkeit, CAD-Schematic-Standard, Port-Aware Sugiyama, Orthogonal Bus Routing & Spezifikation)**:
   - **Empirische Schwachstellenanalyse des Ist-Zustands (`layout_eval.js`)**:
