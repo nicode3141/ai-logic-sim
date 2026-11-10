@@ -439,16 +439,16 @@ runTest('RENDERING', 'Wire crossing bridges disabled by default and togglable vi
   const engine = new SimulationEngine(circuit, new RingBuffer(10), () => {});
   const renderer = new CanvasRenderer(mockCanvas, circuit, engine);
 
-  assertEqual(renderer.showWireBridges, false, 'showWireBridges must default to false');
+  assertEqual(renderer.showWireBridges, true, 'showWireBridges must default to true');
 
   arcCount = 0;
   renderer.drawWires(mockArcCtx);
-  assertEqual(arcCount, 0, 'No bridge arcs should be drawn when showWireBridges is false');
+  assertEqual(arcCount > 0, true, 'Bridge arcs must be drawn by default when crossing');
 
-  renderer.showWireBridges = true;
+  renderer.showWireBridges = false;
   arcCount = 0;
   renderer.drawWires(mockArcCtx);
-  assertEqual(arcCount > 0, true, 'Bridge arcs must be drawn when showWireBridges is true');
+  assertEqual(arcCount, 0, 'No bridge arcs should be drawn when showWireBridges is toggled off');
 });
 
 runTest('INTERACTION', 'attachSliderHoldRepeat enables smooth press-and-hold drag movement', () => {
@@ -515,6 +515,47 @@ runTest('INTERACTION', 'attachSliderHoldRepeat enables smooth press-and-hold dra
   };
   eventListeners['pointerup'].forEach(fn => fn(upEv));
   assertEqual(releasedPointerId, 42, 'Pointer capture released on pointerup');
+});
+
+runTest('WISH-006 & WISH-007', 'Wire branching and floating terminus-free connections', () => {
+  const circuit = new Circuit();
+  const sw = circuit.addComponent('SWITCH', 50, 50);
+  const led1 = circuit.addComponent('LED', 300, 50);
+  const led2 = circuit.addComponent('LED', 300, 150);
+
+  // 1. Primary wire from switch to led1
+  const w1 = circuit.addWire(sw.id, 0, led1.id, 0);
+  assertEqual(Boolean(w1), true, 'w1 created');
+
+  // 2. WISH-006: Branch wire from existing wire w1 to led2
+  const wBranch = circuit.addWire(null, 0, led2.id, 0, null, [], {
+    fromWireId: w1.id,
+    fromPoint: { x: 180, y: 70 }
+  });
+  assertEqual(Boolean(wBranch), true, 'wBranch created from existing wire');
+  assertEqual(wBranch.fromWireId, w1.id, 'wBranch references w1');
+
+  // 3. WISH-007: Floating connection terminating without a module at the end
+  const wFloating = circuit.addWire(sw.id, 0, null, 0, null, [], {
+    toPoint: { x: 250, y: 250 }
+  });
+  assertEqual(Boolean(wFloating), true, 'wFloating created without target component');
+  assertEqual(wFloating.toCompId, '', 'wFloating has empty toCompId');
+  assertEqual(wFloating.toPoint.x, 250, 'wFloating terminates at toPoint');
+
+  // Test simulation propagation across branches and floating connections
+  sw.state.value = 1;
+  sw.outputs[0].value = 1;
+  circuit.syncImmediateWireLevels();
+
+  assertEqual(w1.level, 1, 'w1 level high');
+  assertEqual(wBranch.level, 1, 'wBranch received high level from w1');
+  assertEqual(led2.inputs[0].value, 1, 'led2 received input through wire branch');
+  assertEqual(wFloating.level, 1, 'wFloating carries level without crashing');
+
+  // Test step() engine propagation
+  circuit.step();
+  assertEqual(wBranch.level, 1, 'wBranch level preserved after engine step');
 });
 
 console.log('\n================================================================');

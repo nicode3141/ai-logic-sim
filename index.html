@@ -3284,7 +3284,7 @@
               <span>Eigenschaften (Inspector)</span>
             </button>
             <button class="app-menu-item" id="menu-item-toggle-bridges">
-              <span class="norm-check" id="check-view-bridges">&nbsp;</span>
+              <span class="norm-check" id="check-view-bridges">✓</span>
               <span>Leitungsbrücken bei Kreuzungen</span>
             </button>
             <div class="app-menu-divider"></div>
@@ -3468,7 +3468,7 @@
             </div>
             <label class="align-check"><input type="checkbox" id="chk-layout-animation" checked /> <span>Anordnen animieren</span></label>
             <label class="align-check"><input type="checkbox" id="chk-smart-wires" checked /> <span>Leitungen beim Verschieben automatisch neu verlegen</span></label>
-            <label class="align-check"><input type="checkbox" id="chk-wire-bridges" /> <span>Leitungsbrücken (Bögen) bei Kreuzungen</span></label>
+            <label class="align-check"><input type="checkbox" id="chk-wire-bridges" checked /> <span>Leitungsbrücken (Bögen) bei Kreuzungen</span></label>
             <div class="align-report" id="align-report">Noch nicht angeordnet.</div>
           </div>
         </div>
@@ -4152,7 +4152,7 @@
                 </div>
               </label>
               <label class="settings-checkbox-label">
-                <input type="checkbox" id="settings-wire-bridges" />
+                <input type="checkbox" id="settings-wire-bridges" checked />
                 <div>
                   <div style="font-weight: 600; color: var(--text-main);">Leitungsbrücken bei Kreuzungen (Bögen)</div>
                   <div style="font-size: 11px; color: var(--text-dim);">Zeigt bei überkreuzenden Leitungen Halbkreis-Bögen an. Deaktiviert für glatte, gerade Kreuzungen ohne Wölbungen (DigitalSimulator / Logisim Stil).</div>
@@ -5787,6 +5787,7 @@
         this.wireMap = new Map();
         this.probes = [];
         this.probeMap = new Map();
+        this.globalGateDelay = 1;
         this.nextId = 1;
       }
 
@@ -5797,6 +5798,7 @@
       addComponent(type, x, y, customParams = {}, forcedId = null) {
         const id = forcedId || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
+        comp.circuit = this;
         this.components.push(comp);
         this.compMap.set(comp.id, comp);
         return comp;
@@ -5971,6 +5973,7 @@
         this.wireMap.clear();
         this.probes = [];
         this.probeMap.clear();
+        this.globalGateDelay = this.globalGateDelay || 1;
         this.nextId = 1;
         if (ringBuffer) ringBuffer.clear();
       }
@@ -6057,6 +6060,7 @@
       toJSON() {
         return {
           version: 1,
+          globalGateDelay: this.globalGateDelay || 1,
           components: this.components.map(c => c.toJSON()),
           wires: this.wires.map(w => w.toJSON()),
           probes: this.probes.map(p => p.toJSON())
@@ -6071,6 +6075,11 @@
           throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen).');
         }
         this.clear(ringBuffer);
+        if (data && data.globalGateDelay !== undefined && Number.isFinite(Number(data.globalGateDelay))) {
+          this.globalGateDelay = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(data.globalGateDelay, 10)));
+        } else {
+          this.globalGateDelay = 1;
+        }
 
         let maxNum = 1;
         const extractNum = (str) => {
@@ -6134,24 +6143,21 @@
         this.syncImmediateWireLevels();
       }
 
-      step() {
+      updateWireLevelsFromDrivers() {
         const comps = this.components;
         const wires = this.wires;
 
-        // Phase 1: Read & Compute
-        for (let i = 0; i < comps.length; i++) {
-          comps[i].compute();
-        }
-
-        // Phase 2: Commit & Propagate
-        for (let i = 0; i < comps.length; i++) {
-          comps[i].commit();
-        }
-
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
-          w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
+        for (let iter = 0; iter < 2; iter++) {
+          for (let i = 0; i < wires.length; i++) {
+            const w = wires[i];
+            if (w.fromCompId) {
+              const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
+              w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
+            } else if (w.fromWireId) {
+              const srcWire = this.wireMap ? this.wireMap.get(w.fromWireId) : this.wires.find(sw => sw.id === w.fromWireId);
+              w.level = srcWire ? srcWire.level : 0;
+            }
+          }
         }
 
         // Propagate across wire-to-wire branch links
@@ -6184,6 +6190,22 @@
             dstComp.inputs[w.toPin].value = w.level;
           }
         }
+      }
+
+      step() {
+        const comps = this.components;
+
+        // Phase 1: Read & Compute
+        for (let i = 0; i < comps.length; i++) {
+          comps[i].compute();
+        }
+
+        // Phase 2: Commit & Propagate
+        for (let i = 0; i < comps.length; i++) {
+          comps[i].commit();
+        }
+
+        this.updateWireLevelsFromDrivers();
       }
     }
 
@@ -8574,7 +8596,8 @@
         this.activeWaypointDrag = null;
         this.activeWireDrag = null;
         this.selectionBox = null;
-        this.showWireBridges = false;
+        this.showWireBridges = true;
+        this.showGateDelay = false;
       }
 
       getThemePalette() {
@@ -9481,18 +9504,11 @@
 
                 for (const cx of crossings) {
                   const r = 5;
-                  ctx.lineTo(goingRight ? (cx - r) : (cx + r), y);
-                  // Mask out vertical wire segment underneath the bridge
-                  ctx.save();
-                  ctx.fillStyle = pal.bg;
-                  ctx.beginPath();
-                  ctx.arc(cx, y, r - 0.5, 0, Math.PI * 2);
-                  ctx.fill();
-                  ctx.restore();
-
                   if (goingRight) {
+                    ctx.lineTo(cx - r, y);
                     ctx.arc(cx, y, r, Math.PI, 0, false);
                   } else {
+                    ctx.lineTo(cx + r, y);
                     ctx.arc(cx, y, r, 0, Math.PI, false);
                   }
                 }
@@ -9596,6 +9612,38 @@
           ctx.restore();
         }
 
+        // 2b. Draw Terminal Dots on floating/unconnected wire ends (WISH-007)
+        for (const entry of wireEntries) {
+          const { wire: w, pts } = entry;
+          const isHigh = w.level === 1;
+          const termColor = isHigh ? (this.highSignalColor || '#00e676') : pal.wireLow;
+
+          if (!w.toCompId && !w.toWireId && w.toPoint && pts.length > 0) {
+            const endPt = pts[pts.length - 1];
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(endPt.x, endPt.y, 3.8, 0, Math.PI * 2);
+            ctx.fillStyle = termColor;
+            ctx.fill();
+            ctx.lineWidth = 1.3;
+            ctx.strokeStyle = '#080b10';
+            ctx.stroke();
+            ctx.restore();
+          }
+          if (!w.fromCompId && !w.fromWireId && w.fromPoint && pts.length > 0) {
+            const startPt = pts[0];
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(startPt.x, startPt.y, 3.8, 0, Math.PI * 2);
+            ctx.fillStyle = termColor;
+            ctx.fill();
+            ctx.lineWidth = 1.3;
+            ctx.strokeStyle = '#080b10';
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
         // 3. Draw Junction Dots at branches (Gabelungspunkte wo Verbindungen sich abzweigen)
         const junctions = this.findWireJunctions(wireEntries);
         for (const junc of junctions) {
@@ -9634,8 +9682,9 @@
         const currX = Math.round(drag.currX / GRID_SIZE) * GRID_SIZE;
         const currY = Math.round(drag.currY / GRID_SIZE) * GRID_SIZE;
 
-        const p1 = drag.isOutput ? { x: startX, y: startY } : { x: currX, y: currY };
-        const p2 = drag.isOutput ? { x: currX, y: currY } : { x: startX, y: startY };
+        const isForward = drag.isOutput !== false;
+        const p1 = isForward ? { x: startX, y: startY } : { x: currX, y: currY };
+        const p2 = isForward ? { x: currX, y: currY } : { x: startX, y: startY };
 
         let pts;
         if (drag.waypoints && drag.waypoints.length > 0) {
@@ -9727,12 +9776,15 @@
           ctx.font = '600 10.5px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
-          if (comp.params.delay > 1 && GATE_DELAY_TYPES[type]) {
-            // small delay badge under the gate, e.g. "Δt 5"
-            ctx.font = '600 9px monospace';
-            ctx.globalAlpha = 0.75;
-            ctx.fillText(`Δt ${comp.params.delay}`, x + width / 2, y + height + 9);
-            ctx.globalAlpha = 1;
+          if (this.showGateDelay && GATE_DELAY_TYPES[type]) {
+            const effDelay = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : (comp.params.delay || 1);
+            if (effDelay > 0) {
+              // small delay badge under the gate, e.g. "Δt 5"
+              ctx.font = '600 9px monospace';
+              ctx.globalAlpha = 0.75;
+              ctx.fillText(`Δt ${effDelay}`, x + width / 2, y + height + 9);
+              ctx.globalAlpha = 1;
+            }
           }
         }
 
@@ -11738,8 +11790,11 @@
         }
 
         if (GATE_DELAY_TYPES[comp.type]) {
-          this.addRangeControl('Verzögerung (Gatterlaufzeit)', comp.params.delay || 1, 1, GATE_DELAY_MAX, 'Ticks', isSim, (val) => {
+          const currentEff = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : (comp.params.delay || 1);
+          this.addRangeControl('Verzögerung (Gatterlaufzeit)', currentEff, 1, GATE_DELAY_MAX, 'Ticks', isSim, (val) => {
             comp.params.delay = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(val, 10) || 1));
+            comp.state.delayTimer = 0;
+            comp.state.pendingOutput = null;
             comp.state.delayLine = null;
             this.onChange(false);
           });
@@ -11761,7 +11816,11 @@
                 comp.state.value = bit;
                 comp.outputs[0].value = bit;
                 comp.nextOutputs[0] = bit;
-                this.circuit.syncImmediateWireLevels();
+                if (isSim) {
+                  this.circuit.updateWireLevelsFromDrivers();
+                } else {
+                  this.circuit.syncImmediateWireLevels();
+                }
                 this.onChange(false);
               }
             );
@@ -13140,9 +13199,13 @@
         this.engine = new SimulationEngine(this.circuit, this.ringBuffer, () => this.onSimulationUpdate());
         this.renderer = new CanvasRenderer(this.gridCanvas, this.circuit, this.engine);
         this.rendererRight = new CanvasRenderer(this.gridCanvasRight, null, this.engine);
-        this.showWireBridges = false;
+        this.showWireBridges = true;
         this.renderer.showWireBridges = this.showWireBridges;
         this.rendererRight.showWireBridges = this.showWireBridges;
+        this.globalGateDelay = 1;
+        this.showGateDelay = false;
+        this.renderer.showGateDelay = this.showGateDelay;
+        this.rendererRight.showGateDelay = this.showGateDelay;
 
         this.analyzer = new LogicAnalyzerRenderer(
           this.analyzerCanvas,
@@ -13377,6 +13440,7 @@
         const id = 'tab_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         const tabTitle = title || `Schaltung ${this.tabCounter}`;
         const newTab = new TabSession(id, tabTitle);
+        newTab.circuit.globalGateDelay = this.globalGateDelay || 1;
         if (circuitData) {
           newTab.circuit.fromJSON(circuitData, newTab.ringBuffer);
         }
@@ -14913,6 +14977,9 @@
             color: PROBE_PALETTE[probeIdx % PROBE_PALETTE.length]
           };
         }
+        if (GATE_DELAY_TYPES[type]) {
+          return { delay: null };
+        }
         return {};
       }
 
@@ -14978,7 +15045,7 @@
                 clickedComp.state.value = clickedComp.state.value === 1 ? 0 : 1;
                 clickedComp.outputs[0].value = clickedComp.state.value;
                 clickedComp.nextOutputs[0] = clickedComp.state.value;
-                this.circuit.syncImmediateWireLevels();
+                this.circuit.updateWireLevelsFromDrivers();
                 this.selectItem(clickedComp.id, null);
                 this.refreshAll();
                 return;
@@ -14988,7 +15055,7 @@
                 clickedComp.outputs[0].value = 1;
                 clickedComp.nextOutputs[0] = 1;
                 this.activeButtonComp = clickedComp;
-                this.circuit.syncImmediateWireLevels();
+                this.circuit.updateWireLevelsFromDrivers();
                 this.selectItem(clickedComp.id, null);
                 this.refreshAll();
                 return;
@@ -15063,6 +15130,7 @@
               currY: world.y,
               style: e.shiftKey ? 'diagonal' : null
             };
+            this.isMouseDraggingWire = true;
             this.renderer.render();
             return;
           }
@@ -15171,6 +15239,23 @@
               return;
             }
 
+            // WISH-006: Press & hold / drag LMB on wire to pull out a new wire branch!
+            const pts = this.renderer.getWirePolyline(hitWire);
+            const proj = this.renderer.getClosestPointOnPolyline(pts, world) || world;
+            const branchX = Math.round(proj.x / GRID_SIZE) * GRID_SIZE;
+            const branchY = Math.round(proj.y / GRID_SIZE) * GRID_SIZE;
+
+            this.pendingWireBranch = {
+              wire: hitWire,
+              branchX,
+              branchY,
+              screenX: e.clientX,
+              screenY: e.clientY,
+              worldX: world.x,
+              worldY: world.y,
+              activated: false
+            };
+
             this.selectItem(null, hitWire.id);
             return;
           }
@@ -15203,6 +15288,25 @@
             this.renderer.panY = this.panOrigin.y + (e.clientY - this.panStartScreen.y);
             this.renderer.render();
             return;
+          }
+
+          if (this.pendingWireBranch && !this.pendingWireBranch.activated) {
+            const dist = Math.hypot(e.clientX - this.pendingWireBranch.screenX, e.clientY - this.pendingWireBranch.screenY);
+            if (dist > 4) {
+              this.pendingWireBranch.activated = true;
+              this.renderer.activeWireDrag = {
+                fromWireId: this.pendingWireBranch.wire.id,
+                fromPoint: { x: this.pendingWireBranch.branchX, y: this.pendingWireBranch.branchY },
+                startX: this.pendingWireBranch.branchX,
+                startY: this.pendingWireBranch.branchY,
+                waypoints: [],
+                currX: world.x,
+                currY: world.y,
+                style: e.shiftKey ? 'diagonal' : null
+              };
+              this.isMouseDraggingWire = true;
+              this.renderer.render();
+            }
           }
 
           if (this.isSelectingBox && this.renderer.selectionBox) {
@@ -15383,6 +15487,42 @@
         });
 
         window.addEventListener('mouseup', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const world = this.renderer.screenToWorld(sx, sy);
+
+          if (this.isMouseDraggingWire && this.renderer.activeWireDrag) {
+            const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+            const drag = this.renderer.activeWireDrag;
+            const dragDist = Math.hypot(world.x - drag.startX, world.y - drag.startY);
+
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            const hitOtherWire = (!hitPin) ? this.renderer.findWireAt(world.x, world.y, 8) : null;
+
+            if (hitPin && (!drag.compId || (hitPin.compId !== drag.compId || hitPin.pinIndex !== drag.pinIndex))) {
+              this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
+            } else if (hitOtherWire && hitOtherWire.id !== drag.fromWireId) {
+              const pts = this.renderer.getWirePolyline(hitOtherWire);
+              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
+              const targetX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : snapX;
+              const targetY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : snapY;
+              this.finishActiveWireAtPoint({ x: targetX, y: targetY }, hitOtherWire, null);
+            } else if (dragDist >= 12) {
+              // WISH-007: Connections don't need a module at the end!
+              this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
+            } else {
+              this.renderer.activeWireDrag = null;
+              this.refreshAll();
+            }
+            this.isMouseDraggingWire = false;
+            this.pendingWireBranch = null;
+          }
+          if (this.pendingWireBranch) {
+            this.pendingWireBranch = null;
+          }
+
           if (this.draggingWaypoint) {
             this.draggingWaypoint = null;
             this.renderer.activeWaypointDrag = null;
@@ -15409,7 +15549,11 @@
             this.activeButtonComp.outputs[0].value = 0;
             this.activeButtonComp.nextOutputs[0] = 0;
             this.activeButtonComp = null;
-            this.circuit.syncImmediateWireLevels();
+            if (this.engine.mode === 'sim') {
+              this.circuit.updateWireLevelsFromDrivers();
+            } else {
+              this.circuit.syncImmediateWireLevels();
+            }
             this.refreshAll();
           }
 
@@ -15624,7 +15768,7 @@
                 clickedComp.state.value = clickedComp.state.value === 1 ? 0 : 1;
                 clickedComp.outputs[0].value = clickedComp.state.value;
                 clickedComp.nextOutputs[0] = clickedComp.state.value;
-                rTab.circuit.syncImmediateWireLevels();
+                rTab.circuit.updateWireLevelsFromDrivers();
                 this.rendererRight.render();
                 return;
               }
@@ -15633,7 +15777,7 @@
                 clickedComp.outputs[0].value = 1;
                 clickedComp.nextOutputs[0] = 1;
                 activeButtonCompRight = clickedComp;
-                rTab.circuit.syncImmediateWireLevels();
+                rTab.circuit.updateWireLevelsFromDrivers();
                 this.rendererRight.render();
                 return;
               }
@@ -15720,7 +15864,13 @@
             activeButtonCompRight.outputs[0].value = 0;
             activeButtonCompRight.nextOutputs[0] = 0;
             const rTab = this.getRightTab();
-            if (rTab) rTab.circuit.syncImmediateWireLevels();
+            if (rTab) {
+              if (this.engine.mode === 'sim') {
+                rTab.circuit.updateWireLevelsFromDrivers();
+              } else {
+                rTab.circuit.syncImmediateWireLevels();
+              }
+            }
             activeButtonCompRight = null;
             this.rendererRight.render();
           }
@@ -16123,7 +16273,11 @@
               comp.state.value = nextVal;
               comp.outputs[0].value = nextVal;
               comp.nextOutputs[0] = nextVal;
-              this.circuit.syncImmediateWireLevels();
+              if (this.engine.mode === 'sim') {
+                this.circuit.updateWireLevelsFromDrivers();
+              } else {
+                this.circuit.syncImmediateWireLevels();
+              }
               this.inspector.render(comp.id, null);
               this.refreshAll();
               this.hideContextMenu();
@@ -18862,12 +19016,12 @@
             this.setHighSignalColor('#00e676');
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
-            this.setShowWireBridges(false);
+            this.setShowWireBridges(true);
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
-            if (chkWireBridges) chkWireBridges.checked = false;
+            if (chkWireBridges) chkWireBridges.checked = true;
             this.saveSettings();
             this.showToast('Einstellungen auf Standard zurückgesetzt.');
           });
@@ -18977,6 +19131,52 @@
         if (this.rendererRight) this.rendererRight.render();
       }
 
+      setShowGateDelay(enabled) {
+        this.showGateDelay = Boolean(enabled);
+        if (this.renderer) this.renderer.showGateDelay = this.showGateDelay;
+        if (this.rendererRight) this.rendererRight.showGateDelay = this.showGateDelay;
+
+        if (typeof document !== 'undefined') {
+          const chkSettings = document.getElementById('settings-show-gate-delay');
+          if (chkSettings) chkSettings.checked = this.showGateDelay;
+          const checkView = document.getElementById('check-view-gate-delay');
+          if (checkView) checkView.innerHTML = this.showGateDelay ? '✓' : '&nbsp;';
+        }
+
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+      }
+
+      setGlobalGateDelay(delay, updateExisting = false) {
+        const d = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(delay, 10) || 1));
+        this.globalGateDelay = d;
+        if (this.circuit) {
+          this.circuit.globalGateDelay = d;
+          if (updateExisting && Array.isArray(this.circuit.components)) {
+            for (const comp of this.circuit.components) {
+              if (GATE_DELAY_TYPES[comp.type] && (comp.params.delay === null || comp.params.delay === undefined)) {
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.delayLine = null;
+              }
+            }
+          }
+        }
+        if (this.tabs) {
+          for (const tab of this.tabs) {
+            if (tab.circuit) tab.circuit.globalGateDelay = d;
+          }
+        }
+        if (typeof document !== 'undefined') {
+          const slider = document.getElementById('settings-global-delay-slider');
+          if (slider) slider.value = String(d);
+          const valEl = document.getElementById('settings-global-delay-val');
+          if (valEl) valEl.textContent = `${d} Tick${d > 1 ? 's' : ''}`;
+        }
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+      }
+
       loadSettings() {
         try {
           const raw = localStorage.getItem('logicsim_user_settings');
@@ -18987,6 +19187,8 @@
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
             if (s.showWireBridges !== undefined) this.setShowWireBridges(Boolean(s.showWireBridges));
+            if (s.globalGateDelay !== undefined) this.setGlobalGateDelay(s.globalGateDelay, false);
+            if (s.showGateDelay !== undefined) this.setShowGateDelay(Boolean(s.showGateDelay));
             if (s.layoutAnimation !== undefined) this.layoutAnimation = Boolean(s.layoutAnimation);
             if (['compact', 'normal', 'wide'].includes(s.layoutSpacing)) this.layoutSpacing = s.layoutSpacing;
             if (['auto', 'left', 'near'].includes(s.layoutInputs)) this.layoutInputs = s.layoutInputs;
@@ -19001,6 +19203,20 @@
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
           if (storedBridges !== null) {
             this.setShowWireBridges(storedBridges === 'true');
+          } else {
+            this.setShowWireBridges(false);
+          }
+          const storedDelay = localStorage.getItem('logicsim_global_delay');
+          if (storedDelay !== null) {
+            this.setGlobalGateDelay(parseInt(storedDelay, 10), false);
+          } else {
+            this.setGlobalGateDelay(1, false);
+          }
+          const storedShowGateDelay = localStorage.getItem('logicsim_show_gate_delay');
+          if (storedShowGateDelay !== null) {
+            this.setShowGateDelay(storedShowGateDelay === 'true');
+          } else {
+            this.setShowGateDelay(false);
           }
           const storedTheme = localStorage.getItem('logicsim_theme');
           if (storedTheme) this.setAppTheme(storedTheme);
@@ -19017,6 +19233,8 @@
             autoSaveCircuit: this.autoSaveCircuit,
             smartWires: this.smartWires,
             showWireBridges: this.showWireBridges,
+            globalGateDelay: this.globalGateDelay,
+            showGateDelay: this.showGateDelay,
             layoutAnimation: this.layoutAnimation,
             layoutSpacing: this.layoutSpacing,
             layoutInputs: this.layoutInputs,
@@ -19026,6 +19244,8 @@
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));
+          localStorage.setItem('logicsim_global_delay', String(this.globalGateDelay));
+          localStorage.setItem('logicsim_show_gate_delay', String(this.showGateDelay));
           localStorage.setItem('logicsim_theme', this.appTheme);
         } catch (e) {
           console.warn('Could not save settings:', e);
