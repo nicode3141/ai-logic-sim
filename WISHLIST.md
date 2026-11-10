@@ -41,10 +41,24 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-021** | Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker | `alpha` | 🟢 **Completed** | HIGH (1) und LOW (0) Signalfarben konfigurierbar in Renderer, UI und CSS; 8 neue abgestimmte Preset-Paare mit Leuchteffekten; Live-Vorschauleiste; flüssige Echtzeit-Farbwahl (60fps) mit synchronisierten Hex-Feldern und Standard-Reset. |
 | **WISH-022** | Offene Leitungs-Enden verschieben & interaktiv verbinden | `alpha` | 🟢 **Completed** | Freie Leitungs-Endpunkte (offene Drähte) lassen sich per Maus greifen, im Raster verschieben und direkt auf Bauteil-Pins fallen lassen, um die Verbindung herzustellen. Visuelles Feedback mit Fang-Aura, Drag-Cursor und Kontextmenü. |
 | **WISH-023** | Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen | `alpha` | 🟢 **Completed** | Beim Rechtsklick auf einen Leitungs-Eckpunkt (Wegpunkt) kann nicht nur der einzelne Eckpunkt gelöscht werden, sondern direkt auch die gesamte Leitung („Ganze Leitung löschen“); zudem Option zum Begradigen und Neu verlegen. |
+| **WISH-024** | Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls | `alpha` | 🟢 **Completed** | Ungewolltes vertikales Zoom-Skalieren & blauer 3px-Balken entfernt; flüssiges horizontales Bewegen/Pannen entlang des Zeit-/Tickstrahls; synchrone Playback-Controls (-1 Tick, Start/Pause, +1 Tick) im Diagramm-Header. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-024 (Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls)**:
+  - **Blauen Balken entfernt**: Der 3px hohe blaue Navigator-Balken (`ctx.fillRect(barX, 0, barW, 3)`) am oberen Rand des Impulsdiagramms wurde vollständig entfernt.
+  - **Auto-Skalierung entfernt**: Beim Ziehen des Playheads im Zeitstrahl verändert vertikales Bewegen der Maus nicht mehr den Zoomfaktor (`pixelsPerTick` bleibt fest auf dem eingestellten Wert).
+  - **Flüssiges Bewegen entlang des Zeitstrahls**:
+    - Der Playhead lässt sich durch Klicken und horizontales Ziehen flüssig und präzise entlang der Ticks bewegen.
+    - Freies horizontales Pannen des Zeitstrahls mit mittlerer Maustaste (Mausrad-Klick) oder Shift+Klick/Drag.
+    - Mausrad und Trackpad scrollen die Zeitachse flüssig horizontal (`deltaX`/`deltaY`).
+  - **Simulations-Controls direkt im Impulsdiagramm**:
+    - `-1 Tick` (`#btn-analyzer-sim-step-back`), `Start / Pause` (`#btn-analyzer-sim-start`) und `+1 Tick` (`#btn-analyzer-sim-step`) sind im `#analyzer-header` integriert.
+    - Volle Synchronisierung mit der oberen Haupt-Toolbar (Icons, Texte, Aktiv-/Pause-Zustände, Deaktivierung im Edit-Modus).
+    - `attachHoldRepeat` für schnellen Vor-/Rücklauf bei gedrückter Maustaste.
+  - **Test-Abdeckung**: Neuer Test `[WISH-024]` in `tests/comprehensive_test_suite.js`, alle 44 Tests bestehen fehlerfrei.
 
 - **WISH-023 (Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen)**:
   - **Umfassende Löschoptionen im Eckpunkt-Kontextmenü**:

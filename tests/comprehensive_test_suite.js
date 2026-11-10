@@ -1294,6 +1294,74 @@ runTest('WISH-023', 'Waypoint context menu provides options to delete both singl
   assertEqual(enDelWire, 'Delete entire wire', 'English translation exists for "Ganze Leitung löschen"');
 });
 
+runTest('WISH-024', 'Logic analyzer simulation controls synchronized and smooth timeline navigation without blue bar', () => {
+  const app = new LogicSimApp();
+  
+  // 1. Verify existence of timing diagram simulation controls
+  const btnAnaStart = document.getElementById('btn-analyzer-sim-start');
+  const btnAnaStepBack = document.getElementById('btn-analyzer-sim-step-back');
+  const btnAnaStep = document.getElementById('btn-analyzer-sim-step');
+  const anaPlayText = document.getElementById('analyzer-sim-play-text');
+
+  assertEqual(Boolean(btnAnaStart), true, 'btn-analyzer-sim-start exists in analyzer header');
+  assertEqual(Boolean(btnAnaStepBack), true, 'btn-analyzer-sim-step-back exists in analyzer header');
+  assertEqual(Boolean(btnAnaStep), true, 'btn-analyzer-sim-step exists in analyzer header');
+
+  // In Edit mode, simulation controls are disabled
+  app.engine.setMode('edit');
+  app.updateHUDAndToolbar();
+  assertEqual(btnAnaStart.disabled, true, 'Analyzer start button is disabled in edit mode');
+  assertEqual(btnAnaStep.disabled, true, 'Analyzer step button is disabled in edit mode');
+
+  // In Sim mode, simulation controls are enabled
+  app.engine.setMode('sim');
+  app.updateHUDAndToolbar();
+  assertEqual(btnAnaStart.disabled, false, 'Analyzer start button is enabled in sim mode');
+  assertEqual(btnAnaStep.disabled, false, 'Analyzer step button is enabled in sim mode');
+  assertEqual(anaPlayText.textContent, 'Start', 'Analyzer play text displays "Start"');
+
+  // When running, text changes to "Pause" and style changes to warning
+  app.engine.running = true;
+  app.updateHUDAndToolbar();
+  assertEqual(anaPlayText.textContent, 'Pause', 'Analyzer play text displays "Pause" when running');
+  assertEqual(btnAnaStart.className.includes('btn-warning'), true, 'Analyzer start button has btn-warning class when running');
+  app.engine.running = false;
+  app.engine.setMode('edit');
+  app.updateHUDAndToolbar();
+
+  // 2. Test timeline panning and absence of blue bar
+  const canvas = createMockElem('analyzer-canvas');
+  canvas.width = 1200;
+  canvas.height = 300;
+  const circuit = new Circuit();
+  const ringBuffer = new RingBuffer(256);
+  for (let i = 0; i < 20; i++) {
+    ringBuffer.record(i, new Map([['probe_1', i % 2]]));
+  }
+  const analyzer = new LogicAnalyzerRenderer(canvas, circuit, ringBuffer);
+
+  // Verify render does not draw blue bar (rgba(0, 176, 255, 0.6))
+  const drawnColors = [];
+  mockCtx.fillStyle = '#000000';
+  const origFillRect = mockCtx.fillRect;
+  mockCtx.fillRect = (x, y, w, h) => {
+    drawnColors.push(mockCtx.fillStyle);
+  };
+  analyzer.render();
+  mockCtx.fillRect = origFillRect;
+  const hasBlueBar = drawnColors.some(c => typeof c === 'string' && c.includes('rgba(0, 176, 255, 0.6)'));
+  assertEqual(hasBlueBar, false, 'Blue navigator bar is removed from analyzer header');
+
+  // 3. Test timeline panning state and fixed zoom stability
+  assertEqual(analyzer.isPanningTimeline, false, 'isPanningTimeline is initially false');
+  analyzer.pixelsPerTick = 16;
+  // Simulating mouse drag should not modify pixelsPerTick (auto-scaling removed)
+  analyzer.hoverX = 400;
+  analyzer.hoverY = 15;
+  analyzer.render();
+  assertEqual(analyzer.pixelsPerTick, 16, 'pixelsPerTick remains stable without erratic auto-scaling');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

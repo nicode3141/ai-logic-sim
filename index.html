@@ -523,20 +523,20 @@
       box-sizing: border-box;
     }
 
-    #btn-sim-start {
+    #btn-sim-start, #btn-analyzer-sim-start {
       min-width: 68px;
       justify-content: center;
       font-weight: 600;
       letter-spacing: 0.2px;
     }
 
-    #btn-sim-start.btn-primary {
+    #btn-sim-start.btn-primary, #btn-analyzer-sim-start.btn-primary {
       background: rgba(16, 185, 129, 0.18);
       border-color: rgba(16, 185, 129, 0.55);
       color: var(--accent-green);
     }
 
-    #btn-sim-start.btn-warning {
+    #btn-sim-start.btn-warning, #btn-analyzer-sim-start.btn-warning {
       background: rgba(245, 158, 11, 0.2);
       border-color: rgba(245, 158, 11, 0.6);
       color: var(--accent-amber);
@@ -4215,6 +4215,21 @@
             <span>Impulsdiagramm</span>
           </button>
           <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 0/256 Ticks)</span>
+        </div>
+
+        <div class="toolbar-group sim-deck" id="analyzer-sim-controls">
+          <button id="btn-analyzer-sim-step-back" class="btn" disabled title="1 Tick zurück (halten: Rücklauf)">
+            <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="0.8"/></svg></span>
+            <span class="btn-text">-1 Tick</span>
+          </button>
+          <button id="btn-analyzer-sim-start" class="btn btn-primary" disabled title="Start / Pause (Leertaste)">
+            <span id="analyzer-sim-play-icon" class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+            <span id="analyzer-sim-play-text" data-i18n="toolbar.sim.start">Start</span>
+          </button>
+          <button id="btn-analyzer-sim-step" class="btn" disabled title="1 Tick vor (halten: Vorlauf)">
+            <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
+            <span class="btn-text">+1 Tick</span>
+          </button>
         </div>
 
         <div class="toolbar-group">
@@ -12101,6 +12116,9 @@
 
         this.playheadOffset = null;
         this.isScrubbing = false;
+        this.isPanningTimeline = false;
+        this.panStartX = null;
+        this.panStartScrollRatio = 0;
         this.scrubStartedInRuler = false;
         this.scrubOriginY = null;
         this.scrubOriginPixelsPerTick = 12;
@@ -12163,48 +12181,26 @@
           const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
           const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
 
-          // Premiere Pro: Vertical drag in ruler or with Alt zooms/scales the visible time frame
-          if (this.scrubStartedInRuler && this.scrubOriginY !== null) {
-            const dy = this.scrubOriginY - this.hoverY;
-            if (Math.abs(dy) > 4) {
-              const newZoom = Math.max(4, Math.min(32, Math.round(this.scrubOriginPixelsPerTick + dy / 5)));
-              if (newZoom !== this.pixelsPerTick) {
-                this.pixelsPerTick = newZoom;
-                const zoomSlider = document.getElementById('slider-time-zoom');
-                const zoomLabel = document.getElementById('label-time-zoom');
-                if (zoomSlider) zoomSlider.value = this.pixelsPerTick;
-                if (zoomLabel) zoomLabel.textContent = `${this.pixelsPerTick} px/T`;
-              }
-            }
+          if (this.isPanningTimeline && this.panStartX !== null) {
+            const dx = clientX - this.panStartX;
+            const deltaFrac = (dx / plotW) * (visibleTicks / Math.max(1, totalSamples));
+            this.scrollRatio = Math.max(0.0, Math.min(1.0, this.panStartScrollRatio - deltaFrac));
+            const scrollSlider = document.getElementById('slider-time-scroll');
+            if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+            this.canvas.style.cursor = 'grabbing';
+            this.render();
+            return;
           }
 
-          // Premiere Pro: Edge auto-scrolling when moving playhead near or past margins
+          // Direct smooth playhead navigation along the time axis (Tickstrahl)
           const plotRight = this.gutterWidth + plotW;
-          const edgeThreshold = 35;
-          if (this.hoverX > plotRight - edgeThreshold) {
-            const over = Math.max(1, this.hoverX - (plotRight - edgeThreshold));
-            const step = Math.min(0.06, 0.01 + (over / 150) * 0.04);
-            this.scrollRatio = Math.min(1.0, this.scrollRatio + step);
-            this.startEdgeAutoScroll(1);
-          } else if (this.hoverX < this.gutterWidth + edgeThreshold) {
-            const over = Math.max(1, (this.gutterWidth + edgeThreshold) - this.hoverX);
-            const step = Math.min(0.06, 0.01 + (over / 150) * 0.04);
-            this.scrollRatio = Math.max(0.0, this.scrollRatio - step);
-            this.startEdgeAutoScroll(-1);
-          } else {
-            this.stopEdgeAutoScroll();
-          }
-
           const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
           const clampedX = Math.max(this.gutterWidth, Math.min(plotRight, this.hoverX));
           const relIdx = Math.floor((clampedX - this.gutterWidth) / this.pixelsPerTick);
           const targetOffset = Math.max(0, Math.min(totalSamples - 1, currentStartOffset + relIdx));
           this.setPlayheadOffset(targetOffset);
 
-          const scrollSlider = document.getElementById('slider-time-scroll');
-          if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
-
-          this.canvas.style.cursor = this.scrubStartedInRuler ? 'ew-resize' : 'col-resize';
+          this.canvas.style.cursor = 'ew-resize';
           this.render();
         };
 
@@ -12235,7 +12231,7 @@
             return;
           }
 
-          if (this.isScrubbing && totalSamples > 0) {
+          if ((this.isScrubbing || this.isPanningTimeline) && totalSamples > 0) {
             handleScrubMove(e.clientX, e.clientY);
             return;
           }
@@ -12266,13 +12262,12 @@
         });
 
         window.addEventListener('mousemove', (e) => {
-          if (this.isScrubbing && this.ringBuffer.count > 0) {
+          if ((this.isScrubbing || this.isPanningTimeline) && this.ringBuffer.count > 0) {
             handleScrubMove(e.clientX, e.clientY);
           }
         });
 
         this.canvas.addEventListener('mousedown', (e) => {
-          if (e.button !== 0) return;
           const rect = this.canvas.getBoundingClientRect();
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
@@ -12284,6 +12279,18 @@
             const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
             const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
             const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+
+            // Middle click (button 1) or Shift + click pans the timeline view
+            if (e.button === 1 || e.shiftKey) {
+              e.preventDefault();
+              this.isPanningTimeline = true;
+              this.panStartX = e.clientX;
+              this.panStartScrollRatio = this.scrollRatio;
+              this.canvas.style.cursor = 'grabbing';
+              return;
+            }
+
+            if (e.button !== 0) return;
 
             if (my <= 22 && this.loopRange) {
               const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
@@ -12303,8 +12310,6 @@
 
             this.isScrubbing = true;
             this.scrubStartedInRuler = (my <= 22);
-            this.scrubOriginY = my;
-            this.scrubOriginPixelsPerTick = this.pixelsPerTick;
 
             const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
             const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
@@ -12315,6 +12320,8 @@
 
         window.addEventListener('mouseup', () => {
           this.isScrubbing = false;
+          this.isPanningTimeline = false;
+          this.panStartX = null;
           this.activeBracketDrag = null;
           this.scrubStartedInRuler = false;
           this.scrubOriginY = null;
@@ -12733,24 +12740,6 @@
 
         ctx.fillStyle = headerBg;
         ctx.fillRect(0, 0, width, headerH);
-
-        // Premiere Pro Time Navigator bar at top of header
-        if (totalSamples > 0) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-          ctx.fillRect(this.gutterWidth, 0, plotW, 3);
-          const barFracStart = Math.min(1.0, startOffset / Math.max(1, totalSamples));
-          const barFracEnd = Math.min(1.0, endOffset / Math.max(1, totalSamples));
-          const barX = this.gutterWidth + barFracStart * plotW;
-          const barW = Math.max(6, (barFracEnd - barFracStart) * plotW);
-          ctx.fillStyle = 'rgba(0, 176, 255, 0.6)';
-          ctx.fillRect(barX, 0, barW, 3);
-
-          if (this.playheadOffset !== null) {
-            const phBarX = this.gutterWidth + (this.playheadOffset / Math.max(1, totalSamples)) * plotW;
-            ctx.fillStyle = '#00e676';
-            ctx.fillRect(phBarX - 1.5, 0, 3, 3);
-          }
-        }
 
         ctx.strokeStyle = gridBorder;
         ctx.beginPath();
@@ -16000,37 +15989,62 @@
         const btnReset = document.getElementById('btn-sim-reset');
         const freqBox = document.getElementById('freq-control-box');
 
+        const btnAnaStart = document.getElementById('btn-analyzer-sim-start');
+        const btnAnaStepBack = document.getElementById('btn-analyzer-sim-step-back');
+        const btnAnaStep = document.getElementById('btn-analyzer-sim-step');
+
         btnStart.disabled = !isSim;
-        if (btnStepBack) {
-          const hasHistory = this.engine.history.length > 0;
-          const hasPlayheadBack = this.analyzer && this.analyzer.playheadOffset !== null && this.analyzer.playheadOffset > 0;
-          btnStepBack.disabled = !isSim || this.engine.running || (!hasPlayheadBack && !hasHistory);
-        }
-        btnStep.disabled = !isSim || this.engine.running;
+        if (btnAnaStart) btnAnaStart.disabled = !isSim;
+
+        const hasHistory = this.engine.history.length > 0;
+        const hasPlayheadBack = this.analyzer && this.analyzer.playheadOffset !== null && this.analyzer.playheadOffset > 0;
+        const stepBackDisabled = !isSim || this.engine.running || (!hasPlayheadBack && !hasHistory);
+        if (btnStepBack) btnStepBack.disabled = stepBackDisabled;
+        if (btnAnaStepBack) btnAnaStepBack.disabled = stepBackDisabled;
+
+        const stepDisabled = !isSim || this.engine.running;
+        btnStep.disabled = stepDisabled;
+        if (btnAnaStep) btnAnaStep.disabled = stepDisabled;
+
         btnReset.disabled = !isSim;
         freqBox.classList.toggle('disabled', !isSim);
 
         const playIcon = document.getElementById('sim-play-icon');
         const playText = document.getElementById('sim-play-text');
+        const anaPlayIcon = document.getElementById('analyzer-sim-play-icon');
+        const anaPlayText = document.getElementById('analyzer-sim-play-text');
+
+        let playSvg = ICONS.play;
+        let playLabel = 'Start';
+        let playClass = 'btn btn-primary';
+
         if (this.analyzer?.loopRange) {
           if (this.analyzer.isLoopPlaying) {
-            playIcon.innerHTML = ICONS.pause;
-            playText.textContent = 'Pause Loop';
-            btnStart.className = 'btn btn-warning';
+            playSvg = ICONS.pause;
+            playLabel = 'Pause Loop';
+            playClass = 'btn btn-warning';
           } else {
-            playIcon.innerHTML = ICONS.play;
-            playText.textContent = 'Loop Play';
-            btnStart.className = 'btn btn-primary';
+            playSvg = ICONS.play;
+            playLabel = 'Loop Play';
+            playClass = 'btn btn-primary';
           }
         } else if (this.engine.running) {
-          playIcon.innerHTML = ICONS.pause;
-          playText.textContent = 'Pause';
-          btnStart.className = 'btn btn-warning';
+          playSvg = ICONS.pause;
+          playLabel = 'Pause';
+          playClass = 'btn btn-warning';
         } else {
-          playIcon.innerHTML = ICONS.play;
-          playText.textContent = 'Start';
-          btnStart.className = 'btn btn-primary';
+          playSvg = ICONS.play;
+          playLabel = 'Start';
+          playClass = 'btn btn-primary';
         }
+
+        if (playIcon) playIcon.innerHTML = playSvg;
+        if (playText) playText.textContent = playLabel;
+        btnStart.className = playClass;
+
+        if (anaPlayIcon) anaPlayIcon.innerHTML = playSvg;
+        if (anaPlayText) anaPlayText.textContent = playLabel;
+        if (btnAnaStart) btnAnaStart.className = playClass;
 
         const hudMode = document.getElementById('hud-mode');
         if (hudMode) {
@@ -16176,7 +16190,7 @@
           this.inspector.render(this.renderer.selectedCompId, this.renderer.selectedWireId);
         });
 
-        document.getElementById('btn-sim-start').addEventListener('click', () => {
+        const onToggleSimPlay = () => {
           if (this.analyzer?.loopRange) {
             if (this.engine.running) this.engine.pause();
             this.analyzer.toggleLoopAnimation();
@@ -16190,7 +16204,11 @@
             }
             this.engine.toggleRun();
           }
-        });
+        };
+
+        document.getElementById('btn-sim-start').addEventListener('click', onToggleSimPlay);
+        const btnAnaStart = document.getElementById('btn-analyzer-sim-start');
+        if (btnAnaStart) btnAnaStart.addEventListener('click', onToggleSimPlay);
 
         const attachHoldRepeat = (btn, actionFn) => {
           if (!btn) return;
@@ -16245,8 +16263,7 @@
           });
         };
 
-        const btnStepBack = document.getElementById('btn-sim-step-back');
-        attachHoldRepeat(btnStepBack, () => {
+        const onStepBack = () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
             if (this.analyzer && this.analyzer.playheadOffset !== null) {
               this.analyzer.stepPlayhead(-1);
@@ -16254,10 +16271,9 @@
               this.engine.stepBackTick();
             }
           }
-        });
+        };
 
-        const btnStep = document.getElementById('btn-sim-step');
-        attachHoldRepeat(btnStep, () => {
+        const onStepForward = () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
             if (this.analyzer && this.analyzer.playheadOffset !== null) {
               this.analyzer.stepPlayhead(1);
@@ -16265,7 +16281,17 @@
               this.engine.stepTick();
             }
           }
-        });
+        };
+
+        const btnStepBack = document.getElementById('btn-sim-step-back');
+        attachHoldRepeat(btnStepBack, onStepBack);
+        const btnAnaStepBack = document.getElementById('btn-analyzer-sim-step-back');
+        if (btnAnaStepBack) attachHoldRepeat(btnAnaStepBack, onStepBack);
+
+        const btnStep = document.getElementById('btn-sim-step');
+        attachHoldRepeat(btnStep, onStepForward);
+        const btnAnaStep = document.getElementById('btn-analyzer-sim-step');
+        if (btnAnaStep) attachHoldRepeat(btnAnaStep, onStepForward);
 
         document.getElementById('btn-sim-reset').addEventListener('click', () => {
           if (this.analyzer) {
