@@ -792,6 +792,50 @@ runTest('WISH-003', 'I18N multi-language dictionary and setLanguage switches bet
   assertEqual(app.language, 'de', 'app.language is de');
 });
 
+runTest('WISH-010', 'Coordinates display at bottom left, 10000x10000 field bounds, and popover jump', () => {
+  // Check HTML elements
+  const coordsIndex = html.indexOf('id="status-coords"');
+  const modeIndex = html.indexOf('id="status-mode-pill"');
+  assertEqual(coordsIndex !== -1, true, 'status-coords exists');
+  assertEqual(coordsIndex < modeIndex, true, 'status-coords is placed at bottom-left before status-mode-pill');
+  assertEqual(html.includes('id="coords-jump-popover"'), true, 'coords-jump-popover exists in HTML');
+  assertEqual(html.includes('id="coords-input-x"'), true, 'coords-input-x exists');
+  assertEqual(html.includes('id="coords-input-y"'), true, 'coords-input-y exists');
+
+  // Check component boundary clamping to 0..10000
+  const cOutOfBounds1 = new Component('c_neg', 'AND', -500, -200);
+  assertEqual(cOutOfBounds1.x, 0, 'Component negative x clamped to 0');
+  assertEqual(cOutOfBounds1.y, 0, 'Component negative y clamped to 0');
+
+  const cOutOfBounds2 = new Component('c_big', 'AND', 15000, 20000);
+  assertEqual(cOutOfBounds2.x, 10000, 'Component x clamped to 10000');
+  assertEqual(cOutOfBounds2.y, 10000, 'Component y clamped to 10000');
+
+  // Check updateStatusCoords clamping
+  const app = new LogicSimApp();
+  app.updateStatusCoords({ x: -200, y: 15000 });
+  assertEqual(app._statusCoordText, 'X: 0 px, Y: 10000 px', 'Status coords clamps display to 0..10000');
+});
+
+runTest('WISH-011', 'Norm bar removed from top menubar and toolbar', () => {
+  assertEqual(html.includes('id="mbtn-norm"'), false, 'mbtn-norm removed from top menubar');
+  assertEqual(html.includes('id="hud-norm-badge"'), false, 'hud-norm-badge removed from top toolbar');
+  assertEqual(html.includes('settings-norm-cards'), true, 'settings-norm-cards remains accessible in Settings modal');
+});
+
+runTest('WISH-012', 'Auswahl ausrichten toolbar buttons removed', () => {
+  assertEqual(html.includes('id="align-tool-grid"'), false, 'align-tool-grid removed from layout popover');
+  assertEqual(html.includes('id="align-selection-count"'), false, 'align-selection-count removed from layout popover');
+  assertEqual(html.includes('data-align="left"'), false, 'individual align-tool buttons removed from popover');
+});
+
+runTest('WISH-013', 'Mouse click hold wire creation removed in favor of clean selection and context menu', () => {
+  const app = new LogicSimApp();
+  assertEqual(app.pendingWireBranch, undefined, 'pendingWireBranch is not initialized');
+  assertEqual(html.includes('this.pendingWireBranch'), false, 'pendingWireBranch completely removed from index.html');
+  assertEqual(html.includes('Neue Verbindung ab hier starten'), true, 'Context menu retains intentional branch starting');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

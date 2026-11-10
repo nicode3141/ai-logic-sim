@@ -27,6 +27,10 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-007** | Floating / Terminus-Free Connections (No module required at end) | `feat/floating-connections` | 🟢 **Completed** | Connections do not strictly require a module at both ends (support stubs, test points, dangling terminals). |
 | **WISH-008** | Code Quality Improvement & Comment Cleanup | `feat/code-cleanup` | 🟢 **Completed** | Cleaned up 370+ redundant/noisy comments, streamlined code structure, optimized helper routines, and improved maintainability. |
 | **WISH-009** | Realistic Gate Propagation Delay & Global Configuration | `feat/gate-delay` | 🟢 **Completed** | Global gate delay (1–20 ticks), toggleable badge display (off by default), and realistic inertial transition timing ("wie im echten Leben"). |
+| **WISH-010** | Statusleiste: Koordinaten-Direkteingabe per Doppelklick & 10000x10000 Canvas-Limitierung | `feat/status-coords-bounds` | 🟡 **In Progress** | Koordinatenanzeige ganz unten links in Statusleiste platzieren; Doppelklick öffnet Koordinaten-Eingabe zum Anspringen/Zentrieren; Spielfeld strikt auf 10000x10000 begrenzen. |
+| **WISH-011** | Norm-Leiste ganz oben entfernen | `feat/remove-norm-bar` | 🟡 **In Progress** | Obere Norm-Leiste / Menü-Eintrag aus Menüleiste & Toolbar entfernen; Normen-Wahl sauber in Einstellungen behalten. |
+| **WISH-012** | „Auswahl ausrichten“-Schalterleiste entfernen | `feat/remove-align-tools` | 🟡 **In Progress** | Die 8 Ausrichtungs-Schalter und Titel „Auswahl ausrichten“ aus dem Layout-Bereich entfernen (wie im Screenshot markiert). |
+| **WISH-013** | Maus-Steuerung & Kontextmenü-Optimierung (Mausklick-Halten-Verbindung entfernen) | `feat/tweak-mouse-controls` | 🟡 **In Progress** | Ungewolltes Starten neuer Leitungen durch Halten der linken Maustaste auf Leitungen entfernen; Mausbedienung & Kontextmenü bereinigen. |
 
 ---
 

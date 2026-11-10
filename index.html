@@ -2843,6 +2843,75 @@
       font-family: var(--font-mono);
       font-size: 10.5px;
     }
+    .status-coords {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s, background 0.15s;
+      border-radius: 2px;
+      padding: 0 4px;
+    }
+    .status-coords:hover {
+      color: var(--accent-blue);
+      background: var(--bg-hover);
+    }
+
+    .coords-popover {
+      position: fixed;
+      bottom: 28px;
+      left: 10px;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent-blue);
+      border-radius: 4px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      font-size: 11px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .coords-popover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 600;
+    }
+    .coords-popover-field-limit {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+    .coords-popover-body {
+      display: flex;
+      gap: 10px;
+    }
+    .coords-popover-body label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+    }
+    .coords-popover-body input {
+      width: 65px;
+      padding: 2px 5px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .coords-popover-body input:focus {
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+    .coords-popover-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
 
     /* --- Scenario gallery ---------------------------------------------------------- */
     .logic-modal.scenario-modal {
@@ -3409,23 +3478,7 @@
           </div>
         </div>
 
-        <div class="menubar-item" data-menu="norm">
-          <button class="menubar-btn" id="mbtn-norm" data-i18n="menu.norm">Norm</button>
-          <div class="menubar-dropdown" id="mdropdown-norm" style="display: none;">
-            <button class="app-menu-item" id="menu-norm-din40700">
-              <span class="norm-check" id="check-norm-din40700">✓</span>
-              <span>DIN 40700 (Deutsch / Ursprünglich)</span>
-            </button>
-            <button class="app-menu-item" id="menu-norm-din60617">
-              <span class="norm-check" id="check-norm-din60617">&nbsp;</span>
-              <span>DIN EN 60617 (IEC / International)</span>
-            </button>
-            <button class="app-menu-item" id="menu-norm-ansi">
-              <span class="norm-check" id="check-norm-ansi">&nbsp;</span>
-              <span>ANSI / IEEE (US-Formen)</span>
-            </button>
-          </div>
-        </div>
+
 
         <div class="menubar-item" data-menu="demos">
           <button class="menubar-btn" id="mbtn-demos" data-i18n="menu.demos">Szenarien</button>
@@ -3510,17 +3563,7 @@
               <kbd>F</kbd>
             </button>
 
-            <div class="align-section-title">Auswahl ausrichten <span id="align-selection-count" class="align-count">0 Bauteile gewählt</span></div>
-            <div class="align-tool-grid" id="align-tool-grid">
-              <button class="align-tool" data-align="left" title="Linke Kanten bündig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="3" x2="4" y2="21"/><rect x="7" y="6" width="12" height="4" rx="1"/><rect x="7" y="14" width="7" height="4" rx="1"/></svg></button>
-              <button class="align-tool" data-align="hcenter" title="Horizontal zentrieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><rect x="5" y="6" width="14" height="4" rx="1"/><rect x="8" y="14" width="8" height="4" rx="1"/></svg></button>
-              <button class="align-tool" data-align="right" title="Rechte Kanten bündig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="20" y1="3" x2="20" y2="21"/><rect x="5" y="6" width="12" height="4" rx="1"/><rect x="10" y="14" width="7" height="4" rx="1"/></svg></button>
-              <button class="align-tool" data-align="top" title="Obere Kanten bündig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="4" x2="21" y2="4"/><rect x="6" y="7" width="4" height="12" rx="1"/><rect x="14" y="7" width="4" height="7" rx="1"/></svg></button>
-              <button class="align-tool" data-align="vcenter" title="Vertikal zentrieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/></svg></button>
-              <button class="align-tool" data-align="bottom" title="Untere Kanten bündig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="20" x2="21" y2="20"/><rect x="6" y="5" width="4" height="12" rx="1"/><rect x="14" y="10" width="4" height="7" rx="1"/></svg></button>
-              <button class="align-tool" data-distribute="h" title="Horizontal gleichmäßig verteilen (ab 3 Bauteilen)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="3" x2="3" y2="21"/><line x1="21" y1="3" x2="21" y2="21"/><rect x="7" y="8" width="3" height="8" rx="1"/><rect x="14" y="8" width="3" height="8" rx="1"/></svg></button>
-              <button class="align-tool" data-distribute="v" title="Vertikal gleichmäßig verteilen (ab 3 Bauteilen)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="3" x2="21" y2="3"/><line x1="3" y1="21" x2="21" y2="21"/><rect x="8" y="7" width="8" height="3" rx="1"/><rect x="8" y="14" width="8" height="3" rx="1"/></svg></button>
-            </div>
+
 
             <div class="align-section-title">Optionen</div>
             <div class="align-option">
@@ -3596,11 +3639,7 @@
           <span id="split-btn-text" class="btn-text" data-i18n="toolbar.split">Split</span>
         </button>
 
-        <div class="divider"></div>
 
-        <div class="hud-norm-badge" id="hud-norm-badge" title="Aktive Symbol-Norm (Klicken zum Umschalten)">
-          <span id="hud-norm">DIN 40700</span>
-        </div>
 
         <button id="btn-help" class="btn btn-round" title="Hilfe: Tastenkürzel und Bedienung (?)">?</button>
 
@@ -3938,15 +3977,30 @@
     </section>
 
     <footer id="statusbar">
+      <span class="status-item status-coords" id="status-coords" title="Doppelklick: Zu Koordinate springen / Viewport zentrieren (Feld: 10000×10000)">X: 0 px, Y: 0 px</span>
       <span class="status-pill" id="status-mode-pill"><span class="status-dot"></span><span id="hud-mode">EDIT</span></span>
       <span class="status-item" title="Simulationsschritt">Tick <strong id="hud-tick">0</strong></span>
       <span class="status-item" title="Bauteile / Leitungen"><strong id="hud-comp-count">0</strong> Bauteile · <strong id="hud-wire-count">0</strong> Leitungen</span>
       <span class="status-item" id="status-selection" style="display: none;"></span>
       <span class="status-item status-quality" id="status-quality" style="display: none;" title="Ergebnis der letzten Auto-Anordnung"></span>
       <span class="status-hint" id="status-hint">Tipp: Von Pin zu Pin ziehen verdrahtet. A ordnet die Schaltung automatisch an.</span>
-      <span class="status-item status-coords" id="status-coords">X: 0 px, Y: 0 px</span>
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
+
+    <div id="coords-jump-popover" class="coords-popover" style="display: none;">
+      <div class="coords-popover-header">
+        <span>📍 Zu Koordinate springen</span>
+        <span class="coords-popover-field-limit">Max 10000×10000</span>
+      </div>
+      <div class="coords-popover-body">
+        <label>X: <input type="number" id="coords-input-x" min="0" max="10000" step="20" value="0" /> px</label>
+        <label>Y: <input type="number" id="coords-input-y" min="0" max="10000" step="20" value="0" /> px</label>
+      </div>
+      <div class="coords-popover-actions">
+        <button id="coords-jump-btn" class="btn btn-primary" style="padding: 2px 10px; font-size: 11px;">Zentrieren</button>
+        <button id="coords-cancel-btn" class="btn" style="padding: 2px 10px; font-size: 11px;">Abbrechen</button>
+      </div>
+    </div>
 
     <div id="canvas-context-menu" class="context-menu" style="display: none;"></div>
 
@@ -5116,8 +5170,8 @@
         this.type = String(type || 'BUFFER');
         const numX = Number(x);
         const numY = Number(y);
-        const safeX = Number.isFinite(numX) ? Math.max(-100000, Math.min(100000, numX)) : 0;
-        const safeY = Number.isFinite(numY) ? Math.max(-100000, Math.min(100000, numY)) : 0;
+        const safeX = (Number.isFinite(numX) && !Number.isNaN(numX)) ? Math.max(0, Math.min(10000, numX)) : 0;
+        const safeY = (Number.isFinite(numY) && !Number.isNaN(numY)) ? Math.max(0, Math.min(10000, numY)) : 0;
         this.x = Math.round(safeX / GRID_SIZE) * GRID_SIZE;
         this.y = Math.round(safeY / GRID_SIZE) * GRID_SIZE;
         this.width = 80;
@@ -9626,13 +9680,14 @@
         const step = GRID_SIZE;
         if (step * this.zoom < 6) return;
 
+        const FIELD_MAX = 10000;
         const topLeft = this.screenToWorld(0, 0);
         const botRight = this.screenToWorld(screenW, screenH);
 
-        const startX = Math.floor(topLeft.x / step) * step;
-        const endX = Math.ceil(botRight.x / step) * step;
-        const startY = Math.floor(topLeft.y / step) * step;
-        const endY = Math.ceil(botRight.y / step) * step;
+        const startX = Math.max(0, Math.floor(topLeft.x / step) * step);
+        const endX = Math.min(FIELD_MAX, Math.ceil(botRight.x / step) * step);
+        const startY = Math.max(0, Math.floor(topLeft.y / step) * step);
+        const endY = Math.min(FIELD_MAX, Math.ceil(botRight.y / step) * step);
 
         const pal = this.getThemePalette();
         const dotSize = 1.6 / Math.sqrt(this.zoom);
@@ -9649,6 +9704,18 @@
             }
           }
         }
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 176, 255, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.strokeRect(0, 0, FIELD_MAX, FIELD_MAX);
+        ctx.fillStyle = 'rgba(0, 176, 255, 0.6)';
+        ctx.font = '10px monospace';
+        ctx.setLineDash([]);
+        ctx.fillText('0, 0 px', 8, 16);
+        ctx.fillText('10000, 10000 px (Feldgrenze)', FIELD_MAX - 165, FIELD_MAX - 10);
+        ctx.restore();
       }
 
       drawWires(ctx) {
@@ -13517,6 +13584,7 @@
         this.initAnalyzerEvents();
         this.initKeyboardEvents();
         this.initContextMenuEvents();
+        this.initCoordsEditor();
         this.initInspectorResizerEvents();
         this.initModalEvents();
         this.initSettingsModalEvents();
@@ -15282,15 +15350,7 @@
               return;
             }
 
-            const hitOtherWire = this.renderer.findWireAt(world.x, world.y, 8);
-            if (hitOtherWire && hitOtherWire.id !== this.renderer.activeWireDrag.fromWireId) {
-              const pts = this.renderer.getWirePolyline(hitOtherWire);
-              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
-              const targetX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : Math.round(world.x / GRID_SIZE) * GRID_SIZE;
-              const targetY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : Math.round(world.y / GRID_SIZE) * GRID_SIZE;
-              this.finishActiveWireAtPoint({ x: targetX, y: targetY }, hitOtherWire, null);
-              return;
-            }
+
 
             const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
             const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
@@ -15429,22 +15489,6 @@
               return;
             }
 
-            const pts = this.renderer.getWirePolyline(hitWire);
-            const proj = this.renderer.getClosestPointOnPolyline(pts, world) || world;
-            const branchX = Math.round(proj.x / GRID_SIZE) * GRID_SIZE;
-            const branchY = Math.round(proj.y / GRID_SIZE) * GRID_SIZE;
-
-            this.pendingWireBranch = {
-              wire: hitWire,
-              branchX,
-              branchY,
-              screenX: e.clientX,
-              screenY: e.clientY,
-              worldX: world.x,
-              worldY: world.y,
-              activated: false
-            };
-
             this.selectItem(null, hitWire.id);
             return;
           }
@@ -15472,29 +15516,17 @@
           this.updateStatusHint();
 
           if (this.isPanning) {
-            this.renderer.panX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
-            this.renderer.panY = this.panOrigin.y + (e.clientY - this.panStartScreen.y);
+            let nextPanX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
+            let nextPanY = this.panOrigin.y + (e.clientY - this.panStartScreen.y);
+            const z = this.renderer.zoom;
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+            nextPanX = Math.max(-10000 * z + 80, Math.min(w - 80, nextPanX));
+            nextPanY = Math.max(-10000 * z + 80, Math.min(h - 80, nextPanY));
+            this.renderer.panX = nextPanX;
+            this.renderer.panY = nextPanY;
             this.renderer.render();
             return;
-          }
-
-          if (this.pendingWireBranch && !this.pendingWireBranch.activated) {
-            const dist = Math.hypot(e.clientX - this.pendingWireBranch.screenX, e.clientY - this.pendingWireBranch.screenY);
-            if (dist > 4) {
-              this.pendingWireBranch.activated = true;
-              this.renderer.activeWireDrag = {
-                fromWireId: this.pendingWireBranch.wire.id,
-                fromPoint: { x: this.pendingWireBranch.branchX, y: this.pendingWireBranch.branchY },
-                startX: this.pendingWireBranch.branchX,
-                startY: this.pendingWireBranch.branchY,
-                waypoints: [],
-                currX: world.x,
-                currY: world.y,
-                style: e.shiftKey ? 'diagonal' : null
-              };
-              this.isMouseDraggingWire = true;
-              this.renderer.render();
-            }
           }
 
           if (this.isSelectingBox && this.renderer.selectionBox) {
@@ -15513,8 +15545,8 @@
             for (const [cid, pos] of this.groupStartPositions.entries()) {
               const comp = this.circuit.getComponent(cid);
               if (comp) {
-                comp.x = pos.x + snapDx;
-                comp.y = pos.y + snapDy;
+                comp.x = Math.max(0, Math.min(10000 - (comp.width || 80), pos.x + snapDx));
+                comp.y = Math.max(0, Math.min(10000 - (comp.height || 40), pos.y + snapDy));
               }
             }
             if (this.groupWireStartWaypoints) {
@@ -15667,8 +15699,8 @@
           if (this.draggingComp && this.engine.mode === 'edit') {
             const rawX = world.x - this.dragOffsetWorld.x;
             const rawY = world.y - this.dragOffsetWorld.y;
-            this.draggingComp.x = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
-            this.draggingComp.y = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+            this.draggingComp.x = Math.max(0, Math.min(10000 - (this.draggingComp.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
+            this.draggingComp.y = Math.max(0, Math.min(10000 - (this.draggingComp.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
             this.inspector.render(this.draggingComp.id, null);
             this.renderer.render();
             return;
@@ -15747,16 +15779,9 @@
             const dragDist = Math.hypot(world.x - drag.startX, world.y - drag.startY);
 
             const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
-            const hitOtherWire = (!hitPin) ? this.renderer.findWireAt(world.x, world.y, 8) : null;
 
             if (hitPin && (!drag.compId || (hitPin.compId !== drag.compId || hitPin.pinIndex !== drag.pinIndex))) {
               this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
-            } else if (hitOtherWire && hitOtherWire.id !== drag.fromWireId) {
-              const pts = this.renderer.getWirePolyline(hitOtherWire);
-              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
-              const targetX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : snapX;
-              const targetY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : snapY;
-              this.finishActiveWireAtPoint({ x: targetX, y: targetY }, hitOtherWire, null);
             } else if (dragDist >= 12) {
               this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
             } else {
@@ -15764,10 +15789,6 @@
               this.refreshAll();
             }
             this.isMouseDraggingWire = false;
-            this.pendingWireBranch = null;
-          }
-          if (this.pendingWireBranch) {
-            this.pendingWireBranch = null;
           }
 
           if (this.draggingWaypoint) {
@@ -18367,9 +18388,109 @@
       updateStatusCoords(world) {
         const el = document.getElementById('status-coords');
         if (!el || !world) return;
-        const x = Math.round(world.x / GRID_SIZE) * GRID_SIZE, y = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+        const x = Math.max(0, Math.min(10000, Math.round(world.x / GRID_SIZE) * GRID_SIZE));
+        const y = Math.max(0, Math.min(10000, Math.round(world.y / GRID_SIZE) * GRID_SIZE));
         const text = `X: ${x} px, Y: ${y} px`;
         if (text !== this._statusCoordText) { this._statusCoordText = text; el.textContent = text; }
+      }
+
+      initCoordsEditor() {
+        const el = document.getElementById('status-coords');
+        const popover = document.getElementById('coords-jump-popover');
+        const inputX = document.getElementById('coords-input-x');
+        const inputY = document.getElementById('coords-input-y');
+        const btnJump = document.getElementById('coords-jump-btn');
+        const btnCancel = document.getElementById('coords-cancel-btn');
+
+        if (!el || !popover) return;
+
+        const openCoordsEditor = () => {
+          let curX = 0;
+          let curY = 0;
+          if (this.lastMouseWorldPos) {
+            curX = Math.max(0, Math.min(10000, Math.round(this.lastMouseWorldPos.x / GRID_SIZE) * GRID_SIZE));
+            curY = Math.max(0, Math.min(10000, Math.round(this.lastMouseWorldPos.y / GRID_SIZE) * GRID_SIZE));
+          } else {
+            const dpr = window.devicePixelRatio || 1;
+            const center = this.renderer.screenToWorld((this.gridCanvas.width / dpr) / 2, (this.gridCanvas.height / dpr) / 2);
+            curX = Math.max(0, Math.min(10000, Math.round(center.x / GRID_SIZE) * GRID_SIZE));
+            curY = Math.max(0, Math.min(10000, Math.round(center.y / GRID_SIZE) * GRID_SIZE));
+          }
+          if (inputX) inputX.value = curX;
+          if (inputY) inputY.value = curY;
+          popover.style.display = 'flex';
+          if (inputX) {
+            inputX.focus();
+            inputX.select();
+          }
+        };
+
+        const closeCoordsEditor = () => {
+          popover.style.display = 'none';
+        };
+
+        const applyCoordsJump = () => {
+          const rawX = Number(inputX ? inputX.value : 0);
+          const rawY = Number(inputY ? inputY.value : 0);
+          const targetX = Math.max(0, Math.min(10000, Math.round((Number.isFinite(rawX) ? rawX : 0) / GRID_SIZE) * GRID_SIZE));
+          const targetY = Math.max(0, Math.min(10000, Math.round((Number.isFinite(rawY) ? rawY : 0) / GRID_SIZE) * GRID_SIZE));
+
+          if (this.renderer.selectedCompId) {
+            const comp = this.circuit.getComponent(this.renderer.selectedCompId);
+            if (comp) {
+              const dx = targetX - comp.x;
+              const dy = targetY - comp.y;
+              comp.x = Math.max(0, Math.min(10000 - (comp.width || 80), targetX));
+              comp.y = Math.max(0, Math.min(10000 - (comp.height || 40), targetY));
+              for (const w of this.circuit.wires) {
+                if ((w.fromCompId === comp.id || w.toCompId === comp.id) && w.waypoints && w.waypoints.length > 0) {
+                  w.waypoints = w.waypoints.map(p => ({
+                    x: Math.max(0, Math.min(10000, p.x + dx)),
+                    y: Math.max(0, Math.min(10000, p.y + dy))
+                  }));
+                }
+              }
+              if (this.inspector) this.inspector.render(comp.id, null);
+            }
+          }
+
+          const dpr = window.devicePixelRatio || 1;
+          const cw = this.gridCanvas.width / dpr;
+          const ch = this.gridCanvas.height / dpr;
+          this.renderer.panX = Math.round(cw / 2 - targetX * this.renderer.zoom);
+          this.renderer.panY = Math.round(ch / 2 - targetY * this.renderer.zoom);
+          this.renderer.render();
+
+          this.updateStatusCoords({ x: targetX, y: targetY });
+          this.showToast(`Viewport auf X: ${targetX} px, Y: ${targetY} px zentriert`);
+          closeCoordsEditor();
+        };
+
+        el.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          openCoordsEditor();
+        });
+
+        if (btnJump) btnJump.addEventListener('click', applyCoordsJump);
+        if (btnCancel) btnCancel.addEventListener('click', closeCoordsEditor);
+
+        const handleKey = (e) => {
+          if (popover.style.display === 'none') return;
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            applyCoordsJump();
+          } else if (e.key === 'Escape') {
+            closeCoordsEditor();
+          }
+        };
+        if (inputX) inputX.addEventListener('keydown', handleKey);
+        if (inputY) inputY.addEventListener('keydown', handleKey);
+
+        window.addEventListener('mousedown', (e) => {
+          if (popover.style.display !== 'none' && !popover.contains(e.target) && e.target !== el) {
+            closeCoordsEditor();
+          }
+        });
       }
 
 
