@@ -49,9 +49,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams };'
 );
-const { LogicSimApp, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -415,6 +415,40 @@ runTest('RESILIENCE', 'Circuit roundtrip JSON export and import matches topology
   assertEqual(c2.wires.length, 2);
   assertEqual(c2.getComponent(sw.id).params.label, 'S1');
   assertEqual(c2.getComponent(led.id).params.color, 'yellow');
+});
+
+runTest('RENDERING', 'Wire crossing bridges disabled by default and togglable via settings', () => {
+  let arcCount = 0;
+  const mockArcCtx = Object.assign({}, mockCtx, {
+    arc: () => { arcCount++; }
+  });
+  const mockCanvas = Object.assign({}, createMockElem('grid-canvas'), {
+    getContext: () => mockArcCtx
+  });
+  const circuit = new Circuit();
+  const c1 = circuit.addComponent('SWITCH', 0, 100);
+  const c2 = circuit.addComponent('LED', 300, 100);
+  const c3 = circuit.addComponent('SWITCH', 150, 0);
+  const c4 = circuit.addComponent('LED', 150, 300);
+
+  // Wire 1: (0, 100) -> (300, 100)
+  // Wire 2: (150, 0) -> (150, 300)
+  circuit.addWire(c1.id, 0, c2.id, 0);
+  circuit.addWire(c3.id, 0, c4.id, 0);
+
+  const engine = new SimulationEngine(circuit, new RingBuffer(10), () => {});
+  const renderer = new CanvasRenderer(mockCanvas, circuit, engine);
+
+  assertEqual(renderer.showWireBridges, false, 'showWireBridges must default to false');
+
+  arcCount = 0;
+  renderer.drawWires(mockArcCtx);
+  assertEqual(arcCount, 0, 'No bridge arcs should be drawn when showWireBridges is false');
+
+  renderer.showWireBridges = true;
+  arcCount = 0;
+  renderer.drawWires(mockArcCtx);
+  assertEqual(arcCount > 0, true, 'Bridge arcs must be drawn when showWireBridges is true');
 });
 
 console.log('\n================================================================');

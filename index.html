@@ -3246,6 +3246,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
               <span>Eigenschaften (Inspector)</span>
             </button>
+            <button class="app-menu-item" id="menu-item-toggle-bridges">
+              <span class="norm-check" id="check-view-bridges">&nbsp;</span>
+              <span>Leitungsbrücken bei Kreuzungen</span>
+            </button>
             <div class="app-menu-divider"></div>
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
             <button class="app-menu-item" data-theme-btn="modern">
@@ -3427,6 +3431,7 @@
             </div>
             <label class="align-check"><input type="checkbox" id="chk-layout-animation" checked /> <span>Anordnen animieren</span></label>
             <label class="align-check"><input type="checkbox" id="chk-smart-wires" checked /> <span>Leitungen beim Verschieben automatisch neu verlegen</span></label>
+            <label class="align-check"><input type="checkbox" id="chk-wire-bridges" /> <span>Leitungsbrücken (Bögen) bei Kreuzungen</span></label>
             <div class="align-report" id="align-report">Noch nicht angeordnet.</div>
           </div>
         </div>
@@ -4107,6 +4112,13 @@
                 <div>
                   <div style="font-weight: 600; color: var(--text-main);">Schaltung automatisch im Browser sichern (localStorage)</div>
                   <div style="font-size: 11px; color: var(--text-dim);">Behält deine Schaltung beim Schließen oder Neuladen des Browsers automatisch bei.</div>
+                </div>
+              </label>
+              <label class="settings-checkbox-label">
+                <input type="checkbox" id="settings-wire-bridges" />
+                <div>
+                  <div style="font-weight: 600; color: var(--text-main);">Leitungsbrücken bei Kreuzungen (Bögen)</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Zeigt bei überkreuzenden Leitungen Halbkreis-Bögen an. Deaktiviert für glatte, gerade Kreuzungen ohne Wölbungen (DigitalSimulator / Logisim Stil).</div>
                 </div>
               </label>
             </div>
@@ -8366,6 +8378,7 @@
         this.activeWaypointDrag = null;
         this.activeWireDrag = null;
         this.selectionBox = null;
+        this.showWireBridges = false;
       }
 
       getThemePalette() {
@@ -9185,8 +9198,9 @@
       drawWires(ctx) {
         if (!this.circuit.wires || this.circuit.wires.length === 0) return;
 
-        // 1. Compute orthogonal paths for all wires
+        // 1. Compute paths for all wires
         const wireEntries = [];
+        const showBridges = Boolean(this.showWireBridges);
         const allVertSegments = [];
 
         for (const w of this.circuit.wires) {
@@ -9194,23 +9208,25 @@
           if (pts.length < 2) continue;
           wireEntries.push({ wire: w, pts });
 
-          // Collect vertical segments for crossing bridge detection
-          for (let i = 0; i < pts.length - 1; i++) {
-            const pA = pts[i];
-            const pB = pts[i + 1];
-            if (pA.x === pB.x && pA.y !== pB.y) {
-              allVertSegments.push({
-                wireId: w.id,
-                net: w.fromCompId + ':' + w.fromPin,
-                x: pA.x,
-                minY: Math.min(pA.y, pB.y),
-                maxY: Math.max(pA.y, pB.y)
-              });
+          if (showBridges) {
+            // Collect vertical segments for crossing bridge detection
+            for (let i = 0; i < pts.length - 1; i++) {
+              const pA = pts[i];
+              const pB = pts[i + 1];
+              if (pA.x === pB.x && pA.y !== pB.y) {
+                allVertSegments.push({
+                  wireId: w.id,
+                  net: w.fromCompId ? (w.fromCompId + ':' + w.fromPin) : w.id,
+                  x: pA.x,
+                  minY: Math.min(pA.y, pB.y),
+                  maxY: Math.max(pA.y, pB.y)
+                });
+              }
             }
           }
         }
 
-        // 2. Draw each wire orthogonally with crossing jumper arcs
+        // 2. Draw each wire (straight lines by default, or with crossing jumper arcs if enabled)
         const pal = this.getThemePalette();
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
@@ -9247,14 +9263,14 @@
             const pA = pts[i];
             const pB = pts[i + 1];
 
-            if (pA.y === pB.y && pA.x !== pB.x) {
+            if (showBridges && pA.y === pB.y && pA.x !== pB.x) {
               // Horizontal segment: check for crossings over vertical wires of other connections
               const minX = Math.min(pA.x, pB.x);
               const maxX = Math.max(pA.x, pB.x);
               const y = pA.y;
 
               const crossings = [];
-              const ownNet = w.fromCompId + ':' + w.fromPin;
+              const ownNet = w.fromCompId ? (w.fromCompId + ':' + w.fromPin) : w.id;
               for (const vs of allVertSegments) {
                 if (vs.wireId !== w.id && vs.net !== ownNet && vs.x > minX + 6 && vs.x < maxX - 6 && y > vs.minY + 6 && y < vs.maxY - 6) {
                   crossings.push(vs.x);
@@ -9269,18 +9285,25 @@
 
                 for (const cx of crossings) {
                   const r = 5;
+                  ctx.lineTo(goingRight ? (cx - r) : (cx + r), y);
+                  // Mask out vertical wire segment underneath the bridge
+                  ctx.save();
+                  ctx.fillStyle = pal.bg;
+                  ctx.beginPath();
+                  ctx.arc(cx, y, r - 0.5, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.restore();
+
                   if (goingRight) {
-                    ctx.lineTo(cx - r, y);
                     ctx.arc(cx, y, r, Math.PI, 0, false);
                   } else {
-                    ctx.lineTo(cx + r, y);
                     ctx.arc(cx, y, r, 0, Math.PI, false);
                   }
                 }
                 ctx.lineTo(pB.x, pB.y);
               }
             } else {
-              // Vertical segment
+              // Straight segment
               ctx.lineTo(pB.x, pB.y);
             }
           }
@@ -12917,6 +12940,9 @@
         this.engine = new SimulationEngine(this.circuit, this.ringBuffer, () => this.onSimulationUpdate());
         this.renderer = new CanvasRenderer(this.gridCanvas, this.circuit, this.engine);
         this.rendererRight = new CanvasRenderer(this.gridCanvasRight, null, this.engine);
+        this.showWireBridges = false;
+        this.renderer.showWireBridges = this.showWireBridges;
+        this.rendererRight.showWireBridges = this.showWireBridges;
 
         this.analyzer = new LogicAnalyzerRenderer(
           this.analyzerCanvas,
@@ -13070,6 +13096,7 @@
         this.initModalEvents();
         this.initSettingsModalEvents();
         this.initExtendedUI();
+        this.setShowWireBridges(this.showWireBridges);
 
         window.addEventListener('resize', () => {
           this.renderer.resize();
@@ -17238,6 +17265,14 @@
         if (chkAnim) chkAnim.addEventListener('change', () => { this.layoutAnimation = Boolean(chkAnim.checked); this.saveSettings(); });
         const chkSmart = document.getElementById('chk-smart-wires');
         if (chkSmart) chkSmart.addEventListener('change', () => { this.smartWires = Boolean(chkSmart.checked); this.saveSettings(); });
+        const chkBridges = document.getElementById('chk-wire-bridges');
+        if (chkBridges) {
+          chkBridges.checked = Boolean(this.showWireBridges);
+          chkBridges.addEventListener('change', () => {
+            this.setShowWireBridges(chkBridges.checked);
+            this.saveSettings();
+          });
+        }
 
         document.getElementById('menu-item-reroute')?.addEventListener('click', () => this.runAlignAction('wires'));
         document.getElementById('menu-item-zoom-fit')?.addEventListener('click', () => this.runAlignAction('fit'));
@@ -17290,6 +17325,8 @@
         if (chkAnim) chkAnim.checked = this.layoutAnimation !== false;
         const chkSmart = document.getElementById('chk-smart-wires');
         if (chkSmart) chkSmart.checked = this.smartWires !== false;
+        const chkBridges = document.getElementById('chk-wire-bridges');
+        if (chkBridges) chkBridges.checked = this.showWireBridges === true;
         const rep = document.getElementById('align-report');
         if (rep) {
           const memo = this.getActiveTab() ? this.getActiveTab().layoutMemo : null;
@@ -18264,6 +18301,14 @@
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
         });
+
+        const chkInteractive = document.getElementById('settings-edit-interactive');
+        if (chkInteractive) chkInteractive.checked = Boolean(this.allowEditModeInteraction);
+        const chkAutoSave = document.getElementById('settings-auto-save');
+        if (chkAutoSave) chkAutoSave.checked = Boolean(this.autoSaveCircuit);
+        const chkWireBridges = document.getElementById('settings-wire-bridges');
+        if (chkWireBridges) chkWireBridges.checked = Boolean(this.showWireBridges);
+
         settingsModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
       }
@@ -18425,6 +18470,12 @@
             this.updateScenarioGuide();
           }
         });
+        document.getElementById('menu-item-toggle-bridges')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setShowWireBridges(!this.showWireBridges);
+          this.saveSettings();
+          this.showToast(`Leitungsbrücken ${this.showWireBridges ? 'aktiviert' : 'deaktiviert'}`);
+        });
 
         // Theme buttons in View menu
         document.querySelectorAll('#mdropdown-view [data-theme-btn]').forEach(btn => {
@@ -18545,6 +18596,16 @@
           });
         }
 
+        // 4b. Wire bridges
+        const chkWireBridges = document.getElementById('settings-wire-bridges');
+        if (chkWireBridges) {
+          chkWireBridges.checked = this.showWireBridges;
+          chkWireBridges.addEventListener('change', (e) => {
+            this.setShowWireBridges(e.target.checked);
+            this.saveSettings();
+          });
+        }
+
         // 5. Workbench Theme Cards
         const themeCards = document.querySelectorAll('#settings-theme-cards .theme-card');
         themeCards.forEach(card => {
@@ -18571,10 +18632,12 @@
             this.setHighSignalColor('#00e676');
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
+            this.setShowWireBridges(false);
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
+            if (chkWireBridges) chkWireBridges.checked = false;
             this.saveSettings();
             this.showToast('Einstellungen auf Standard zurückgesetzt.');
           });
@@ -18666,6 +18729,24 @@
         else this.setAppTheme('modern');
       }
 
+      setShowWireBridges(enabled) {
+        this.showWireBridges = Boolean(enabled);
+        if (this.renderer) this.renderer.showWireBridges = this.showWireBridges;
+        if (this.rendererRight) this.rendererRight.showWireBridges = this.showWireBridges;
+
+        if (typeof document !== 'undefined') {
+          const chkSettings = document.getElementById('settings-wire-bridges');
+          if (chkSettings) chkSettings.checked = this.showWireBridges;
+          const chkAlign = document.getElementById('chk-wire-bridges');
+          if (chkAlign) chkAlign.checked = this.showWireBridges;
+          const checkView = document.getElementById('check-view-bridges');
+          if (checkView) checkView.innerHTML = this.showWireBridges ? '✓' : '&nbsp;';
+        }
+
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+      }
+
       loadSettings() {
         try {
           const raw = localStorage.getItem('logicsim_user_settings');
@@ -18675,6 +18756,7 @@
             if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
+            if (s.showWireBridges !== undefined) this.setShowWireBridges(Boolean(s.showWireBridges));
             if (s.layoutAnimation !== undefined) this.layoutAnimation = Boolean(s.layoutAnimation);
             if (['compact', 'normal', 'wide'].includes(s.layoutSpacing)) this.layoutSpacing = s.layoutSpacing;
             if (['auto', 'left', 'near'].includes(s.layoutInputs)) this.layoutInputs = s.layoutInputs;
@@ -18685,6 +18767,10 @@
               else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint');
               else this.setAppTheme('modern');
             }
+          }
+          const storedBridges = localStorage.getItem('logicsim_wire_bridges');
+          if (storedBridges !== null) {
+            this.setShowWireBridges(storedBridges === 'true');
           }
           const storedTheme = localStorage.getItem('logicsim_theme');
           if (storedTheme) this.setAppTheme(storedTheme);
@@ -18700,6 +18786,7 @@
             allowEditModeInteraction: this.allowEditModeInteraction,
             autoSaveCircuit: this.autoSaveCircuit,
             smartWires: this.smartWires,
+            showWireBridges: this.showWireBridges,
             layoutAnimation: this.layoutAnimation,
             layoutSpacing: this.layoutSpacing,
             layoutInputs: this.layoutInputs,
@@ -18708,6 +18795,7 @@
             symbolStandard: this.symbolStandard
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
+          localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));
           localStorage.setItem('logicsim_theme', this.appTheme);
         } catch (e) {
           console.warn('Could not save settings:', e);
