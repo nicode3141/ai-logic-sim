@@ -19,22 +19,23 @@ const window = {
   devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080
 };
 
+const createMockElem = (id = '') => ({
+  id, textContent: '', value: '10', width: 1200, height: 800,
+  addEventListener: () => {}, removeEventListener: () => {},
+  querySelectorAll: () => [], querySelector: () => null,
+  appendChild: () => {}, removeChild: () => {},
+  classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+  style: {}, getContext: () => mockCtx,
+  parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
+  getBoundingClientRect: () => ({ left: 0, top: 0, width: 1200, height: 800 })
+});
+
 const document = {
-  getElementById: (id) => ({
-    id, textContent: '', value: '10', width: 1200, height: 800,
-    addEventListener: () => {}, querySelectorAll: () => [],
-    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
-    style: {}, getContext: () => mockCtx,
-    parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
-    getBoundingClientRect: () => ({ left: 0, top: 0, width: 1200, height: 800 })
-  }),
+  getElementById: (id) => createMockElem(id),
   querySelectorAll: () => [],
-  createElement: () => ({
-    addEventListener: () => {}, appendChild: () => {}, querySelectorAll: () => [],
-    classList: { add: () => {}, remove: () => {}, toggle: () => {} }, style: {},
-    getContext: () => mockCtx
-  }),
-  body: { style: {} },
+  querySelector: () => null,
+  createElement: (tag) => createMockElem(tag),
+  body: createMockElem('body'),
   activeElement: null
 };
 
@@ -302,8 +303,7 @@ function runTestSuite() {
   console.log('       AI LOGIC SIMULATOR - AUTO-LAYOUT EVAL SUITE    ');
   console.log('======================================================\n');
 
-  const scratchDir = 'C:\\Users\\leqit\\.gemini\\antigravity-cli\\brain\\00a4dae0-e337-4d01-9f56-f5b0136eb988\\scratch';
-  const outDir = fs.existsSync(scratchDir) ? scratchDir : __dirname;
+  const outDir = path.join(__dirname, 'output');
   const results = [];
 
   for (const [name, preset] of Object.entries(BENCHMARKS)) {

@@ -1,0 +1,4 @@
+.worktrees/
+tests/output/
+node_modules/
+.idea/

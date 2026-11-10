@@ -4251,6 +4251,57 @@
         this.nextId = maxNum + 1;
         this.syncImmediateWireLevels();
       }
+
+      step() {
+        const comps = this.components;
+        const wires = this.wires;
+
+        const inputWireMap = new Map();
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          inputWireMap.set(`${w.toCompId}:${w.toPin}`, w.level);
+        }
+
+        // Phase 1: Read & Compute
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          const inCount = comp.inputs.length;
+          const inputValues = new Array(inCount);
+          for (let p = 0; p < inCount; p++) {
+            const val = inputWireMap.get(`${comp.id}:${p}`);
+            inputValues[p] = val !== undefined ? val : 0;
+          }
+          comp.compute(inputValues);
+        }
+
+        // Phase 2: Commit & Propagate
+        const compMap = new Map();
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          comp.commit();
+          compMap.set(comp.id, comp);
+        }
+
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          const srcComp = compMap.get(w.fromCompId);
+          w.level = srcComp ? (srcComp.outputs[w.fromPin]?.value || 0) : 0;
+        }
+
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          for (let p = 0; p < comp.inputs.length; p++) {
+            comp.inputs[p].value = 0;
+          }
+        }
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          const dstComp = compMap.get(w.toCompId);
+          if (dstComp && dstComp.inputs[w.toPin]) {
+            dstComp.inputs[w.toPin].value = w.level;
+          }
+        }
+      }
     }
 
     /**
@@ -4398,54 +4449,7 @@
 
       stepCircuit(circuit) {
         if (!circuit) return;
-        const comps = circuit.components;
-        const wires = circuit.wires;
-
-        const inputWireMap = new Map();
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          inputWireMap.set(`${w.toCompId}:${w.toPin}`, w.level);
-        }
-
-        // Phase 1: Read & Compute
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          const inCount = comp.inputs.length;
-          const inputValues = new Array(inCount);
-          for (let p = 0; p < inCount; p++) {
-            const val = inputWireMap.get(`${comp.id}:${p}`);
-            inputValues[p] = val !== undefined ? val : 0;
-          }
-          comp.compute(inputValues);
-        }
-
-        // Phase 2: Commit & Propagate
-        const compMap = new Map();
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          comp.commit();
-          compMap.set(comp.id, comp);
-        }
-
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          const srcComp = compMap.get(w.fromCompId);
-          w.level = srcComp ? (srcComp.outputs[w.fromPin]?.value || 0) : 0;
-        }
-
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          for (let p = 0; p < comp.inputs.length; p++) {
-            comp.inputs[p].value = 0;
-          }
-        }
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          const dstComp = compMap.get(w.toCompId);
-          if (dstComp && dstComp.inputs[w.toPin]) {
-            dstComp.inputs[w.toPin].value = w.level;
-          }
-        }
+        circuit.step();
       }
 
       stepTick() {
