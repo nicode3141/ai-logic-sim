@@ -3073,6 +3073,29 @@
       refresh: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>'
     };
 
+    /**
+     * Security & Sanitization Helpers
+     */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function sanitizeParams(rawParams) {
+      if (!rawParams || typeof rawParams !== 'object') return {};
+      const clean = {};
+      for (const key of Object.keys(rawParams)) {
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+        clean[key] = rawParams[key];
+      }
+      return clean;
+    }
+
     function getGateSvgForNorm(type, norm) {
       if (norm === 'DIN_EN_60617') {
         switch (type) {
@@ -3280,10 +3303,14 @@
      */
     class Component {
       constructor(id, type, x, y, customParams = {}) {
-        this.id = id;
-        this.type = type;
-        this.x = Math.round(x / GRID_SIZE) * GRID_SIZE;
-        this.y = Math.round(y / GRID_SIZE) * GRID_SIZE;
+        this.id = String(id || 'comp_unknown');
+        this.type = String(type || 'BUFFER');
+        const numX = Number(x);
+        const numY = Number(y);
+        const safeX = Number.isFinite(numX) ? Math.max(-100000, Math.min(100000, numX)) : 0;
+        const safeY = Number.isFinite(numY) ? Math.max(-100000, Math.min(100000, numY)) : 0;
+        this.x = Math.round(safeX / GRID_SIZE) * GRID_SIZE;
+        this.y = Math.round(safeY / GRID_SIZE) * GRID_SIZE;
         this.width = 80;
         this.height = 80;
 
@@ -3294,7 +3321,7 @@
         this.params = {};
         this.state = {};
 
-        this.initDefaults(customParams);
+        this.initDefaults(sanitizeParams(customParams));
         this.rebuildPins();
         this.resetState();
       }
@@ -3312,12 +3339,14 @@
               label: customParams.label ?? 'BTN'
             };
             break;
-          case 'CLOCK':
+          case 'CLOCK': {
+            const rawHalf = parseInt(customParams.halfPeriod ?? 5, 10);
             this.params = {
               label: customParams.label ?? 'CLK',
-              halfPeriod: Math.max(1, Math.min(50, parseInt(customParams.halfPeriod ?? 5, 10)))
+              halfPeriod: Number.isFinite(rawHalf) ? Math.max(1, Math.min(50, rawHalf)) : 5
             };
             break;
+          }
           case 'NOT':
             this.params = {
               label: customParams.label ?? 'NOT',
@@ -3732,8 +3761,11 @@
        * PHASE 1 (Read & Compute)
        */
       compute(inputValues) {
-        for (let i = 0; i < this.inputs.length; i++) {
-          this.inputs[i].value = inputValues[i] ? 1 : 0;
+        if (inputValues) {
+          const len = Math.min(this.inputs.length, inputValues.length);
+          for (let i = 0; i < len; i++) {
+            this.inputs[i].value = inputValues[i] ? 1 : 0;
+          }
         }
 
         switch (this.type) {
@@ -3748,7 +3780,8 @@
           case 'CLOCK': {
             let nextCnt = this.state.counter + 1;
             let nextVal = this.state.value;
-            if (nextCnt >= this.params.halfPeriod) {
+            const halfP = Number.isFinite(this.params.halfPeriod) ? Math.max(1, this.params.halfPeriod) : 5;
+            if (nextCnt >= halfP) {
               nextCnt = 0;
               nextVal = nextVal === 1 ? 0 : 1;
             }
@@ -3758,22 +3791,22 @@
             break;
           }
           case 'NOT': {
-            const raw0 = inputValues[0] ? 1 : 0;
+            const raw0 = this.inputs[0]?.value ? 1 : 0;
             const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
             this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
             break;
           }
           case 'BUFFER': {
-            const raw0 = inputValues[0] ? 1 : 0;
+            const raw0 = this.inputs[0]?.value ? 1 : 0;
             const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
             const isOutInv = Boolean(this.params.invertedOutput);
             this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
             break;
           }
           case 'TRI_STATE': {
-            const inVal = inputValues[0] ? 1 : 0;
-            const enVal = inputValues[1] ? 1 : 0;
+            const inVal = this.inputs[0]?.value ? 1 : 0;
+            const enVal = this.inputs[1]?.value ? 1 : 0;
             const effIn = Boolean(this.params.invertedInputs?.[0]) ? (inVal ? 0 : 1) : inVal;
             const effEn = Boolean(this.params.invertedInputs?.[1]) ? (enVal ? 0 : 1) : enVal;
             const isOutInv = Boolean(this.params.invertedOutput);
@@ -3782,83 +3815,149 @@
             break;
           }
           case 'MAJORITY': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
-            const count = eff.filter(v => v === 1).length;
-            const base = count >= Math.ceil(eff.length / 2) ? 1 : 0;
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
+            let ones = 0;
+            for (let i = 0; i < inCount; i++) {
+              const raw = this.inputs[i].value ? 1 : 0;
+              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              if (val === 1) ones++;
+            }
+            const base = ones >= Math.ceil(inCount / 2) ? 1 : 0;
             const isOutInv = Boolean(this.params.invertedOutput);
             this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'AND': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
-            const base = eff.every(v => v === 1) ? 1 : 0;
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
+            let all = 1;
+            for (let i = 0; i < inCount; i++) {
+              const raw = this.inputs[i].value ? 1 : 0;
+              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              if (val !== 1) {
+                all = 0;
+                break;
+              }
+            }
             const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            this.nextOutputs[0] = isOutInv ? (all ? 0 : 1) : all;
             break;
           }
           case 'OR': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
-            const base = eff.some(v => v === 1) ? 1 : 0;
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
+            let any = 0;
+            for (let i = 0; i < inCount; i++) {
+              const raw = this.inputs[i].value ? 1 : 0;
+              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              if (val === 1) {
+                any = 1;
+                break;
+              }
+            }
             const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            this.nextOutputs[0] = isOutInv ? (any ? 0 : 1) : any;
             break;
           }
           case 'NAND': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
-            const base = eff.every(v => v === 1) ? 1 : 0;
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
+            let all = 1;
+            for (let i = 0; i < inCount; i++) {
+              const raw = this.inputs[i].value ? 1 : 0;
+              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              if (val !== 1) {
+                all = 0;
+                break;
+              }
+            }
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
+            this.nextOutputs[0] = isOutInv ? (all ? 0 : 1) : all;
             break;
           }
           case 'NOR': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
-            const base = eff.some(v => v === 1) ? 1 : 0;
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
+            let any = 0;
+            for (let i = 0; i < inCount; i++) {
+              const raw = this.inputs[i].value ? 1 : 0;
+              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              if (val === 1) {
+                any = 1;
+                break;
+              }
+            }
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
+            this.nextOutputs[0] = isOutInv ? (any ? 0 : 1) : any;
             break;
           }
           case 'XOR': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
             let base = 0;
             if (this.params.xorMode === 'parity') {
-              base = eff.reduce((acc, v) => acc + (v ? 1 : 0), 0) % 2;
-            } else if (eff.length === 2) {
-              base = (eff[0] ^ eff[1]);
+              let sum = 0;
+              for (let i = 0; i < inCount; i++) {
+                const raw = this.inputs[i].value ? 1 : 0;
+                sum += (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              }
+              base = sum % 2;
+            } else if (inCount === 2) {
+              const v0 = (inv && inv[0]) ? (this.inputs[0].value ? 0 : 1) : (this.inputs[0].value ? 1 : 0);
+              const v1 = (inv && inv[1]) ? (this.inputs[1].value ? 0 : 1) : (this.inputs[1].value ? 1 : 0);
+              base = v0 ^ v1;
             } else {
-              // Exact-one (=1 IEC standard)
-              base = eff.filter(v => v === 1).length === 1 ? 1 : 0;
+              let ones = 0;
+              for (let i = 0; i < inCount; i++) {
+                const raw = this.inputs[i].value ? 1 : 0;
+                if (((inv && inv[i]) ? (raw ? 0 : 1) : raw) === 1) ones++;
+              }
+              base = ones === 1 ? 1 : 0;
             }
             const isOutInv = Boolean(this.params.invertedOutput);
             this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
             break;
           }
           case 'XNOR': {
-            const eff = inputValues.map((v, i) => Boolean(this.params.invertedInputs?.[i]) ? (v ? 0 : 1) : (v ? 1 : 0));
+            const inCount = this.inputs.length;
+            const inv = this.params.invertedInputs;
             let base = 0;
             if (this.params.xorMode === 'parity') {
-              base = eff.reduce((acc, v) => acc + (v ? 1 : 0), 0) % 2;
-            } else if (eff.length === 2) {
-              base = (eff[0] ^ eff[1]);
+              let sum = 0;
+              for (let i = 0; i < inCount; i++) {
+                const raw = this.inputs[i].value ? 1 : 0;
+                sum += (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+              }
+              base = sum % 2;
+            } else if (inCount === 2) {
+              const v0 = (inv && inv[0]) ? (this.inputs[0].value ? 0 : 1) : (this.inputs[0].value ? 1 : 0);
+              const v1 = (inv && inv[1]) ? (this.inputs[1].value ? 0 : 1) : (this.inputs[1].value ? 1 : 0);
+              base = v0 ^ v1;
             } else {
-              // Exact-one (=1 IEC standard)
-              base = eff.filter(v => v === 1).length === 1 ? 1 : 0;
+              let ones = 0;
+              for (let i = 0; i < inCount; i++) {
+                const raw = this.inputs[i].value ? 1 : 0;
+                if (((inv && inv[i]) ? (raw ? 0 : 1) : raw) === 1) ones++;
+              }
+              base = ones === 1 ? 1 : 0;
             }
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
             this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
             break;
           }
           case 'BCD_DEC': {
-            const d0 = inputValues[0] ? 1 : 0;
-            const d1 = inputValues[1] ? 1 : 0;
-            const d2 = inputValues[2] ? 1 : 0;
-            const d3 = inputValues[3] ? 1 : 0;
+            const d0 = this.inputs[0]?.value ? 1 : 0;
+            const d1 = this.inputs[1]?.value ? 1 : 0;
+            const d2 = this.inputs[2]?.value ? 1 : 0;
+            const d3 = this.inputs[3]?.value ? 1 : 0;
             const val = d3 * 8 + d2 * 4 + d1 * 2 + d0 * 1;
             this.state.nextVal = val;
 
             if (val <= 9 || this.params.hexMode) {
               const segs = BCD_SEGMENT_TABLE[val];
               for (let i = 0; i < 7; i++) {
-                this.nextOutputs[i] = segs[i];
+                this.nextOutputs[i] = segs ? segs[i] : 0;
               }
             } else {
               for (let i = 0; i < 7; i++) {
@@ -3868,9 +3967,9 @@
             break;
           }
           case 'COUNTER': {
-            const clk = inputValues[0] ? 1 : 0;
-            const en  = inputValues[1] ? 1 : 0;
-            const rst = inputValues[2] ? 1 : 0;
+            const clk = this.inputs[0]?.value ? 1 : 0;
+            const en  = this.inputs[1]?.value ? 1 : 0;
+            const rst = this.inputs[2]?.value ? 1 : 0;
             const modulus = this.params.mode === 'bcd' ? 10 : 16;
 
             let nextCount = this.state.count;
@@ -3891,9 +3990,9 @@
             break;
           }
           case 'SHIFT_REG': {
-            const din = inputValues[0] ? 1 : 0;
-            const clk = inputValues[1] ? 1 : 0;
-            const rst = inputValues[2] ? 1 : 0;
+            const din = this.inputs[0]?.value ? 1 : 0;
+            const clk = this.inputs[1]?.value ? 1 : 0;
+            const rst = this.inputs[2]?.value ? 1 : 0;
 
             let nextBits = [...this.state.bits];
             if (rst === 1) {
@@ -3916,9 +4015,9 @@
             break;
           }
           case 'SR_FF': {
-            const s   = inputValues[0] ? 1 : 0;
-            const clk = inputValues[1] ? 1 : 0;
-            const r   = inputValues[2] ? 1 : 0;
+            const s   = this.inputs[0]?.value ? 1 : 0;
+            const clk = this.inputs[1]?.value ? 1 : 0;
+            const r   = this.inputs[2]?.value ? 1 : 0;
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (trig === 'falling' ? (clk === 0 && this.state.lastClk === 1) : true);
             this.state.nextLastClk = clk;
@@ -3938,8 +4037,8 @@
             break;
           }
           case 'D_FF': {
-            const d   = inputValues[0] ? 1 : 0;
-            const clk = inputValues[1] ? 1 : 0;
+            const d   = this.inputs[0]?.value ? 1 : 0;
+            const clk = this.inputs[1]?.value ? 1 : 0;
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -3950,9 +4049,9 @@
             break;
           }
           case 'JK_FF': {
-            const j   = inputValues[0] ? 1 : 0;
-            const clk = inputValues[1] ? 1 : 0;
-            const k   = inputValues[2] ? 1 : 0;
+            const j   = this.inputs[0]?.value ? 1 : 0;
+            const clk = this.inputs[1]?.value ? 1 : 0;
+            const k   = this.inputs[2]?.value ? 1 : 0;
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -3972,8 +4071,8 @@
             break;
           }
           case 'T_FF': {
-            const t   = inputValues[0] ? 1 : 0;
-            const clk = inputValues[1] ? 1 : 0;
+            const t   = this.inputs[0]?.value ? 1 : 0;
+            const clk = this.inputs[1]?.value ? 1 : 0;
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -3987,8 +4086,8 @@
             break;
           }
           case 'D_LATCH': {
-            const d  = inputValues[0] ? 1 : 0;
-            const en = inputValues[1] ? 1 : 0;
+            const d  = this.inputs[0]?.value ? 1 : 0;
+            const en = this.inputs[1]?.value ? 1 : 0;
             const nextQ = en === 1 ? d : (this.state.q ?? 0);
             this.state.nextQ = nextQ;
             this.nextOutputs[0] = nextQ;
@@ -4044,6 +4143,7 @@
     class Circuit {
       constructor() {
         this.components = [];
+        this.compMap = new Map();
         this.wires = [];
         this.probes = [];
         this.nextId = 1;
@@ -4057,11 +4157,12 @@
         const id = forcedId || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
         this.components.push(comp);
+        this.compMap.set(comp.id, comp);
         return comp;
       }
 
       getComponent(id) {
-        return this.components.find(c => c.id === id) || null;
+        return this.compMap.get(id) || null;
       }
 
       removeComponent(compId, ringBuffer = null) {
@@ -4072,6 +4173,7 @@
           ringBuffer.removeChannel(comp.id);
         }
         this.components.splice(idx, 1);
+        this.compMap.delete(compId);
         const removedWires = this.wires.filter(
           w => w.fromCompId === compId || w.toCompId === compId
         );
@@ -4172,6 +4274,7 @@
 
       clear(ringBuffer = null) {
         this.components = [];
+        this.compMap.clear();
         this.wires = [];
         this.probes = [];
         this.nextId = 1;
@@ -4180,23 +4283,64 @@
 
       syncImmediateWireLevels() {
         // Run combinatorial relaxation passes so gates propagate live in Edit mode
+        const wires = this.wires;
+        const comps = this.components;
+        const compMap = this.compMap;
+        const isComb = { AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, BCD_DEC: 1 };
+
         for (let pass = 0; pass < 5; pass++) {
-          for (const wire of this.wires) {
-            const src = this.getComponent(wire.fromCompId);
-            wire.level = src ? (src.outputs[wire.fromPin]?.value || 0) : 0;
+          for (let i = 0; i < wires.length; i++) {
+            const w = wires[i];
+            const src = compMap.get(w.fromCompId);
+            w.level = src ? (src.outputs[w.fromPin]?.value || 0) : 0;
           }
-          for (const comp of this.components) {
-            const inValues = [];
-            for (let i = 0; i < comp.inputs.length; i++) {
-              const w = this.getWireToInput(comp.id, i);
-              const val = w ? w.level : 0;
-              comp.inputs[i].value = val;
-              inValues.push(val);
+          for (let i = 0; i < comps.length; i++) {
+            const comp = comps[i];
+            for (let p = 0; p < comp.inputs.length; p++) {
+              comp.inputs[p].value = 0;
             }
-            if (['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC'].includes(comp.type)) {
-              comp.compute(inValues);
+          }
+          for (let i = 0; i < wires.length; i++) {
+            const w = wires[i];
+            const dst = compMap.get(w.toCompId);
+            if (dst && dst.inputs[w.toPin]) {
+              dst.inputs[w.toPin].value = w.level;
+            }
+          }
+          let changed = false;
+          for (let i = 0; i < comps.length; i++) {
+            const comp = comps[i];
+            if (isComb[comp.type]) {
+              comp.compute();
+              for (let o = 0; o < comp.outputs.length; o++) {
+                if (comp.nextOutputs[o] !== comp.outputs[o].value) {
+                  changed = true;
+                  break;
+                }
+              }
               comp.commit();
             }
+          }
+          if (!changed) break;
+        }
+
+        // Final propagation pass to ensure all output wires and downstream inputs match latest committed states
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          const src = compMap.get(w.fromCompId);
+          w.level = src ? (src.outputs[w.fromPin]?.value || 0) : 0;
+        }
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          for (let p = 0; p < comp.inputs.length; p++) {
+            comp.inputs[p].value = 0;
+          }
+        }
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          const dst = compMap.get(w.toCompId);
+          if (dst && dst.inputs[w.toPin]) {
+            dst.inputs[w.toPin].value = w.level;
           }
         }
       }
@@ -4223,21 +4367,29 @@
         };
 
         for (const cData of data.components) {
+          if (!cData || typeof cData !== 'object') continue;
+          if (cData.id === '__proto__' || cData.id === 'constructor' || cData.id === 'prototype') continue;
           maxNum = Math.max(maxNum, extractNum(cData.id) + 1);
           if (cData.type === 'PROBE') continue; // Handled as wire tap
-          this.addComponent(cData.type, cData.x, cData.y, cData.params || {}, cData.id);
+          const safeX = Number.isFinite(Number(cData.x)) ? Number(cData.x) : 0;
+          const safeY = Number.isFinite(Number(cData.y)) ? Number(cData.y) : 0;
+          this.addComponent(cData.type, safeX, safeY, sanitizeParams(cData.params), cData.id);
         }
 
         for (const wData of data.wires) {
+          if (!wData || typeof wData !== 'object') continue;
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
           if (!this.getComponent(wData.fromCompId) || !this.getComponent(wData.toCompId)) {
             continue;
           }
-          this.addWire(wData.fromCompId, wData.fromPin, wData.toCompId, wData.toPin, wData.id, wData.waypoints || []);
+          const fromPin = parseInt(wData.fromPin, 10) || 0;
+          const toPin = parseInt(wData.toPin, 10) || 0;
+          this.addWire(wData.fromCompId, fromPin, wData.toCompId, toPin, wData.id, Array.isArray(wData.waypoints) ? wData.waypoints : []);
         }
 
         if (data.probes && Array.isArray(data.probes)) {
           for (const pData of data.probes) {
+            if (!pData || typeof pData !== 'object') continue;
             maxNum = Math.max(maxNum, extractNum(pData.id) + 1);
             this.addProbe(pData.wireId, {
               id: pData.id,
@@ -4256,47 +4408,32 @@
         const comps = this.components;
         const wires = this.wires;
 
-        const inputWireMap = new Map();
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          inputWireMap.set(`${w.toCompId}:${w.toPin}`, w.level);
-        }
-
         // Phase 1: Read & Compute
         for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          const inCount = comp.inputs.length;
-          const inputValues = new Array(inCount);
-          for (let p = 0; p < inCount; p++) {
-            const val = inputWireMap.get(`${comp.id}:${p}`);
-            inputValues[p] = val !== undefined ? val : 0;
-          }
-          comp.compute(inputValues);
+          comps[i].compute();
         }
 
         // Phase 2: Commit & Propagate
-        const compMap = new Map();
         for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          comp.commit();
-          compMap.set(comp.id, comp);
+          comps[i].commit();
         }
 
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
-          const srcComp = compMap.get(w.fromCompId);
+          const srcComp = this.compMap.get(w.fromCompId);
           w.level = srcComp ? (srcComp.outputs[w.fromPin]?.value || 0) : 0;
         }
 
         for (let i = 0; i < comps.length; i++) {
           const comp = comps[i];
-          for (let p = 0; p < comp.inputs.length; p++) {
+          const inCount = comp.inputs.length;
+          for (let p = 0; p < inCount; p++) {
             comp.inputs[p].value = 0;
           }
         }
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
-          const dstComp = compMap.get(w.toCompId);
+          const dstComp = this.compMap.get(w.toCompId);
           if (dstComp && dstComp.inputs[w.toPin]) {
             dstComp.inputs[w.toPin].value = w.level;
           }
@@ -5836,7 +5973,21 @@
       }
 
       drawComponents(ctx) {
-        for (const comp of this.circuit.components) {
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (this.canvas ? this.canvas.width : 100000);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (this.canvas ? this.canvas.height : 100000);
+        const margin = 100;
+        const viewLeft = -this.panX / this.zoom - margin;
+        const viewTop = -this.panY / this.zoom - margin;
+        const viewRight = (canvasW - this.panX) / this.zoom + margin;
+        const viewBottom = (canvasH - this.panY) / this.zoom + margin;
+
+        const comps = this.circuit.components;
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
+          if (comp.x + comp.width < viewLeft || comp.x > viewRight ||
+              comp.y + comp.height < viewTop || comp.y > viewBottom) {
+            continue; // Viewport cull off-screen components
+          }
           this.drawSingleComponent(ctx, comp);
         }
       }
@@ -7361,8 +7512,8 @@
           info.className = 'prop-info-box';
           info.innerHTML = `
             <div><strong>Typ:</strong> Messpunkt (Logic Probe)</div>
-            <div><strong>ID:</strong> ${probe.id}</div>
-            <div><strong>Leitung:</strong> ${probe.wireId} (${fromComp?.params.label || wire?.fromCompId || '?'} &rarr; ${toComp?.params.label || wire?.toCompId || '?'})</div>
+            <div><strong>ID:</strong> ${escapeHtml(probe.id)}</div>
+            <div><strong>Leitung:</strong> ${escapeHtml(probe.wireId)} (${escapeHtml(fromComp?.params.label || wire?.fromCompId || '?')} &rarr; ${escapeHtml(toComp?.params.label || wire?.toCompId || '?')})</div>
             <div><strong>Signalpegel:</strong> <span style="color:${(wire && wire.level) ? '#00e676' : '#94a3b8'};font-weight:700;">${wire ? wire.level : 0} (${(wire && wire.level) ? 'HIGH' : 'LOW'})</span></div>
           `;
           this.container.appendChild(info);
@@ -7431,9 +7582,9 @@
           info.className = 'prop-info-box';
           info.innerHTML = `
             <div><strong>Typ:</strong> Signalleitung (Wire)</div>
-            <div><strong>ID:</strong> ${wire.id}</div>
-            <div><strong>Quelle:</strong> ${fromComp?.params.label || wire.fromCompId} [${fromPinName}]</div>
-            <div><strong>Ziel:</strong> ${toComp?.params.label || wire.toCompId} [${toPinName}]</div>
+            <div><strong>ID:</strong> ${escapeHtml(wire.id)}</div>
+            <div><strong>Quelle:</strong> ${escapeHtml(fromComp?.params.label || wire.fromCompId)} [${escapeHtml(fromPinName)}]</div>
+            <div><strong>Ziel:</strong> ${escapeHtml(toComp?.params.label || wire.toCompId)} [${escapeHtml(toPinName)}]</div>
             <div><strong>Pegel:</strong> <span style="color:${wire.level ? '#00e676' : '#94a3b8'};font-weight:700;">${wire.level} (${wire.level ? 'HIGH' : 'LOW'})</span></div>
           `;
           this.container.appendChild(info);
@@ -7552,8 +7703,8 @@
         const info = document.createElement('div');
         info.className = 'prop-info-box';
         info.innerHTML = `
-          <div><strong>Bauteil:</strong> ${this.getReadableTypeName(comp.type)}</div>
-          <div><strong>ID:</strong> ${comp.id}</div>
+          <div><strong>Bauteil:</strong> ${escapeHtml(this.getReadableTypeName(comp.type))}</div>
+          <div><strong>ID:</strong> ${escapeHtml(comp.id)}</div>
           <div><strong>Position:</strong> X=${comp.x}, Y=${comp.y}</div>
         `;
         this.container.appendChild(info);
@@ -7897,7 +8048,7 @@
         info.innerHTML = `
           <div><strong>Mehrfachauswahl:</strong> ${comps.length} Bauteil(e), ${wires.length} Leitung(en)</div>
           ${comps.length > 0 ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
-            ${Array.from(new Set(comps.map(c => this.getReadableTypeName(c.type)))).join(', ')}
+            ${Array.from(new Set(comps.map(c => escapeHtml(this.getReadableTypeName(c.type))))).join(', ')}
           </div>` : ''}
         `;
         this.container.appendChild(info);
@@ -8236,9 +8387,26 @@
       }
 
       static parse(text) {
+        if (!text || typeof text !== 'string') return [];
+        if (text.length > 20000) {
+          throw new Error('Ausdruck zu lang (maximal 20.000 Zeichen erlaubt).');
+        }
+
         const parser = new BooleanParser(text);
         const tokens = parser.tokenize();
         let idx = 0;
+
+        let depth = 0;
+        const MAX_PARSE_DEPTH = 100;
+        const enterDepth = () => {
+          depth++;
+          if (depth > MAX_PARSE_DEPTH) {
+            throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+          }
+        };
+        const leaveDepth = () => {
+          depth--;
+        };
 
         const peek = () => tokens[idx] || { type: 'EOF', val: '' };
         const consume = (expectedType) => {
@@ -8351,7 +8519,9 @@
         function parseUnary() {
           if (peek().type === 'OP_NOT') {
             consume('OP_NOT');
+            enterDepth();
             const child = parseUnary();
+            leaveDepth();
             return { type: 'NOT', child };
           }
           return parsePostfix();
@@ -8370,7 +8540,9 @@
           const t = peek();
           if (t.type === 'LPAREN') {
             consume('LPAREN');
+            enterDepth();
             const expr = parseEquiv();
+            leaveDepth();
             consume('RPAREN');
             return expr;
           }
@@ -8388,60 +8560,63 @@
         return equations;
       }
 
-      static evaluateAST(node, varMap) {
+      static evaluateAST(node, varMap, depth = 0) {
         if (!node) return 0;
+        if (depth > 150) {
+          throw new Error('Maximale Auswertungstiefe überschritten (max. 150 Ebenen).');
+        }
         switch (node.type) {
           case 'CONST': return node.value;
-          case 'VAR': return varMap[node.name] !== undefined ? varMap[node.name] : 0;
-          case 'NOT': return BooleanParser.evaluateAST(node.child, varMap) === 1 ? 0 : 1;
-          case 'AND': return node.children.every(c => BooleanParser.evaluateAST(c, varMap) === 1) ? 1 : 0;
-          case 'OR': return node.children.some(c => BooleanParser.evaluateAST(c, varMap) === 1) ? 1 : 0;
+          case 'VAR': return (varMap && varMap[node.name] !== undefined) ? varMap[node.name] : 0;
+          case 'NOT': return BooleanParser.evaluateAST(node.child, varMap, depth + 1) === 1 ? 0 : 1;
+          case 'AND': return node.children.every(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
+          case 'OR': return node.children.some(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
           case 'XOR': {
-            const sum = node.children.reduce((acc, c) => acc + BooleanParser.evaluateAST(c, varMap), 0);
+            const sum = node.children.reduce((acc, c) => acc + BooleanParser.evaluateAST(c, varMap, depth + 1), 0);
             return sum % 2 === 1 ? 1 : 0;
           }
           case 'IMPLY': {
-            const left = BooleanParser.evaluateAST(node.children[0], varMap);
-            const right = BooleanParser.evaluateAST(node.children[1], varMap);
+            const left = BooleanParser.evaluateAST(node.children[0], varMap, depth + 1);
+            const right = BooleanParser.evaluateAST(node.children[1], varMap, depth + 1);
             return (left === 1 && right === 0) ? 0 : 1;
           }
-          case 'NAND': return BooleanParser.evaluateAST({ type: 'AND', children: node.children }, varMap) === 1 ? 0 : 1;
-          case 'NOR': return BooleanParser.evaluateAST({ type: 'OR', children: node.children }, varMap) === 1 ? 0 : 1;
+          case 'NAND': return BooleanParser.evaluateAST({ type: 'AND', children: node.children }, varMap, depth + 1) === 1 ? 0 : 1;
+          case 'NOR': return BooleanParser.evaluateAST({ type: 'OR', children: node.children }, varMap, depth + 1) === 1 ? 0 : 1;
           case 'EQUIV':
-          case 'XNOR': return BooleanParser.evaluateAST({ type: 'XOR', children: node.children }, varMap) === 1 ? 0 : 1;
+          case 'XNOR': return BooleanParser.evaluateAST({ type: 'XOR', children: node.children }, varMap, depth + 1) === 1 ? 0 : 1;
           default: return 0;
         }
       }
 
       static getVariables(node) {
         const vars = new Set();
-        function walk(n) {
-          if (!n) return;
+        function walk(n, d = 0) {
+          if (!n || d > 150) return;
           if (n.type === 'VAR') vars.add(n.name);
-          if (n.child) walk(n.child);
-          if (n.children) n.children.forEach(walk);
+          if (n.child) walk(n.child, d + 1);
+          if (n.children) n.children.forEach(c => walk(c, d + 1));
         }
         walk(node);
         return Array.from(vars);
       }
 
-      static formatMath(node) {
-        if (!node) return '';
+      static formatMath(node, depth = 0) {
+        if (!node || depth > 150) return '';
         switch (node.type) {
           case 'CONST': return String(node.value);
-          case 'VAR': return node.name;
+          case 'VAR': return escapeHtml(node.name);
           case 'NOT': {
-            if (node.child.type === 'VAR') return `¬${node.child.name}`;
-            return `¬(${BooleanParser.formatMath(node.child)})`;
+            if (node.child.type === 'VAR') return `¬${escapeHtml(node.child.name)}`;
+            return `¬(${BooleanParser.formatMath(node.child, depth + 1)})`;
           }
-          case 'AND': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∧ ')})`;
-          case 'OR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∨ ')})`;
-          case 'XOR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ⊕ ')})`;
-          case 'IMPLY': return `(${BooleanParser.formatMath(node.children[0])} → ${BooleanParser.formatMath(node.children[1])})`;
-          case 'NAND': return `¬(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∧ ')})`;
-          case 'NOR': return `¬(${node.children.map(c => BooleanParser.formatMath(c)).join(' ∨ ')})`;
+          case 'AND': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
+          case 'OR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
+          case 'XOR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ⊕ ')})`;
+          case 'IMPLY': return `(${BooleanParser.formatMath(node.children[0], depth + 1)} → ${BooleanParser.formatMath(node.children[1], depth + 1)})`;
+          case 'NAND': return `¬(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
+          case 'NOR': return `¬(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
           case 'EQUIV':
-          case 'XNOR': return `(${node.children.map(c => BooleanParser.formatMath(c)).join(' ↔ ')})`;
+          case 'XNOR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ↔ ')})`;
           default: return '';
         }
       }
@@ -8635,18 +8810,42 @@
           ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten 8 Eingänge (256 Zeilen) analysiert.`
           : null;
 
-        const inputMeta = cappedInputs.map((comp, idx) => ({
-          id: comp.id,
-          name: comp.params.label || comp.params.name || `IN_${idx + 1}`,
-          type: comp.type,
-          currentVal: comp.outputs[0]?.value || 0
-        }));
+        const seenInNames = new Map();
+        const inputMeta = cappedInputs.map((comp, idx) => {
+          const raw = (comp.params.label || comp.params.name || `IN_${idx + 1}`).trim() || `IN_${idx + 1}`;
+          let name = raw;
+          if (seenInNames.has(raw)) {
+            const count = seenInNames.get(raw) + 1;
+            seenInNames.set(raw, count);
+            name = `${raw}_${count}`;
+          } else {
+            seenInNames.set(raw, 1);
+          }
+          return {
+            id: comp.id,
+            name,
+            type: comp.type,
+            currentVal: comp.outputs[0]?.value || 0
+          };
+        });
 
-        const outputMeta = outputs.map((comp, idx) => ({
-          id: comp.id,
-          name: comp.params.label || comp.params.name || (comp.type === 'LED' ? `LED_${idx + 1}` : `OUT_${idx + 1}`),
-          type: comp.type
-        }));
+        const seenOutNames = new Map();
+        const outputMeta = outputs.map((comp, idx) => {
+          const raw = (comp.params.label || comp.params.name || (comp.type === 'LED' ? `LED_${idx + 1}` : `OUT_${idx + 1}`)).trim() || `OUT_${idx + 1}`;
+          let name = raw;
+          if (seenOutNames.has(raw)) {
+            const count = seenOutNames.get(raw) + 1;
+            seenOutNames.set(raw, count);
+            name = `${raw}_${count}`;
+          } else {
+            seenOutNames.set(raw, 1);
+          }
+          return {
+            id: comp.id,
+            name,
+            type: comp.type
+          };
+        });
 
         // Determine current combination index on canvas
         let currentRowIndex = 0;
@@ -11454,8 +11653,8 @@
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
-            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.settings} ${comp.params.label || comp.type}</span>
-            <span style="font-size:9.5px;color:var(--text-muted);">${comp.type}</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.settings} ${escapeHtml(comp.params.label || comp.type)}</span>
+            <span style="font-size:9.5px;color:var(--text-muted);">${escapeHtml(comp.type)}</span>
           `;
           menu.appendChild(header);
 
@@ -11895,8 +12094,8 @@
         const header = document.createElement('div');
         header.className = 'ctx-header';
         header.innerHTML = `
-          <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.probe} Messpunkt: ${probe.name}</span>
-          <span style="font-size:9.5px;color:var(--text-muted);">${probe.id}</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;">${ICONS.probe} Messpunkt: ${escapeHtml(probe.name)}</span>
+          <span style="font-size:9.5px;color:var(--text-muted);">${escapeHtml(probe.id)}</span>
         `;
         menu.appendChild(header);
 
@@ -13007,7 +13206,7 @@
             <div style="padding: 30px; text-align: center; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 12px;">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <div style="font-size: 14px; font-weight: 600; color: #f87171;">Keine Schaltungsauswertung möglich</div>
-              <div style="font-size: 12.5px; max-width: 440px; line-height: 1.5;">${data.error}</div>
+              <div style="font-size: 12.5px; max-width: 440px; line-height: 1.5;">${escapeHtml(data.error)}</div>
             </div>
           `;
           return;
@@ -13017,7 +13216,7 @@
         if (data.warning) {
           html += `
             <div style="padding: 8px 12px; margin-bottom: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 11.5px; color: #fbbf24;">
-              ⚠ ${data.warning}
+              ⚠ ${escapeHtml(data.warning)}
             </div>
           `;
         }
@@ -13028,9 +13227,9 @@
               <thead>
                 <tr>
                   <th style="width: 40px;">#</th>
-                  ${data.inputs.map(inp => `<th title="${inp.type}">${inp.name}</th>`).join('')}
+                  ${data.inputs.map(inp => `<th title="${escapeHtml(inp.type)}">${escapeHtml(inp.name)}</th>`).join('')}
                   <th class="tt-th-sep"></th>
-                  ${data.outputs.map(out => `<th title="${out.type}">${out.name}</th>`).join('')}
+                  ${data.outputs.map(out => `<th title="${escapeHtml(out.type)}">${escapeHtml(out.name)}</th>`).join('')}
                 </tr>
               </thead>
               <tbody>
@@ -13074,21 +13273,21 @@
           html += `
             <div style="margin-bottom: 10px;">
               <div style="font-size: 12px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 3px;">
-                Ausgang: ${out.name}
+                Ausgang: ${escapeHtml(out.name)}
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">DNF (Minterme):</span>
-                  <span class="tt-formula-text" style="color: #6ee7b7; margin-left: 6px;">${dnf.formula}</span>
+                  <span class="tt-formula-text" style="color: #6ee7b7; margin-left: 6px;">${escapeHtml(dnf.formula)}</span>
                 </div>
-                <button class="btn btn-sm btn-copy-sub" data-copy="${dnf.formula.replace(/"/g, '&quot;')}" title="DNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
+                <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(dnf.formula)}" title="DNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">KNF (Maxterme):</span>
-                  <span class="tt-formula-text" style="color: #93c5fd; margin-left: 6px;">${knf.formula}</span>
+                  <span class="tt-formula-text" style="color: #93c5fd; margin-left: 6px;">${escapeHtml(knf.formula)}</span>
                 </div>
-                <button class="btn btn-sm btn-copy-sub" data-copy="${knf.formula.replace(/"/g, '&quot;')}" title="KNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
+                <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(knf.formula)}" title="KNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
               </div>
             </div>
           `;
@@ -13210,7 +13409,7 @@
 
           mathPreview.innerHTML = equations.map(eq => {
             const math = BooleanParser.formatMath(eq.ast);
-            return `<div style="margin: 2px 0;"><span style="color:var(--accent-cyan); font-weight:700;">${eq.target}</span> = <span style="color:#f1f5f9;">${math}</span></div>`;
+            return `<div style="margin: 2px 0;"><span style="color:var(--accent-cyan); font-weight:700;">${escapeHtml(eq.target)}</span> = <span style="color:#f1f5f9;">${math}</span></div>`;
           }).join('');
 
           const varSet = new Set();
@@ -13232,9 +13431,9 @@
               <thead>
                 <tr>
                   <th style="width:25px; padding:3px 6px;">#</th>
-                  ${vars.map(v => `<th style="padding:3px 6px;">${v}</th>`).join('')}
+                  ${vars.map(v => `<th style="padding:3px 6px;">${escapeHtml(v)}</th>`).join('')}
                   <th class="tt-th-sep"></th>
-                  ${equations.map(eq => `<th style="padding:3px 6px; color:var(--accent-cyan);">${eq.target}</th>`).join('')}
+                  ${equations.map(eq => `<th style="padding:3px 6px; color:var(--accent-cyan);">${escapeHtml(eq.target)}</th>`).join('')}
                 </tr>
               </thead>
               <tbody>
@@ -13266,7 +13465,7 @@
         } catch (err) {
           statusBadge.textContent = 'Syntaxfehler';
           statusBadge.style.color = '#f87171';
-          mathPreview.innerHTML = `<span style="color:#f87171; font-size:12px;">⚠ ${err.message}</span>`;
+          mathPreview.innerHTML = `<span style="color:#f87171; font-size:12px;">⚠ ${escapeHtml(err.message)}</span>`;
           miniTtWrap.innerHTML = '';
           if (btnRun) btnRun.disabled = true;
         }

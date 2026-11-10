@@ -1,1 +1,1 @@
-// Scratch test script completed. All improvements integrated into index.html
+require('./run_all_tests.js');
