@@ -3223,17 +3223,13 @@
 </head>
 <body>
   <div id="app">
-    <!-- 1. TOP DESKTOP KOPFMENÜ (MENÜLEISTE) -->
     <nav id="app-menubar" class="app-menubar">
-      <!-- App Brand & Title -->
       <div class="menubar-brand">
         <div class="brand-icon">&amp;</div>
         <span>LogicSim Pro</span>
       </div>
 
-      <!-- Menubar items -->
       <div class="menubar-menus">
-        <!-- Datei -->
         <div class="menubar-item" data-menu="file">
           <button class="menubar-btn" id="mbtn-file" data-i18n="menu.file">Datei</button>
           <div class="menubar-dropdown" id="mdropdown-file" style="display: none;">
@@ -3264,7 +3260,6 @@
           </div>
         </div>
 
-        <!-- Bearbeiten -->
         <div class="menubar-item" data-menu="edit">
           <button class="menubar-btn" id="mbtn-edit" data-i18n="menu.edit">Bearbeiten</button>
           <div class="menubar-dropdown" id="mdropdown-edit" style="display: none;">
@@ -3318,7 +3313,6 @@
           </div>
         </div>
 
-        <!-- Ansicht -->
         <div class="menubar-item" data-menu="view">
           <button class="menubar-btn" id="mbtn-view" data-i18n="menu.view">Ansicht</button>
           <div class="menubar-dropdown" id="mdropdown-view" style="display: none;">
@@ -3399,7 +3393,6 @@
           </div>
         </div>
 
-        <!-- Analyse -->
         <div class="menubar-item" data-menu="analysis">
           <button class="menubar-btn" id="mbtn-analysis" data-i18n="menu.analysis">Analyse</button>
           <div class="menubar-dropdown" id="mdropdown-analysis" style="display: none;">
@@ -3416,7 +3409,6 @@
           </div>
         </div>
 
-        <!-- Norm -->
         <div class="menubar-item" data-menu="norm">
           <button class="menubar-btn" id="mbtn-norm" data-i18n="menu.norm">Norm</button>
           <div class="menubar-dropdown" id="mdropdown-norm" style="display: none;">
@@ -3435,7 +3427,6 @@
           </div>
         </div>
 
-        <!-- Szenarien -->
         <div class="menubar-item" data-menu="demos">
           <button class="menubar-btn" id="mbtn-demos" data-i18n="menu.demos">Szenarien</button>
           <div class="menubar-dropdown" id="mdropdown-demos" style="display: none; min-width: 300px;">
@@ -3454,7 +3445,6 @@
           </div>
         </div>
 
-        <!-- Hilfe -->
         <div class="menubar-item" data-menu="help">
           <button class="menubar-btn" id="mbtn-help" data-i18n="menu.help">Hilfe</button>
           <div class="menubar-dropdown" id="mdropdown-help" style="display: none; min-width: 260px;">
@@ -3470,7 +3460,6 @@
           </div>
         </div>
 
-        <!-- Einstellungen -->
         <div class="menubar-item">
           <button class="menubar-btn" id="mbtn-settings">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -3480,10 +3469,8 @@
       </div>
     </nav>
 
-    <!-- 2. TOOLBAR (SCHNELLE AKTIONEN OHNE REDUNDANZEN) -->
     <header id="toolbar">
       <div class="toolbar-group">
-        <!-- Mode Toggle -->
         <div class="mode-switch" role="group" aria-label="Betriebsmodus">
           <button id="btn-mode-edit" class="mode-btn active-edit" title="Schaltung bearbeiten (Bauteile platzieren & verdrahten)">
             <span class="status-dot"></span>
@@ -3497,7 +3484,6 @@
 
         <div class="divider"></div>
 
-        <!-- AUTO-ALIGN: one click arranges the circuit, the caret opens the alignment tools -->
         <div class="align-split" id="align-split">
           <button id="btn-auto-route" class="btn btn-accent" title="Auto-Anordnen (A): Bauteile sauber von links nach rechts anordnen und alle Leitungen kreuzungsarm neu verlegen. Sind mehrere Bauteile ausgewählt, wird nur die Auswahl angeordnet.">
             <span class="btn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8.5l-3.9 1.6L12 14l-1.6-3.9L6.5 8.5l3.9-1.6z"/><path d="M5 14l.8 2 2 .8-2 .8L5 19.6l-.8-2-2-.8 2-.8z"/><path d="M18.5 14.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z"/></svg></span>
@@ -3562,7 +3548,6 @@
 
         <div class="divider"></div>
 
-        <!-- Simulation Controls -->
         <div class="toolbar-group sim-deck" id="sim-controls-group">
           <button id="btn-sim-step-back" class="btn" disabled title="Einzelschritt zurück (-1 Tick, gedrückt halten zum kontinuierlichen Rücklauf)">
             <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="3" height="16" rx="0.8"/></svg></span>
@@ -3589,7 +3574,6 @@
         </div>
       </div>
 
-      <!-- Right Action Tools (Entfernung aller gedoppelten Buttons!) -->
       <div class="toolbar-group">
         <button id="btn-scenarios" class="btn btn-scenarios" title="Szenarien (G): Beispielschaltungen von leicht bis komplex">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
@@ -3624,9 +3608,7 @@
       </div>
     </header>
 
-    <!-- MAIN MIDDLE ROW -->
     <div id="main-area">
-      <!-- 2. LEFT COMPONENT PALETTE -->
       <aside id="sidebar">
         <div class="panel-header">
           <span data-i18n="palette.title">Bauteil-Palette</span>
@@ -3639,7 +3621,6 @@
         </div>
         <div id="palette-empty" class="palette-empty" style="display: none;" data-i18n="palette.empty">Kein Bauteil gefunden.</div>
 
-        <!-- Quellen -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.sources">Quellen (Inputs)</div>
           <div class="palette-grid">
@@ -3662,7 +3643,6 @@
           </div>
         </div>
 
-        <!-- Logikgatter -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.gates">Logikgatter (Gates)</div>
           <div class="palette-grid">
@@ -3713,7 +3693,6 @@
           </div>
         </div>
 
-        <!-- Anzeigen & Decoder -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.displays">Anzeigen &amp; Decoder</div>
           <div class="palette-grid single-col">
@@ -3736,7 +3715,6 @@
           </div>
         </div>
 
-        <!-- Bausteine -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.combinational">Bausteine (Kombinatorik)</div>
           <div class="palette-grid single-col">
@@ -3755,7 +3733,6 @@
           </div>
         </div>
 
-        <!-- Schaltwerke -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.sequential">Schaltwerke (Sequential)</div>
           <div class="palette-grid single-col">
@@ -3770,7 +3747,6 @@
           </div>
         </div>
 
-        <!-- Flip-Flops & Speicher -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.memory">Flip-Flops &amp; Speicher</div>
           <div class="palette-grid">
@@ -3797,7 +3773,6 @@
           </div>
         </div>
 
-        <!-- Analyse -->
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.analysis">Analyse</div>
           <div class="palette-grid single-col">
@@ -3809,9 +3784,7 @@
         </div>
       </aside>
 
-      <!-- 3. CENTRAL CANVAS WORKSPACE -->
       <main id="canvas-container">
-        <!-- Tab Bar -->
         <div id="tabs-bar" class="tabs-bar">
           <div id="tabs-container" class="tabs-container"></div>
           <button id="btn-new-tab" class="tab-add-btn" title="Neuen Schaltungs-Tab hinzufügen (+)">
@@ -3819,9 +3792,7 @@
           </button>
         </div>
 
-        <!-- Dual-Pane Workspace (Supports Single & Split-Screen) -->
         <div id="canvas-workspace" class="canvas-workspace">
-          <!-- Left Pane -->
           <div id="canvas-pane-left" class="canvas-pane">
             <div class="pane-header" id="pane-header-left" style="display: none;">
               <span class="pane-title" id="pane-title-left">Schaltung 1 (Links)</span>
@@ -3829,7 +3800,6 @@
             </div>
             <canvas id="grid-canvas"></canvas>
 
-            <!-- Scenario guide: explains the loaded scenario and what to try -->
             <div id="scenario-guide" class="scenario-guide" style="display: none;">
               <div class="guide-head">
                 <span class="guide-level" id="guide-level">Stufe 1</span>
@@ -3853,7 +3823,6 @@
               </div>
             </div>
 
-            <!-- Empty canvas hint -->
             <div id="empty-hint" class="empty-hint" style="display: none;">
               <div class="empty-hint-icon">&amp;</div>
               <div class="empty-hint-title">Die Arbeitsfläche ist leer</div>
@@ -3869,12 +3838,10 @@
             </div>
           </div>
 
-          <!-- Draggable Splitter -->
           <div id="canvas-splitter" class="canvas-splitter" style="display: none;">
             <div class="splitter-handle"></div>
           </div>
 
-          <!-- Right Pane (Split-Screen) -->
           <div id="canvas-pane-right" class="canvas-pane" style="display: none;">
             <div class="pane-header" id="pane-header-right">
               <span class="pane-title" id="pane-title-right">Rechte Schaltung</span>
@@ -3899,7 +3866,6 @@
         </button>
       </main>
 
-      <!-- 4. RIGHT INSPECTOR PANEL -->
       <aside id="inspector">
         <div id="inspector-resizer" title="Ziehen zum Ändern der Breite (nach links/rechts)"></div>
         <div class="panel-header">
@@ -3916,7 +3882,6 @@
       </aside>
     </div>
 
-    <!-- 5. BOTTOM LOGIC ANALYZER (IMPULSDIAGRAMM) -->
     <section id="analyzer-panel">
       <div id="analyzer-resizer" title="Ziehen zum Ändern der Höhe"></div>
       <div id="analyzer-header">
@@ -3929,7 +3894,6 @@
         </div>
 
         <div class="toolbar-group">
-          <!-- Loop & Playhead Controls -->
           <div class="analyzer-loop-group">
             <button id="btn-analyzer-set-in" class="btn" style="padding: 2px 7px; font-size: 11px;" title="In-Klammer '[' an aktueller Cursor-Position setzen (Taste I)">
               <span style="font-weight:700; color:var(--accent-blue);">[</span> In
@@ -3973,7 +3937,6 @@
       </div>
     </section>
 
-    <!-- STATUS BAR -->
     <footer id="statusbar">
       <span class="status-pill" id="status-mode-pill"><span class="status-dot"></span><span id="hud-mode">EDIT</span></span>
       <span class="status-item" title="Simulationsschritt">Tick <strong id="hud-tick">0</strong></span>
@@ -3985,12 +3948,9 @@
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
 
-    <!-- 6. FLOATING CONTEXT MENU -->
     <div id="canvas-context-menu" class="context-menu" style="display: none;"></div>
 
-    <!-- 7. MODAL DIALOGS -->
     <div id="modal-backdrop" class="modal-backdrop" style="display: none;">
-      <!-- Truth Table Modal -->
       <div id="truth-table-modal" class="logic-modal" style="display: none;" role="dialog" aria-labelledby="tt-title">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -4003,7 +3963,6 @@
           <button class="modal-close-btn" id="btn-close-tt" title="Schließen">&times;</button>
         </div>
         <div class="modal-body" id="tt-modal-body">
-          <!-- Injected dynamically -->
         </div>
         <div class="modal-footer">
           <div class="footer-left" id="tt-footer-info">
@@ -4017,7 +3976,6 @@
         </div>
       </div>
 
-      <!-- Boolean Synthesizer Modal -->
       <div id="bool-synth-modal" class="logic-modal" style="display: none;" role="dialog" aria-labelledby="synth-title">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -4030,7 +3988,6 @@
           <button class="modal-close-btn" id="btn-close-synth" title="Schließen">&times;</button>
         </div>
         <div class="modal-body">
-          <!-- Examples Row -->
           <div style="display:flex; flex-direction:column; gap:4px;">
             <span style="font-size:11px; font-weight:600; color:var(--text-muted);">Vorlagen &amp; Beispiele:</span>
             <div class="synth-chips-row" id="synth-examples-row">
@@ -4043,7 +4000,6 @@
             </div>
           </div>
 
-          <!-- Input Area -->
           <div style="display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <label for="synth-input" style="font-size:11px; font-weight:600; color:var(--text-muted);">Boolescher Term / Formel(n):</label>
@@ -4052,7 +4008,6 @@
             <textarea id="synth-input" class="synth-input-area" placeholder="z. B. Y = (A AND B) OR NOT C   oder   S = A ^ B ^ Cin; Cout = (A &amp; B) | (Cin &amp; (A ^ B))" spellcheck="false">Y = (A AND B) OR NOT C</textarea>
           </div>
 
-          <!-- Quick Operator Chips -->
           <div style="display:flex; flex-direction:column; gap:4px;">
             <span style="font-size:11px; font-weight:600; color:var(--text-muted);">Operatoren einfügen:</span>
             <div class="synth-chips-row">
@@ -4070,7 +4025,6 @@
             </div>
           </div>
 
-          <!-- Operator & Syntax Legend -->
           <div class="synth-legend-box" id="synth-legend-box">
             <div class="synth-legend-title">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -4112,7 +4066,6 @@
             </div>
           </div>
 
-          <!-- Live Preview Card -->
           <div class="synth-preview-card" id="synth-preview-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim);">Live-Analyse &amp; Vorschau:</span>
@@ -4120,11 +4073,9 @@
             </div>
             <div id="synth-math-preview" class="synth-math-display">Y = (A ∧ B) ∨ ¬C</div>
             <div id="synth-mini-tt-wrap" style="max-height:160px; overflow-y:auto; border-radius:4px; border:1px solid var(--border-dim);">
-              <!-- Live mini truth table preview -->
             </div>
           </div>
 
-          <!-- Placement Options -->
           <div class="synth-options-group">
             <span style="font-weight:600; color:var(--text-muted);">Platzierung:</span>
             <label class="synth-radio-label">
@@ -4151,7 +4102,6 @@
         </div>
       </div>
 
-      <!-- Settings Modal -->
       <div id="settings-modal" class="logic-modal" style="display: none; max-width: 580px;" role="dialog" aria-labelledby="settings-title">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -4164,7 +4114,6 @@
           <button class="modal-close-btn" id="btn-close-settings" title="Schließen">&times;</button>
         </div>
         <div class="modal-body" style="gap: 16px;">
-          <!-- 1. Signalfarben -->
           <div class="settings-section">
             <div class="settings-section-title">Leitungs- &amp; Signalfarben (HIGH-Zustand 1):</div>
             <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Wähle die Leuchtfarbe für aktive Signale, Leitungen und Glüheffekte:</div>
@@ -4196,7 +4145,6 @@
             </div>
           </div>
 
-          <!-- 2. Gatter-Norm -->
           <div class="settings-section">
             <div class="settings-section-title">Schaltsymbol-Norm:</div>
             <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Darstellung aller Logikgatter nach historischem oder internationalem Standard:</div>
@@ -4219,7 +4167,6 @@
             </div>
           </div>
 
-          <!-- Sprache / Language -->
           <div class="settings-section">
             <div class="settings-section-title" data-i18n="settings.language_title">Sprache / Language:</div>
             <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;" data-i18n="settings.language_desc">Wähle die Sprache der Benutzeroberfläche:</div>
@@ -4229,7 +4176,6 @@
             </div>
           </div>
 
-          <!-- 3. Interaktion im Edit-Modus -->
           <div class="settings-section">
             <div class="settings-section-title">Interaktion &amp; Bedienung:</div>
             <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
@@ -4257,7 +4203,6 @@
             </div>
           </div>
 
-          <!-- 4. Workbench-Design & Themes -->
           <div class="settings-section">
             <div class="settings-section-title">Erscheinungsbild &amp; Workbench-Design:</div>
             <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Wähle dein bevorzugtes CAD-Erscheinungsbild von modernem OLED-Dunkel bis retro Java Swing:</div>
@@ -4321,7 +4266,6 @@
         </div>
       </div>
 
-      <!-- Scenario Gallery Modal -->
       <div id="scenario-modal" class="logic-modal scenario-modal" style="display: none;" role="dialog" aria-labelledby="scenario-modal-title">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -4353,7 +4297,6 @@
         </div>
       </div>
 
-      <!-- Help Modal -->
       <div id="help-modal" class="logic-modal" style="display: none; max-width: 760px;" role="dialog" aria-labelledby="help-modal-title">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -4704,7 +4647,6 @@
       XNOR: '=1'
     };
 
-    // Gates with an adjustable propagation delay (ticks)
     const GATE_DELAY_TYPES = { NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1 };
     const GATE_DELAY_MAX = 20;
 
@@ -4960,7 +4902,6 @@
             return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><text x="12" y="15" font-size="9" font-family="monospace" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold">&#8805;2</text></svg>';
         }
       }
-      // DIN 40700 & ANSI
       switch (type) {
         case 'NOT':
           return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg>';
@@ -5107,13 +5048,11 @@
               }))
           : [];
         this.channelOffset = 0;
-        // true: waypoints were produced by the wire router and may be recomputed when a component moves
         this.autoRouted = false;
         this._preview = false;
         this._fromComp = null;
         this._toComp = null;
 
-        // Extended wire endpoints: connections don't strictly require a module
         this.fromWireId = extra.fromWireId ? String(extra.fromWireId) : null;
         this.toWireId = extra.toWireId ? String(extra.toWireId) : null;
         this.fromPoint = (extra.fromPoint && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
@@ -5194,7 +5133,6 @@
         const cleanParams = sanitizeParams(customParams);
         this.initDefaults(cleanParams);
         if (GATE_DELAY_TYPES[this.type]) {
-          // propagation delay in simulation ticks (null = inherit globalGateDelay, or custom integer 1..GATE_DELAY_MAX)
           if (cleanParams.delay !== undefined && cleanParams.delay !== null) {
             const d = parseInt(cleanParams.delay, 10);
             this.params.delay = Number.isFinite(d) ? Math.max(1, Math.min(GATE_DELAY_MAX, d)) : null;
@@ -6103,7 +6041,6 @@
             this.outputs[i].value = this.nextOutputs[i];
           }
         } else {
-          // Gate with propagation delay
           const delay = typeof this.getEffectiveDelay === 'function' ? this.getEffectiveDelay() : (this.params.delay || 1);
           const target = this.nextOutputs[0];
           const current = this.outputs[0].value;
@@ -6115,18 +6052,15 @@
             this.outputs[0].value = target;
           } else {
             if (target === current) {
-              // Steady state or return to previous value before delay finished (inertial filtering)
               this.state.delayTimer = 0;
               this.state.pendingOutput = null;
             } else {
               if (this.state.pendingOutput !== target) {
-                // New transition starting!
                 this.state.pendingOutput = target;
                 this.state.delayTimer = delay - 1;
               } else if (this.state.delayTimer > 1) {
                 this.state.delayTimer--;
               } else {
-                // Delay has elapsed: commit the transition
                 this.outputs[0].value = target;
                 this.state.pendingOutput = null;
                 this.state.delayTimer = 0;
@@ -6244,15 +6178,12 @@
         const fromComp = fromCompId ? this.getComponent(fromCompId) : null;
         const toComp = toCompId ? this.getComponent(toCompId) : null;
 
-        // If fromCompId is given, check validity
         if (fromCompId && !fromComp) return null;
         if (fromComp && (fromPin < 0 || fromPin >= fromComp.outputs.length)) return null;
 
-        // If toCompId is given, check validity and enforce Fan-In <= 1
         if (toCompId && !toComp) return null;
         if (toComp && (toPin < 0 || toPin >= toComp.inputs.length)) return null;
 
-        // Ensure wire has some start and some end
         const hasStart = Boolean(fromComp || extra.fromWireId || extra.fromPoint);
         const hasEnd = Boolean(toComp || extra.toWireId || extra.toPoint);
         if (!hasStart && !hasEnd) return null;
@@ -6287,7 +6218,6 @@
       }
 
       removeWire(wireId, ringBuffer = null) {
-        // Remove attached probes cleanly
         const attachedProbes = this.probes.filter(p => p.wireId === wireId);
         for (const p of attachedProbes) {
           this.removeProbe(p.id, ringBuffer);
@@ -6370,9 +6300,6 @@
       }
 
       syncImmediateWireLevels() {
-        // Gauss-Seidel relaxation: every combinational part immediately sees the freshest
-        // values of its drivers. Combinational logic of any depth settles (truth tables!),
-        // and cross-coupled latches fall into a stable state instead of oscillating.
         const wires = this.wires;
         const comps = this.components;
         const compMap = this.compMap;
@@ -6443,7 +6370,6 @@
           if (!changed) break;
         }
 
-        // Final propagation so every wire and input pin shows the settled state
         syncAllWireLevels();
         for (let i = 0; i < comps.length; i++) refreshInputs(comps[i]);
       }
@@ -6551,7 +6477,6 @@
           }
         }
 
-        // Propagate across wire-to-wire branch links
         for (let pass = 0; pass < 4; pass++) {
           let wireChanged = false;
           for (let i = 0; i < wires.length; i++) {
@@ -6586,12 +6511,10 @@
       step() {
         const comps = this.components;
 
-        // Phase 1: Read & Compute
         for (let i = 0; i < comps.length; i++) {
           comps[i].compute();
         }
 
-        // Phase 2: Commit & Propagate
         for (let i = 0; i < comps.length; i++) {
           comps[i].commit();
         }
@@ -6635,8 +6558,6 @@
        * Does NOT modify the circuit. Returns { positions: Map(id -> {x, y}), info }.
        */
       static compute(circuit, options = {}) {
-        // The result of one pass becomes the "current arrangement" of the next one. Repeating until
-        // nothing moves makes Auto-Align idempotent: pressing the button twice changes nothing.
         let res = AutoLayoutEngine.computeOnce(circuit, options, null);
         const count = res.positions.size;
         if (count < 2 || count > 300 || (options && options.stabilize === false)) return res;
@@ -6668,7 +6589,6 @@
         const comps = circuit.components.filter(c => c && (!scope || scope.has(c.id)));
         if (comps.length === 0) return { positions, info };
 
-        // ---- Graph construction -------------------------------------------------
         const nodes = comps.map((c, i) => ({
           id: c.id, comp: c, idx: i, dummy: false,
           w: ceilG(c.width || G), h: ceilG(c.height || G), pad: opt.labelPad,
@@ -6695,7 +6615,6 @@
           b.in.push(e);
         }
 
-        // ---- Weakly connected sub-circuits --------------------------------------
         const uf = nodes.map((_, i) => i);
         const find = (i) => { while (uf[i] !== i) { uf[i] = uf[uf[i]]; i = uf[i]; } return i; };
         for (const e of edges) uf[find(e.a.idx)] = find(e.b.idx);
@@ -6721,7 +6640,6 @@
         info.subCircuits = subs.length;
         info.isolated = singles.length;
 
-        // ---- Pack sub-circuits (shelf packing, original reading order) ----------
         let anchorX = Infinity, anchorY = Infinity;
         for (const n of nodes) {
           const cx = Number.isFinite(n.comp.x) ? n.comp.x : 0, cy = Number.isFinite(n.comp.y) ? n.comp.y : 0;
@@ -6741,7 +6659,6 @@
 
         let curX = 0, curY = 0, rowH = 0, totalW = 0;
         for (const s of subs) {
-          // feedback wires are routed around the block: keep a free lane on every side
           const lane = s.feedback > 0 ? Math.min(4, s.feedback + 1) * G : 0;
           const bw = s.w + lane, bh = s.h + lane * 2;
           if (curX > 0 && curX + bw > rowLimit) { curX = 0; curY += rowH + opt.subGap; rowH = 0; }
@@ -6752,7 +6669,6 @@
         }
         if (subs.length > 0) curY += rowH + opt.subGap;
 
-        // ---- Isolated components: tidy rows below --------------------------------
         if (singles.length > 0) {
           singles.sort((p, q) => (p.oy - q.oy) || (p.ox - q.ox) || (p.idx - q.idx));
           const limit = Math.max(totalW, 640);
@@ -6765,7 +6681,6 @@
           }
         }
 
-        // keep the drawing anchored at its previous top-left corner (running twice changes nothing)
         let minPx = Infinity, minPy = Infinity;
         for (const p of positions.values()) { if (p.x < minPx) minPx = p.x; if (p.y < minPy) minPy = p.y; }
         for (const p of positions.values()) {
@@ -6834,7 +6749,6 @@
           }
           return c;
         }
-        // merge-sort inversion count for large columns
         let vals = arr.map(p => p[1]);
         let tmp = new Array(m);
         let inv = 0;
@@ -6859,7 +6773,6 @@
         const n = nodes.length;
         nodes.forEach((v, i) => { v.li = i; });
 
-        // ---- 1. Cross-coupled pairs (latch cores) share one column ---------------
         const guf = nodes.map((_, i) => i);
         const gfind = (i) => { while (guf[i] !== i) { guf[i] = guf[guf[i]]; i = guf[i]; } return i; };
         const pairKey = (a, b) => a.li * n + b.li;
@@ -6876,7 +6789,6 @@
         }
         const gid = nodes.map((_, i) => gfind(i));
 
-        // ---- 2. Feedback detection: break every remaining cycle ------------------
         const scoreBackEdge = (e, sccOf) => {
           let s = 0;
           if (e.a.seq && !e.b.seq) s += 8;          // register output -> logic: natural loop closing wire
@@ -6911,7 +6823,6 @@
           }
         }
 
-        // ---- 3. Layering (longest path + pull towards consumers) -----------------
         const gOut = nodes.map(() => []);
         const gIn = nodes.map(() => []);
         for (const e of edges) {
@@ -6931,8 +6842,6 @@
             if (--indeg[v] === 0) topo.push(v);
           }
         }
-        // (a) gates move next to the logic they feed when that shortens the gate-to-gate wiring
-        //     (wires coming from primary inputs count less: input rails may be long)
         for (let qi = topo.length - 1; qi >= 0; qi--) {
           const g = topo[qi];
           if (gIn[g].length === 0) continue;
@@ -6947,21 +6856,18 @@
           for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.3 : 1;
           if (wOut > wIn) gLayer[g] = hi;
         }
-        // (b) primary inputs stay in the left column unless their first consumer is far away
         for (let i = 0; i < n; i++) {
           if (gid[i] !== i || gIn[i].length > 0 || gOut[i].length === 0) continue;
           let hi = Infinity;
           for (const v of gOut[i]) if (gLayer[v] - 1 < hi) hi = gLayer[v] - 1;
           if (opt.inputAlign === 'near' || (opt.inputAlign === 'smart' && hi > 3)) gLayer[i] = hi;
         }
-        // (c) displays sit directly behind their driver
         for (const g of topo) {
           if (gOut[g].length > 0 || gIn[g].length === 0) continue;
           let m = 0;
           for (const u of gIn[g]) if (gLayer[u] + 1 > m) m = gLayer[u] + 1;
           gLayer[g] = m;
         }
-        // compact: drop empty layers
         const used = new Set();
         for (let i = 0; i < n; i++) if (gid[i] === i) used.add(gLayer[i]);
         const sortedLayers = Array.from(used).sort((p, q) => p - q);
@@ -6970,14 +6876,12 @@
         for (const v of nodes) v.layer = remap.get(gLayer[gid[v.li]]);
         const L = sortedLayers.length;
 
-        // a "back" edge that ends up pointing forward is an ordinary wire again
         let feedback = 0;
         for (const e of edges) {
           if (e.kind === 'back' && e.a.layer < e.b.layer) e.kind = 'fwd';
           if (e.kind !== 'fwd') feedback++;
         }
 
-        // ---- 4. Long wires: one shared lane (dummy) per net and column -----------
         const layers = Array.from({ length: L }, () => []);
         for (const v of nodes) { v.segIn = []; v.segOut = []; v.alignL = null; v.alignR = null; layers[v.layer].push(v); }
         const segs = Array.from({ length: Math.max(0, L - 1) }, () => []);
@@ -7017,14 +6921,12 @@
           }
         }
 
-        // ---- 5. Crossing minimisation --------------------------------------------
         const latGroups = new Map();
         for (const v of nodes) {
           const r = gid[v.li];
           if (!latGroups.has(r)) latGroups.set(r, []);
           latGroups.get(r).push(v);
         }
-        // preferred stacking inside a latch pair: the feedback enters the pin facing the partner
         const latAbove = new Map();
         for (const e of edges) {
           if (e.kind !== 'lat') continue;
@@ -7089,7 +6991,6 @@
             if (c < best) { best = c; bestSnap = snapshot(); }
           }
           restore(bestSnap);
-          // transpose: swap neighbours while it removes crossings
           if (best > 0 && !big) {
             let improved = true;
             for (let round = 0; round < 6 && improved; round++) {
@@ -7112,8 +7013,6 @@
           return { best, snap: snapshot() };
         };
 
-        // Several start orders are tried; the winner has the fewest crossings and, on a tie,
-        // stays closest to the arrangement the user already had (stable + idempotent).
         const byOriginal = (p, q) => ((p.oy + (p.dummy ? 0 : p.h / 2)) - (q.oy + (q.dummy ? 0 : q.h / 2))) || (p.ox - q.ox) || (p.idx - q.idx);
         for (const layer of layers) {
           layer.sort(byOriginal);
@@ -7139,7 +7038,6 @@
         };
         const smallEnough = n <= 400;
         if (result.best > 0 && smallEnough) {
-          // depth-first start orders keep connected parts next to each other
           for (const forward of [true, false]) {
             const seenIt = new Set();
             const fresh = layers.map(() => []);
@@ -7165,7 +7063,6 @@
           }
         }
         if (result.best > 0 && n <= 160 && !opt.refinePass) {
-          // seeded random restarts (deterministic) within a small time budget
           let seed = 0x2f6e2b1 ^ (n * 2654435761);
           const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
           const restarts = n <= 60 ? 28 : 10;
@@ -7181,7 +7078,6 @@
             consider();
           }
         }
-        // polish: keep sweeping from the winner until it is a fixed point of the search
         for (let round = 0; round < 6 && result.best > 0; round++) {
           restore(result.snap);
           const again = runSweeps();
@@ -7191,7 +7087,6 @@
         restore(result.snap);
         for (const layer of layers) fixLateral(layer);
 
-        // ---- 6. Vertical placement: straight-wire chains + balancing -------------
         const latPartner = (p, q) => !p.dummy && !q.dummy && gid[p.li] === gid[q.li];
         const buildBlocks = (useAlignment) => {
           for (const layer of layers) for (const it of layer) { it.alignL = null; it.alignR = null; it.block = null; }
@@ -7205,9 +7100,7 @@
                 for (const t of outs) if ((t.v.pos + frac(t.v, t.vy)) < (s.v.pos + frac(s.v, s.vy))) ro++;
                 return Math.abs(ri - (ins.length - 1) / 2) + Math.abs(ro - (outs.length - 1) / 2);
               };
-              // long-wire lanes stay straight first, then component-to-component wires, lane entries last
               const cls = (s) => (s.u.dummy && s.v.dummy) ? 0 : ((s.u.dummy || s.v.dummy) ? 2 : 1);
-              // the main signal path (gate -> gate) is straightened before a wire that only feeds a display
               const isDisplay = (it) => !it.dummy && it.segOut.length === 0 && it.out.length === 0;
               for (const s of cands) s._p = cls(s) * 1000 + rankDist(s) + (isDisplay(s.v) ? 10 : 0);
               cands.sort((s, t) => (s._p - t._p) || (s.u.pos - t.u.pos) || (s.v.pos - t.v.pos));
@@ -7216,7 +7109,6 @@
               const accepted = [];
               for (const s of cands) {
                 if (s.u.alignR || s.v.alignL) continue;
-                // a component stays with its direct neighbours instead of following a far-away lane
                 if (s.v.dummy && !s.u.dummy && hasRealOut(s.u)) continue;
                 if (s.u.dummy && !s.v.dummy && hasRealIn(s.v)) continue;
                 let ok = true;
@@ -7270,7 +7162,6 @@
 
         const snapG = (v) => Math.round(v / G) * G;
         const pinY = (it, relY) => it.block.pos + it.off + relY;
-        // quality of a vertical arrangement: every wire that is not straight costs two bends plus its jog
         const misalignment = () => {
           let c = 0;
           for (const sl of segs) for (const s of sl) {
@@ -7297,7 +7188,6 @@
           cand.sort((p, q) => p[0] - q[0]);
           let total = 0;
           for (const c of cand) total += c[1];
-          // weighted median; on an even split take the candidate closest to the current position
           let acc = 0, loIdx = 0;
           for (let i = 0; i < cand.length; i++) { acc += cand[i][1]; if (acc >= total / 2) { loIdx = i; break; } }
           let med = cand[loIdx][0];
@@ -7306,7 +7196,6 @@
             if (Math.abs(alt - b.pos) < Math.abs(med - b.pos)) med = alt;
           }
           const p0 = Math.min(hi, Math.max(lo, med));
-          // snap to a nearby position that makes at least one wire exactly straight
           let best = null, bestScore = -Infinity;
           for (const [t] of cand) {
             if (t < lo || t > hi) continue;
@@ -7320,7 +7209,6 @@
           return best !== null ? best : p0;
         };
 
-        // tight top packing as a feasible start
         for (const b of order) {
           let p = 0;
           for (const c of b.above) if (c.b.pos + c.sep > p) p = c.b.pos + c.sep;
@@ -7358,7 +7246,6 @@
           if (it.y + it.h > maxBottom) maxBottom = it.y + it.h;
         }
 
-        // ---- 7. Columns: width follows the number of vertical tracks needed ------
         const colW = layers.map(layer => { let m = 0; for (const it of layer) if (!it.dummy && it.w > m) m = it.w; return m; });
         const tracks = segs.map(() => new Set());
         segs.forEach((sl, k) => {
@@ -7433,7 +7320,6 @@
         for (const w of todo) result.set(w.id, null);
         if (todo.length === 0 || comps.length === 0) return result;
 
-        // ---- grid bounds ---------------------------------------------------------
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         for (const c of comps) {
           if (c.x < minX) minX = c.x;
@@ -7482,7 +7368,6 @@
           const ix1 = Math.ceil((c.x - x0) / G), ix2 = Math.floor((c.x + c.width - x0) / G);
           const iy1 = Math.ceil((c.y - y0) / G), iy2 = Math.floor((c.y + c.height - y0) / G);
           for (let iy = iy1; iy <= iy2; iy++) for (let ix = ix1; ix <= ix2; ix++) blocked[iy * W + ix] = 1;
-          // halo: keep wires one or two cells away from the body where possible
           for (let iy = iy1 - 2; iy <= iy2 + 2; iy++) {
             if (iy < 0 || iy >= H) continue;
             for (let ix = ix1 - 2; ix <= ix2 + 2; ix++) {
@@ -7494,12 +7379,10 @@
               if (pen > cost[k]) cost[k] = pen;
             }
           }
-          // caption row directly above the body
           const ly = iy1 - 1;
           if (ly >= 0) for (let ix = Math.max(0, ix1 - 1); ix <= Math.min(W - 1, ix2 + 1); ix++) cost[ly * W + ix] += 2.5;
         }
 
-        // ---- nets ---------------------------------------------------------------
         const nets = new Map();
         const netList = [];
         const getNet = (w) => {
@@ -7519,14 +7402,12 @@
           return net;
         };
         const setEdge = (a, b, id) => {
-          // a and b are neighbouring nodes
           const lo = a < b ? a : b;
           if (Math.abs(a - b) === 1) { if (hNet[lo] === 0 || hNet[lo] === id) { hNet[lo] = id; return true; } return false; }
           if (vNet[lo] === 0 || vNet[lo] === id) { vNet[lo] = id; return true; }
           return false;
         };
 
-        // fixed wires occupy their edges and act as existing trunks of their net
         for (const w of fixed) {
           const pts = fixedPts.get(w.id);
           if (!pts) continue;
@@ -7548,7 +7429,6 @@
           }
         }
 
-        // pin stubs of every wire that will be routed protect the pin access
         for (const w of todo) {
           const net = getNet(w);
           const tc = compMap.get(w.toCompId);
@@ -7574,7 +7454,6 @@
           net.base = new Map(net.parent);
         }
 
-        // ---- A* machinery -------------------------------------------------------
         const dist = new Float64Array(N * 4);
         const seen = new Int32Array(N * 4);
         const prevState = new Int32Array(N * 4);
@@ -7614,7 +7493,6 @@
           return top;
         };
         const edgeAt = (nd, dir) => {
-          // net id on the grid edge leaving node `nd` in direction `dir` (0 when outside)
           const ix = nd % W;
           if (dir === 0) return ix + 1 < W ? hNet[nd] : 0;
           if (dir === 2) return ix > 0 ? hNet[nd - 1] : 0;
@@ -7664,9 +7542,7 @@
               }
               const stepCost = eo === id ? 0.05 : 1 + cost[m];
               let c = base + stepCost + extra;
-              // a corner right next to a component looks cramped: bends are cheaper in free space
               if (ndir !== d) c += BEND + 2 * cost[nd];
-              // joining the own net: merging in line with the trunk is free, a T-junction counts as a bend
               if (inTree[m] && f !== id) c += BEND;
               const ms = m * 4 + ndir;
               if (seen[ms] === stamp && dist[ms] <= c) continue;
@@ -7721,7 +7597,6 @@
           net.parent = new Map(net.base);
         };
 
-        // short and straight connections first, long / feedback nets last
         const span = (net) => {
           let lo = net.sx, hi = net.sx, lo2 = net.sy, hi2 = net.sy;
           for (const e of net.wires) {
@@ -7736,8 +7611,6 @@
         for (const nt of active) nt.span = span(nt);
         active.sort((p, q) => (p.span - q.span) || (p.id - q.id));
         for (const nt of active) routeNet(nt);
-        // rip-up & re-route: a net that is already a straight line (or one clean jog without
-        // crossings) cannot get better and is skipped
         const isIdeal = (net) => {
           if (net.wires.length !== 1) return false;
           const e = net.wires[0];
@@ -7749,7 +7622,6 @@
             const dir = nx - cur;
             if (prevDir !== 0 && dir !== prevDir) bends++;
             prevDir = dir;
-            // a crossing shows up as a foreign net on the perpendicular edges
             if (Math.abs(dir) === 1) { if ((vNet[cur] !== 0 && vNet[cur] !== net.id) || (cur - W >= 0 && vNet[cur - W] !== 0 && vNet[cur - W] !== net.id)) return false; }
             else if ((hNet[cur] !== 0 && hNet[cur] !== net.id) || (cur % W > 0 && hNet[cur - 1] !== 0 && hNet[cur - 1] !== net.id)) return false;
             cur = nx;
@@ -7769,7 +7641,6 @@
           }
         }
 
-        // ---- polylines ----------------------------------------------------------
         for (const net of active) {
           for (const e of net.wires) {
             if (!e.ok || !e.routed) continue;
@@ -7864,7 +7735,6 @@
             }
           }
         }
-        // a touch that is also a proper crossing of the same two nets is not counted twice
         for (const k of crossKeys) touchKeys.delete(k);
         res.crossings = crossKeys.size;
         res.sharedSegments = shareKeys.size;
@@ -8426,7 +8296,6 @@
     ];
 
     const SCENARIOS = [
-      // ------------------------------------------------------------------ Level 1
       {
         key: 'switch_led', level: 1, title: 'Schalter & Lampe',
         summary: 'Die kleinste Schaltung überhaupt: Ein Schalter gibt 1 oder 0 aus, die Lampe zeigt das Signal an.',
@@ -8499,7 +8368,6 @@
         }
       },
 
-      // ------------------------------------------------------------------ Level 2
       {
         key: 'half_adder', level: 2, title: 'Halbaddierer',
         summary: 'Addiert zwei Bits: XOR liefert die Summe, AND den Übertrag. 1 + 1 ergibt binär 10.',
@@ -8625,7 +8493,6 @@
         }
       },
 
-      // ------------------------------------------------------------------ Level 3
       {
         key: 'full_adder', level: 3, title: '1-Bit-Volladdierer', legacy: 'full_adder',
         summary: 'Addiert drei Bits (A, B und den Übertrag von rechts). Aus zwei Halbaddierern und einem OR aufgebaut.',
@@ -8721,7 +8588,6 @@
         tags: ['Flipflop', 'Schieben']
       },
 
-      // ------------------------------------------------------------------ Level 4
       {
         key: 'binary_counter_4bit', level: 4, title: '4-Bit-Binärzähler', legacy: 'binary_counter_4bit', sequential: true,
         summary: 'Der Zählerbaustein zählt mit jeder Taktflanke von 0 bis 15. Enable hält ihn an, Reset setzt ihn auf 0.',
@@ -8807,7 +8673,6 @@
         }
       },
 
-      // ------------------------------------------------------------------ Level 5
       {
         key: 'ripple_adder', level: 5, title: '4-Bit-Addierer mit Anzeige',
         summary: 'Vier Volladdierer in Reihe addieren zwei 4-Bit-Zahlen. Die Hex-Anzeigen zeigen A, B und die Summe.',
@@ -8915,7 +8780,6 @@
         tags: ['Automat', 'Speicher', 'Zähler', 'Groß'],
         build: (b) => {
           const s = b.btn('Anforderung'); const c = b.clk('Takt', 3);
-          // /Q is declared first: it settles to 1, so the circuit starts without a pending request
           const qn = b.gate('NOR', 'Speicher /Q'); const q = b.gate('NOR', 'Speicher Q');
           const cnt = b.add('COUNTER', 'Phasenzähler', { mode: 'binary' });
           const xn = b.gate('XNOR', 'Phase 0/3'); const or = b.gate('OR', 'Phase 1–3'); const xr = b.gate('XOR', 'Phase 1/2');
@@ -8946,7 +8810,6 @@
       const preset = DEMO_PRESETS[sc.legacy];
       if (!preset) return null;
       const json = JSON.parse(JSON.stringify(preset));
-      // legacy presets carry hand-made coordinates and waypoints: let Auto-Align redo them
       json.wires.forEach(w => { delete w.waypoints; });
       return json;
     }
@@ -9115,7 +8978,6 @@
       }
 
       getWireControlPoints(x1, y1, x2, y2) {
-        // Kept for backward compatibility if ever called externally
         return { cp1x: (x1 + x2) / 2, cp1y: y1, cp2x: (x1 + x2) / 2, cp2y: y2 };
       }
 
@@ -9143,7 +9005,6 @@
         const pts = [{ x: x1, y: y1 }];
 
         if (x2 >= x1 + 20) {
-          // If spanning multiple columns (x2 - x1 > 200), prefer turning in the channel that clears intermediate gates
           let targetMid = (x1 + x2) / 2;
           if (x2 - x1 > 200) {
             targetMid = (y1 < y2) ? (x1 + 80) : (x2 - 80);
@@ -9160,15 +9021,12 @@
             pts.push({ x: x2, y: y2 });
           }
         } else {
-          // Backward / feedback wire
-          // Case A: Gates in the same column or adjacent (e.g. cross-coupled SR Latch):
           if (x1 - x2 <= 140) {
             const trackX = x1 + 20 + Math.abs(channelOffset || 0);
             pts.push({ x: trackX, y: y1 });
             pts.push({ x: trackX, y: y2 });
             pts.push({ x: x2, y: y2 });
           } else {
-            // Case B: Multi-stage backward wire (route via outer perimeter around circuitMaxY)
             let circuitMaxY = 400;
             if (this.circuit && this.circuit.components && this.circuit.components.length > 0) {
               let cMaxY = -Infinity;
@@ -9178,7 +9036,6 @@
               if (cMaxY > -Infinity) circuitMaxY = cMaxY;
             }
 
-            // Turn down in the immediate channel after x1, so we do NOT travel past downstream gates (like LEDs)
             const exitX = Math.round((x1 + 40 + (channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
             const routeY = Math.round((circuitMaxY + 40 + Math.abs(channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
             const enterX = Math.round((x2 - 20 - Math.abs(channelOffset || 0)) / GRID_SIZE) * GRID_SIZE;
@@ -9368,7 +9225,6 @@
           const p0 = group[0].pts[0];
           const candidatePoints = new Map();
 
-          // Check if any wire's turn point lies on a segment of another wire in this net
           for (let i = 0; i < group.length; i++) {
             for (let j = 0; j < group.length; j++) {
               if (i === j) continue;
@@ -9399,7 +9255,6 @@
             }
           }
 
-          // Only add candidate points that are true wire branches (not redundant pin terminals)
           for (const cp of candidatePoints.values()) {
             if (Math.hypot(cp.x - p0.x, cp.y - p0.y) >= 4) {
               junctions.push(cp);
@@ -9407,7 +9262,6 @@
           }
         }
 
-        // Detect split points where wires branch from or into another wire (wire-to-wire taps)
         for (const entry of wireEntries) {
           const w = entry.wire;
           if (w.fromWireId || w.fromPoint) {
@@ -9619,14 +9473,12 @@
           const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
           const badgeH = 14;
 
-          // Check clip circle
           const dx = worldX - pos.x;
           const dy = worldY - pos.y;
           if (dx * dx + dy * dy <= 60) {
             return probe;
           }
 
-          // Check badge rectangle
           const bx = Math.round(pos.x - badgeW / 2);
           const by = Math.round(pos.y - 17);
           if (worldX >= bx && worldX <= bx + badgeW && worldY >= by && worldY <= by + badgeH) {
@@ -9664,7 +9516,6 @@
           const bx = Math.round(pos.x - badgeW / 2);
           const by = Math.round(pos.y - 17);
 
-          // 1. Leader line from clip to badge
           ctx.beginPath();
           ctx.moveTo(pos.x, pos.y);
           ctx.lineTo(pos.x, by + badgeH);
@@ -9672,7 +9523,6 @@
           ctx.lineWidth = isSelected ? 1.5 : 1.0;
           ctx.stroke();
 
-          // 2. Wire Clip Pin
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, 3.2, 0, Math.PI * 2);
           ctx.fillStyle = probeColor;
@@ -9691,7 +9541,6 @@
           ctx.fillStyle = '#ffffff';
           ctx.fill();
 
-          // 3. Compact Low-Profile Probe Badge
           ctx.fillStyle = '#0f172a';
           ctx.strokeStyle = isSelected ? '#00b0ff' : (isHovered ? '#64748b' : '#2d3748');
           ctx.lineWidth = isSelected ? 1.6 : 1.0;
@@ -9704,18 +9553,15 @@
           ctx.stroke();
           ctx.shadowBlur = 0;
 
-          // Left Color Accent Bar
           ctx.fillStyle = probeColor;
           this.roundRect(ctx, bx + 2.5, by + 2.5, 2.5, badgeH - 5, 1);
           ctx.fill();
 
-          // Probe Name
           ctx.fillStyle = '#f1f5f9';
           ctx.font = '600 8.5px monospace';
           ctx.textAlign = 'left';
           ctx.fillText(nameStr, bx + 7.5, by + 10);
 
-          // Digital Level (1 / 0)
           ctx.fillStyle = isHigh ? (this.highSignalColor || '#00e676') : '#64748b';
           ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
@@ -9808,7 +9654,6 @@
       drawWires(ctx) {
         if (!this.circuit.wires || this.circuit.wires.length === 0) return;
 
-        // 1. Compute paths for all wires
         const wireEntries = [];
         const showBridges = Boolean(this.showWireBridges);
         const allVertSegments = [];
@@ -9819,7 +9664,6 @@
           wireEntries.push({ wire: w, pts });
 
           if (showBridges) {
-            // Collect vertical segments for crossing bridge detection
             for (let i = 0; i < pts.length - 1; i++) {
               const pA = pts[i];
               const pB = pts[i + 1];
@@ -9836,7 +9680,6 @@
           }
         }
 
-        // 2. Draw each wire (straight lines by default, or with crossing jumper arcs if enabled)
         const pal = this.getThemePalette();
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
@@ -9874,7 +9717,6 @@
             const pB = pts[i + 1];
 
             if (showBridges && pA.y === pB.y && pA.x !== pB.x) {
-              // Horizontal segment: check for crossings over vertical wires of other connections
               const minX = Math.min(pA.x, pB.x);
               const maxX = Math.max(pA.x, pB.x);
               const y = pA.y;
@@ -9906,15 +9748,12 @@
                 ctx.lineTo(pB.x, pB.y);
               }
             } else {
-              // Straight segment
               ctx.lineTo(pB.x, pB.y);
             }
           }
           ctx.stroke();
 
-          // Draw Interactive Waypoint Handles & Midpoint '+' Handles (only on explicit custom waypoints when selected)
           if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
-            // 1. Draw Corner Handles ONLY for actual custom waypoints on this wire
             if (w.waypoints && w.waypoints.length > 0) {
               for (let i = 0; i < w.waypoints.length; i++) {
                 const wp = w.waypoints[i];
@@ -9924,7 +9763,6 @@
 
                 ctx.save();
                 ctx.setLineDash([]);
-                // Glow halo only on hover
                 if (isHoveredWp) {
                   ctx.beginPath();
                   ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
@@ -9932,7 +9770,6 @@
                   ctx.fill();
                 }
 
-                // Handle circle
                 ctx.beginPath();
                 ctx.arc(wp.x, wp.y, isHoveredWp ? 5.5 : 4, 0, Math.PI * 2);
                 ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
@@ -9944,7 +9781,6 @@
               }
             }
 
-            // 2. Draw Midpoint '+' Handles on segments
             for (let i = 0; i < pts.length - 1; i++) {
               const pA = pts[i];
               const pB = pts[i + 1];
@@ -9968,7 +9804,6 @@
               ctx.stroke();
 
               if (isHoveredMid) {
-                // Draw '+' inside
                 ctx.strokeStyle = '#061014';
                 ctx.lineWidth = 1.6;
                 ctx.beginPath();
@@ -9979,7 +9814,6 @@
               ctx.restore();
             }
 
-            // 3. Coordinate preview while dragging a waypoint
             if (this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id) {
               const dragWp = w.waypoints && w.waypoints[this.activeWaypointDrag.index];
               if (dragWp) {
@@ -10003,7 +9837,6 @@
           ctx.restore();
         }
 
-        // 2b. Draw Terminal Dots on floating/unconnected wire ends (WISH-007)
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
           const isHigh = w.level === 1;
@@ -10035,7 +9868,6 @@
           }
         }
 
-        // 3. Draw Junction Dots at branches (Gabelungspunkte wo Verbindungen sich abzweigen)
         const junctions = this.findWireJunctions(wireEntries);
         for (const junc of junctions) {
           ctx.save();
@@ -10045,13 +9877,11 @@
           const dotRadius = isSel ? 4.8 : 4.0;
           const fillColor = isSel ? '#00b0ff' : (isHigh ? '#00e676' : '#475569');
 
-          // Subtle glow ONLY when signal is HIGH or selected (never murky gray halo)
           if (isHigh || isSel) {
             ctx.shadowColor = isSel ? 'rgba(0, 176, 255, 0.6)' : 'rgba(0, 230, 118, 0.6)';
             ctx.shadowBlur = 6;
           }
 
-          // Crisp solid junction dot with high-contrast border
           ctx.beginPath();
           ctx.arc(junc.x, junc.y, dotRadius, 0, Math.PI * 2);
           ctx.fillStyle = fillColor;
@@ -10102,7 +9932,6 @@
         }
         ctx.stroke();
 
-        // Draw placed waypoints along active drag
         if (drag.waypoints && drag.waypoints.length > 0) {
           ctx.setLineDash([]);
           ctx.fillStyle = '#00b0ff';
@@ -10152,7 +9981,6 @@
           } else if (this.symbolStandard === 'ANSI') {
             this.drawGateShape(ctx, comp, isSelected, 'ANSI');
           } else {
-            // Default: DIN 40700 (Ursprünglich Deutsch)
             this.drawGateShape(ctx, comp, isSelected, 'DIN_40700');
           }
         } else {
@@ -10160,7 +9988,6 @@
           this.drawComponentInterior(ctx, comp);
         }
 
-        // Draw top label (except PROBE which renders inside)
         const pal = this.getThemePalette();
         if (type !== 'PROBE') {
           ctx.fillStyle = pal.textLabel;
@@ -10170,7 +9997,6 @@
           if (this.showGateDelay && GATE_DELAY_TYPES[type]) {
             const effDelay = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : (comp.params.delay || 1);
             if (effDelay > 0) {
-              // small delay badge under the gate, e.g. "Δt 5"
               ctx.font = '600 9px monospace';
               ctx.globalAlpha = 0.75;
               ctx.fillText(`Δt ${effDelay}`, x + width / 2, y + height + 9);
@@ -10179,7 +10005,6 @@
           }
         }
 
-        // Draw Pins & Lead lines
         this.drawComponentPins(ctx, comp);
 
         ctx.restore();
@@ -10240,18 +10065,14 @@
         ctx.strokeStyle = isSelected ? '#00b0ff' : pal.gateStroke;
         ctx.lineWidth = isSelected ? 2.2 : 1.6;
 
-        // 1. Draw Body Outline
         ctx.beginPath();
 
         if (type === 'NOT' || type === 'BUFFER' || type === 'TRI_STATE') {
-          // Right-pointing Triangle
           ctx.moveTo(gx1, gy1);
           ctx.lineTo(bodyEnd, cy);
           ctx.lineTo(gx1, gy2);
           ctx.closePath();
         } else if (type === 'AND' || type === 'NAND' || type === 'MAJORITY') {
-          // Semi-Ellipse / D-Form (DIN 40700 & ANSI)
-          // control points at 4/3 make the apex of the curve touch the output pin exactly
           const straightX = gx1 + (bodyEnd - gx1) * 0.38;
           const ctrlX = straightX + (bodyEnd - straightX) * (4 / 3);
           ctx.moveTo(gx1, gy1);
@@ -10261,8 +10082,6 @@
           ctx.closePath();
         } else if (type === 'OR' || type === 'NOR' || isXorType) {
           if (style === 'ANSI') {
-            // ANSI / IEEE 91 distinctive shape: flat start, two arcs meeting in a sharp tip,
-            // concave circular back. The arcs are the classic "radius = gate height" construction.
             const h = gy2 - gy1;
             const xs = Math.max(gx1, bodyEnd - 0.866 * h);       // where the flat edge turns into the arc
             const rx = (bodyEnd - xs) / 0.866;
@@ -10275,7 +10094,6 @@
             this.ansiBackArc(ctx, gx1, gy1, gy2, true);
             ctx.closePath();
           } else {
-            // DIN 40700 Spitzbogen / Halbei (convex lens shape)
             ctx.moveTo(gx1, gy1);
             ctx.bezierCurveTo(gx1 + (bodyEnd - gx1) * 0.5, gy1 - 2, bodyEnd - 4, cy - 2, bodyEnd, cy);
             ctx.bezierCurveTo(bodyEnd - 4, cy + 2, gx1 + (bodyEnd - gx1) * 0.5, gy2 + 2, gx1, gy2);
@@ -10288,16 +10106,13 @@
         ctx.shadowBlur = 0;
         ctx.stroke();
 
-        // 2. Extra Input Arc for XOR / XNOR
         if (isXorType) {
           ctx.save();
           ctx.beginPath();
           if (style === 'ANSI') {
-            // second input arc, parallel to the back of the body
             ctx.moveTo(x + inLeadInset, gy2);
             this.ansiBackArc(ctx, x + inLeadInset, gy1, gy2, true);
           } else {
-            // DIN 40700: Parallel input boundary arc
             ctx.moveTo(x + inLeadInset, gy1);
             ctx.lineTo(x + inLeadInset, gy2);
           }
@@ -10307,7 +10122,6 @@
           ctx.restore();
         }
 
-        // 3. Output Inversion Bubble & Lead Line
         const outPinX = x + width;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
@@ -10338,7 +10152,6 @@
           ctx.restore();
         }
 
-        // 4. Input Lead Lines & Inversion Bubbles
         const inputBoundaryX = isXorType ? (x + inLeadInset) : gx1;
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
@@ -10346,7 +10159,6 @@
           const isHigh = pin.value === 1;
           const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
-          // on the curved ANSI back every lead ends exactly on the arc
           const curved = (type === 'OR' || type === 'NOR' || isXorType) && style === 'ANSI';
           const backOffset = curved ? this.ansiBackOffset(py - (gy1 + gy2) / 2, gy2 - gy1) : 0;
 
@@ -10462,7 +10274,6 @@
         const sym = GATE_IEC_SYMBOLS[type] || (type.startsWith('X') ? (comp.params.xorMode === 'parity' ? '≠' : '=1') : '&');
         ctx.fillText(sym, cx, cy + 5);
 
-        // Output Bubble & Lead Line
         const outPinX = x + width;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
@@ -10493,7 +10304,6 @@
           ctx.restore();
         }
 
-        // Input Bubbles & Lead Lines
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
           const py = y + pin.relY;
@@ -10540,14 +10350,12 @@
             const pal = this.getThemePalette();
             const highColor = this.highSignalColor || '#00e676';
 
-            // DigitalSimulator 5.57 Switch (Schalter): classic SPDT lever between '1' and '0' contacts
             const pivotX = x + width - 14;
             const pivotY = cy;
             const termX = x + 24;
             const topY = cy - 9;
             const botY = cy + 9;
 
-            // Contacts
             ctx.fillStyle = '#64748b';
             ctx.beginPath();
             ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
@@ -10555,14 +10363,12 @@
             ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Contact numeric markings 1 & 0
             ctx.font = '700 9px monospace';
             ctx.fillStyle = isOn ? highColor : '#64748b';
             ctx.fillText('1', termX - 8, topY + 3);
             ctx.fillStyle = !isOn ? '#94a3b8' : '#475569';
             ctx.fillText('0', termX - 8, botY + 3);
 
-            // Lead to output terminal
             ctx.strokeStyle = isOn ? highColor : pal.leadLine;
             ctx.lineWidth = isOn ? 2.2 : 1.5;
             ctx.beginPath();
@@ -10570,7 +10376,6 @@
             ctx.lineTo(x + width, cy);
             ctx.stroke();
 
-            // Switch lever arm
             const targetY = isOn ? topY : botY;
             ctx.strokeStyle = isOn ? highColor : (pal.textLabel || '#e2e8f0');
             ctx.lineWidth = 2.4;
@@ -10586,14 +10391,12 @@
             const pal = this.getThemePalette();
             const highColor = this.highSignalColor || '#00e676';
 
-            // DigitalSimulator 5.57 Pushbutton (Taster): lever contact with authentic T-plunger handle
             const pivotX = x + width - 14;
             const pivotY = cy;
             const termX = x + 24;
             const topY = cy - 9;
             const botY = cy + 9;
 
-            // Contacts
             ctx.fillStyle = '#64748b';
             ctx.beginPath();
             ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
@@ -10601,14 +10404,12 @@
             ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Contact markings 1 & 0
             ctx.font = '700 9px monospace';
             ctx.fillStyle = isPressed ? highColor : '#64748b';
             ctx.fillText('1', termX - 8, topY + 3);
             ctx.fillStyle = !isPressed ? '#94a3b8' : '#475569';
             ctx.fillText('0', termX - 8, botY + 3);
 
-            // Lead to output terminal
             ctx.strokeStyle = isPressed ? highColor : pal.leadLine;
             ctx.lineWidth = isPressed ? 2.2 : 1.5;
             ctx.beginPath();
@@ -10616,7 +10417,6 @@
             ctx.lineTo(x + width, cy);
             ctx.stroke();
 
-            // Contact lever arm
             const bladeTargetY = isPressed ? topY : (topY + botY) / 2 + 3;
             ctx.strokeStyle = isPressed ? highColor : (pal.textLabel || '#e2e8f0');
             ctx.lineWidth = 2.4;
@@ -10625,7 +10425,6 @@
             ctx.lineTo(termX + (isPressed ? 1 : 3), bladeTargetY);
             ctx.stroke();
 
-            // Authentic DigitalSimulator 5.57 T-plunger handle
             const stemX = termX + 13;
             const capY = isPressed ? cy - 7 : cy - 12;
             ctx.strokeStyle = isPressed ? highColor : '#94a3b8';
@@ -10637,7 +10436,6 @@
             ctx.lineTo(stemX + 7, capY);
             ctx.stroke();
 
-            // Plunger push cap
             ctx.fillStyle = isPressed ? highColor : '#334155';
             this.roundRect(ctx, stemX - 8, capY - 3, 16, 4, 1.5);
             ctx.fill();
@@ -10672,7 +10470,6 @@
             const isOn = comp.inputs[0]?.value === 1;
             const cObj = LED_COLORS[comp.params.color] || LED_COLORS.green;
 
-            // DigitalSimulator 5.57 indicator lamp (circle with diagonal cross)
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx + 4, cy, 13, 0, Math.PI * 2);
@@ -10688,7 +10485,6 @@
             ctx.strokeStyle = isOn ? '#ffffff' : '#334155';
             ctx.stroke();
 
-            // Lamp filament diagonal cross (DigitalSimulator lamp)
             const cr = 7;
             ctx.beginPath();
             ctx.moveTo(cx + 4 - cr * 0.7, cy - cr * 0.7);
@@ -11012,8 +10808,6 @@
             ctx.stroke();
           }
 
-          // Do NOT draw redundant pin labels like 'X1', 'X2' on logic gates (prevents clutter over negation bubbles)
-          // For ICs (Counter, SIPO, etc.): render pin name with offset if inverted
           if (!isGateComp && pin.name) {
             const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
             const textOffsetX = isInv ? 15 : 7;
@@ -11038,7 +10832,6 @@
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
-          // Do NOT draw redundant output labels like 'Y' on gates
           if (!isGateComp && pin.name) {
             const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
             const isNegatedQ = isFF && pin.name === '!Q';
@@ -11132,7 +10925,6 @@
         this.hoverY = null;
         this.gutterWidth = 155;
 
-        // Video-Style Playhead & Loop Region
         this.playheadOffset = null;
         this.isScrubbing = false;
         this.loopRange = null; // { inOffset: number, outOffset: number }
@@ -11182,7 +10974,6 @@
           if (this.hoverX <= this.gutterWidth) {
             this.canvas.style.cursor = 'pointer';
           } else if (this.hoverY <= 22 && this.loopRange) {
-            // Check if hovering near bracket handles in ruler
             const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
             const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
             if (Math.abs(this.hoverX - inX) <= 6 || Math.abs(this.hoverX - outX) <= 6) {
@@ -11314,7 +11105,6 @@
           this.render();
         }, { passive: false });
 
-        // Keyboard hotkeys for Timeline Loop (I, O, L) and Playhead Stepping
         window.addEventListener('keydown', (e) => {
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
           if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
@@ -11611,7 +11401,6 @@
         const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
         let startOffset;
         if (this.loopRange && totalSamples > 0) {
-          // Lock view centered on the bracketed range so timeline does not move or jump away
           const bracketCenter = (this.loopRange.inOffset + this.loopRange.outOffset) / 2;
           const targetStart = Math.round(bracketCenter - visibleTicks / 2);
           startOffset = Math.max(0, Math.min(maxStartOffset, targetStart));
@@ -11633,7 +11422,6 @@
         ctx.textAlign = 'left';
         ctx.fillText('KANAL / PROBE', 10, 14);
 
-        // Highlight Loop Bracket Range (In/Out) across timeline
         if (this.loopRange && totalSamples > 0) {
           const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
           const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
@@ -11676,12 +11464,10 @@
           }
         }
 
-        // Render In / Out bracket markers in header
         if (this.loopRange && totalSamples > 0) {
           const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
           const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
 
-          // In bracket [
           if (inX >= this.gutterWidth && inX <= width) {
             ctx.fillStyle = '#ffd600';
             ctx.fillRect(inX - 1, 2, 3, headerH - 4);
@@ -11695,7 +11481,6 @@
             ctx.stroke();
           }
 
-          // Out bracket ]
           if (outX >= this.gutterWidth && outX <= width) {
             ctx.fillStyle = '#00b0ff';
             ctx.fillRect(outX - 2, 2, 3, headerH - 4);
@@ -11791,7 +11576,6 @@
           ctx.textAlign = 'right';
           ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 28, rowTop + rowH / 2 + 4);
 
-          // Delete button [✕]
           const btnX = this.gutterWidth - 22;
           const btnY = rowTop + (rowH - 16) / 2;
           const isBtnHovered = this.hoverX !== null &&
@@ -11817,7 +11601,6 @@
         ctx.lineTo(this.gutterWidth, height);
         ctx.stroke();
 
-        // 1. Draw Hover Line (dotted amber line)
         if (hoveredOffset !== null && hoveredOffset !== this.playheadOffset) {
           const cursorIdx = hoveredOffset - startOffset;
           const cursorX = this.gutterWidth + (cursorIdx + 0.5) * this.pixelsPerTick;
@@ -11859,7 +11642,6 @@
           ctx.restore();
         }
 
-        // 2. Draw Playhead (solid glowing green cursor like in Video Editing NLE)
         if (this.playheadOffset !== null && totalSamples > 0) {
           const phIdx = this.playheadOffset - startOffset;
           const phX = this.gutterWidth + (phIdx + 0.5) * this.pixelsPerTick;
@@ -11878,7 +11660,6 @@
             ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // Playhead scrubber marker in ruler
             ctx.fillStyle = '#00e676';
             ctx.beginPath();
             ctx.moveTo(phX - 7, 2);
@@ -11889,7 +11670,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // Value bead on each probe channel
             for (let pIdx = 0; pIdx < probes.length; pIdx++) {
               const probe = probes[pIdx];
               const rowTop = headerH + pIdx * rowH;
@@ -12023,7 +11803,6 @@
           `;
           this.container.appendChild(info);
 
-          // Waypoint & Routing Section
           const wpSection = document.createElement('div');
           wpSection.className = 'prop-section';
           wpSection.style.marginTop = '12px';
@@ -12039,7 +11818,6 @@
           `;
           wpSection.appendChild(wpHeader);
 
-          // Style Selector: Orthogonal vs Diagonal
           const styleRow = document.createElement('div');
           styleRow.style.display = 'flex';
           styleRow.style.alignItems = 'center';
@@ -12064,7 +11842,6 @@
           styleRow.appendChild(styleSelect);
           wpSection.appendChild(styleRow);
 
-          // Clean bends button
           const cleanBtn = document.createElement('button');
           cleanBtn.className = 'btn';
           cleanBtn.style.width = '100%';
@@ -12081,7 +11858,6 @@
           });
           wpSection.appendChild(cleanBtn);
 
-          // Reset to auto-route button
           const autoBtn = document.createElement('button');
           autoBtn.className = 'btn';
           autoBtn.style.width = '100%';
@@ -12097,7 +11873,6 @@
           });
           wpSection.appendChild(autoBtn);
 
-          // List of current waypoints
           if (wire.waypoints && wire.waypoints.length > 0) {
             const list = document.createElement('div');
             list.style.display = 'flex';
@@ -12139,7 +11914,6 @@
             wpSection.appendChild(list);
           }
 
-          // Tip
           const tip = document.createElement('div');
           tip.style.fontSize = '10.5px';
           tip.style.color = 'var(--text-dim)';
@@ -12291,7 +12065,6 @@
               );
             }
 
-            // Output Inversion Toggle
             const isCurOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
             this.addCheckboxControl(
               'Ausgang (Y) invertieren (Negation ○)',
@@ -12304,7 +12077,6 @@
               }
             );
 
-            // Input Inversion Toggles
             const invBox = document.createElement('div');
             invBox.className = 'prop-group';
             const invLabel = document.createElement('label');
@@ -12601,7 +12373,6 @@
             Wähle ein Bauteil oder eine Leitung auf dem Arbeitsraster aus (oder klicke mit rechts darauf), um dessen Einstellungen zu öffnen.
           </div>
         `;
-        // nothing selected: the free space shows the guide of the loaded scenario
         if (typeof this.onEmpty === 'function') this.onEmpty(this.container);
       }
 
@@ -13276,30 +13047,25 @@
      */
     class TruthTableGenerator {
       static analyzeCircuit(circuit) {
-        // 1. Identify primary input sources: SWITCH, BUTTON, CLOCK
         const inputs = circuit.components.filter(c =>
           c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK'
         );
 
-        // Sort inputs visually: X ascending, then Y ascending
         inputs.sort((a, b) => {
           if (Math.abs(a.x - b.x) > 20) return a.x - b.x;
           return a.y - b.y;
         });
 
-        // 2. Identify observable outputs: LED, PROBE
         let outputs = circuit.components.filter(c =>
           c.type === 'LED' || c.type === 'PROBE'
         );
 
-        // If no LEDs or PROBEs exist, look for any logic gates
         if (outputs.length === 0) {
           outputs = circuit.components.filter(c =>
             ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC', 'FULL_ADDER', 'MUX', 'DECODER'].includes(c.type)
           );
         }
 
-        // Sort outputs visually: X ascending, then Y ascending
         outputs.sort((a, b) => {
           if (Math.abs(a.x - b.x) > 20) return a.x - b.x;
           return a.y - b.y;
@@ -13323,7 +13089,6 @@
           };
         }
 
-        // Limit to max 8 inputs (256 combinations) to prevent browser stutter
         const cappedInputs = inputs.slice(0, 8);
         const warning = inputs.length > 8
           ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten 8 Eingänge (256 Zeilen) analysiert.`
@@ -13366,7 +13131,6 @@
           };
         });
 
-        // Determine current combination index on canvas
         let currentRowIndex = 0;
         for (let i = 0; i < inputMeta.length; i++) {
           if (inputMeta[i].currentVal === 1) {
@@ -13374,7 +13138,6 @@
           }
         }
 
-        // Snapshot original circuit state to restore cleanly after analysis
         const snapshot = engine ? engine.createSnapshot() : null;
         const origSwStates = cappedInputs.map(c => ({
           id: c.id,
@@ -13404,7 +13167,6 @@
             }
           }
 
-          // Run relaxation passes
           circuit.syncImmediateWireLevels();
 
           const outputValues = {};
@@ -13427,7 +13189,6 @@
           });
         }
 
-        // Compute Canonical Normal Forms (DNF & KNF) for each output
         const dnfMap = {};
         const knfMap = {};
 
@@ -13436,7 +13197,6 @@
           const minterms = rows.filter(r => r.outputs[outName] === 1);
           const maxterms = rows.filter(r => r.outputs[outName] === 0);
 
-          // DNF
           if (minterms.length === 0) {
             dnfMap[outName] = {
               indices: [],
@@ -13461,7 +13221,6 @@
             };
           }
 
-          // KNF
           if (maxterms.length === 0) {
             knfMap[outName] = {
               indices: [],
@@ -13487,7 +13246,6 @@
           }
         }
 
-        // Restore original snapshot
         if (snapshot && engine) {
           engine.restoreSnapshot(snapshot);
         } else {
@@ -13588,7 +13346,6 @@
         this.clipboard = null;
         this.lastMouseWorldPos = null;
 
-        // Multi-Tab & Split-Screen Architecture
         this.tabs = [];
         this.tabCounter = 1;
         const initialTab = new TabSession('tab_1', 'Schaltung 1', this.circuit, this.ringBuffer);
@@ -13703,7 +13460,6 @@
             } else if (newSelection) {
               this.selectMulti(newSelection);
             }
-            // typing in the inspector should become one undo step, not one per keystroke
             this._coalesceHistory = true;
             this.refreshAll();
           }
@@ -13743,11 +13499,9 @@
 
         this.loadSettings();
 
-        // Restore or set Default Symbol Standard: DIN 40700
         const savedNorm = localStorage.getItem('logicsim_symbol_norm') || 'DIN_40700';
         this.setSymbolStandard(savedNorm);
 
-        // Restore or set Default Workbench Theme: modern
         const savedTheme = localStorage.getItem('logicsim_theme') || this.appTheme || 'modern';
         this.setAppTheme(savedTheme);
 
@@ -13781,7 +13535,6 @@
         if (!restored) {
           this.loadDemo('bcd_clock');
         }
-        // a freshly opened workspace starts with an empty undo history
         for (const t of this.tabs) { t.undoStack = []; t.redoStack = []; t.lastSnapshot = null; }
         this.commitHistory(this.getActiveTab());
 
@@ -13792,7 +13545,6 @@
         this.updateScenarioGuide();
         this.updateStatusBar();
 
-        // first visit: show the scenario gallery as a welcome screen (browser only)
         let welcomed = true;
         try { welcomed = Boolean(localStorage.getItem('logicsim_welcomed')); } catch (e) { welcomed = true; }
         if (!restored && !welcomed && typeof requestAnimationFrame === 'function') {
@@ -13801,7 +13553,6 @@
         }
 
         setTimeout(() => {
-          // the impulse diagram only takes space when there is something to show
           this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
           this.renderer.resize();
           if (this.splitScreenMode && this.rendererRight) {
@@ -13813,9 +13564,6 @@
         }, 10);
       }
 
-      // ----------------------------------------------------
-      // Multi-Tab & Split-Screen Architecture
-      // ----------------------------------------------------
 
       getActiveTab() {
         return this.tabs.find(t => t.id === this.activeTabId) || this.tabs[0];
@@ -14093,7 +13841,6 @@
           if (this.splitScreenMode) {
             this.rendererRight.resize();
           }
-          // both halves show their whole circuit after the panes changed size
           this.fitPaneView('left');
           if (this.splitScreenMode) this.fitPaneView('right');
         }, 30);
@@ -14205,9 +13952,6 @@
         this.rendererRight.render();
       }
 
-      // ----------------------------------------------------
-      // History & Undo / Redo
-      // ----------------------------------------------------
 
       /**
        * Snapshot based history: `tab.lastSnapshot` is the last committed circuit state.
@@ -14284,7 +14028,6 @@
         if (tab.redoStack.length === 0) return;
         const nextState = tab.redoStack.pop();
         tab.undoStack.push(tab.lastSnapshot);
-        // restoreHistorySnapshot() must not clear the remaining redo entries
         const keepRedo = tab.redoStack.slice();
         this.restoreHistorySnapshot(tab, nextState);
         tab.redoStack = keepRedo;
@@ -14338,9 +14081,6 @@
         }
       }
 
-      // ----------------------------------------------------
-      // Tabs & Circuit Storage Persistence
-      // ----------------------------------------------------
 
       saveTabsToStorage() {
         if (!this.autoSaveCircuit) return;
@@ -14407,9 +14147,6 @@
         }
       }
 
-      // ----------------------------------------------------
-      // File Import / Export Operations
-      // ----------------------------------------------------
 
       exportCircuitJSON() {
         const tab = this.getPaneTab(this.activePane);
@@ -14512,7 +14249,6 @@
             toPin = drag.isOutput ? targetPin.pinIndex : drag.pinIndex;
             if (!drag.isOutput) waypoints.reverse();
           } else {
-            // Started from wire or free point, connecting to pin
             if (targetPin.isOutput) {
               fromCompId = targetPin.compId;
               fromPin = targetPin.pinIndex;
@@ -14547,7 +14283,6 @@
             toPoint = { x: snapX, y: snapY };
           }
         } else {
-          // Open-ended / free point termination
           if (drag.compId) {
             if (drag.isOutput) {
               fromCompId = drag.compId;
@@ -14702,7 +14437,6 @@
         const selectedWireIds = new Set(this.renderer.selectedWireIds || []);
         if (this.renderer.selectedWireId) selectedWireIds.add(this.renderer.selectedWireId);
 
-        // If only wires were selected, include their terminal components so the connected gates copy too
         if (selectedWireIds.size > 0 && selectedCompIds.size === 0) {
           for (const wid of selectedWireIds) {
             const w = this.circuit.wires.find(wire => wire.id === wid);
@@ -15205,7 +14939,6 @@
           btnAutoRoute.addEventListener('click', () => this.autoAlign());
         }
 
-        // (the split-screen button is wired in initSplitScreenEvents)
 
         const hudNormBadge = document.getElementById('hud-norm-badge');
         if (hudNormBadge) {
@@ -15536,9 +15269,7 @@
             return;
           }
 
-          // EDIT MODE
           if (this.renderer.activeWireDrag) {
-            // 1. Check if clicked on a pin
             const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
             if (hitPin) {
               const drag = this.renderer.activeWireDrag;
@@ -15551,7 +15282,6 @@
               return;
             }
 
-            // 2. Check if clicked on another wire (wire-to-wire branch)
             const hitOtherWire = this.renderer.findWireAt(world.x, world.y, 8);
             if (hitOtherWire && hitOtherWire.id !== this.renderer.activeWireDrag.fromWireId) {
               const pts = this.renderer.getWirePolyline(hitOtherWire);
@@ -15562,7 +15292,6 @@
               return;
             }
 
-            // 3. Clicked on canvas/grid: check if same point (double-click/click on same spot finishes free wire)
             const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
             const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
             const wps = this.renderer.activeWireDrag.waypoints;
@@ -15572,7 +15301,6 @@
               return;
             }
 
-            // Otherwise add raster waypoint
             this.renderer.activeWireDrag.waypoints.push({ x: snapX, y: snapY });
             if (e.shiftKey) {
               this.renderer.activeWireDrag.style = 'diagonal';
@@ -15599,7 +15327,6 @@
             return;
           }
 
-          // If in Edit Mode and a wire is currently selected: check corner and midpoint handles first
           if (this.engine.mode === 'edit' && this.renderer.selectedWireId) {
             const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
             if (hitWp && hitWp.wire.id === this.renderer.selectedWireId) {
@@ -15644,7 +15371,6 @@
 
           const hitComp = this.renderer.findComponentAt(world.x, world.y);
           if (hitComp) {
-            // Shift or Ctrl: toggle individual component selection
             if (e.shiftKey || e.ctrlKey) {
               const currentSet = new Set(this.renderer.selectedCompIds);
               if (currentSet.has(hitComp.id)) {
@@ -15656,7 +15382,6 @@
               return;
             }
 
-            // If already in multi-selection, initiate group drag
             const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
             if (this.renderer.selectedCompIds.has(hitComp.id) && totalSel > 1) {
               this.startGroupDrag(world);
@@ -15664,7 +15389,6 @@
               return;
             }
 
-            // Normal single component selection and drag
             this.selectItem(hitComp.id, null);
             this.draggingComp = hitComp;
             this.dragOffsetWorld = {
@@ -15698,7 +15422,6 @@
               return;
             }
 
-            // If already in multi-selection, initiate group drag
             const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
             if (this.renderer.selectedWireIds.has(hitWire.id) && totalSel > 1) {
               this.startGroupDrag(world);
@@ -15706,7 +15429,6 @@
               return;
             }
 
-            // WISH-006: Press & hold / drag LMB on wire to pull out a new wire branch!
             const pts = this.renderer.getWirePolyline(hitWire);
             const proj = this.renderer.getClosestPointOnPolyline(pts, world) || world;
             const branchX = Math.round(proj.x / GRID_SIZE) * GRID_SIZE;
@@ -15727,7 +15449,6 @@
             return;
           }
 
-          // Empty canvas click in edit mode: start box selection!
           if (!e.shiftKey && !e.ctrlKey) {
             this.selectItem(null, null);
           }
@@ -16037,7 +15758,6 @@
               const targetY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : snapY;
               this.finishActiveWireAtPoint({ x: targetX, y: targetY }, hitOtherWire, null);
             } else if (dragDist >= 12) {
-              // WISH-007: Connections don't need a module at the end!
               this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
             } else {
               this.renderer.activeWireDrag = null;
@@ -16205,7 +15925,6 @@
             return;
           }
 
-          // 1. Double click on existing waypoint handle: DELETE IT!
           const hitWp = this.renderer.findWaypointAt(world.x, world.y, 10);
           if (hitWp) {
             this.ensureWireWaypoints(hitWp.wire);
@@ -16215,7 +15934,6 @@
             return;
           }
 
-          // 2. Double click on pin: toggle inversion
           const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
           if (pinHit) {
             const comp = this.circuit.getComponent(pinHit.compId);
@@ -16235,7 +15953,6 @@
             }
           }
 
-          // 3. Double click on wire segment: ADD A WAYPOINT!
           const hitWire = this.renderer.findWireAt(world.x, world.y, 8);
           if (hitWire) {
             this.addWaypointToWire(hitWire, world);
@@ -16328,7 +16045,6 @@
             return;
           }
 
-          // Edit mode
           const hitComp = this.rendererRight.findComponentAt(world.x, world.y);
           if (hitComp) {
             this.pushHistory(rTab);
@@ -16409,10 +16125,8 @@
             const rTab = this.getRightTab();
             if (compMouseDownPosRight && (compMouseDownPosRight.origX !== draggingCompRight.x || compMouseDownPosRight.origY !== draggingCompRight.y)) {
               if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
-                // Was dragged, keep position
               }
             } else if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
-              // Clicked without dragging: toggle switch!
               draggingCompRight.params.state = draggingCompRight.params.state === 1 ? 0 : 1;
               if (rTab) rTab.circuit.syncImmediateWireLevels();
             }
@@ -16429,7 +16143,6 @@
           this.setZoomRight(this.rendererRight.zoom * zoomFactor);
         }, { passive: false });
 
-        // Double click to add waypoint on right wire
         canvas.addEventListener('dblclick', (e) => {
           const rTab = this.getRightTab();
           if (!rTab || this.engine.mode === 'sim') return;
@@ -16445,7 +16158,6 @@
           }
         });
 
-        // Palette drop support
         this.attachPaletteDrop(canvas, () => this.getRightTab(), () => this.rendererRight);
       }
 
@@ -16469,7 +16181,6 @@
             return;
           }
 
-          // In Edit Mode: contextmenu on existing wire opens the comprehensive wire menu (use LMB drag for branching)
 
           const hitProbe = this.renderer.findProbeAt(world.x, world.y);
           if (hitProbe) {
@@ -16553,7 +16264,6 @@
         `;
         menu.appendChild(header);
 
-        // Delete this waypoint
         const delWpItem = document.createElement('div');
         delWpItem.className = 'ctx-item danger';
         delWpItem.innerHTML = `<span>${ICONS.trash}</span> <span>Diesen Eckpunkt löschen</span>`;
@@ -16567,7 +16277,6 @@
         div.className = 'ctx-divider';
         menu.appendChild(div);
 
-        // Reset all waypoints on this wire (Auto-Route)
         const resetWpsItem = document.createElement('div');
         resetWpsItem.className = 'ctx-item';
         resetWpsItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Wegpunkte zurücksetzen (Auto)</span>`;
@@ -16580,7 +16289,6 @@
         });
         menu.appendChild(resetWpsItem);
 
-        // Open Inspector
         const inspectItem = document.createElement('div');
         inspectItem.className = 'ctx-item';
         inspectItem.innerHTML = `<span>${ICONS.wrench}</span> <span>Leitungsinfo im Inspector</span>`;
@@ -16611,7 +16319,6 @@
         const totalSel = selComps.size + selWires.size;
 
         if (isMulti || (totalSel > 1 && ((comp && selComps.has(comp.id)) || (wire && selWires.has(wire.id))))) {
-          // --- MULTI-SELECTION CONTEXT MENU ---
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
@@ -16681,7 +16388,6 @@
           menu.appendChild(delItem);
 
         } else if (comp) {
-          // --- COMPONENT CONTEXT MENU ---
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
@@ -16699,7 +16405,6 @@
           });
           menu.appendChild(openInspect);
 
-          // Quick Gate Pin Inversion
           if (this.renderer.isGate(comp.type)) {
             const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
             const invOutItem = document.createElement('div');
@@ -16746,7 +16451,6 @@
             }
           }
 
-          // Gate Input Count Quick Selector
           if (this.renderer.isGate(comp.type) && comp.type !== 'NOT') {
             const subLabel = document.createElement('div');
             subLabel.className = 'ctx-sub-label';
@@ -16771,7 +16475,6 @@
             menu.appendChild(row);
           }
 
-          // Switch Toggle
           if (comp.type === 'SWITCH') {
             const toggleItem = document.createElement('div');
             toggleItem.className = 'ctx-item';
@@ -16793,7 +16496,6 @@
             menu.appendChild(toggleItem);
           }
 
-          // Clock Half-Period Quick Selector
           if (comp.type === 'CLOCK') {
             const subLabel = document.createElement('div');
             subLabel.className = 'ctx-sub-label';
@@ -16817,7 +16519,6 @@
             menu.appendChild(row);
           }
 
-          // Counter Mode Toggle
           if (comp.type === 'COUNTER') {
             const modeItem = document.createElement('div');
             modeItem.className = 'ctx-item';
@@ -16833,7 +16534,6 @@
             menu.appendChild(modeItem);
           }
 
-          // LED Color Quick Selector
           if (comp.type === 'LED' || comp.type === 'SEVEN_SEG' || comp.type === 'HEX_DISPLAY') {
             const subLabel = document.createElement('div');
             subLabel.className = 'ctx-sub-label';
@@ -16861,7 +16561,6 @@
           div.className = 'ctx-divider';
           menu.appendChild(div);
 
-          // Duplicate Action
           const dupItem = document.createElement('div');
           dupItem.className = 'ctx-item';
           dupItem.innerHTML = `<span>${ICONS.copy}</span> <span>Bauteil duplizieren</span>`;
@@ -16880,7 +16579,6 @@
           });
           menu.appendChild(dupItem);
 
-          // Delete Action
           const delItem = document.createElement('div');
           delItem.className = 'ctx-item danger';
           delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Bauteil löschen</span>`;
@@ -16894,7 +16592,6 @@
           menu.appendChild(delItem);
 
         } else if (wire) {
-          // --- WIRE CONTEXT MENU ---
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
@@ -17018,7 +16715,6 @@
           menu.appendChild(delWire);
 
         } else {
-          // --- EMPTY CANVAS CONTEXT MENU ---
           const header = document.createElement('div');
           header.className = 'ctx-header';
           header.innerHTML = `
@@ -17534,7 +17230,6 @@
             if (!this.isPanning) {
               this.gridCanvas.style.cursor = 'default';
             }
-            // a short tap (no panning) starts / pauses the simulation
             if (wasTap && this.engine.mode === 'sim' && !this.isModalOpen()) {
               if (this.analyzer && this.analyzer.loopRange) {
                 this.analyzer.toggleLoopAnimation();
@@ -17556,7 +17251,6 @@
 
         if (!inspector || !resizer) return;
 
-        // Restore saved inspector width
         const savedWidth = localStorage.getItem('logicsim_inspector_width');
         if (savedWidth) {
           const num = parseInt(savedWidth, 10);
@@ -17582,7 +17276,6 @@
 
         window.addEventListener('mousemove', (e) => {
           if (!isResizing) return;
-          // Inspector is on right edge: moving cursor left increases inspector width
           const dx = startX - e.clientX;
           const maxW = Math.max(200, window.innerWidth * 0.55);
           const newW = Math.max(140, Math.min(maxW, startW + dx));
@@ -17621,9 +17314,6 @@
         }
       }
 
-      // ----------------------------------------------------
-      // AUTO-ALIGN: placement, wire routing, view fitting
-      // ----------------------------------------------------
 
       getLayoutOptions() {
         switch (this.layoutSpacing) {
@@ -17696,7 +17386,6 @@
           const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
           if (!isAuto) continue;
           if (moved.has(w.fromCompId) || moved.has(w.toCompId)) { targets.push(w.id); continue; }
-          // foreign wire that now runs through a moved component
           const pts = this.renderer.getWirePolyline(w);
           for (const c of boxes) {
             if (this.renderer.isWireIntersectingBox(pts, c.x + 1, c.y + 1, c.x + c.width - 1, c.y + c.height - 1)) {
@@ -17753,13 +17442,11 @@
         const b = this.getCircuitBounds();
         if (!b) return { zoom: 1, panX: 40, panY: 40 };
         const { w, h } = this.getViewportSize();
-        // keep the scenario guide card clear of the drawing when there is room for both
         const tab = this.getActiveTab();
         const inspectorEl = document.getElementById('inspector');
         const floating = Boolean(inspectorEl && inspectorEl.classList && inspectorEl.classList.contains('collapsed'));
         const guideOpen = floating && Boolean(tab && tab.scenarioKey) && !this.guideHidden && !this.guideCollapsed;
         const inset = guideOpen && w >= 980 ? 316 : 0;
-        // narrow panes (split view) get a slimmer margin
         const pad = Math.min(padding, Math.max(24, Math.round((w - inset) * 0.07)));
         const availW = Math.max(120, w - inset - pad * 2);
         const availH = Math.max(120, h - pad * 2);
@@ -17834,8 +17521,6 @@
           const s = new Set(scopeIds);
           targets = circuit.wires.filter(w => s.has(w.fromCompId) || s.has(w.toCompId)).map(w => w.id);
         }
-        // A drawing that is exactly our own last result (same options) is already arranged:
-        // pressing the button again must not reshuffle it.
         const tab = this.getActiveTab();
         const memoKey = JSON.stringify([this.layoutSpacing, this.layoutInputs, scopeIds ? scopeIds.slice().sort() : null]);
         if (tab && tab.layoutMemo && tab.layoutMemo.circuit === circuit && tab.layoutMemo.key === memoKey
@@ -17865,7 +17550,6 @@
         let best = null;
         const startedAt = Date.now();
         for (let i = 0; i < strategies.length; i++) {
-          // very dense circuits: one strategy already takes long enough
           if (i > 0 && Date.now() - startedAt > 450) break;
           if (i > 0) restore({ pos: startPos, wires: startWires });
           const layout = AutoLayoutEngine.compute(circuit, Object.assign({ scope: scopeIds, inputAlign: strategies[i] }, this.getLayoutOptions()));
@@ -17923,7 +17607,6 @@
         }
         if (this._layoutAnim) this.finishLayoutAnimation();
 
-        // Auto-Anordnen always arranges the entire circuit
         const scope = null;
 
         this.checkpointHistory();
@@ -18043,9 +17726,6 @@
         return true;
       }
 
-      // ----------------------------------------------------
-      // UI EXTENSIONS: align menu, scenarios, guide, status bar, help, palette search
-      // ----------------------------------------------------
 
       initExtendedUI() {
         this.scenarioFilterLevel = 0;
@@ -18071,7 +17751,6 @@
         this.initPaletteSearchEvents();
       }
 
-      // ---------------- generic modal handling ----------------
 
       showModal(modalId) {
         const backdrop = document.getElementById('modal-backdrop');
@@ -18091,7 +17770,6 @@
         return Boolean(backdrop && backdrop.style && backdrop.style.display && backdrop.style.display !== 'none');
       }
 
-      // ---------------- Auto-Align menu ----------------
 
       initAlignMenuEvents() {
         const split = document.getElementById('align-split');
@@ -18231,7 +17909,6 @@
         }
       }
 
-      // ---------------- Scenarios ----------------
 
       initScenarioEvents() {
         document.getElementById('btn-scenarios')?.addEventListener('click', () => this.openScenarioGallery());
@@ -18266,7 +17943,6 @@
           }
         }
 
-        // guide card
         document.getElementById('guide-close')?.addEventListener('click', () => { this.guideHidden = true; this.updateScenarioGuide(); });
         document.getElementById('guide-collapse')?.addEventListener('click', () => {
           this.guideCollapsed = !this.guideCollapsed;
@@ -18297,7 +17973,6 @@
       }
 
       openScenarioGallery(level = null) {
-        // always start from a known state: all levels (or the requested one), empty search
         this.scenarioFilterLevel = (typeof level === 'number' && level > 0) ? level : 0;
         const search = document.getElementById('scenario-search-input');
         if (search) search.value = '';
@@ -18506,7 +18181,6 @@
           }
         }
         this.guideHidden = false;
-        // the impulse diagram only earns its space when the scenario has measuring points
         this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
         this.autoLayoutCircuit({ silent: true });
         this.visitedScenarios.add(key);
@@ -18545,8 +18219,6 @@
         const sc = tab && tab.scenarioKey ? SCENARIO_MAP.get(tab.scenarioKey) : null;
         if (!sc || this.guideHidden) { card.style.display = 'none'; return; }
 
-        // Home of the guide: the free inspector panel while nothing is selected,
-        // otherwise a floating card on the canvas (only when the inspector is folded away).
         const inspectorEl = document.getElementById('inspector');
         const inspectorOpen = Boolean(inspectorEl && inspectorEl.classList && !inspectorEl.classList.contains('collapsed'));
         const nothingSelected = !this.renderer.selectedCompId && !this.renderer.selectedWireId && !this.renderer.selectedProbeId
@@ -18591,7 +18263,6 @@
         set('guide-truth', '↺ Neu laden');
       }
 
-      // ---------------- Help ----------------
 
       initHelpEvents() {
         const open = () => this.showModal('help-modal');
@@ -18601,7 +18272,6 @@
         document.getElementById('btn-close-help-footer')?.addEventListener('click', () => this.closeAllModals());
       }
 
-      // ---------------- Palette search & collapsible groups ----------------
 
       initPaletteSearchEvents() {
         const input = document.getElementById('palette-search-input');
@@ -18637,7 +18307,6 @@
         });
       }
 
-      // ---------------- Status bar ----------------
 
       updateStatusBar() {
         const isSim = this.engine.mode === 'sim';
@@ -18661,7 +18330,6 @@
         }
         const q = document.getElementById('status-quality');
         if (q) {
-          // only shown while the drawing still is the result of the last Auto-Align of this tab
           const tab = this.getActiveTab();
           const memo = tab ? tab.layoutMemo : null;
           const r = memo && memo.circuit === this.circuit && memo.snapshot === tab.lastSnapshot ? memo.report : null;
@@ -18704,7 +18372,6 @@
         if (text !== this._statusCoordText) { this._statusCoordText = text; el.textContent = text; }
       }
 
-      // ---------------- Keyboard helpers ----------------
 
       /** Moves the selected components by whole grid steps (arrow keys). */
       nudgeSelection(dx, dy) {
@@ -18717,7 +18384,6 @@
         }
         const moved = new Set(ids);
         for (const w of this.circuit.wires) {
-          // wires inside the moved group keep their shape
           if (moved.has(w.fromCompId) && moved.has(w.toCompId) && w.waypoints && w.waypoints.length > 0) {
             w.waypoints = w.waypoints.map(p => ({ x: p.x + dx * GRID_SIZE, y: p.y + dy * GRID_SIZE }));
           }
@@ -18776,7 +18442,6 @@
           });
         }
 
-        // CSV / Markdown Export buttons
         const btnCopyCsv = document.getElementById('btn-copy-tt-csv');
         if (btnCopyCsv) {
           btnCopyCsv.addEventListener('click', () => {
@@ -18801,7 +18466,6 @@
           });
         }
 
-        // Example Chips for Synthesizer
         const exampleChips = document.querySelectorAll('#synth-examples-row .synth-op-chip');
         const synthInput = document.getElementById('synth-input');
         exampleChips.forEach(chip => {
@@ -18814,7 +18478,6 @@
           });
         });
 
-        // Operator insertion chips
         const opChips = document.querySelectorAll('.synth-chips-row .synth-op-chip[data-insert]');
         opChips.forEach(chip => {
           chip.addEventListener('click', () => {
@@ -18831,14 +18494,12 @@
           });
         });
 
-        // Realtime live analysis in Synthesizer
         if (synthInput) {
           synthInput.addEventListener('input', () => {
             this.updateSynthLivePreview();
           });
         }
 
-        // Run synthesis button
         const btnRunSynth = document.getElementById('btn-run-synth');
         if (btnRunSynth) {
           btnRunSynth.addEventListener('click', () => {
@@ -19250,21 +18911,18 @@
           });
         });
 
-        // Close dropdowns when clicking outside
         window.addEventListener('click', (e) => {
           if (!e.target.closest('.menubar-item')) {
             closeAllMenus();
           }
         });
 
-        // Close dropdowns on Escape
         window.addEventListener('keydown', (e) => {
           if (e.key === 'Escape' && openMenuKey) {
             closeAllMenus();
           }
         });
 
-        // 1. Datei (File)
         document.getElementById('menu-item-new')?.addEventListener('click', () => {
           closeAllMenus();
           this.createNewTab();
@@ -19288,7 +18946,6 @@
           }
         });
 
-        // 2. Bearbeiten (Edit)
         document.getElementById('menu-item-undo')?.addEventListener('click', () => {
           closeAllMenus();
           this.undo();
@@ -19322,7 +18979,6 @@
           this.autoAlign();
         });
 
-        // 3. Ansicht (View)
         document.getElementById('menu-item-single-view')?.addEventListener('click', () => {
           closeAllMenus();
           this.toggleSplitScreen(false);
@@ -19378,7 +19034,6 @@
           this.showToast(`Gatterverzögerungs-Anzeige ${this.showGateDelay ? 'aktiviert' : 'deaktiviert'}`);
         });
 
-        // Theme buttons in View menu
         document.querySelectorAll('#mdropdown-view [data-theme-btn]').forEach(btn => {
           btn.addEventListener('click', () => {
             closeAllMenus();
@@ -19389,7 +19044,6 @@
           });
         });
 
-        // 4. Analyse
         document.getElementById('menu-item-truth-table')?.addEventListener('click', () => {
           closeAllMenus();
           this.openTruthTableModal();
@@ -19399,7 +19053,6 @@
           this.openBoolSynthModal();
         });
 
-        // 5. Norm
         document.getElementById('menu-norm-din40700')?.addEventListener('click', () => {
           closeAllMenus();
           this.setSymbolStandard('DIN_40700');
@@ -19416,7 +19069,6 @@
           this.saveSettings();
         });
 
-        // 6. Demos
         document.querySelectorAll('#mdropdown-demos [data-demo]').forEach(btn => {
           btn.addEventListener('click', () => {
             closeAllMenus();
@@ -19425,7 +19077,6 @@
           });
         });
 
-        // 7. Einstellungen
         document.getElementById('mbtn-settings')?.addEventListener('click', () => {
           closeAllMenus();
           this.openSettingsModal();
@@ -19444,7 +19095,6 @@
           if (b) b.addEventListener('click', () => this.closeAllModals());
         });
 
-        // 1. Color Swatches
         const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
         swatches.forEach(btn => {
           btn.addEventListener('click', () => {
@@ -19464,7 +19114,6 @@
           });
         }
 
-        // 2. Norm Cards
         const normCards = document.querySelectorAll('#settings-norm-cards .norm-card');
         normCards.forEach(card => {
           card.addEventListener('click', () => {
@@ -19476,7 +19125,6 @@
           });
         });
 
-        // 3. Edit-Mode Interaction
         const chkInteractive = document.getElementById('settings-edit-interactive');
         if (chkInteractive) {
           chkInteractive.checked = this.allowEditModeInteraction;
@@ -19487,7 +19135,6 @@
           });
         }
 
-        // 4. Auto-Save
         const chkAutoSave = document.getElementById('settings-auto-save');
         if (chkAutoSave) {
           chkAutoSave.checked = this.autoSaveCircuit;
@@ -19497,7 +19144,6 @@
           });
         }
 
-        // 4b. Wire bridges
         const chkWireBridges = document.getElementById('settings-wire-bridges');
         if (chkWireBridges) {
           chkWireBridges.checked = this.showWireBridges;
@@ -19507,7 +19153,6 @@
           });
         }
 
-        // 4c. Show Gate Delay Toggle
         const chkGateDelay = document.getElementById('settings-show-gate-delay');
         if (chkGateDelay) {
           chkGateDelay.checked = this.showGateDelay;
@@ -19517,7 +19162,6 @@
           });
         }
 
-        // 4d. Global Gate Delay Slider
         const delaySlider = document.getElementById('settings-global-delay-slider');
         const delayVal = document.getElementById('settings-global-delay-val');
         if (delaySlider && delayVal) {
@@ -19532,7 +19176,6 @@
           }
         }
 
-        // 5. Workbench Theme Cards
         const themeCards = document.querySelectorAll('#settings-theme-cards .theme-card');
         themeCards.forEach(card => {
           card.addEventListener('click', () => {
@@ -19543,7 +19186,6 @@
           });
         });
 
-        // Backward compatibility select
         const selectTheme = document.getElementById('settings-canvas-theme');
         if (selectTheme) {
           selectTheme.addEventListener('change', (e) => {
@@ -19551,7 +19193,6 @@
           });
         }
 
-        // 6. Reset Settings
         const btnReset = document.getElementById('btn-reset-settings');
         if (btnReset) {
           btnReset.addEventListener('click', () => {
@@ -19583,7 +19224,6 @@
         this.highSignalColor = color;
         this.renderer.highSignalColor = color;
 
-        // Compute glow rgba
         let glow = 'rgba(0, 230, 118, 0.65)';
         if (color.startsWith('#')) {
           let c = color.replace('#', '');
@@ -19628,43 +19268,36 @@
         if (typeof document !== 'undefined') {
           if (document.documentElement) document.documentElement.setAttribute('lang', lang);
 
-          // Update elements with data-i18n
           document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             const txt = I18N.t(key);
             if (txt) el.textContent = txt;
           });
 
-          // Update elements with data-i18n-title
           document.querySelectorAll('[data-i18n-title]').forEach(el => {
             const key = el.getAttribute('data-i18n-title');
             const txt = I18N.t(key);
             if (txt) el.title = txt;
           });
 
-          // Update elements with data-i18n-placeholder
           document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.getAttribute('data-i18n-placeholder');
             const txt = I18N.t(key);
             if (txt) el.placeholder = txt;
           });
 
-          // Update menu checkmarks
           const chkDe = document.getElementById('check-lang-de');
           if (chkDe) chkDe.innerHTML = (lang === 'de') ? '✓' : '&nbsp;';
           const chkEn = document.getElementById('check-lang-en');
           if (chkEn) chkEn.innerHTML = (lang === 'en') ? '✓' : '&nbsp;';
 
-          // Update settings buttons
           const langBtns = document.querySelectorAll('#settings-lang-seg button');
           langBtns.forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
           });
 
-          // Update document title
           document.title = I18N.t('app.title');
 
-          // Refresh status bar
           this.updateStatusBar();
         }
 
@@ -19681,7 +19314,6 @@
           document.documentElement.setAttribute('data-theme', theme);
         }
 
-        // Update view menu checkmarks
         themeKeys.forEach(t => {
           const chk = document.getElementById(`check-theme-${t}`);
           if (chk) chk.innerHTML = (t === theme) ? '✓' : '&nbsp;';
@@ -19803,7 +19435,6 @@
           }
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
           if (storedBridges === 'false') {
-            // Auto-heal legacy false from temporary disabled-by-default experiment
             this.setShowWireBridges(true);
             try { localStorage.setItem('logicsim_wire_bridges', 'true'); } catch (_) {}
           } else if (storedBridges === 'true' || storedBridges === null) {
@@ -19915,7 +19546,6 @@
           const offCtx = offCanvas.getContext('2d');
           offCtx.scale(dpr, dpr);
 
-          // Background
           if (this.canvasTheme === 'deep_black') {
             offCtx.fillStyle = '#020406';
           } else if (this.canvasTheme === 'blueprint') {
@@ -19925,7 +19555,6 @@
           }
           offCtx.fillRect(0, 0, boxW, boxH);
 
-          // Render circuit into offscreen canvas
           const origCtx = this.renderer.ctx;
           const origPanX = this.renderer.panX;
           const origPanY = this.renderer.panY;
@@ -19941,14 +19570,12 @@
           this.renderer.drawComponents(offCtx);
           this.renderer.drawProbes(offCtx);
 
-          // Restore renderer state
           this.renderer.ctx = origCtx;
           this.renderer.panX = origPanX;
           this.renderer.panY = origPanY;
           this.renderer.zoom = origZoom;
           this.renderer.render();
 
-          // Download image
           const dataUrl = offCanvas.toDataURL('image/png');
           const a = document.createElement('a');
           a.href = dataUrl;

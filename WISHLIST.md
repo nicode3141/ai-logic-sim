@@ -25,7 +25,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-005** | Slider Press-and-Hold Drag Interaction | `feat/slider-drag` | 🟢 **Completed** | Hold left mouse button on sliders/potentiometers to smoothly drag across elements without losing focus. |
 | **WISH-006** | Left-Click Press-and-Drag Wire Branching (T-Junctions) | `feat/wire-branching` | 🟢 **Completed** | Pressing and holding LMB on an existing wire allows pulling out a new branch directly. |
 | **WISH-007** | Floating / Terminus-Free Connections (No module required at end) | `feat/floating-connections` | 🟢 **Completed** | Connections do not strictly require a module at both ends (support stubs, test points, dangling terminals). |
-| **WISH-008** | Code Quality Improvement & Comment Cleanup | `feat/code-cleanup` | 🟡 **Pending** | Streamline code, remove redundant/noisy comments, improve maintainability. |
+| **WISH-008** | Code Quality Improvement & Comment Cleanup | `feat/code-cleanup` | 🟢 **Completed** | Cleaned up 370+ redundant/noisy comments, streamlined code structure, optimized helper routines, and improved maintainability. |
 | **WISH-009** | Realistic Gate Propagation Delay & Global Configuration | `feat/gate-delay` | 🟢 **Completed** | Global gate delay (1–20 ticks), toggleable badge display (off by default), and realistic inertial transition timing ("wie im echten Leben"). |
 
 ---
@@ -37,6 +37,10 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
   - Created `alpha` (integration/dev) and `beta` (staging) branches.
   - Tagged `main` as `v1.0.0-stable`.
   - Added `WISHLIST.md` tracker.
+- **WISH-008**:
+  - Removed 370+ verbose and redundant inline and HTML comments across `index.html`.
+  - Streamlined code structure and improved overall readability and file size.
+  - Preserved 100% test pass rate (30/30 comprehensive tests, security audit, benchmarks, stress tests).
 - **WISH-003**:
   - Implemented complete internationalization engine (`I18N`) supporting German (`de`) and English (`en`).
   - Added comprehensive translation dictionaries covering Menubar, Toolbar, Component Palette categories and items, Inspector labels, Status Bar hints, and Settings dialogs.
