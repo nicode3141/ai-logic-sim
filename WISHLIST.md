@@ -44,10 +44,20 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-024** | Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls | `alpha` | 🟢 **Completed** | Ungewolltes vertikales Zoom-Skalieren & blauer 3px-Balken entfernt; flüssiges horizontales Bewegen/Pannen entlang des Zeit-/Tickstrahls; synchrone Playback-Controls (-1 Tick, Start/Pause, +1 Tick) im Diagramm-Header. |
 | **WISH-025** | Taktfrequenz im laufenden Betrieb ändern & Impulsdiagramm-Klammern synchronisieren | `alpha` | 🟢 **Completed** | Taktfrequenz-Slider (`#slider-freq`) ohne Ruckeln im laufenden Betrieb stufenlos verstellbar (Smooth-Scaling des Akkumulators); Impulsdiagramm-Klammern (`[` und `]`) bleiben während der Simulation fest an ihren Ticks verankert und lassen sich flüssig verschieben; Taktänderung aktualisiert die Millisekunden-Dauer der Klammern und die Loop-Playback-Rate in Echtzeit. |
 | **WISH-026** | Auto-Snap offener Leitungen, vereinte NOT-Palette mit Pin-Invertierung & Wire-Inlining | `alpha` | 🟢 **Completed** | Offene Leitungs-Enden (`toPoint` und `fromPoint`) rasten beim Platzieren (Drag & Drop) oder Einfügen (Strg+V, Duplizieren) von Modulen automatisch an deren Pins ein. Palette auf ein einziges NOT-Gatter vereinheitlicht (redundanten Negator entfernt); NOT invertiert bei Drop auf Pin beliebiger Module den Ein-/Ausgang (○-Blase) und schaltet sich bei Drop auf eine Leitung automatisch inline als Invertierer dazwischen. |
+| **WISH-027** | Schalter-Hintergrund Kontrast-Fix, Theme-Entfernung aus Ansicht-Menü & Lampen-X in Outline-Farbe | `alpha` | 🟢 **Completed** | Pfad-Verkettungs-Bug in Schalter/Taster-Innenleben behoben (kein schwarzes Dreieck mehr). Schalter-Hintergrund nutzt `pal.gateFill` (weiß in Java Swing / Light CAD) und hebt sich sauber von LOW-Signalen ab. Design/Theme-Auswahl aus Menü „Ansicht“ entfernt. Diagonalkreuz (X) der Meldeleuchte übernimmt exakt dieselbe Farbe wie die Kreis-Outline. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-027 (Schalter-Hintergrund Kontrast, Theme-Entfernung aus Ansicht & Lampen-X Outline-Parität)**:
+  - **Schalter-Hintergrund & Beseitigung des schwarzen Dreiecks**:
+    - Der Bug mit mehrfach verketteten `ctx.arc()`-Aufrufen vor einem einzigen `ctx.fill()` in `SWITCH` und `BUTTON` wurde behoben. Die Terminalpunkte 1, 0 und der Drehpunkt werden nun als isolierte Kreis-Pfade gezeichnet, wodurch kein fälschlich gefülltes schwarzes Dreieck mehr das Modul überdeckt.
+    - Das Chassis von `SWITCH`, `BUTTON`, `CLOCK` und `CONST` verwendet nun `pal.gateFill || pal.chassisFill` (reines Weiß `#ffffff` in Java Swing und Light CAD), wodurch ein perfekter Kontrast zum LOW-Signalpegel (wie z. B. Bernstein `#3d280e` oder dunklem Grün) gewährleistet ist.
+  - **Theme-Einstellung aus Menü „Ansicht“ entfernt**:
+    - Der Abschnitt „Design / Theme“ mit den 5 Theme-Schaltern wurde aus dem Menü `Ansicht` (`#mdropdown-view`) entfernt. Die Theme-Auswahl bleibt übersichtlich in den allgemeinen `Einstellungen` (`#logic-settings-modal`) erhalten.
+  - **Lampen-X in exakter Outline-Farbe**:
+    - In `drawLampComponent` und `drawComponentInterior` übernimmt das Diagonalkreuz (`X`) im Inneren der Lampe (LED) nun exakt dieselbe Farbe wie die Außenkontur (`outlineColor` / `cObj.border`) – sowohl im Ruhezustand (z. B. sattes Gelb `#ffc400`) als auch im aktiven Leuchtzustand.
 
 - **WISH-026 (Auto-Snap offener Leitungen, vereinte NOT-Palette, Pin-Invertierung & Wire-Inlining)**:
   - **Auto-Snap offener Leitungen an neue/gepastete Module**:
