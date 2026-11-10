@@ -1437,6 +1437,112 @@ runTest('WISH-025', 'Live clock frequency adjustment and dynamic analyzer bracke
   assertEqual(analyzer.isLoopPlaying, false, 'Loop playback stopped cleanly');
 });
 
+runTest('WISH-026', 'Auto-snap open wires to placed modules, unified NOT gate with pin inversion and wire inlining', () => {
+  const c = new Circuit();
+
+  // 1. Auto-snap open wire end to dropped/pasted module input pin
+  const sw = c.addComponent('SWITCH', 0, 40); // Output pin 0 at (80, 60)
+  // Create wire from switch to an open point at (200, 60)
+  const openWire = c.addWire(sw.id, 0, null, 0, null, [], { toPoint: { x: 200, y: 60 } });
+  assertEqual(Boolean(openWire), true, 'Open wire created');
+  assertEqual(openWire.toPoint.x, 200, 'openWire.toPoint.x is 200');
+  assertEqual(openWire.toCompId, '', 'openWire has no target component yet');
+
+  // Add an AND gate at (200, 40) -> input 0 is at (200, 60)
+  const andGate = c.addComponent('AND', 200, 40);
+  const snappedCount = c.snapOpenWiresToComponent(andGate, 24);
+  assertEqual(snappedCount, 1, '1 open wire snapped to andGate');
+  assertEqual(openWire.toCompId, andGate.id, 'openWire target component connected to andGate.id');
+  assertEqual(openWire.toPin, 0, 'openWire target pin connected to input 0');
+  assertEqual(openWire.toPoint, null, 'openWire.toPoint cleared after snap');
+
+  // 2. Auto-snap open wire start to dropped/pasted module output pin
+  const led = c.addComponent('LED', 500, 100); // Input pin 0 at (500, 120)
+  // Create wire with open start at (380, 120) ending at LED
+  const openStartWire = c.addWire(null, 0, led.id, 0, null, [], { fromPoint: { x: 380, y: 120 } });
+  assertEqual(Boolean(openStartWire), true, 'Open start wire created');
+  assertEqual(openStartWire.fromPoint.x, 380, 'openStartWire.fromPoint.x is 380');
+  assertEqual(openStartWire.fromCompId, '', 'openStartWire has no source component yet');
+
+  // Add another SWITCH at (300, 100) -> output pin 0 at (380, 120)
+  const sw2 = c.addComponent('SWITCH', 300, 100);
+  const snappedCount2 = c.snapOpenWiresToComponent(sw2, 24);
+  assertEqual(snappedCount2, 1, '1 open start wire snapped to sw2');
+  assertEqual(openStartWire.fromCompId, sw2.id, 'openStartWire source component connected to sw2.id');
+  assertEqual(openStartWire.fromPin, 0, 'openStartWire source pin connected to output 0');
+  assertEqual(openStartWire.fromPoint, null, 'openStartWire.fromPoint cleared after snap');
+
+  // 3. Palette unification: only ONE NOT in palette, NEGATOR removed
+  assertEqual(html.includes('data-type="NOT"'), true, 'NOT gate exists in palette');
+  const paletteMatch = html.match(/class="palette-grid"[\s\S]*?<\/div>\s*<\/div>/g);
+  const gatesCategory = paletteMatch ? paletteMatch.find(m => m.includes('data-type="NOT"')) : '';
+  assertEqual(gatesCategory.includes('data-type="NEGATOR"'), false, 'NEGATOR removed from palette grid, unified into NOT');
+
+  // 4. Inlining NOT gate into an existing wire
+  const c2 = new Circuit();
+  const src = c2.addComponent('SWITCH', 0, 40);
+  src.state.value = 1;
+  src.outputs[0].value = 1;
+  const dst = c2.addComponent('LED', 300, 40);
+  const directWire = c2.addWire(src.id, 0, dst.id, 0);
+  c2.syncImmediateWireLevels();
+  assertEqual(directWire.level, 1, 'Direct wire transmits level 1');
+
+  // Inline NOT gate into directWire
+  const inlineRes = c2.inlineGateIntoWire(directWire, 'NOT', 140, 40);
+  assertEqual(Boolean(inlineRes && inlineRes.gate), true, 'Gate successfully inlined into wire');
+  assertEqual(inlineRes.gate.type, 'NOT', 'Inlined gate is a NOT gate');
+  assertEqual(directWire.toCompId, inlineRes.gate.id, 'Original wire now connects into NOT gate input');
+  assertEqual(inlineRes.wireOut.fromCompId, inlineRes.gate.id, 'New wire connects from NOT gate output');
+  assertEqual(inlineRes.wireOut.toCompId, dst.id, 'New wire connects into dst LED');
+
+  // Simulation through inlined NOT gate inverts signal
+  const eng = new SimulationEngine(c2, new RingBuffer(100), () => {});
+  eng.stepTick();
+  assertEqual(inlineRes.wireOut.level, 0, 'NOT gate inverts 1 to 0 on wireOut');
+
+  // 5. Inverted inputs on ALL module types (e.g. MUX, D-FF, FULL_ADDER)
+  // 5a. MUX with inverted select pin
+  const c3 = new Circuit();
+  const mux = c3.addComponent('MUX', 0, 0, { invertedInputs: [false, false, true] }); // Select inverted
+  mux.inputs[0].value = 1; // D0 = 1
+  mux.inputs[1].value = 0; // D1 = 0
+  mux.inputs[2].value = 0; // Raw Sel = 0 -> Effective Sel = 1 -> Selects D1 (0)!
+  mux.compute();
+  assertEqual(mux.nextOutputs[0], 0, 'MUX with inverted select pin selects D1 when raw select is 0');
+
+  // 5b. FULL_ADDER with inverted input 0
+  const fa = c3.addComponent('FULL_ADDER', 0, 0, { invertedInputs: [true, false, false] });
+  fa.inputs[0].value = 0; // Raw A = 0 -> Effective A = 1
+  fa.inputs[1].value = 0; // B = 0
+  fa.inputs[2].value = 0; // Cin = 0
+  fa.compute();
+  assertEqual(fa.nextOutputs[0], 1, 'Full Adder sum is 1 when inverted input A is 0 (effective 1)');
+
+  // 5c. D-Flip-Flop with inverted clock input (falling-edge triggered)
+  const dff = c3.addComponent('D_FF', 0, 0, { invertedInputs: [false, true] });
+  dff.inputs[0].value = 1; // D = 1
+  dff.inputs[1].value = 1; // Raw CLK = 1 -> Effective CLK = 0
+  dff.compute();
+  dff.commit();
+  assertEqual(dff.outputs[0].value, 0, 'D-FF does not trigger on raw CLK high (effective low)');
+
+  dff.inputs[1].value = 0; // Raw CLK falling from 1 to 0 -> Effective CLK rises from 0 to 1!
+  dff.compute();
+  dff.commit();
+  assertEqual(dff.outputs[0].value, 1, 'D-FF with inverted clock triggers on falling edge of raw clock');
+
+  // 6. Non-gate pin inverter bubble rendering
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, c3);
+  let bubbleDrawn = false;
+  mockCtx.arc = (x, y, r) => {
+    if (r === 3.2) bubbleDrawn = true;
+  };
+  renderer.drawComponentPins(mockCtx, mux);
+  assertEqual(bubbleDrawn, true, 'Inverter bubble drawn on non-gate component with invertedInputs');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
