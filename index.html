@@ -3768,28 +3768,6 @@
               <span data-i18n="menu.view.bridges">Leitungsbrücken bei Kreuzungen</span>
             </button>
             <div class="app-menu-divider"></div>
-            <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Design / Theme</div>
-            <button class="app-menu-item" data-theme-btn="modern">
-              <span class="norm-check" id="check-theme-modern">✓</span>
-              <span>Modern Dark</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="pitch_black">
-              <span class="norm-check" id="check-theme-pitch_black">&nbsp;</span>
-              <span>Pitch Black</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="java_swing">
-              <span class="norm-check" id="check-theme-java_swing">&nbsp;</span>
-              <span>Java Swing</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="blueprint">
-              <span class="norm-check" id="check-theme-blueprint">&nbsp;</span>
-              <span>Nordic Blueprint</span>
-            </button>
-            <button class="app-menu-item" data-theme-btn="light_cad">
-              <span class="norm-check" id="check-theme-light_cad">&nbsp;</span>
-              <span>Clean Light</span>
-            </button>
-            <div class="app-menu-divider"></div>
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="menu.view.language">Sprache / Language</div>
             <button class="app-menu-item" id="menu-lang-de" data-lang-btn="de">
               <span class="norm-check" id="check-lang-de">✓</span>
@@ -11255,7 +11233,7 @@
         } else if (type === 'LED') {
           this.drawLampComponent(ctx, comp, isSelected);
         } else {
-          this.drawChassisBox(ctx, x, y, width, height, isSelected);
+          this.drawChassisBox(ctx, x, y, width, height, isSelected, type);
           this.drawComponentInterior(ctx, comp);
         }
 
@@ -11281,7 +11259,7 @@
         ctx.restore();
       }
 
-      drawChassisBox(ctx, x, y, width, height, isSelected) {
+      drawChassisBox(ctx, x, y, width, height, isSelected, type = null) {
         const pal = this.getThemePalette();
         if (isSelected) {
           ctx.shadowColor = 'rgba(0, 176, 255, 0.5)';
@@ -11291,7 +11269,8 @@
           ctx.shadowBlur = pal.shadowBlur;
         }
 
-        ctx.fillStyle = pal.chassisFill;
+        const isInputSource = (type === 'SWITCH' || type === 'BUTTON' || type === 'CLOCK' || type === 'CONST');
+        ctx.fillStyle = isInputSource ? (pal.gateFill || pal.chassisFill) : pal.chassisFill;
         ctx.strokeStyle = isSelected ? '#00b0ff' : pal.chassisStroke;
         ctx.lineWidth = isSelected ? 2 : 1.5;
 
@@ -11354,18 +11333,19 @@
         ctx.shadowBlur = 0;
 
         // 4. Circle Stroke
+        const outlineColor = isOn ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') : (cObj.border || pal.chassisStroke);
         ctx.lineWidth = 2;
-        ctx.strokeStyle = isOn ? (this.appTheme === 'java_swing' ? '#000000' : '#ffffff') : (cObj.border || pal.chassisStroke);
+        ctx.strokeStyle = outlineColor;
         ctx.stroke();
 
-        // 5. Cross ('X') inside lamp
+        // 5. Cross ('X') inside lamp (same color as outline)
         const crossExtent = r * 0.707;
         ctx.beginPath();
         ctx.moveTo(cx - crossExtent, cy - crossExtent);
         ctx.lineTo(cx + crossExtent, cy + crossExtent);
         ctx.moveTo(cx + crossExtent, cy - crossExtent);
         ctx.lineTo(cx - crossExtent, cy + crossExtent);
-        ctx.strokeStyle = isOn ? (this.appTheme === 'java_swing' ? '#000000' : 'rgba(0, 0, 0, 0.65)') : pal.leadLine;
+        ctx.strokeStyle = outlineColor;
         ctx.lineWidth = 1.8;
         ctx.stroke();
       }
@@ -11698,7 +11678,11 @@
             ctx.fillStyle = pal.leadLine;
             ctx.beginPath();
             ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
             ctx.arc(termX, botY, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
             ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
 
@@ -11736,7 +11720,11 @@
             ctx.fillStyle = pal.leadLine;
             ctx.beginPath();
             ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
             ctx.arc(termX, botY, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
             ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
 
@@ -11816,8 +11804,9 @@
               ctx.fillStyle = cObj.off;
             }
             ctx.fill();
+            const outlineColor = isOn ? '#ffffff' : (cObj.border || pal.chassisStroke);
             ctx.lineWidth = 2;
-            ctx.strokeStyle = isOn ? '#ffffff' : pal.chassisStroke;
+            ctx.strokeStyle = outlineColor;
             ctx.stroke();
 
             const cr = 7;
@@ -11826,7 +11815,7 @@
             ctx.lineTo(cx + 4 + cr * 0.7, cy + cr * 0.7);
             ctx.moveTo(cx + 4 + cr * 0.7, cy - cr * 0.7);
             ctx.lineTo(cx + 4 - cr * 0.7, cy + cr * 0.7);
-            ctx.strokeStyle = isOn ? 'rgba(0, 0, 0, 0.45)' : pal.leadLine;
+            ctx.strokeStyle = outlineColor;
             ctx.lineWidth = 1.6;
             ctx.stroke();
 

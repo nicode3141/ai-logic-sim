@@ -1543,6 +1543,70 @@ runTest('WISH-026', 'Auto-snap open wires to placed modules, unified NOT gate wi
   assertEqual(bubbleDrawn, true, 'Inverter bubble drawn on non-gate component with invertedInputs');
 });
 
+runTest('WISH-027', 'Switch background contrast, view menu theme removal, and lamp X matching outline color', () => {
+  const circuit = new Circuit();
+  const canvas = createMockElem('canvas');
+  const renderer = new CanvasRenderer(canvas, circuit);
+
+  // 1. Switch background uses gateFill (clean white in Java Swing and Light CAD, distinct from low color)
+  renderer.appTheme = 'java_swing';
+  const pal = renderer.getThemePalette();
+  assertEqual(pal.gateFill, '#ffffff', 'Java Swing gateFill is pure white');
+  
+  let chassisFillUsed = null;
+  const origRoundRect = renderer.roundRect;
+  renderer.roundRect = (ctx, x, y, w, h, r) => {
+    chassisFillUsed = ctx.fillStyle;
+    origRoundRect.call(renderer, ctx, x, y, w, h, r);
+  };
+  renderer.drawChassisBox(mockCtx, 10, 10, 80, 40, false, 'SWITCH');
+  assertEqual(chassisFillUsed, '#ffffff', 'SWITCH chassis box uses gateFill (#ffffff) instead of chassisFill (#ece9d8)');
+  renderer.roundRect = origRoundRect;
+
+  // 2. Switch and Button terminal dots are drawn individually (no black triangle fill bug)
+  const sw = circuit.addComponent('SWITCH', 10, 10);
+  let arcCallCount = 0;
+  let fillsCount = 0;
+  const origArc = mockCtx.arc;
+  const origFill = mockCtx.fill;
+  mockCtx.arc = (x, y, r, sa, ea) => {
+    arcCallCount++;
+    origArc.call(mockCtx, x, y, r, sa, ea);
+  };
+  mockCtx.fill = () => {
+    fillsCount++;
+    origFill.call(mockCtx);
+  };
+  renderer.drawComponentInterior(mockCtx, sw);
+  mockCtx.arc = origArc;
+  mockCtx.fill = origFill;
+  // Previously 3 arcs were chained before 1 fill (fillsCount = 1 for 3 arcs). Now each arc has its own fill (3 fills for 3 terminal dots)
+  assertEqual(fillsCount >= 3, true, 'Switch terminal dots are filled individually without path chaining wedge');
+
+  // 3. View menu: theme switcher removed from Ansicht dropdown
+  assertEqual(html.includes('id="check-theme-modern"'), false, 'check-theme-modern removed from Ansicht menu');
+  assertEqual(html.includes('data-theme-btn="java_swing"'), false, 'data-theme-btn items removed from Ansicht menu');
+
+  // 4. Lamp (LED) cross 'X' has the exact same color as outline
+  const ledYellow = circuit.addComponent('LED', 100, 10, { color: 'yellow' });
+  ledYellow.inputs[0].value = 0; // OFF state
+  let strokeStyles = [];
+  const origStroke = mockCtx.stroke;
+  mockCtx.stroke = () => {
+    strokeStyles.push(mockCtx.strokeStyle);
+    origStroke.call(mockCtx);
+  };
+  renderer.drawLampComponent(mockCtx, ledYellow, false);
+  mockCtx.stroke = origStroke;
+  // In OFF state with yellow color: circle outline (step 4) and X cross (step 5)
+  // Yellow LED_COLORS.yellow.border is '#ffc400'
+  const yellowBorder = LED_COLORS.yellow.border;
+  const lastTwoStrokes = strokeStyles.slice(-2);
+  assertEqual(lastTwoStrokes[0], yellowBorder, 'Lamp circle outline matches yellow border');
+  assertEqual(lastTwoStrokes[1], yellowBorder, 'Lamp inner X cross matches yellow border exactly');
+  assertEqual(lastTwoStrokes[0], lastTwoStrokes[1], 'Lamp circle outline and inner X cross share the identical color');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
