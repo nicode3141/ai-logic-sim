@@ -1789,6 +1789,32 @@ runTest('WISH-031', 'Overhauled theme system, cohesive surface elevation, neutra
   assertEqual(app.renderer.lowSignalColor, null, 'Renderer lowSignalColor successfully sanitized to null');
 });
 
+runTest('WISH-032', 'Compact 40x40 NOT gate dimensions, pin geometry and grid alignment', () => {
+  const circuit = new Circuit();
+  const notGate = circuit.addComponent('NOT', 100, 100);
+
+  // 1. Verify compact dimensions (40x40, down from bulky 80x40)
+  assertEqual(notGate.width, 40, 'NOT gate width is compact 40px (down from 80px)');
+  assertEqual(notGate.height, 40, 'NOT gate height is 40px');
+
+  // 2. Pins are strictly aligned to the 20px grid
+  assertEqual(notGate.inputs[0].relX, 0, 'NOT input pin relX is 0');
+  assertEqual(notGate.inputs[0].relY, 20, 'NOT input pin relY is 20 (on 20px grid)');
+  assertEqual(notGate.outputs[0].relX, 40, 'NOT output pin relX is 40 (on 20px grid)');
+  assertEqual(notGate.outputs[0].relY, 20, 'NOT output pin relY is 20 (on 20px grid)');
+
+  // 3. Grid-aligned inlining into wires
+  const sw = circuit.addComponent('SWITCH', 0, 100);
+  const led = circuit.addComponent('LED', 200, 100);
+  const w = circuit.addWire(sw.id, 0, led.id, 0);
+
+  const inlineRes = circuit.inlineGateIntoWire(w, 'NOT', 80, 100);
+  assertEqual(inlineRes !== null, true, 'NOT gate inlines into wire successfully');
+  assertEqual(inlineRes.gate.width, 40, 'Inlined NOT gate maintains 40px width');
+  assertEqual(inlineRes.gate.x % 20, 0, 'Inlined NOT gate X position is aligned to 20px grid');
+  assertEqual(inlineRes.gate.y % 20, 0, 'Inlined NOT gate Y position is aligned to 20px grid');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

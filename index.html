@@ -6329,7 +6329,7 @@
             break;
 
           case 'NOT':
-            this.width = 80;
+            this.width = 40;
             this.height = 40;
             inNames = ['X1'];
             inOffsets = [20];
@@ -16947,7 +16947,7 @@
 
             const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 18);
             if (hitWire) {
-              const notX = Math.round((worldPos.x - 40) / GRID_SIZE) * GRID_SIZE;
+              const notX = Math.round((worldPos.x - 20) / GRID_SIZE) * GRID_SIZE;
               const notY = Math.round((worldPos.y - 20) / GRID_SIZE) * GRID_SIZE;
               const res = tab.circuit.inlineGateIntoWire(hitWire, 'NOT', notX, notY, this.getDefaultParamsForNewComponent('NOT'));
               if (res && res.gate) {
@@ -16964,7 +16964,7 @@
               }
             }
 
-            const notX = Math.round((worldPos.x - 40) / GRID_SIZE) * GRID_SIZE;
+            const notX = Math.round((worldPos.x - 20) / GRID_SIZE) * GRID_SIZE;
             const notY = Math.round((worldPos.y - 20) / GRID_SIZE) * GRID_SIZE;
             const comp = tab.circuit.addComponent(
               'NOT',
