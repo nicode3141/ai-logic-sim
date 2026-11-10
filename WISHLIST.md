@@ -33,10 +33,21 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-013** | Maus-Steuerung & Kontextmenü-Optimierung (Mausklick-Halten-Verbindung entfernen) | `alpha` | 🟢 **Completed** | Ungewolltes Starten neuer Leitungen durch Halten der linken Maustaste auf Leitungen entfernt; Leitungen werden sauber selektiert; Abzweigen gezielt über Kontextmenü. |
 | **WISH-014** | Spielfeld-Koordinaten von -5000,-5000 bis 5000,5000 & Start bei 0 | `alpha` | 🟢 **Completed** | Spielfeld auf -5000 bis 5000 px skaliert (10000x10000 px zentriert); Viewport startet bei (0, 0); Reset View und Neuer Tab zentrieren auf Ursprung (0, 0); Raster mit Achsenkreuz bei (0, 0). |
 | **WISH-015** | Premiere Pro Playhead-Scrubbing & Zeitrahmen-Dynamik im Impulsdiagramm | `alpha` | 🟢 **Completed** | Zeitrahmen ändert sich beim Bewegen des Playheads wie in Premiere Pro: Edge Auto-Scrolling an den Rändern der Zeitleiste; vertikales Ziehen in der Zeitachse zoomt den sichtbaren Zeitrahmen stufenlos; Navigator-Leiste im Header und Anzeige des aktiven Zeitrahmens. |
+| **WISH-016** | Einheitliche Theme-Farben, Modul-Styling & Kontraste über alle 5 Themes | `alpha` | 🟢 **Completed** | Durchgehend harmonische Farbgebung für Modern, Pitch Black, Java Swing, Nordic Blueprint und Clean Light; Modul-Innenseiten (Flip-Flops, Zähler, Schieberegister, BCD-Decoder, 7-Segment, Anzeigen, Schalter, Taster, Messpunkte) passen sich dem gewählten Design an; hohe Kontraste und einheitliche CSS-Variablen. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-016**:
+  - Farbkonzept und Kontraste über alle 5 Themes (`modern`, `pitch_black`, `java_swing`, `blueprint`, `light_cad`) vereinheitlicht:
+  - `getThemePalette()` um design-spezifische Tokens erweitert (`moduleFill`, `moduleStroke`, `moduleTitle`, `moduleText`, `moduleSub`, `displayWellFill`, `displayWellStroke`, `segOff`, `pinFill`, `pinStroke`, `gridCrosshair`, `gridBorder`, `gridText`).
+  - Hartkodierte dunkle Kästen und kontrastarme Texte in Modulen (`BCD_DEC`, `COUNTER`, `SHIFT_REG`, `SR_FF`, `D_FF`, `JK_FF`, `T_FF`, `D_LATCH`, `SEVEN_SEG`, `HEX_DISPLAY`, `SWITCH`, `BUTTON`, `PROBE`) durch themenadaptive Farbwerte ersetzt.
+  - Helle Designs (`java_swing`, `light_cad`) besitzen nun klare Konturen und dunkle, lesbare Beschriftungen ohne unpassende schwarze Kästen; Java Swing hat stilechtes Windows-95/Workbench-Styling (weißes Inset-Feld, marineblaue Titel `#000080`, 0px Ecken).
+  - Reines OLED-Design (`pitch_black`) konsequent ohne Glow mit `#000000` Gehäuse- und Modulfüllung.
+  - Fehlende CSS-Variablen (`--bg-canvas`, `--bg-surface`, `--accent-cyan`, `--accent-amber`, `--accent-red`, `--accent-green`) in allen Theme-Selektoren ergänzt.
+  - Menü-Popups (`.app-dropdown-menu`, `.context-menu`) und Eingabefelder (`.synth-input-area`, Wahrheitstabellen-Formelpreview) auf Theme-Variablen umgestellt, sodass in hellen Themes keine weißen Texte auf weißem Grund entstehen.
+  - Impulsdiagramm (`LogicAnalyzerRenderer`) optisch an alle 5 Themes angepasst (Kanal-Gutter, Zeilentrennlinien, Taktunterteilungen und Textfarben).
 
 - **WISH-014 & WISH-010**:
   - Spielfeldgrenzen auf `[-5000, 5000]` in X und Y angepasst (10.000 × 10.000 px Arbeitsfläche, Ursprung im Zentrum).
