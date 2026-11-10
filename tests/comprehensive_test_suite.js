@@ -14,16 +14,70 @@ const mockCtx = {
   setLineDash: () => {}, getLineDash: () => []
 };
 
-const createMockElem = (id = '') => ({
-  id, textContent: '', value: '10', width: 1200, height: 800,
-  addEventListener: () => {}, removeEventListener: () => {},
-  querySelectorAll: () => [], querySelector: () => null,
-  appendChild: () => {}, removeChild: () => {},
-  classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
-  style: {}, getContext: () => mockCtx,
-  parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
-  getBoundingClientRect: () => ({ left: 0, top: 0, width: 1200, height: 800 })
-});
+const createMockElem = (id = '') => {
+  const el = {
+    id, _textContent: '', value: '10', width: 1200, height: 800,
+    children: [],
+    listeners: {},
+    addEventListener(event, fn) {
+      if (!this.listeners[event]) this.listeners[event] = [];
+      this.listeners[event].push(fn);
+    },
+    removeEventListener(event, fn) {
+      if (this.listeners[event]) this.listeners[event] = this.listeners[event].filter(f => f !== fn);
+    },
+    click() {
+      if (this.listeners['click']) {
+        this.listeners['click'].forEach(fn => fn({ clientX: 0, clientY: 0, preventDefault: () => {} }));
+      }
+    },
+    querySelectorAll(sel) { return []; },
+    querySelector(sel) { return null; },
+    setAttribute(k, v) { this[k] = v; },
+    getAttribute(k) { return this[k] || null; },
+    hasAttribute(k) { return k in this; },
+    appendChild(child) {
+      this.children.push(child);
+      return child;
+    },
+    removeChild(child) {
+      const idx = this.children.indexOf(child);
+      if (idx !== -1) this.children.splice(idx, 1);
+      return child;
+    },
+    classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+    style: {}, getContext: () => mockCtx,
+    parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 1200, height: 800 })
+  };
+
+  Object.defineProperty(el, 'innerHTML', {
+    set(val) {
+      this._innerHTML = val;
+      if (!val) {
+        this.children = [];
+        this._textContent = '';
+      } else {
+        this._textContent = String(val).replace(/<[^>]*>/g, ' ');
+      }
+    },
+    get() { return this._innerHTML || ''; },
+    configurable: true
+  });
+
+  Object.defineProperty(el, 'textContent', {
+    set(val) { this._textContent = val; },
+    get() {
+      if (this.children.length > 0) {
+        return this.children.map(c => c.textContent || '').join(' ');
+      }
+      return this._textContent || '';
+    },
+    configurable: true
+  });
+
+  return el;
+};
 
 const window = {
   addEventListener: () => {}, removeEventListener: () => {},
@@ -1174,6 +1228,70 @@ runTest('WISH-022', 'Moving and reconnecting open wire ends (findOpenTerminusAt,
   assertEqual(connectedEnd.x, pinPos.x, `Connected wire ends exactly at LED pin x (${pinPos.x})`);
   assertEqual(connectedEnd.y, pinPos.y, `Connected wire ends exactly at LED pin y (${pinPos.y})`);
   assertEqual(renderer.findOpenTerminusAt(280, 140, 12), null, 'Old open terminus no longer detected after connection');
+});
+
+runTest('WISH-023', 'Waypoint context menu provides options to delete both single waypoint and entire wire', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const sw = c.addComponent('SWITCH', 40, 40);
+  const led = c.addComponent('LED', 300, 40);
+
+  // Add wire with multiple waypoints (bends)
+  const wire = c.addWire(sw.id, 0, led.id, 0, null, [
+    { x: 120, y: 40 },
+    { x: 120, y: 120 },
+    { x: 240, y: 120 }
+  ]);
+  assertEqual(wire.waypoints.length, 3, 'Wire initialized with 3 waypoints');
+
+  // 1. Verify showWaypointContextMenu populates both delete options
+  const hitWp = {
+    wire: wire,
+    waypointIndex: 1,
+    point: wire.waypoints[1],
+    x: 120,
+    y: 120
+  };
+
+  app.showWaypointContextMenu(150, 150, hitWp, { x: 120, y: 120 });
+  const menu = app.contextMenuEl;
+  assertEqual(menu !== null, true, 'Context menu element exists');
+  assertEqual(menu.children.length >= 4, true, 'Context menu contains multiple items');
+
+  const menuText = menu.textContent || '';
+  assertEqual(menuText.includes('Eckpunkt'), true, 'Context menu has waypoint header');
+  assertEqual(menuText.includes('Diesen Eckpunkt löschen'), true, 'Context menu includes "Diesen Eckpunkt löschen"');
+  assertEqual(menuText.includes('Ganze Leitung löschen'), true, 'Context menu includes "Ganze Leitung löschen"');
+  assertEqual(menuText.includes('Begradigen'), true, 'Context menu includes "Begradigen"');
+  assertEqual(menuText.includes('Neu verlegen'), true, 'Context menu includes "Neu verlegen (Auto)"');
+
+  // 2. Test deleting single waypoint
+  const delWpBtn = Array.from(menu.children).find(el => el.textContent && el.textContent.includes('Diesen Eckpunkt löschen'));
+  assertEqual(Boolean(delWpBtn), true, 'Found "Diesen Eckpunkt löschen" menu item');
+  delWpBtn.click();
+  assertEqual(wire.waypoints.length, 2, 'Waypoint removed, wire now has 2 waypoints');
+  assertEqual(c.wires.some(w => w.id === wire.id), true, 'Wire itself still exists in circuit');
+
+  // 3. Re-open waypoint context menu and test deleting entire wire
+  const hitWpRemaining = {
+    wire: wire,
+    waypointIndex: 0,
+    point: wire.waypoints[0],
+    x: 120,
+    y: 40
+  };
+  app.showWaypointContextMenu(150, 150, hitWpRemaining, { x: 120, y: 40 });
+  const delWireBtn = Array.from(app.contextMenuEl.children).find(el => el.textContent && el.textContent.includes('Ganze Leitung löschen'));
+  assertEqual(Boolean(delWireBtn), true, 'Found "Ganze Leitung löschen" menu item');
+  delWireBtn.click();
+  assertEqual(c.wires.some(w => w.id === wire.id), false, 'Entire wire deleted from circuit after clicking "Ganze Leitung löschen"');
+
+  // 4. Verify English translation phrase
+  const origLang = I18N.currentLang;
+  I18N.currentLang = 'en';
+  const enDelWire = I18N.phrase('Ganze Leitung löschen');
+  I18N.currentLang = origLang;
+  assertEqual(enDelWire, 'Delete entire wire', 'English translation exists for "Ganze Leitung löschen"');
 });
 
 console.log('\n================================================================');

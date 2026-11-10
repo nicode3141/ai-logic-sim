@@ -40,10 +40,18 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-020** | Meldeleuchten / Lampen als reines Kreis-mit-X-Symbol & sattere Leuchtfarben | `alpha` | 🟢 **Completed** | Lampen (LED) werden nach DIN EN 60617 / IEC als reines Kreissymbol mit Diagonalkreuz ohne rechteckigen Chassis-Kasten gezeichnet; sattere und leuchtstärkere Farbpalette (vibrant green, red, yellow, blue) mit hohem Kontrast im Ein- und Aus-Zustand. |
 | **WISH-021** | Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker | `alpha` | 🟢 **Completed** | HIGH (1) und LOW (0) Signalfarben konfigurierbar in Renderer, UI und CSS; 8 neue abgestimmte Preset-Paare mit Leuchteffekten; Live-Vorschauleiste; flüssige Echtzeit-Farbwahl (60fps) mit synchronisierten Hex-Feldern und Standard-Reset. |
 | **WISH-022** | Offene Leitungs-Enden verschieben & interaktiv verbinden | `alpha` | 🟢 **Completed** | Freie Leitungs-Endpunkte (offene Drähte) lassen sich per Maus greifen, im Raster verschieben und direkt auf Bauteil-Pins fallen lassen, um die Verbindung herzustellen. Visuelles Feedback mit Fang-Aura, Drag-Cursor und Kontextmenü. |
+| **WISH-023** | Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen | `alpha` | 🟢 **Completed** | Beim Rechtsklick auf einen Leitungs-Eckpunkt (Wegpunkt) kann nicht nur der einzelne Eckpunkt gelöscht werden, sondern direkt auch die gesamte Leitung („Ganze Leitung löschen“); zudem Option zum Begradigen und Neu verlegen. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-023 (Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen)**:
+  - **Umfassende Löschoptionen im Eckpunkt-Kontextmenü**:
+    - Beim Rechtsklick auf einen Eckpunkt bietet das Kontextmenü nun sowohl `Diesen Eckpunkt löschen` als auch `Ganze Leitung löschen`.
+    - `Ganze Leitung löschen` entfernt die komplette Leitung aus dem Schaltplan, trennt alle verbundenen Signale und Messpunkte, bereinigt die Auswahl und vermerkt die Aktion im Undo/Redo-Verlauf.
+    - Zusätzliche Optionen zum schnellen `Begradigen` (Entfernen überflüssiger Knicke) und `Neu verlegen (Auto)`.
+    - Vollständige zweisprachige Lokalisierung (Deutsch/Englisch) in `I18N_PHRASES_EN`.
 
 - **WISH-022 (Offene Leitungs-Enden verschieben & interaktiv verbinden)**:
   - **Interaktives Greifen & Verschieben von offenen Leitungs-Enden**:

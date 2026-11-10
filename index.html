@@ -5145,6 +5145,11 @@
       'Knicke säubern / Begradigen': 'Straighten / clean bends',
       'Wegpunkte zurücksetzen (Auto)': 'Reset waypoints (auto)',
       'Diesen Eckpunkt löschen': 'Delete this waypoint',
+      'Ganze Leitung löschen': 'Delete entire wire',
+      'Neu verlegen (Auto)': 'Reroute (auto)',
+      'Begradigen': 'Straighten',
+      'Leitung gelöscht': 'Wire deleted',
+      'Leitung begradigt': 'Wire straightened',
       'Überflüssige Knicke entfernen (Begradigen)': 'Remove redundant bends (straighten)',
       'Messpunkt (Probe) an dieser Leitung anbringen': 'Attach probe to this wire',
       'Neue Verbindung ab hier starten': 'Start new connection from here',
@@ -17692,13 +17697,42 @@
         delWpItem.innerHTML = `<span>${ICONS.trash}</span> <span>Diesen Eckpunkt löschen</span>`;
         delWpItem.addEventListener('click', () => {
           this.removeWaypointFromWire(hitWp.wire, wpIdx);
+          this.commitHistory(this.getActiveTab());
+          this.refreshAll();
           this.hideContextMenu();
         });
         menu.appendChild(delWpItem);
 
+        const delWireItem = document.createElement('div');
+        delWireItem.className = 'ctx-item danger';
+        delWireItem.innerHTML = `<span>${ICONS.trash}</span> <span>Ganze Leitung löschen</span>`;
+        delWireItem.addEventListener('click', () => {
+          if (this.engine.mode === 'sim') return;
+          this.circuit.removeWire(hitWp.wire.id, this.ringBuffer);
+          this.selectItem(null, null);
+          this.commitHistory(this.getActiveTab());
+          this.refreshAll();
+          this.hideContextMenu();
+          this.showToast('Leitung gelöscht');
+        });
+        menu.appendChild(delWireItem);
+
         const div = document.createElement('div');
         div.className = 'ctx-divider';
         menu.appendChild(div);
+
+        const cleanBendsWire = document.createElement('div');
+        cleanBendsWire.className = 'ctx-item';
+        cleanBendsWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Begradigen</span>`;
+        cleanBendsWire.addEventListener('click', () => {
+          if (this.engine.mode === 'sim') return;
+          this.cleanWireWaypoints(hitWp.wire);
+          this.commitHistory(this.getActiveTab());
+          this.refreshAll();
+          this.hideContextMenu();
+          this.showToast('Leitung begradigt');
+        });
+        menu.appendChild(cleanBendsWire);
 
         const resetWpsItem = document.createElement('div');
         resetWpsItem.className = 'ctx-item';
@@ -17706,8 +17740,8 @@
         resetWpsItem.addEventListener('click', () => {
           hitWp.wire.waypoints = [];
           hitWp.wire.channelOffset = 0;
-          this.renderer.render();
-          this.inspector.render(null, hitWp.wire.id);
+          this.commitHistory(this.getActiveTab());
+          this.refreshAll();
           this.hideContextMenu();
         });
         menu.appendChild(resetWpsItem);
