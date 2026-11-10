@@ -5963,11 +5963,11 @@
           this.channels.get(probeId)[writeIdx] = val ? 1 : 0;
         }
 
-        for (const [probeId, arr] of this.channels.entries()) {
+        this.channels.forEach((arr, probeId) => {
           if (!probeSamples.has(probeId)) {
             arr[writeIdx] = 0;
           }
-        }
+        });
 
         this.head = (this.head + 1) % this.capacity;
         if (this.count < this.capacity) {
@@ -7387,7 +7387,12 @@
               const src = compMap.get(w.fromCompId);
               w.level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
             } else if (w.fromWireId) {
-              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+              let srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+              let hops = 0;
+              while (srcWire && srcWire.fromWireId && !srcWire.fromCompId && hops < 16) {
+                srcWire = this.wireMap.get(srcWire.fromWireId) || this.wires.find(sw => sw.id === srcWire.fromWireId);
+                hops++;
+              }
               w.level = srcWire ? srcWire.level : 0;
             }
           }
@@ -7536,7 +7541,12 @@
               const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
               w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
             } else if (w.fromWireId) {
-              const srcWire = this.wireMap ? this.wireMap.get(w.fromWireId) : this.wires.find(sw => sw.id === w.fromWireId);
+              let srcWire = this.wireMap ? this.wireMap.get(w.fromWireId) : this.wires.find(sw => sw.id === w.fromWireId);
+              let hops = 0;
+              while (srcWire && srcWire.fromWireId && !srcWire.fromCompId && hops < 16) {
+                srcWire = this.wireMap ? this.wireMap.get(srcWire.fromWireId) : this.wires.find(sw => sw.id === srcWire.fromWireId);
+                hops++;
+              }
               w.level = srcWire ? srcWire.level : 0;
             }
           }
@@ -7568,7 +7578,9 @@
           const w = wires[i];
           const dstComp = w._toComp || this.compMap.get(w.toCompId);
           if (dstComp && dstComp.inputs[w.toPin]) {
-            dstComp.inputs[w.toPin].value = w.level;
+            if (w.level === 1) {
+              dstComp.inputs[w.toPin].value = 1;
+            }
           }
         }
       }
@@ -8835,6 +8847,7 @@
 
         this.history = [];
         this.maxHistory = 512;
+        this._probeSamplesCache = new Map();
       }
 
       setMode(newMode) {
@@ -8927,17 +8940,14 @@
           };
         }
         const wires = this.circuit.wires;
-        const wireSnapshots = new Array(wires.length);
+        const wireLevels = new Uint8Array(wires.length);
         for (let i = 0; i < wires.length; i++) {
-          wireSnapshots[i] = {
-            id: wires[i].id,
-            level: wires[i].level
-          };
+          wireLevels[i] = wires[i].level ? 1 : 0;
         }
         return {
           tickCount: this.tickCount,
           comps: compSnapshots,
-          wires: wireSnapshots
+          wireLevels
         };
       }
 
@@ -8960,11 +8970,18 @@
             }
           }
         }
-        for (let s = 0; s < snap.wires.length; s++) {
-          const ws = snap.wires[s];
-          const w = this.circuit.getWire(ws.id);
-          if (w) {
-            w.level = ws.level;
+        if (snap.wireLevels) {
+          const wires = this.circuit.wires;
+          for (let i = 0; i < snap.wireLevels.length && i < wires.length; i++) {
+            wires[i].level = snap.wireLevels[i];
+          }
+        } else if (snap.wires) {
+          for (let s = 0; s < snap.wires.length; s++) {
+            const ws = snap.wires[s];
+            const w = this.circuit.getWire(ws.id);
+            if (w) {
+              w.level = ws.level;
+            }
           }
         }
       }
@@ -8995,14 +9012,17 @@
 
         this.tickCount++;
 
-        const probeSamples = new Map();
-        for (let i = 0; i < this.circuit.probes.length; i++) {
-          const probe = this.circuit.probes[i];
+        const probeSamples = this._probeSamplesCache || new Map();
+        probeSamples.clear();
+        const probes = this.circuit.probes;
+        for (let i = 0; i < probes.length; i++) {
+          const probe = probes[i];
           const wire = this.circuit.getWire(probe.wireId);
           probeSamples.set(probe.id, wire ? wire.level : 0);
         }
-        for (let i = 0; i < this.circuit.components.length; i++) {
-          const comp = this.circuit.components[i];
+        const comps = this.circuit.components;
+        for (let i = 0; i < comps.length; i++) {
+          const comp = comps[i];
           if (comp.type === 'PROBE') {
             probeSamples.set(comp.id, comp.inputs[0]?.value || 0);
           }
