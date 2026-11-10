@@ -417,7 +417,7 @@ runTest('RESILIENCE', 'Circuit roundtrip JSON export and import matches topology
   assertEqual(c2.getComponent(led.id).params.color, 'yellow');
 });
 
-runTest('RENDERING', 'Wire crossing bridges disabled by default and togglable via settings', () => {
+runTest('RENDERING', 'Wire crossing bridges enabled by default and togglable via settings', () => {
   let arcCount = 0;
   const mockArcCtx = Object.assign({}, mockCtx, {
     arc: () => { arcCount++; }

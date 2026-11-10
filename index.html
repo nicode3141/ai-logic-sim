@@ -19396,10 +19396,12 @@
             }
           }
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
-          if (storedBridges !== null) {
-            this.setShowWireBridges(storedBridges === 'true');
-          } else {
-            this.setShowWireBridges(false);
+          if (storedBridges === 'false') {
+            // Auto-heal legacy false from temporary disabled-by-default experiment
+            this.setShowWireBridges(true);
+            try { localStorage.setItem('logicsim_wire_bridges', 'true'); } catch (_) {}
+          } else if (storedBridges === 'true' || storedBridges === null) {
+            this.setShowWireBridges(true);
           }
           const storedDelay = localStorage.getItem('logicsim_global_delay');
           if (storedDelay !== null) {
