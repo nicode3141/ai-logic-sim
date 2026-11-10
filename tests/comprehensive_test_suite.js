@@ -53,9 +53,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS };'
 );
-const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -1035,6 +1035,84 @@ runTest('WISH-020', 'Circular lamp indicator symbol with X and vibrant saturated
   renderer.drawLampComponent(mockCtx, led, false);
   assertEqual(arcDrawn, true, 'Lamp circle with radius 14 drawn');
   assertEqual(linesDrawn >= 2, true, 'Diagonal cross X drawn inside circle');
+});
+
+runTest('WISH-021', 'Signal colors (HIGH & LOW) configuration, enhanced presets and fluid picker synchronization', () => {
+  // 1. Validate SIGNAL_COLOR_PRESETS structure
+  assertEqual(Array.isArray(SIGNAL_COLOR_PRESETS), true, 'SIGNAL_COLOR_PRESETS is an array');
+  assertEqual(SIGNAL_COLOR_PRESETS.length >= 8, true, 'At least 8 signal color presets available');
+
+  const hexRegex = /^#[0-9a-fA-F]{6}$/;
+  for (const preset of SIGNAL_COLOR_PRESETS) {
+    assertEqual(typeof preset.id, 'string', `Preset ${preset.id} has string id`);
+    assertEqual(typeof preset.name, 'string', `Preset ${preset.id} has string name`);
+    assertEqual(hexRegex.test(preset.high), true, `Preset ${preset.id} has valid HIGH hex ${preset.high}`);
+    assertEqual(hexRegex.test(preset.low), true, `Preset ${preset.id} has valid LOW hex ${preset.low}`);
+    assertEqual(typeof preset.highGlow, 'string', `Preset ${preset.id} has highGlow string`);
+  }
+
+  // 2. Validate CanvasRenderer signal color propagation
+  const c = new Circuit();
+  const sw = c.addComponent('SWITCH', 40, 40);
+  const notGate = c.addComponent('NOT', 140, 40);
+  const w1 = c.addWire(sw.id, 0, notGate.id, 0);
+
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, c);
+
+  // Default values
+  assertEqual(renderer.highSignalColor, '#00ff66', 'Default high signal color is #00ff66');
+  assertEqual(renderer.lowSignalColor, null, 'Default low signal color is null (falls back to theme wireLow)');
+
+  // Set custom high and low colors
+  renderer.highSignalColor = '#e040fb'; // Synthwave Pink
+  renderer.lowSignalColor = '#2e123d';  // Synthwave Dark Purple
+
+  // Verify wire strokeStyle when wire is LOW (level 0)
+  w1.level = 0;
+  let strokeColors = [];
+  const wireCtx = Object.create(mockCtx);
+  Object.defineProperty(wireCtx, 'strokeStyle', {
+    set(val) { strokeColors.push(val); },
+    get() { return strokeColors[strokeColors.length - 1]; },
+    configurable: true
+  });
+  renderer.drawWires(wireCtx);
+  assertEqual(strokeColors.includes('#2e123d'), true, 'Wire level 0 rendered with configured lowSignalColor (#2e123d)');
+
+  // Verify wire strokeStyle when wire is HIGH (level 1)
+  w1.level = 1;
+  strokeColors = [];
+  renderer.drawWires(wireCtx);
+  assertEqual(strokeColors.includes('#e040fb'), true, 'Wire level 1 rendered with configured highSignalColor (#e040fb)');
+
+  // Verify pin circle color when isHigh = false vs isHigh = true
+  let pinFillColors = [];
+  const pinCtx = Object.create(mockCtx);
+  Object.defineProperty(pinCtx, 'fillStyle', {
+    set(val) { pinFillColors.push(val); },
+    get() { return pinFillColors[pinFillColors.length - 1]; },
+    configurable: true
+  });
+  renderer.drawPinCircle(pinCtx, 100, 100, false, false);
+  assertEqual(pinFillColors.includes('#2e123d'), true, 'Low pin rendered with lowSignalColor');
+
+  pinFillColors = [];
+  renderer.drawPinCircle(pinCtx, 100, 100, true, false);
+  assertEqual(pinFillColors.includes('#e040fb'), true, 'High pin rendered with highSignalColor');
+
+  // 3. LogicSimApp paired configuration and persistence
+  const app = new LogicSimApp();
+  app.setSignalColors('#00e5ff', '#0e2a3e');
+  assertEqual(app.highSignalColor, '#00e5ff', 'App highSignalColor set to #00e5ff');
+  assertEqual(app.lowSignalColor, '#0e2a3e', 'App lowSignalColor set to #0e2a3e');
+  assertEqual(app.renderer.highSignalColor, '#00e5ff', 'App renderer highSignalColor matches');
+  assertEqual(app.renderer.lowSignalColor, '#0e2a3e', 'App renderer lowSignalColor matches');
+
+  // Verify reset to defaults
+  app.setSignalColors('#00ff66', '#143823');
+  assertEqual(app.highSignalColor, '#00ff66', 'App highSignalColor reset to #00ff66');
+  assertEqual(app.lowSignalColor, '#143823', 'App lowSignalColor reset to #143823');
 });
 
 console.log('\n================================================================');

@@ -38,10 +38,28 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-018** | GUI-Kontraste & Kontextmenü-Inkonsistenzen beheben | `alpha` | 🟢 **Completed** | Behebung von weißem Text auf beigem Hintergrund im Java Swing Kontextmenü; themenspezifische High-Contrast-Regeln für Hover-Zustände in Java Swing (`#0a246a` mit weißer Schrift) und Clean Light (`#e0f2fe` mit blauem Text). |
 | **WISH-019** | Saubere Pin-Labels ohne Überlappungen | `alpha` | 🟢 **Completed** | Entfernung redundanter, kollidierender Pin-Texte (`OUT`, `IN`, `CLK`) auf einfachen Bauteilen (Schalter, Taster, Taktgeber, Konstanten, Lampen); saubere Ausrichtung, Polsterung und Schrift für komplexe IC-Module. |
 | **WISH-020** | Meldeleuchten / Lampen als reines Kreis-mit-X-Symbol & sattere Leuchtfarben | `alpha` | 🟢 **Completed** | Lampen (LED) werden nach DIN EN 60617 / IEC als reines Kreissymbol mit Diagonalkreuz ohne rechteckigen Chassis-Kasten gezeichnet; sattere und leuchtstärkere Farbpalette (vibrant green, red, yellow, blue) mit hohem Kontrast im Ein- und Aus-Zustand. |
+| **WISH-021** | Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker | `alpha` | 🟢 **Completed** | HIGH (1) und LOW (0) Signalfarben konfigurierbar in Renderer, UI und CSS; 8 neue abgestimmte Preset-Paare mit Leuchteffekten; Live-Vorschauleiste; flüssige Echtzeit-Farbwahl (60fps) mit synchronisierten Hex-Feldern und Standard-Reset. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-021 (Individuelle HIGH & LOW Signalfarben, abgestimmte Presets & flüssiger Colorpicker)**:
+  - **Beide Signalpegel (HIGH & LOW) konfigurierbar**:
+    - Signalfarben unterstützen nun sowohl den HIGH-Zustand (1) als auch den LOW-Zustand (0) über `CanvasRenderer` (`highSignalColor`, `lowSignalColor`), `LogicSimApp` und CSS-Variablen (`--wire-high`, `--wire-low`).
+    - Leitungen, Pin-Kreise, Leitungs-Endpunkte und Messpunkte visualisieren den LOW-Pegel mit der eingestellten LOW-Farbe (mit Rückfall auf das gewählte Theme).
+  - **Verbesserte Presets mit Signalpaaren**:
+    - 8 sorgfältig abgestimmte Signalpaare (HIGH/LOW) mit Leuchteffekten: Cyber Grün (`#00ff66`/`#143823`), Cyber Cyan (`#00e5ff`/`#0e2a3e`), Bernstein (`#ffb300`/`#3d280e`), Alarm Rot (`#ff1744`/`#3f1015`), Synthwave (`#e040fb`/`#2e123d`), Blueprint (`#38bdf8`/`#132c4a`), Monokai Weiß (`#ffffff`/`#334155`), Klassisch TTL (`#00e676`/`#475569`).
+    - Preset-Buttons zeigen Name und ein Doppel-Signal-Badge (HIGH-Dot mit Aura + Leitungsstrecke + LOW-Dot) mit aktiver Kontur.
+  - **Live Wire Preview Bar**:
+    - Dynamische Echtzeit-Vorschau im Einstellungs-Dialog visualisiert den HIGH-Draht (mit Glow) und den LOW-Draht nebeneinander.
+  - **Flüssiger Custom-Colorpicker mit Live-Synchronisation**:
+    - Reaktives Dual-Picker-Panel für HIGH (Pegel 1) und LOW (Pegel 0) mit nativer Farbauswahl und synchronisierten Hexadezimal-Eingabefeldern.
+    - Reagiert direkt auf `input`-Events beim Ziehen im Farbdialog für 60fps-Echtzeit-Updates der Arbeitsfläche und Vorschau.
+    - Schnelltaste zum Zurücksetzen auf Standardwerte (`#00ff66` / `#143823`).
+  - **Persistenz & i18n**:
+    - Beide Signalfarben werden in `logicsim_user_settings` im `localStorage` gespeichert und beim Laden zuverlässig wiederhergestellt.
+    - Vollständige zweisprachige Lokalisierung (Deutsch/Englisch) in `I18N` und `I18N_PHRASES_EN`.
 
 - **WISH-017, WISH-018, WISH-019, WISH-020**:
   - **WISH-017 (Complete English Support)**:

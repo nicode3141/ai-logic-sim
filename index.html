@@ -132,7 +132,8 @@
     [data-theme="java_swing"] .select-input,
     [data-theme="java_swing"] .norm-card,
     [data-theme="java_swing"] .theme-card,
-    [data-theme="java_swing"] .color-swatch-btn {
+    [data-theme="java_swing"] .color-swatch-btn,
+    [data-theme="java_swing"] .signal-preset-btn {
       border-radius: 0px !important;
       border: 1px solid #808080 !important;
       background: #ece9d8 !important;
@@ -145,7 +146,8 @@
     [data-theme="java_swing"] .mode-btn.active-sim,
     [data-theme="java_swing"] .tab-item.active,
     [data-theme="java_swing"] .norm-card.active,
-    [data-theme="java_swing"] .theme-card.active {
+    [data-theme="java_swing"] .theme-card.active,
+    [data-theme="java_swing"] .signal-preset-btn.active {
       box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
       background: #dfdacb !important;
       border-color: #555555 !important;
@@ -1675,6 +1677,220 @@
       font-weight: 700;
       color: var(--text-main);
     }
+    /* Signal Colors & Live Preview Styles (WISH-021) */
+    .signal-live-preview {
+      display: flex;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+      --preview-high: #00ff66;
+      --preview-high-glow: rgba(0, 255, 102, 0.7);
+      --preview-low: #143823;
+    }
+    .preview-channel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .preview-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+    .preview-badge.high-badge {
+      color: var(--preview-high);
+    }
+    .preview-badge.low-badge {
+      color: var(--text-dim);
+    }
+    .preview-wire-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 14px;
+    }
+    .preview-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .preview-dot.high-dot {
+      background: var(--preview-high);
+      box-shadow: 0 0 8px var(--preview-high-glow);
+    }
+    .preview-dot.low-dot {
+      background: var(--preview-low);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .preview-pulse-bar {
+      flex: 1;
+      height: 3px;
+      border-radius: 2px;
+    }
+    .preview-pulse-bar.high-bar {
+      background: var(--preview-high);
+      box-shadow: 0 0 6px var(--preview-high-glow);
+    }
+    .preview-pulse-bar.low-bar {
+      background: var(--preview-low);
+    }
+
+    .signal-presets-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .signal-preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .signal-preset-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 6px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .signal-preset-btn:hover {
+      border-color: var(--text-dim);
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .signal-preset-btn.active {
+      border-color: var(--accent-blue);
+      background: rgba(0, 176, 255, 0.08);
+      color: var(--text-main);
+      box-shadow: 0 0 8px rgba(0, 176, 255, 0.25);
+    }
+    .signal-preset-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .signal-preset-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .signal-preset-wire {
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+    }
+    .signal-preset-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .custom-signal-box {
+      margin-top: 4px;
+      padding: 10px 12px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .custom-pickers-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .custom-pickers-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .custom-picker-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .custom-picker-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .level-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .level-indicator.high-dot {
+      background: var(--accent-green);
+      box-shadow: 0 0 5px var(--accent-green);
+    }
+    .level-indicator.low-dot {
+      background: var(--text-dim);
+    }
+    .picker-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+    }
+    .smooth-color-swatch {
+      -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .smooth-color-swatch::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .smooth-color-swatch::-webkit-color-swatch {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+    }
+    .smooth-hex-input {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      padding: 2px 4px;
+      text-transform: uppercase;
+    }
+
+    /* Compatibility aliases */
     .color-swatch-group {
       display: flex;
       flex-wrap: wrap;
@@ -1710,32 +1926,6 @@
       border-radius: 50%;
       display: inline-block;
       box-shadow: 0 0 6px currentColor;
-    }
-    .custom-color-picker-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      background: var(--bg-deep);
-      border: 1px solid var(--border-dim);
-      border-radius: 6px;
-    }
-    .custom-color-picker-wrap input[type="color"] {
-      -webkit-appearance: none;
-      border: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      cursor: pointer;
-      background: transparent;
-      padding: 0;
-    }
-    .custom-color-picker-wrap input[type="color"]::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-    .custom-color-picker-wrap input[type="color"]::-webkit-color-swatch {
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
     }
     .norm-card-group {
       display: grid;
@@ -4264,32 +4454,61 @@
         </div>
         <div class="modal-body" style="gap: 16px;">
           <div class="settings-section">
-            <div class="settings-section-title">Signalfarbe:</div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">Farbe für Signale mit Pegel 1:</div>
-            <div class="color-swatch-group" id="settings-color-swatches">
-              <button class="color-swatch-btn active" data-color="#00e676" style="--c: #00e676;" title="Neon-Grün (Standard)">
-                <span class="color-dot" style="background: #00e676; color: #00e676;"></span>
-                <span>Neon-Grün</span>
-              </button>
-              <button class="color-swatch-btn" data-color="#00e5ff" style="--c: #00e5ff;" title="Cyan">
-                <span class="color-dot" style="background: #00e5ff; color: #00e5ff;"></span>
-                <span>Cyan</span>
-              </button>
-              <button class="color-swatch-btn" data-color="#ffb300" style="--c: #ffb300;" title="Bernstein">
-                <span class="color-dot" style="background: #ffb300; color: #ffb300;"></span>
-                <span>Bernstein</span>
-              </button>
-              <button class="color-swatch-btn" data-color="#ff1744" style="--c: #ff1744;" title="Rot">
-                <span class="color-dot" style="background: #ff1744; color: #ff1744;"></span>
-                <span>Rot</span>
-              </button>
-              <button class="color-swatch-btn" data-color="#d500f9" style="--c: #d500f9;" title="Violett">
-                <span class="color-dot" style="background: #d500f9; color: #d500f9;"></span>
-                <span>Violett</span>
-              </button>
-              <div class="custom-color-picker-wrap">
-                <input type="color" id="settings-custom-color" value="#00e676" title="Eigene Farbe wählen" />
-                <span style="font-size: 11px; color: var(--text-muted);">Individuell</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+              <div class="settings-section-title" style="margin-bottom:0;" data-i18n="settings.signal_colors_title">Signalfarben (HIGH &amp; LOW):</div>
+              <button id="btn-reset-signal-colors" class="btn" style="font-size:10.5px; padding:2px 8px;" title="Auf Standard zurücksetzen" data-i18n="settings.reset_colors">Standard</button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;" data-i18n="settings.signal_colors_desc">Wähle ein abgestimmtes Signal-Paar oder passe HIGH (1) und LOW (0) flüssig individuell an:</div>
+
+            <!-- Live Wire Preview Bar -->
+            <div id="signal-live-preview" class="signal-live-preview">
+              <div class="preview-channel">
+                <span class="preview-badge high-badge">HIGH (1)</span>
+                <div class="preview-wire-line high-wire">
+                  <span class="preview-dot high-dot"></span>
+                  <span class="preview-pulse-bar high-bar"></span>
+                </div>
+              </div>
+              <div class="preview-channel">
+                <span class="preview-badge low-badge">LOW (0)</span>
+                <div class="preview-wire-line low-wire">
+                  <span class="preview-dot low-dot"></span>
+                  <span class="preview-pulse-bar low-bar"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Presets Grid -->
+            <div class="signal-presets-label" data-i18n="settings.presets_label">Presets (HIGH / LOW):</div>
+            <div class="signal-preset-grid" id="settings-signal-presets"></div>
+
+            <!-- Custom Fluid Pickers -->
+            <div class="custom-signal-box">
+              <div class="custom-pickers-header">
+                <span style="font-size:11.5px; font-weight:700; color:var(--text-main);" data-i18n="settings.custom_colors_title">Individuelle Farbwahl:</span>
+                <span style="font-size:10.5px; color:var(--text-dim);" data-i18n="settings.fluid_hint">Live &amp; flüssig in Echtzeit</span>
+              </div>
+              <div class="custom-pickers-row">
+                <div class="custom-picker-col">
+                  <label class="custom-picker-label" for="settings-color-high">
+                    <span class="level-indicator high-dot"></span>
+                    <span>HIGH (Pegel 1)</span>
+                  </label>
+                  <div class="picker-input-group">
+                    <input type="color" id="settings-color-high" class="smooth-color-swatch" value="#00ff66" title="HIGH Signalfarbe flüssig wählen" />
+                    <input type="text" id="settings-hex-high" class="smooth-hex-input" value="#00ff66" maxlength="7" spellcheck="false" title="Hexadezimalcode" />
+                  </div>
+                </div>
+                <div class="custom-picker-col">
+                  <label class="custom-picker-label" for="settings-color-low">
+                    <span class="level-indicator low-dot"></span>
+                    <span>LOW (Pegel 0)</span>
+                  </label>
+                  <div class="picker-input-group">
+                    <input type="color" id="settings-color-low" class="smooth-color-swatch" value="#143823" title="LOW Signalfarbe flüssig wählen" />
+                    <input type="text" id="settings-hex-low" class="smooth-hex-input" value="#143823" maxlength="7" spellcheck="false" title="Hexadezimalcode" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -4636,6 +4855,12 @@
 
           'settings.title': 'Einstellungen',
           'settings.subtitle': 'Farben, Symbole, Bedienung, Sprache',
+          'settings.signal_colors_title': 'Signalfarben (HIGH & LOW):',
+          'settings.signal_colors_desc': 'Wähle ein abgestimmtes Signal-Paar oder passe HIGH (1) und LOW (0) flüssig individuell an:',
+          'settings.reset_colors': 'Standard',
+          'settings.presets_label': 'Presets (HIGH / LOW):',
+          'settings.custom_colors_title': 'Individuelle Farbwahl:',
+          'settings.fluid_hint': 'Live & flüssig in Echtzeit',
           'settings.language_title': 'Sprache:',
           'settings.language_desc': 'Sprache der Oberfläche:',
           'settings.close': 'Schließen'
@@ -4758,6 +4983,12 @@
 
           'settings.title': 'Settings',
           'settings.subtitle': 'Colors, symbols, controls, language',
+          'settings.signal_colors_title': 'Signal Colors (HIGH & LOW):',
+          'settings.signal_colors_desc': 'Choose a tuned signal pair or customize HIGH (1) and LOW (0) smoothly:',
+          'settings.reset_colors': 'Default',
+          'settings.presets_label': 'Presets (HIGH / LOW):',
+          'settings.custom_colors_title': 'Custom Color Picker:',
+          'settings.fluid_hint': 'Live & fluid in real-time',
           'settings.language_title': 'Language:',
           'settings.language_desc': 'Interface language:',
           'settings.close': 'Close'
@@ -4865,8 +5096,18 @@
       'Zur aktuellen Schaltung hinzufügen': 'Add to the current circuit', 'Neue Schaltung (ersetzt die aktuelle)': 'New circuit (replaces the current one)',
       'Erzeugt Schalter, Gatter und LEDs – fertig verdrahtet.': 'Creates switches, gates and LEDs – fully wired.', 'Schaltung erzeugen': 'Build circuit',
       // --- settings ---
-      'Einstellungen': 'Settings', 'Farben, Symbole, Bedienung': 'Colors, symbols, controls', 'Signalfarbe:': 'Signal color:',
+      'Einstellungen': 'Settings', 'Farben, Symbole, Bedienung': 'Colors, symbols, controls',
+      'Signalfarben (HIGH & LOW):': 'Signal Colors (HIGH & LOW):',
+      'Wähle ein abgestimmtes Signal-Paar oder passe HIGH (1) und LOW (0) flüssig individuell an:': 'Choose a tuned signal pair or customize HIGH (1) and LOW (0) smoothly:',
+      'Presets (HIGH / LOW):': 'Presets (HIGH / LOW):',
+      'Individuelle Farbwahl:': 'Custom Color Picker:',
+      'Live & flüssig in Echtzeit': 'Live & fluid in real-time',
+      'HIGH (Pegel 1)': 'HIGH (Level 1)',
+      'LOW (Pegel 0)': 'LOW (Level 0)',
+      'Signalfarbe:': 'Signal color:',
       'Farbe für Signale mit Pegel 1:': 'Color of signals at level 1:', 'Neon-Grün (Standard)': 'Neon green (default)', 'Neon-Grün': 'Neon green',
+      'Cyber Grün': 'Cyber Green', 'Cyber Cyan': 'Cyber Cyan', 'Amber Gold': 'Amber Gold', 'Alarm Rot': 'Alert Red',
+      'Synthwave': 'Synthwave', 'Blueprint': 'Blueprint', 'Monokai Weiß': 'Pure White', 'Klassisch TTL': 'Classic TTL',
       'Bernstein': 'Amber', 'Rot': 'Red', 'Violett': 'Violet', 'Eigene Farbe wählen': 'Pick a custom color', 'Individuell': 'Custom',
       'Symbol-Norm:': 'Symbol standard:', 'Symbolsatz für alle Gatter:': 'Symbol set for all gates:', 'Historisch DE': 'German classic',
       'Klassische deutsche Symbole.': 'Classic German symbols.', 'IEC Standard': 'IEC standard', 'Rechtecke mit &, ≥1, =1.': 'Rectangles with &, ≥1, =1.',
@@ -5298,6 +5539,17 @@
         }
       }
     };
+
+    const SIGNAL_COLOR_PRESETS = [
+      { id: 'cyber_green',   name: 'Cyber Grün',    nameEn: 'Cyber Green',   high: '#00ff66', low: '#143823', highGlow: 'rgba(0, 255, 102, 0.7)' },
+      { id: 'electric_cyan', name: 'Cyber Cyan',    nameEn: 'Cyber Cyan',    high: '#00e5ff', low: '#0e2a3e', highGlow: 'rgba(0, 229, 255, 0.7)' },
+      { id: 'amber_gold',    name: 'Bernstein',     nameEn: 'Amber Gold',    high: '#ffb300', low: '#3d280e', highGlow: 'rgba(255, 179, 0, 0.7)' },
+      { id: 'alert_red',     name: 'Alarm Rot',     nameEn: 'Alert Red',     high: '#ff1744', low: '#3f1015', highGlow: 'rgba(255, 23, 68, 0.7)' },
+      { id: 'synth_purple',  name: 'Synthwave',     nameEn: 'Synthwave',     high: '#e040fb', low: '#2e123d', highGlow: 'rgba(224, 64, 251, 0.7)' },
+      { id: 'blueprint_sky', name: 'Blueprint',     nameEn: 'Blueprint',     high: '#38bdf8', low: '#132c4a', highGlow: 'rgba(56, 189, 248, 0.7)' },
+      { id: 'pure_white',    name: 'Monokai Weiß',  nameEn: 'Pure White',    high: '#ffffff', low: '#334155', highGlow: 'rgba(255, 255, 255, 0.7)' },
+      { id: 'classic_ttl',   name: 'Klassisch TTL',  nameEn: 'Classic TTL',   high: '#00e676', low: '#475569', highGlow: 'rgba(0, 230, 118, 0.65)' }
+    ];
 
     const GRID_SIZE = 20;
 
@@ -9514,8 +9766,9 @@
         this.engine = engine;
 
         this.symbolStandard = 'DIN_40700'; // Default: DIN 40700 Deutsch
-        this.highSignalColor = '#00e676';
-        this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
+        this.highSignalColor = '#00ff66';
+        this.highSignalGlow = 'rgba(0, 255, 102, 0.7)';
+        this.lowSignalColor = null;
         this.canvasTheme = 'tech_dots';
         this.appTheme = 'modern';
 
@@ -9539,6 +9792,9 @@
         this.selectionBox = null;
         this.showWireBridges = true;
         this.showGateDelay = false;
+        this.highSignalColor = '#00ff66';
+        this.highSignalGlow = 'rgba(0, 255, 102, 0.7)';
+        this.lowSignalColor = null;
       }
 
       getThemePalette() {
@@ -10327,7 +10583,7 @@
           ctx.textAlign = 'left';
           ctx.fillText(nameStr, bx + 7.5, by + 10);
 
-          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00e676') : pal.wireLow;
+          ctx.fillStyle = isHigh ? (this.highSignalColor || '#00ff66') : (this.lowSignalColor || pal.wireLow);
           ctx.font = '700 9px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(isHigh ? '1' : '0', bx + badgeW - 4.5, by + 10.5);
@@ -10485,12 +10741,12 @@
             ctx.strokeStyle = '#00b0ff';
             ctx.lineWidth = 3.5;
           } else if (isHigh) {
-            ctx.strokeStyle = this.highSignalColor || '#00e676';
+            ctx.strokeStyle = this.highSignalColor || '#00ff66';
             ctx.lineWidth = 2.8;
-            ctx.shadowColor = this.highSignalGlow || 'rgba(0, 230, 118, 0.65)';
+            ctx.shadowColor = this.highSignalGlow || 'rgba(0, 255, 102, 0.7)';
             ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 8;
           } else {
-            ctx.strokeStyle = pal.wireLow;
+            ctx.strokeStyle = this.lowSignalColor || pal.wireLow;
             ctx.lineWidth = 2.2;
           }
 
@@ -10628,7 +10884,7 @@
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
           const isHigh = w.level === 1;
-          const termColor = isHigh ? (this.highSignalColor || '#00e676') : pal.wireLow;
+          const termColor = isHigh ? (this.highSignalColor || '#00ff66') : (this.lowSignalColor || pal.wireLow);
 
           if (!w.toCompId && !w.toWireId && w.toPoint && pts.length > 0) {
             const endPt = pts[pts.length - 1];
@@ -11719,9 +11975,10 @@
         const r = isHovered ? 6 : 4.2;
         ctx.arc(x, y, r, 0, Math.PI * 2);
 
-        const highColor = this.highSignalColor || '#00e676';
-        const highGlow = this.highSignalGlow || 'rgba(0, 230, 118, 0.65)';
+        const highColor = this.highSignalColor || '#00ff66';
+        const highGlow = this.highSignalGlow || 'rgba(0, 255, 102, 0.7)';
         const pal = this.getThemePalette();
+        const lowColor = this.lowSignalColor || pal.pinFill;
 
         if (isHovered) {
           ctx.fillStyle = '#00b0ff';
@@ -11732,12 +11989,12 @@
           ctx.shadowColor = highGlow;
           ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 6;
         } else {
-          ctx.fillStyle = pal.pinFill;
+          ctx.fillStyle = lowColor;
         }
         ctx.fill();
 
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = isHovered ? '#ffffff' : (isHigh ? highColor : pal.pinStroke);
+        ctx.strokeStyle = isHovered ? '#ffffff' : (isHigh ? highColor : (this.lowSignalColor ? this.lowSignalColor : pal.pinStroke));
         ctx.stroke();
         ctx.restore();
       }
@@ -14515,8 +14772,9 @@
         this.layoutAnimation = true;
         this._layoutAnim = null;
         this.lastLayoutReport = null;
-        this.highSignalColor = '#00e676';
-        this.highSignalGlow = 'rgba(0, 230, 118, 0.65)';
+        this.highSignalColor = '#00ff66';
+        this.highSignalGlow = 'rgba(0, 255, 102, 0.7)';
+        this.lowSignalColor = null;
         this.canvasTheme = 'tech_dots';
         this.appTheme = 'modern';
         this.autoSaveCircuit = true;
@@ -19973,6 +20231,7 @@
         const valGlobalDelay = document.getElementById('settings-global-delay-val');
         if (valGlobalDelay) valGlobalDelay.textContent = `${this.globalGateDelay || 1} Tick${(this.globalGateDelay || 1) > 1 ? 's' : ''}`;
 
+        this.updateSettingsColorUi();
         settingsModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
       }
@@ -20203,22 +20462,103 @@
           if (b) b.addEventListener('click', () => this.closeAllModals());
         });
 
-        const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
-        swatches.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const color = btn.getAttribute('data-color');
-            if (color) {
-              this.setHighSignalColor(color);
+        const presetsWrap = document.getElementById('settings-signal-presets');
+        if (presetsWrap && presetsWrap.children && presetsWrap.children.length === 0) {
+          SIGNAL_COLOR_PRESETS.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'signal-preset-btn';
+            btn.setAttribute('data-id', p.id);
+            btn.setAttribute('data-high', p.high);
+            btn.setAttribute('data-low', p.low);
+            btn.title = `${p.name} (HIGH: ${p.high}, LOW: ${p.low})`;
+            btn.innerHTML = `
+              <span class="signal-preset-dots">
+                <span class="signal-preset-dot high" style="background:${p.high}; box-shadow:0 0 6px ${p.high};"></span>
+                <span class="signal-preset-wire" style="background:linear-gradient(to right, ${p.high}, ${p.low});"></span>
+                <span class="signal-preset-dot low" style="background:${p.low};"></span>
+              </span>
+              <span class="signal-preset-name">${escapeHtml(p.name)}</span>
+            `;
+            btn.addEventListener('click', () => {
+              this.setSignalColors(p.high, p.low);
               this.saveSettings();
+            });
+            presetsWrap.appendChild(btn);
+          });
+        }
+
+        const btnResetSignal = document.getElementById('btn-reset-signal-colors');
+        if (btnResetSignal) {
+          btnResetSignal.addEventListener('click', () => {
+            this.setSignalColors('#00ff66', '#143823');
+            this.saveSettings();
+          });
+        }
+
+        const colorHigh = document.getElementById('settings-color-high');
+        const hexHigh = document.getElementById('settings-hex-high');
+        if (colorHigh) {
+          colorHigh.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (hexHigh && document.activeElement !== hexHigh) hexHigh.value = val;
+            this.setHighSignalColor(val);
+          });
+          colorHigh.addEventListener('change', () => {
+            this.saveSettings();
+          });
+        }
+        if (hexHigh) {
+          hexHigh.addEventListener('input', (e) => {
+            let val = e.target.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+              if (colorHigh) colorHigh.value = val;
+              this.setHighSignalColor(val);
             }
           });
-        });
+          hexHigh.addEventListener('change', () => {
+            let val = hexHigh.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+              this.setHighSignalColor(val);
+              this.saveSettings();
+            } else {
+              hexHigh.value = this.highSignalColor;
+            }
+          });
+        }
 
-        const customColor = document.getElementById('settings-custom-color');
-        if (customColor) {
-          customColor.addEventListener('input', (e) => {
-            this.setHighSignalColor(e.target.value);
+        const colorLow = document.getElementById('settings-color-low');
+        const hexLow = document.getElementById('settings-hex-low');
+        if (colorLow) {
+          colorLow.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (hexLow && document.activeElement !== hexLow) hexLow.value = val;
+            this.setLowSignalColor(val);
+          });
+          colorLow.addEventListener('change', () => {
             this.saveSettings();
+          });
+        }
+        if (hexLow) {
+          hexLow.addEventListener('input', (e) => {
+            let val = hexLow.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+              if (colorLow) colorLow.value = val;
+              this.setLowSignalColor(val);
+            }
+          });
+          hexLow.addEventListener('change', () => {
+            let val = hexLow.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+              this.setLowSignalColor(val);
+              this.saveSettings();
+            } else {
+              hexLow.value = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823');
+            }
           });
         }
 
@@ -20304,7 +20644,7 @@
         const btnReset = document.getElementById('btn-reset-settings');
         if (btnReset) {
           btnReset.addEventListener('click', () => {
-            this.setHighSignalColor('#00e676');
+            this.setSignalColors('#00ff66', '#143823');
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
             this.setShowWireBridges(false);
@@ -20324,15 +20664,25 @@
         }
       }
 
-      setHighSignalColor(color) {
+      setSignalColors(highColor, lowColor) {
+        this.setHighSignalColor(highColor, false);
+        this.setLowSignalColor(lowColor, false);
+        this.updateSettingsColorUi();
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+        if (this.analyzer) this.analyzer.render();
+      }
+
+      setHighSignalColor(color, doRender = true) {
         if (!color || typeof color !== 'string' || !/^#[0-9a-fA-F]{3,8}$/.test(color.trim())) {
-          color = '#00e676';
+          color = '#00ff66';
         }
         color = color.trim();
         this.highSignalColor = color;
-        this.renderer.highSignalColor = color;
+        if (this.renderer) this.renderer.highSignalColor = color;
+        if (this.rendererRight) this.rendererRight.highSignalColor = color;
 
-        let glow = 'rgba(0, 230, 118, 0.65)';
+        let glow = 'rgba(0, 255, 102, 0.7)';
         if (color.startsWith('#')) {
           let c = color.replace('#', '');
           if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
@@ -20345,26 +20695,84 @@
           }
         }
         this.highSignalGlow = glow;
-        this.renderer.highSignalGlow = glow;
+        if (this.renderer) this.renderer.highSignalGlow = glow;
+        if (this.rendererRight) this.rendererRight.highSignalGlow = glow;
 
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
           document.documentElement.style.setProperty('--accent-green', color);
           document.documentElement.style.setProperty('--wire-high', color);
         }
 
-        const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
-        swatches.forEach(s => {
-          s.classList.toggle('active', s.getAttribute('data-color') === color);
-        });
+        if (doRender) {
+          this.updateSettingsColorUi();
+          if (this.renderer) this.renderer.render();
+          if (this.rendererRight) this.rendererRight.render();
+          if (this.analyzer) this.analyzer.render();
+        }
+      }
 
-        const customInput = document.getElementById('settings-custom-color');
-        if (customInput && color.startsWith('#')) {
-          customInput.value = color;
+      setLowSignalColor(color, doRender = true) {
+        if (color && typeof color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(color.trim())) {
+          this.lowSignalColor = color.trim();
+        } else {
+          this.lowSignalColor = null;
+        }
+        if (this.renderer) this.renderer.lowSignalColor = this.lowSignalColor;
+        if (this.rendererRight) this.rendererRight.lowSignalColor = this.lowSignalColor;
+
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
+          const effectiveLow = this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823');
+          document.documentElement.style.setProperty('--wire-low', effectiveLow);
         }
 
-        this.renderer.render();
-        if (this.rendererRight) this.rendererRight.render();
-        this.analyzer.render();
+        if (doRender) {
+          this.updateSettingsColorUi();
+          if (this.renderer) this.renderer.render();
+          if (this.rendererRight) this.rendererRight.render();
+          if (this.analyzer) this.analyzer.render();
+        }
+      }
+
+      updateSettingsColorUi() {
+        if (typeof document === 'undefined') return;
+        const currentHigh = (this.highSignalColor || '#00ff66').toLowerCase();
+        const effectiveLow = (this.lowSignalColor || (this.renderer ? this.renderer.getThemePalette().wireLow : '#143823')).toLowerCase();
+
+        // 1. Live Wire Preview Bar
+        const preview = document.getElementById('signal-live-preview');
+        if (preview && preview.style && typeof preview.style.setProperty === 'function') {
+          preview.style.setProperty('--preview-high', currentHigh);
+          preview.style.setProperty('--preview-high-glow', this.highSignalGlow || 'rgba(0, 255, 102, 0.7)');
+          preview.style.setProperty('--preview-low', effectiveLow);
+        }
+
+        // 2. Preset buttons active state
+        const presetBtns = document.querySelectorAll('#settings-signal-presets .signal-preset-btn');
+        presetBtns.forEach(btn => {
+          const h = (btn.getAttribute('data-high') || '').toLowerCase();
+          const l = (btn.getAttribute('data-low') || '').toLowerCase();
+          const isMatch = (h === currentHigh) && (!this.lowSignalColor || l === effectiveLow);
+          btn.classList.toggle('active', isMatch);
+        });
+
+        // 3. Custom Pickers & Hex inputs
+        const colorHigh = document.getElementById('settings-color-high');
+        const hexHigh = document.getElementById('settings-hex-high');
+        const colorLow = document.getElementById('settings-color-low');
+        const hexLow = document.getElementById('settings-hex-low');
+
+        if (colorHigh && currentHigh.startsWith('#') && currentHigh.length === 7) {
+          colorHigh.value = currentHigh;
+        }
+        if (hexHigh && document.activeElement !== hexHigh) {
+          hexHigh.value = currentHigh;
+        }
+        if (colorLow && effectiveLow.startsWith('#') && effectiveLow.length === 7) {
+          colorLow.value = effectiveLow;
+        }
+        if (hexLow && document.activeElement !== hexLow) {
+          hexLow.value = effectiveLow;
+        }
       }
 
       
@@ -20554,7 +20962,8 @@
           const raw = localStorage.getItem('logicsim_user_settings');
           if (raw) {
             const s = JSON.parse(raw);
-            if (s.highSignalColor) this.setHighSignalColor(s.highSignalColor);
+            if (s.highSignalColor) this.setHighSignalColor(s.highSignalColor, false);
+            if (s.lowSignalColor !== undefined) this.setLowSignalColor(s.lowSignalColor, false);
             if (s.allowEditModeInteraction !== undefined) this.allowEditModeInteraction = Boolean(s.allowEditModeInteraction);
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
@@ -20602,6 +21011,7 @@
         try {
           const s = {
             highSignalColor: this.highSignalColor,
+            lowSignalColor: this.lowSignalColor,
             allowEditModeInteraction: this.allowEditModeInteraction,
             autoSaveCircuit: this.autoSaveCircuit,
             smartWires: this.smartWires,
