@@ -13829,7 +13829,10 @@
       }
 
       setHighSignalColor(color) {
-        if (!color) color = '#00e676';
+        if (!color || typeof color !== 'string' || !/^#[0-9a-fA-F]{3,8}$/.test(color.trim())) {
+          color = '#00e676';
+        }
+        color = color.trim();
         this.highSignalColor = color;
         this.renderer.highSignalColor = color;
 
@@ -13838,8 +13841,8 @@
         if (color.startsWith('#')) {
           let c = color.replace('#', '');
           if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
-          if (c.length === 6) {
-            const num = parseInt(c, 16);
+          if (c.length >= 6) {
+            const num = parseInt(c.slice(0, 6), 16);
             const r = (num >> 16) & 255;
             const g = (num >> 8) & 255;
             const b = num & 255;
@@ -13849,8 +13852,10 @@
         this.highSignalGlow = glow;
         this.renderer.highSignalGlow = glow;
 
-        document.documentElement.style.setProperty('--accent-green', color);
-        document.documentElement.style.setProperty('--wire-high', color);
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
+          document.documentElement.style.setProperty('--accent-green', color);
+          document.documentElement.style.setProperty('--wire-high', color);
+        }
 
         const swatches = document.querySelectorAll('#settings-color-swatches .color-swatch-btn');
         swatches.forEach(s => {
@@ -13868,14 +13873,14 @@
       }
 
       setAppTheme(theme) {
-        if (!theme) theme = 'modern';
+        const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
+        if (!themeKeys.includes(theme)) theme = 'modern';
         this.appTheme = theme;
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.setAttribute) {
           document.documentElement.setAttribute('data-theme', theme);
         }
 
         // Update view menu checkmarks
-        const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
         themeKeys.forEach(t => {
           const chk = document.getElementById(`check-theme-${t}`);
           if (chk) chk.innerHTML = (t === theme) ? '✓' : '&nbsp;';
