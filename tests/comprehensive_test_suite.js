@@ -49,9 +49,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat };'
 );
-const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -449,6 +449,72 @@ runTest('RENDERING', 'Wire crossing bridges disabled by default and togglable vi
   arcCount = 0;
   renderer.drawWires(mockArcCtx);
   assertEqual(arcCount > 0, true, 'Bridge arcs must be drawn when showWireBridges is true');
+});
+
+runTest('INTERACTION', 'attachSliderHoldRepeat enables smooth press-and-hold drag movement', () => {
+  assertEqual(typeof attachSliderHoldRepeat, 'function', 'attachSliderHoldRepeat must be defined');
+
+  let capturedPointerId = null;
+  let releasedPointerId = null;
+  const eventListeners = {};
+
+  const mockSlider = {
+    type: 'range',
+    min: '0',
+    max: '100',
+    step: '1',
+    value: '10',
+    disabled: false,
+    getBoundingClientRect: () => ({ left: 0, width: 200, top: 0, height: 20 }),
+    addEventListener: (type, fn) => {
+      if (!eventListeners[type]) eventListeners[type] = [];
+      eventListeners[type].push(fn);
+    },
+    dispatchEvent: () => {},
+    setPointerCapture: (id) => { capturedPointerId = id; },
+    hasPointerCapture: (id) => capturedPointerId === id,
+    releasePointerCapture: (id) => { releasedPointerId = id; capturedPointerId = null; }
+  };
+
+  let updatedValue = null;
+  attachSliderHoldRepeat(mockSlider, (val) => {
+    updatedValue = val;
+  });
+
+  assertEqual(Array.isArray(eventListeners['pointerdown']), true, 'pointerdown listener registered');
+  assertEqual(Array.isArray(eventListeners['pointermove']), true, 'pointermove listener registered');
+  assertEqual(Array.isArray(eventListeners['pointerup']), true, 'pointerup listener registered');
+
+  // Simulate pointerdown at 50% of track (x=100)
+  const downEv = {
+    type: 'pointerdown',
+    button: 0,
+    pointerId: 42,
+    clientX: 100,
+    stopPropagation: () => {}
+  };
+  eventListeners['pointerdown'].forEach(fn => fn(downEv));
+  assertEqual(capturedPointerId, 42, 'Pointer capture initiated on pointerdown');
+
+  // Simulate pointermove dragging to 80% of track (x=160 -> value 80)
+  const moveEv = {
+    type: 'pointermove',
+    pointerId: 42,
+    clientX: 160,
+    stopPropagation: () => {}
+  };
+  eventListeners['pointermove'].forEach(fn => fn(moveEv));
+  assertEqual(mockSlider.value, 80, 'Slider value updated smoothly while dragging');
+  assertEqual(updatedValue, 80, 'onUpdate callback invoked with new target value');
+
+  // Simulate pointerup releasing the slider
+  const upEv = {
+    type: 'pointerup',
+    pointerId: 42,
+    stopPropagation: () => {}
+  };
+  eventListeners['pointerup'].forEach(fn => fn(upEv));
+  assertEqual(releasedPointerId, 42, 'Pointer capture released on pointerup');
 });
 
 console.log('\n================================================================');

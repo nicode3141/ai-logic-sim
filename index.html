@@ -446,23 +446,60 @@
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
+      height: 18px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
       height: 4px;
       background: var(--border-bright);
       border-radius: 2px;
-      outline: none;
       cursor: pointer;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: var(--accent-green);
       cursor: pointer;
       border: 2px solid var(--bg-deep);
       box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+      margin-top: -5px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      background: var(--border-bright);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      cursor: pointer;
+      border: 2px solid var(--bg-deep);
+      box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+    }
+
+    input[type="range"]:active::-moz-range-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
     }
 
     select.select-input {
@@ -4386,6 +4423,165 @@
       }
       return clean;
     }
+
+    /**
+     * Attaches smooth press-and-hold & continuous dragging to range sliders (<input type="range">).
+     * - Pressing & holding down on the track smoothly steps towards cursor position.
+     * - Dragging with pointer capture follows cursor reliably even when mouse leaves element bounds.
+     * - Prevents event propagation so parent canvas/window drag handlers never interfere.
+     */
+    function attachSliderHoldRepeat(slider, onUpdate) {
+      if (!slider) return;
+
+      let holdTimeout = null;
+      let holdInterval = null;
+      let isPointerDown = false;
+      let activePointerId = null;
+      let targetVal = null;
+
+      const clearHold = () => {
+        if (holdTimeout) { clearTimeout(holdTimeout); holdTimeout = null; }
+        if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
+        isPointerDown = false;
+        activePointerId = null;
+        targetVal = null;
+      };
+
+      const computeRatioFromEvent = (e) => {
+        const rect = slider.getBoundingClientRect();
+        if (rect.width <= 0) return 0.5;
+        const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+        return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      };
+
+      const ratioToSliderVal = (ratio) => {
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        const step = parseFloat(slider.step !== '' ? slider.step : '1') || 1;
+        const raw = min + ratio * (max - min);
+        const snapped = Math.round((raw - min) / step) * step + min;
+        return Math.max(min, Math.min(max, snapped));
+      };
+
+      const sliderValToRatio = (val) => {
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        if (max === min) return 0.5;
+        return Math.max(0, Math.min(1, (val - min) / (max - min)));
+      };
+
+      const stepSliderTowards = (target) => {
+        const curr = parseFloat(slider.value);
+        const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
+        const max = parseFloat(slider.max !== '' ? slider.max : '100') || 100;
+        const step = parseFloat(slider.step !== '' ? slider.step : '1') || 1;
+
+        if (Math.abs(curr - target) < step * 0.5) return false;
+
+        let next;
+        if (curr < target) {
+          next = Math.min(target, curr + step);
+        } else {
+          next = Math.max(target, curr - step);
+        }
+        next = Math.max(min, Math.min(max, next));
+        if (next !== curr) {
+          slider.value = next;
+          slider.dispatchEvent(new Event('input', { bubbles: true }));
+          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof onUpdate === 'function') onUpdate(next);
+          return true;
+        }
+        return false;
+      };
+
+      const startHold = (e) => {
+        if (slider.disabled) return;
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        if (e.type === 'pointerdown' && e.button !== 0) return;
+
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+
+        isPointerDown = true;
+        activePointerId = e.pointerId !== undefined ? e.pointerId : null;
+        if (activePointerId !== null && typeof slider.setPointerCapture === 'function') {
+          try { slider.setPointerCapture(activePointerId); } catch (_) {}
+        }
+
+        const ratio = computeRatioFromEvent(e);
+        targetVal = ratioToSliderVal(ratio);
+        const currVal = parseFloat(slider.value);
+        const currRatio = sliderValToRatio(currVal);
+
+        const isNearThumb = Math.abs(ratio - currRatio) < 0.09;
+
+        if (!isNearThumb) {
+          stepSliderTowards(targetVal);
+
+          clearTimeout(holdTimeout);
+          clearInterval(holdInterval);
+          holdTimeout = setTimeout(() => {
+            if (!isPointerDown) return;
+            holdInterval = setInterval(() => {
+              if (!isPointerDown) {
+                clearHold();
+                return;
+              }
+              if (targetVal !== null) {
+                stepSliderTowards(targetVal);
+              }
+            }, 40);
+          }, 200);
+        }
+      };
+
+      const onPointerMove = (e) => {
+        if (!isPointerDown) return;
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        const ratio = computeRatioFromEvent(e);
+        targetVal = ratioToSliderVal(ratio);
+        if (parseFloat(slider.value) !== targetVal) {
+          slider.value = targetVal;
+          slider.dispatchEvent(new Event('input', { bubbles: true }));
+          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof onUpdate === 'function') onUpdate(targetVal);
+        }
+      };
+
+      const stopHold = (e) => {
+        if (!isPointerDown) return;
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (activePointerId !== null && typeof slider.releasePointerCapture === 'function') {
+          try {
+            if (slider.hasPointerCapture(activePointerId)) {
+              slider.releasePointerCapture(activePointerId);
+            }
+          } catch (_) {}
+        }
+        clearHold();
+      };
+
+      slider.addEventListener('pointerdown', startHold);
+      slider.addEventListener('pointermove', onPointerMove);
+      slider.addEventListener('pointerup', stopHold);
+      slider.addEventListener('pointercancel', stopHold);
+      slider.addEventListener('lostpointercapture', stopHold);
+
+      slider.addEventListener('mousedown', startHold);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('mousemove', (e) => {
+          if (isPointerDown && activePointerId === null) {
+            onPointerMove(e);
+          }
+        });
+        window.addEventListener('mouseup', (e) => {
+          if (isPointerDown && activePointerId === null) {
+            stopHold(e);
+          }
+        });
+      }
+    }
+
 
     function getGateSvgForNorm(type, norm) {
       if (norm === 'DIN_EN_60617') {
@@ -12006,6 +12202,10 @@
           valSpan.textContent = `${e.target.value} ${unit}`;
           onChange(e.target.value);
         });
+        attachSliderHoldRepeat(slider, (val) => {
+          valSpan.textContent = `${val} ${unit}`;
+          onChange(val);
+        });
 
         group.appendChild(lbl);
         group.appendChild(slider);
@@ -14457,6 +14657,10 @@
           labelFreq.textContent = `${val} Hz`;
           this.engine.setFrequency(val);
         });
+        attachSliderHoldRepeat(sliderFreq, (val) => {
+          labelFreq.textContent = `${val} Hz`;
+          this.engine.setFrequency(val);
+        });
 
         const btnUndo = document.getElementById('btn-quick-undo');
         if (btnUndo) {
@@ -16443,10 +16647,19 @@
           zoomLabel.textContent = `${val} px/T`;
           this.analyzer.render();
         });
+        attachSliderHoldRepeat(zoomSlider, (val) => {
+          this.analyzer.pixelsPerTick = val;
+          zoomLabel.textContent = `${val} px/T`;
+          this.analyzer.render();
+        });
 
         const scrollSlider = document.getElementById('slider-time-scroll');
         scrollSlider.addEventListener('input', (e) => {
           this.analyzer.scrollRatio = parseInt(e.target.value, 10) / 100;
+          this.analyzer.render();
+        });
+        attachSliderHoldRepeat(scrollSlider, (val) => {
+          this.analyzer.scrollRatio = val / 100;
           this.analyzer.render();
         });
 
@@ -18604,6 +18817,23 @@
             this.setShowWireBridges(e.target.checked);
             this.saveSettings();
           });
+        }
+
+        // 4c. Global Gate Delay Slider
+        const delaySlider = document.getElementById('settings-global-delay-slider');
+        const delayVal = document.getElementById('settings-global-delay-val');
+        if (delaySlider && delayVal) {
+          const updateDelay = (val) => {
+            const intVal = parseInt(val, 10);
+            delayVal.textContent = `${intVal} Tick${intVal > 1 ? 's' : ''}`;
+            this.circuit.components.forEach(c => {
+              if (c.params && c.params.delay !== undefined) {
+                c.params.delay = intVal;
+              }
+            });
+          };
+          delaySlider.addEventListener('input', (e) => updateDelay(e.target.value));
+          attachSliderHoldRepeat(delaySlider, (val) => updateDelay(val));
         }
 
         // 5. Workbench Theme Cards
