@@ -45,10 +45,26 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-025** | Taktfrequenz im laufenden Betrieb ändern & Impulsdiagramm-Klammern synchronisieren | `alpha` | 🟢 **Completed** | Taktfrequenz-Slider (`#slider-freq`) ohne Ruckeln im laufenden Betrieb stufenlos verstellbar (Smooth-Scaling des Akkumulators); Impulsdiagramm-Klammern (`[` und `]`) bleiben während der Simulation fest an ihren Ticks verankert und lassen sich flüssig verschieben; Taktänderung aktualisiert die Millisekunden-Dauer der Klammern und die Loop-Playback-Rate in Echtzeit. |
 | **WISH-026** | Auto-Snap offener Leitungen, vereinte NOT-Palette mit Pin-Invertierung & Wire-Inlining | `alpha` | 🟢 **Completed** | Offene Leitungs-Enden (`toPoint` und `fromPoint`) rasten beim Platzieren (Drag & Drop) oder Einfügen (Strg+V, Duplizieren) von Modulen automatisch an deren Pins ein. Palette auf ein einziges NOT-Gatter vereinheitlicht (redundanten Negator entfernt); NOT invertiert bei Drop auf Pin beliebiger Module den Ein-/Ausgang (○-Blase) und schaltet sich bei Drop auf eine Leitung automatisch inline als Invertierer dazwischen. |
 | **WISH-027** | Schalter-Hintergrund Kontrast-Fix, Theme-Entfernung aus Ansicht-Menü & Lampen-X in Outline-Farbe | `alpha` | 🟢 **Completed** | Pfad-Verkettungs-Bug in Schalter/Taster-Innenleben behoben (kein schwarzes Dreieck mehr). Schalter-Hintergrund nutzt `pal.gateFill` (weiß in Java Swing / Light CAD) und hebt sich sauber von LOW-Signalen ab. Design/Theme-Auswahl aus Menü „Ansicht“ entfernt. Diagonalkreuz (X) der Meldeleuchte übernimmt exakt dieselbe Farbe wie die Kreis-Outline. |
+| **WISH-028** | Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige | `alpha` | 🟢 **Completed** | Beseitigung redundanter „Loop Play“-Beschriftung auf dem Simulations-Startbutton (strikt getrennt in Start/Pause und Loop Play); freies horizontales Ziehen mit der Maus über die gesamte Signalhistorie bis Tick 0 ohne View-Lock; RingBuffer-Kapazität auf 10.000 Ticks erweitert; Taktfrequenz & Periodendauer (Hz und ms) fest im Timing-Diagramm-Header und in der Statusanzeige integriert. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-028 (Impulsdiagramm: Doppelte Loop-Buttons beseitigt, freies Maus-Panning bis Tick 0 & Taktfrequenz-Anzeige)**:
+  - **Doppelte Controls beseitigt**:
+    - Der Simulations-Start/Pause-Button (`#btn-sim-start` und `#btn-analyzer-sim-start`) ändert seinen Zustand und seine Beschriftung nun strikt und ausschließlich anhand des Simulations-Status (`Start` / `Pause`), selbst wenn Loop-Klammern (`loopRange`) aktiv sind.
+    - Die Schleifenwiedergabe verbleibt exklusiv beim dedizierten Button `#btn-analyzer-loop` (`Loop Play` / `Pause Loop`). Dadurch gibt es niemals zwei nebeneinanderliegende Buttons mit dem Namen „Loop Play“.
+  - **Freies horizontales Maus-Panning bis Tick 0**:
+    - Die Standardkapazität des `RingBuffer` wurde von 256 auf 10.000 Ticks erweitert. Selbst nach tausenden Ticks wird Tick 0 nicht mehr überschrieben oder verworfen.
+    - Maus-Klick-Ziehen auf dem Wellenformbereich (`my > 22`) verschiebt die Ansicht 1:1 pixelgenau entlang der gesamten Aufzeichnung. Bei Erreichen der Ränder scrollt die Ansicht automatisch kontinuierlich weiter bis Tick 0 (`scrollRatio = 0.0`) oder zum neuesten Tick (`1.0`).
+    - Klick ohne Ziehen setzt den Playhead präzise auf den anvisierten Tick.
+    - Auch das Ziehen der Loop-Klammern (`[` und `]`) sowie des Playheads im Ruler-Bereich (`my <= 22`) scrollt an den Rändern automatisch dynamisch mit, sodass Klammer `In` bis zu Tick 0 gesetzt werden kann.
+  - **Taktfrequenz & ms/Tick-Anzeige im Impulsdiagramm**:
+    - Neues Takt-Badge `#analyzer-speed-badge` direkt neben den Simulations-Steuerelementen im Impulsdiagramm-Header (`Takt: 10 Hz (100 ms)`).
+    - Dynamische Synchronisierung bei jeder Frequenzänderung im laufenden Betrieb (z. B. 20 Hz -> 50 ms).
+    - Status-Text `#analyzer-playhead-info` formatiert Takt und Periodendauer einheitlich und übersichtlich am Zeilenanfang (`Takt: X Hz (Y ms) | Playhead: t = ... | Zeitrahmen: ...`).
+  - **Test-Abdeckung**: Neuer Test `[WISH-028]` in `tests/comprehensive_test_suite.js`, alle 48 Tests bestehen fehlerfrei.
 
 - **WISH-027 (Schalter-Hintergrund Kontrast, Theme-Entfernung aus Ansicht & Lampen-X Outline-Parität)**:
   - **Schalter-Hintergrund & Beseitigung des schwarzen Dreiecks**:
