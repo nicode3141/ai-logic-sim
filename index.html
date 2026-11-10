@@ -18675,6 +18675,12 @@
         if (chkAutoSave) chkAutoSave.checked = Boolean(this.autoSaveCircuit);
         const chkWireBridges = document.getElementById('settings-wire-bridges');
         if (chkWireBridges) chkWireBridges.checked = Boolean(this.showWireBridges);
+        const chkGateDelay = document.getElementById('settings-show-gate-delay');
+        if (chkGateDelay) chkGateDelay.checked = Boolean(this.showGateDelay);
+        const sliderGlobalDelay = document.getElementById('settings-global-delay-slider');
+        if (sliderGlobalDelay) sliderGlobalDelay.value = String(this.globalGateDelay || 1);
+        const valGlobalDelay = document.getElementById('settings-global-delay-val');
+        if (valGlobalDelay) valGlobalDelay.textContent = `${this.globalGateDelay || 1} Tick${(this.globalGateDelay || 1) > 1 ? 's' : ''}`;
 
         settingsModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
@@ -18843,6 +18849,12 @@
           this.saveSettings();
           this.showToast(`Leitungsbrücken ${this.showWireBridges ? 'aktiviert' : 'deaktiviert'}`);
         });
+        document.getElementById('menu-item-toggle-gate-delay')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setShowGateDelay(!this.showGateDelay);
+          this.saveSettings();
+          this.showToast(`Gatterverzögerungs-Anzeige ${this.showGateDelay ? 'aktiviert' : 'deaktiviert'}`);
+        });
 
         // Theme buttons in View menu
         document.querySelectorAll('#mdropdown-view [data-theme-btn]').forEach(btn => {
@@ -18973,21 +18985,29 @@
           });
         }
 
-        // 4c. Global Gate Delay Slider
+        // 4c. Show Gate Delay Toggle
+        const chkGateDelay = document.getElementById('settings-show-gate-delay');
+        if (chkGateDelay) {
+          chkGateDelay.checked = this.showGateDelay;
+          chkGateDelay.addEventListener('change', (e) => {
+            this.setShowGateDelay(e.target.checked);
+            this.saveSettings();
+          });
+        }
+
+        // 4d. Global Gate Delay Slider
         const delaySlider = document.getElementById('settings-global-delay-slider');
         const delayVal = document.getElementById('settings-global-delay-val');
         if (delaySlider && delayVal) {
           const updateDelay = (val) => {
-            const intVal = parseInt(val, 10);
-            delayVal.textContent = `${intVal} Tick${intVal > 1 ? 's' : ''}`;
-            this.circuit.components.forEach(c => {
-              if (c.params && c.params.delay !== undefined) {
-                c.params.delay = intVal;
-              }
-            });
+            const intVal = parseInt(val, 10) || 1;
+            this.setGlobalGateDelay(intVal, true);
+            this.saveSettings();
           };
           delaySlider.addEventListener('input', (e) => updateDelay(e.target.value));
-          attachSliderHoldRepeat(delaySlider, (val) => updateDelay(val));
+          if (typeof attachSliderHoldRepeat === 'function') {
+            attachSliderHoldRepeat(delaySlider, (val) => updateDelay(val));
+          }
         }
 
         // 5. Workbench Theme Cards
@@ -19016,12 +19036,17 @@
             this.setHighSignalColor('#00e676');
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
-            this.setShowWireBridges(true);
+            this.setShowWireBridges(false);
+            this.setShowGateDelay(false);
+            this.setGlobalGateDelay(1, true);
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
-            if (chkWireBridges) chkWireBridges.checked = true;
+            if (chkWireBridges) chkWireBridges.checked = false;
+            if (chkGateDelay) chkGateDelay.checked = false;
+            if (delaySlider) delaySlider.value = '1';
+            if (delayVal) delayVal.textContent = '1 Tick';
             this.saveSettings();
             this.showToast('Einstellungen auf Standard zurückgesetzt.');
           });
