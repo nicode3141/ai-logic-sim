@@ -182,8 +182,14 @@
     [data-theme="java_swing"] .ctx-item {
       color: #000000 !important;
     }
+    [data-theme="java_swing"] .ctx-item * {
+      color: inherit;
+    }
     [data-theme="java_swing"] .ctx-item:hover {
       background: #0a246a !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item:hover * {
       color: #ffffff !important;
     }
     [data-theme="java_swing"] .ctx-item:hover svg {
@@ -192,12 +198,35 @@
     [data-theme="java_swing"] .ctx-item.danger {
       color: #b00000 !important;
     }
+    [data-theme="java_swing"] .ctx-item.danger * {
+      color: inherit;
+    }
     [data-theme="java_swing"] .ctx-item.danger:hover {
       background: #b00000 !important;
       color: #ffffff !important;
     }
+    [data-theme="java_swing"] .ctx-item.danger:hover * {
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger:hover svg {
+      stroke: #ffffff !important;
+    }
     [data-theme="java_swing"] .ctx-divider {
       background: #808080 !important;
+    }
+    [data-theme="java_swing"] .ctx-sub-label {
+      color: #333333 !important;
+    }
+    [data-theme="java_swing"] .ctx-chip {
+      background: #ece9d8 !important;
+      border: 1px solid #808080 !important;
+      color: #000000 !important;
+    }
+    [data-theme="java_swing"] .ctx-chip:hover,
+    [data-theme="java_swing"] .ctx-chip.active {
+      background: #0a246a !important;
+      border-color: #000080 !important;
+      color: #ffffff !important;
     }
 
     [data-theme="blueprint"] {
@@ -277,8 +306,14 @@
     [data-theme="light_cad"] .ctx-item {
       color: #0f172a !important;
     }
+    [data-theme="light_cad"] .ctx-item * {
+      color: inherit;
+    }
     [data-theme="light_cad"] .ctx-item:hover {
       background: #e0f2fe !important;
+      color: #0284c7 !important;
+    }
+    [data-theme="light_cad"] .ctx-item:hover * {
       color: #0284c7 !important;
     }
     [data-theme="light_cad"] .ctx-item:hover svg {
@@ -287,12 +322,32 @@
     [data-theme="light_cad"] .ctx-item.danger {
       color: #dc2626 !important;
     }
+    [data-theme="light_cad"] .ctx-item.danger * {
+      color: inherit;
+    }
     [data-theme="light_cad"] .ctx-item.danger:hover {
       background: #fee2e2 !important;
       color: #dc2626 !important;
     }
+    [data-theme="light_cad"] .ctx-item.danger:hover * {
+      color: #dc2626 !important;
+    }
     [data-theme="light_cad"] .ctx-divider {
       background: #e2e8f0 !important;
+    }
+    [data-theme="light_cad"] .ctx-sub-label {
+      color: #475569 !important;
+    }
+    [data-theme="light_cad"] .ctx-chip {
+      background: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    [data-theme="light_cad"] .ctx-chip:hover,
+    [data-theme="light_cad"] .ctx-chip.active {
+      background: #e0f2fe !important;
+      border-color: #0284c7 !important;
+      color: #0284c7 !important;
     }
 
     * {
@@ -3970,11 +4025,7 @@
         <div class="palette-category">
           <div class="category-title" data-i18n="palette.cat.gates">Logikgatter (Gates)</div>
           <div class="palette-grid">
-            <div class="palette-item" draggable="true" data-type="NEGATOR" title="Negation ○: auf einen Gatter-Pin ziehen">
-              <div class="palette-icon" id="pal-icon-NEGATOR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="8" y2="12"/><circle cx="12" cy="12" r="3.5" fill="#151a22"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
-              <div class="palette-name" data-i18n="comp.NEGATOR">Negator</div>
-            </div>
-            <div class="palette-item" draggable="true" data-type="NOT" title="NOT: invertiert das Signal">
+            <div class="palette-item" draggable="true" data-type="NOT" title="NOT (Invertierer): Auf Pin zum Invertieren (○), auf Leitung zum Einfügen oder frei platzieren">
               <div class="palette-icon" id="pal-icon-NOT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 5 15 12 5 19 5 5"/><circle cx="18" cy="12" r="2.2"/></svg></div>
               <div class="palette-name" data-i18n="comp.NOT">NOT</div>
             </div>
@@ -6263,6 +6314,13 @@
             };
             break;
         }
+
+        if (Array.isArray(customParams.invertedInputs)) {
+          this.params.invertedInputs = [...customParams.invertedInputs];
+        }
+        if (customParams.invertedOutput !== undefined) {
+          this.params.invertedOutput = Boolean(customParams.invertedOutput);
+        }
       }
 
       rebuildPins() {
@@ -6615,6 +6673,13 @@
         }
       }
 
+      getEffectiveInputValue(idx) {
+        if (!this.inputs || !this.inputs[idx]) return 0;
+        const raw = this.inputs[idx].value ? 1 : 0;
+        const isInv = Boolean(this.params?.invertedInputs?.[idx]);
+        return isInv ? (raw ? 0 : 1) : raw;
+      }
+
       /**
        * PHASE 1 (Read & Compute)
        */
@@ -6649,24 +6714,20 @@
             break;
           }
           case 'NOT': {
-            const raw0 = this.inputs[0]?.value ? 1 : 0;
-            const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
+            const in0 = this.getEffectiveInputValue(0);
             const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
             this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
             break;
           }
           case 'BUFFER': {
-            const raw0 = this.inputs[0]?.value ? 1 : 0;
-            const in0 = Boolean(this.params.invertedInputs?.[0]) ? (raw0 ? 0 : 1) : raw0;
+            const in0 = this.getEffectiveInputValue(0);
             const isOutInv = Boolean(this.params.invertedOutput);
             this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
             break;
           }
           case 'TRI_STATE': {
-            const inVal = this.inputs[0]?.value ? 1 : 0;
-            const enVal = this.inputs[1]?.value ? 1 : 0;
-            const effIn = Boolean(this.params.invertedInputs?.[0]) ? (inVal ? 0 : 1) : inVal;
-            const effEn = Boolean(this.params.invertedInputs?.[1]) ? (enVal ? 0 : 1) : enVal;
+            const effIn = this.getEffectiveInputValue(0);
+            const effEn = this.getEffectiveInputValue(1);
             const isOutInv = Boolean(this.params.invertedOutput);
             const base = effEn === 1 ? effIn : 0;
             this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
@@ -6674,12 +6735,9 @@
           }
           case 'MAJORITY': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let ones = 0;
             for (let i = 0; i < inCount; i++) {
-              const raw = this.inputs[i].value ? 1 : 0;
-              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
-              if (val === 1) ones++;
+              if (this.getEffectiveInputValue(i) === 1) ones++;
             }
             const base = ones >= Math.ceil(inCount / 2) ? 1 : 0;
             const isOutInv = Boolean(this.params.invertedOutput);
@@ -6688,12 +6746,9 @@
           }
           case 'AND': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let all = 1;
             for (let i = 0; i < inCount; i++) {
-              const raw = this.inputs[i].value ? 1 : 0;
-              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
-              if (val !== 1) {
+              if (this.getEffectiveInputValue(i) !== 1) {
                 all = 0;
                 break;
               }
@@ -6704,12 +6759,9 @@
           }
           case 'OR': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let any = 0;
             for (let i = 0; i < inCount; i++) {
-              const raw = this.inputs[i].value ? 1 : 0;
-              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
-              if (val === 1) {
+              if (this.getEffectiveInputValue(i) === 1) {
                 any = 1;
                 break;
               }
@@ -6720,12 +6772,9 @@
           }
           case 'NAND': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let all = 1;
             for (let i = 0; i < inCount; i++) {
-              const raw = this.inputs[i].value ? 1 : 0;
-              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
-              if (val !== 1) {
+              if (this.getEffectiveInputValue(i) !== 1) {
                 all = 0;
                 break;
               }
@@ -6736,12 +6785,9 @@
           }
           case 'NOR': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let any = 0;
             for (let i = 0; i < inCount; i++) {
-              const raw = this.inputs[i].value ? 1 : 0;
-              const val = (inv && inv[i]) ? (raw ? 0 : 1) : raw;
-              if (val === 1) {
+              if (this.getEffectiveInputValue(i) === 1) {
                 any = 1;
                 break;
               }
@@ -6752,24 +6798,21 @@
           }
           case 'XOR': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let base = 0;
             if (this.params.xorMode === 'parity') {
               let sum = 0;
               for (let i = 0; i < inCount; i++) {
-                const raw = this.inputs[i].value ? 1 : 0;
-                sum += (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+                sum += this.getEffectiveInputValue(i);
               }
               base = sum % 2;
             } else if (inCount === 2) {
-              const v0 = (inv && inv[0]) ? (this.inputs[0].value ? 0 : 1) : (this.inputs[0].value ? 1 : 0);
-              const v1 = (inv && inv[1]) ? (this.inputs[1].value ? 0 : 1) : (this.inputs[1].value ? 1 : 0);
+              const v0 = this.getEffectiveInputValue(0);
+              const v1 = this.getEffectiveInputValue(1);
               base = v0 ^ v1;
             } else {
               let ones = 0;
               for (let i = 0; i < inCount; i++) {
-                const raw = this.inputs[i].value ? 1 : 0;
-                if (((inv && inv[i]) ? (raw ? 0 : 1) : raw) === 1) ones++;
+                if (this.getEffectiveInputValue(i) === 1) ones++;
               }
               base = ones === 1 ? 1 : 0;
             }
@@ -6779,24 +6822,21 @@
           }
           case 'XNOR': {
             const inCount = this.inputs.length;
-            const inv = this.params.invertedInputs;
             let base = 0;
             if (this.params.xorMode === 'parity') {
               let sum = 0;
               for (let i = 0; i < inCount; i++) {
-                const raw = this.inputs[i].value ? 1 : 0;
-                sum += (inv && inv[i]) ? (raw ? 0 : 1) : raw;
+                sum += this.getEffectiveInputValue(i);
               }
               base = sum % 2;
             } else if (inCount === 2) {
-              const v0 = (inv && inv[0]) ? (this.inputs[0].value ? 0 : 1) : (this.inputs[0].value ? 1 : 0);
-              const v1 = (inv && inv[1]) ? (this.inputs[1].value ? 0 : 1) : (this.inputs[1].value ? 1 : 0);
+              const v0 = this.getEffectiveInputValue(0);
+              const v1 = this.getEffectiveInputValue(1);
               base = v0 ^ v1;
             } else {
               let ones = 0;
               for (let i = 0; i < inCount; i++) {
-                const raw = this.inputs[i].value ? 1 : 0;
-                if (((inv && inv[i]) ? (raw ? 0 : 1) : raw) === 1) ones++;
+                if (this.getEffectiveInputValue(i) === 1) ones++;
               }
               base = ones === 1 ? 1 : 0;
             }
@@ -6809,45 +6849,57 @@
             break;
           }
           case 'FULL_ADDER': {
-            const sum = (this.inputs[0]?.value ? 1 : 0) + (this.inputs[1]?.value ? 1 : 0) + (this.inputs[2]?.value ? 1 : 0);
-            this.nextOutputs[0] = sum & 1;
-            this.nextOutputs[1] = sum >> 1;
+            const sum = this.getEffectiveInputValue(0) + this.getEffectiveInputValue(1) + this.getEffectiveInputValue(2);
+            let s = sum & 1;
+            let c = sum >> 1;
+            if (this.params.invertedOutput) {
+              s = s ? 0 : 1;
+            }
+            this.nextOutputs[0] = s;
+            this.nextOutputs[1] = c;
             break;
           }
           case 'MUX': {
-            const sel = this.inputs[2]?.value ? 1 : 0;
-            this.nextOutputs[0] = (sel ? this.inputs[1]?.value : this.inputs[0]?.value) ? 1 : 0;
+            const in0 = this.getEffectiveInputValue(0);
+            const in1 = this.getEffectiveInputValue(1);
+            const sel = this.getEffectiveInputValue(2);
+            const out = (sel ? in1 : in0) ? 1 : 0;
+            this.nextOutputs[0] = this.params.invertedOutput ? (out ? 0 : 1) : out;
             break;
           }
           case 'DECODER': {
-            const addr = (this.inputs[0]?.value ? 1 : 0) + (this.inputs[1]?.value ? 2 : 0);
-            for (let i = 0; i < 4; i++) this.nextOutputs[i] = i === addr ? 1 : 0;
+            const addr = this.getEffectiveInputValue(0) + (this.getEffectiveInputValue(1) * 2);
+            for (let i = 0; i < 4; i++) {
+              const val = i === addr ? 1 : 0;
+              this.nextOutputs[i] = this.params.invertedOutput ? (val ? 0 : 1) : val;
+            }
             break;
           }
           case 'BCD_DEC': {
-            const d0 = this.inputs[0]?.value ? 1 : 0;
-            const d1 = this.inputs[1]?.value ? 1 : 0;
-            const d2 = this.inputs[2]?.value ? 1 : 0;
-            const d3 = this.inputs[3]?.value ? 1 : 0;
+            const d0 = this.getEffectiveInputValue(0);
+            const d1 = this.getEffectiveInputValue(1);
+            const d2 = this.getEffectiveInputValue(2);
+            const d3 = this.getEffectiveInputValue(3);
             const val = d3 * 8 + d2 * 4 + d1 * 2 + d0 * 1;
             this.state.nextVal = val;
 
             if (val <= 9 || this.params.hexMode) {
               const segs = BCD_SEGMENT_TABLE[val];
               for (let i = 0; i < 7; i++) {
-                this.nextOutputs[i] = segs ? segs[i] : 0;
+                const s = segs ? segs[i] : 0;
+                this.nextOutputs[i] = this.params.invertedOutput ? (s ? 0 : 1) : s;
               }
             } else {
               for (let i = 0; i < 7; i++) {
-                this.nextOutputs[i] = 0;
+                this.nextOutputs[i] = this.params.invertedOutput ? 1 : 0;
               }
             }
             break;
           }
           case 'COUNTER': {
-            const clk = this.inputs[0]?.value ? 1 : 0;
-            const en  = this.inputs[1]?.value ? 1 : 0;
-            const rst = this.inputs[2]?.value ? 1 : 0;
+            const clk = this.getEffectiveInputValue(0);
+            const en  = this.getEffectiveInputValue(1);
+            const rst = this.getEffectiveInputValue(2);
             const modulus = this.params.mode === 'bcd' ? 10 : 16;
 
             let nextCount = this.state.count;
@@ -6868,9 +6920,9 @@
             break;
           }
           case 'SHIFT_REG': {
-            const din = this.inputs[0]?.value ? 1 : 0;
-            const clk = this.inputs[1]?.value ? 1 : 0;
-            const rst = this.inputs[2]?.value ? 1 : 0;
+            const din = this.getEffectiveInputValue(0);
+            const clk = this.getEffectiveInputValue(1);
+            const rst = this.getEffectiveInputValue(2);
 
             let nextBits = [...this.state.bits];
             if (rst === 1) {
@@ -6893,9 +6945,9 @@
             break;
           }
           case 'SR_FF': {
-            const s   = this.inputs[0]?.value ? 1 : 0;
-            const clk = this.inputs[1]?.value ? 1 : 0;
-            const r   = this.inputs[2]?.value ? 1 : 0;
+            const s   = this.getEffectiveInputValue(0);
+            const clk = this.getEffectiveInputValue(1);
+            const r   = this.getEffectiveInputValue(2);
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (trig === 'falling' ? (clk === 0 && this.state.lastClk === 1) : true);
             this.state.nextLastClk = clk;
@@ -6915,8 +6967,8 @@
             break;
           }
           case 'D_FF': {
-            const d   = this.inputs[0]?.value ? 1 : 0;
-            const clk = this.inputs[1]?.value ? 1 : 0;
+            const d   = this.getEffectiveInputValue(0);
+            const clk = this.getEffectiveInputValue(1);
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -6927,9 +6979,9 @@
             break;
           }
           case 'JK_FF': {
-            const j   = this.inputs[0]?.value ? 1 : 0;
-            const clk = this.inputs[1]?.value ? 1 : 0;
-            const k   = this.inputs[2]?.value ? 1 : 0;
+            const j   = this.getEffectiveInputValue(0);
+            const clk = this.getEffectiveInputValue(1);
+            const k   = this.getEffectiveInputValue(2);
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -6949,8 +7001,8 @@
             break;
           }
           case 'T_FF': {
-            const t   = this.inputs[0]?.value ? 1 : 0;
-            const clk = this.inputs[1]?.value ? 1 : 0;
+            const t   = this.getEffectiveInputValue(0);
+            const clk = this.getEffectiveInputValue(1);
             const trig = this.params.trigger || 'rising';
             const isEdge = trig === 'rising' ? (clk === 1 && this.state.lastClk === 0) : (clk === 0 && this.state.lastClk === 1);
             this.state.nextLastClk = clk;
@@ -6964,8 +7016,8 @@
             break;
           }
           case 'D_LATCH': {
-            const d  = this.inputs[0]?.value ? 1 : 0;
-            const en = this.inputs[1]?.value ? 1 : 0;
+            const d  = this.getEffectiveInputValue(0);
+            const en = this.getEffectiveInputValue(1);
             const nextQ = en === 1 ? d : (this.state.q ?? 0);
             this.state.nextQ = nextQ;
             this.nextOutputs[0] = nextQ;
@@ -7231,6 +7283,90 @@
 
         const removed = this.wires.filter(w => w.toCompId === compId && w.toPin >= n).map(w => w.id);
         removed.forEach(id => this.removeWire(id));
+      }
+
+      snapOpenWiresToComponent(comp, snapRadius = 24) {
+        if (!comp || !this.wires) return 0;
+        let snappedCount = 0;
+
+        // 1. Input pins: look for open toPoint ends
+        for (let i = 0; i < comp.inputs.length; i++) {
+          const pinPos = comp.getPinWorldPos(false, i);
+          const existing = this.getWireToInput(comp.id, i);
+          if (existing) continue;
+
+          for (const w of this.wires) {
+            if (w.toPoint && !w.toCompId && !w.toWireId) {
+              const d = Math.hypot(w.toPoint.x - pinPos.x, w.toPoint.y - pinPos.y);
+              if (d <= snapRadius && w.fromCompId !== comp.id) {
+                w.toCompId = comp.id;
+                w.toPin = i;
+                w.toPoint = null;
+                w.toWireId = null;
+                w._toComp = comp;
+                w.waypoints = [];
+                snappedCount++;
+                break;
+              }
+            }
+          }
+        }
+
+        // 2. Output pins: look for open fromPoint starts
+        for (let i = 0; i < comp.outputs.length; i++) {
+          const pinPos = comp.getPinWorldPos(true, i);
+          for (const w of this.wires) {
+            if (w.fromPoint && !w.fromCompId && !w.fromWireId) {
+              const d = Math.hypot(w.fromPoint.x - pinPos.x, w.fromPoint.y - pinPos.y);
+              if (d <= snapRadius && w.toCompId !== comp.id) {
+                w.fromCompId = comp.id;
+                w.fromPin = i;
+                w.fromPoint = null;
+                w.fromWireId = null;
+                w._fromComp = comp;
+                w.waypoints = [];
+                snappedCount++;
+              }
+            }
+          }
+        }
+
+        if (snappedCount > 0) {
+          this.syncImmediateWireLevels();
+        }
+        return snappedCount;
+      }
+
+      inlineGateIntoWire(wire, gateType = 'NOT', x, y, customParams = {}) {
+        if (!wire || !this.wireMap.has(wire.id)) return null;
+        const gate = this.addComponent(gateType, x, y, customParams);
+        if (!gate) return null;
+
+        const origToCompId = wire.toCompId;
+        const origToPin = wire.toPin;
+        const origToWireId = wire.toWireId;
+        const origToPoint = wire.toPoint ? { ...wire.toPoint } : null;
+
+        wire.toCompId = gate.id;
+        wire.toPin = 0;
+        wire.toPoint = null;
+        wire.toWireId = null;
+        wire._toComp = gate;
+        wire.waypoints = [];
+
+        const newWire = this.addWire(
+          gate.id,
+          0,
+          origToCompId,
+          origToPin,
+          null,
+          [],
+          { toWireId: origToWireId, toPoint: origToPoint }
+        );
+
+        this.snapOpenWiresToComponent(gate);
+        this.syncImmediateWireLevels();
+        return { gate, wireIn: wire, wireOut: newWire };
       }
 
       getProbes() {
@@ -11995,20 +12131,32 @@
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
+          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+
+          if (!isGateComp && isInv) {
+            ctx.beginPath();
+            ctx.arc(px + 4.5, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = pal.bg || '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.leadLine || '#808080'));
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+          }
+
           if (pin.name === 'CLK') {
             ctx.strokeStyle = pal.leadLine;
             ctx.lineWidth = 1.2;
             ctx.beginPath();
-            ctx.moveTo(comp.x + 1, py - 4);
-            ctx.lineTo(comp.x + 6, py);
-            ctx.lineTo(comp.x + 1, py + 4);
+            const clkOffset = isInv ? 9 : 1;
+            ctx.moveTo(comp.x + clkOffset, py - 4);
+            ctx.lineTo(comp.x + clkOffset + 5, py);
+            ctx.lineTo(comp.x + clkOffset, py + 4);
             ctx.stroke();
           }
 
           if (!isGateComp && pin.name) {
-            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED'].includes(comp.type)) {
-              const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
-              const textOffsetX = isInv ? 16 : 9;
+            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type)) {
+              const textOffsetX = isInv ? 17 : 9;
               ctx.fillStyle = pal.textLabel;
               ctx.font = '600 9px monospace';
               ctx.textAlign = 'left';
@@ -12031,23 +12179,23 @@
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
+          const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
+          const isNegatedQ = isFF && pin.name === '!Q';
+          const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
+
+          if (!isGateComp && isInv) {
+            ctx.beginPath();
+            ctx.arc(px - 4.5, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = pal.bg || '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.leadLine || '#808080'));
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+          }
+
           if (!isGateComp && pin.name) {
-            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED'].includes(comp.type)) {
-              const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
-              const isNegatedQ = isFF && pin.name === '!Q';
-              const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
-
-              if (isNegatedQ) {
-                ctx.beginPath();
-                ctx.arc(px - 4, py, 3.2, 0, Math.PI * 2);
-                ctx.fillStyle = pal.bg;
-                ctx.fill();
-                ctx.strokeStyle = pal.wireLow;
-                ctx.lineWidth = 1.3;
-                ctx.stroke();
-              }
-
-              const textOffsetX = isInv ? 16 : 9;
+            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type)) {
+              const textOffsetX = isInv ? 17 : 9;
               ctx.fillStyle = pal.textLabel;
               ctx.font = '600 9px monospace';
               ctx.textAlign = 'right';
@@ -16016,6 +16164,18 @@
         }
 
         this.circuit.syncImmediateWireLevels();
+
+        let totalSnapped = 0;
+        for (const compId of newCompIds) {
+          const comp = this.circuit.getComponent(compId);
+          if (comp) {
+            totalSnapped += this.snapOpenWiresToComponent(comp);
+          }
+        }
+        if (totalSnapped > 0) {
+          this.showToast(totalSnapped === 1 ? '1 offene Leitung eingerastet' : `${totalSnapped} offene Leitungen eingerastet`);
+        }
+
         this.selectMulti(newCompIds, newWireIds);
         this.refreshAll();
       }
@@ -16655,8 +16815,8 @@
             return;
           }
 
-          if (type === 'NEGATOR') {
-            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 22);
+          if (type === 'NOT' || type === 'NEGATOR') {
+            const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 24);
             if (pinHit) {
               const comp = tab.circuit.getComponent(pinHit.compId);
               if (comp) {
@@ -16671,18 +16831,53 @@
                   this.showToast(`○ Eingang ${pinHit.name || ('X' + (pinHit.pinIndex + 1))} von ${comp.params.label || comp.type} ${comp.params.invertedInputs[pinHit.pinIndex] ? 'negiert (○)' : 'normal'}`);
                 }
                 tab.circuit.syncImmediateWireLevels();
-                renderer.render();
+                this.commitHistory(tab);
+                this.refreshAll();
                 return;
               }
             }
+
+            const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 18);
+            if (hitWire) {
+              const notX = Math.round((worldPos.x - 40) / GRID_SIZE) * GRID_SIZE;
+              const notY = Math.round((worldPos.y - 20) / GRID_SIZE) * GRID_SIZE;
+              const res = tab.circuit.inlineGateIntoWire(hitWire, 'NOT', notX, notY, this.getDefaultParamsForNewComponent('NOT'));
+              if (res && res.gate) {
+                if (canvas === this.gridCanvas) {
+                  this.selectItem(res.gate.id, null);
+                  this.highlightInspector();
+                }
+                this.cleanWireWaypoints(res.wireIn);
+                this.cleanWireWaypoints(res.wireOut);
+                this.commitHistory(tab);
+                this.refreshAll();
+                this.showToast('Invertierer (NOT-Gatter) in Leitung eingefügt');
+                return;
+              }
+            }
+
+            const notX = Math.round((worldPos.x - 40) / GRID_SIZE) * GRID_SIZE;
+            const notY = Math.round((worldPos.y - 20) / GRID_SIZE) * GRID_SIZE;
             const comp = tab.circuit.addComponent(
               'NOT',
-              worldPos.x - 40,
-              worldPos.y - 20,
+              notX,
+              notY,
               this.getDefaultParamsForNewComponent('NOT')
             );
-            this.showToast('○ Invertierer (NOT-Gatter) platziert.');
-            renderer.render();
+            if (comp) {
+              const snapped = this.snapOpenWiresToComponent(comp);
+              if (snapped > 0) {
+                this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
+              } else {
+                this.showToast('○ Invertierer (NOT-Gatter) platziert.');
+              }
+              if (canvas === this.gridCanvas) {
+                this.selectItem(comp.id, null);
+                this.highlightInspector();
+              }
+            }
+            this.commitHistory(tab);
+            this.refreshAll();
             return;
           }
 
@@ -16693,13 +16888,33 @@
             worldPos.y - 25,
             customParams
           );
+          if (comp) {
+            const snapped = this.snapOpenWiresToComponent(comp);
+            if (snapped > 0) {
+              this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
+            }
+          }
           renderer.render();
-          if (canvas === this.gridCanvas) {
+          if (canvas === this.gridCanvas && comp) {
             this.selectItem(comp.id, null);
             this.highlightInspector();
           }
+          this.commitHistory(tab);
           this.refreshAll();
         });
+      }
+
+      snapOpenWiresToComponent(comp, snapRadius = 24) {
+        if (!comp || !this.circuit) return 0;
+        const count = this.circuit.snapOpenWiresToComponent(comp, snapRadius);
+        if (count > 0) {
+          for (const w of this.circuit.wires) {
+            if (w.toCompId === comp.id || w.fromCompId === comp.id) {
+              this.cleanWireWaypoints(w);
+            }
+          }
+        }
+        return count;
       }
 
       getDefaultParamsForNewComponent(type) {
@@ -16744,7 +16959,7 @@
             const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
             if (pinHit) {
               const comp = this.circuit.getComponent(pinHit.compId);
-              if (comp && this.renderer.isGate(comp.type)) {
+              if (comp && (this.renderer.isGate(comp.type) || (pinHit.isOutput ? comp.outputs.length > 0 : comp.inputs.length > 0))) {
                 if (pinHit.isOutput) {
                   comp.params.invertedOutput = !comp.params.invertedOutput;
                 } else {
@@ -17527,7 +17742,7 @@
           const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
           if (pinHit) {
             const comp = this.circuit.getComponent(pinHit.compId);
-            if (comp && this.renderer.isGate(comp.type)) {
+            if (comp && (this.renderer.isGate(comp.type) || (pinHit.isOutput ? comp.outputs.length > 0 : comp.inputs.length > 0))) {
               if (pinHit.isOutput) {
                 comp.params.invertedOutput = !comp.params.invertedOutput;
               } else {
@@ -18032,7 +18247,10 @@
           });
           menu.appendChild(openInspect);
 
-          if (this.renderer.isGate(comp.type)) {
+          const canInvertOut = comp.outputs && comp.outputs.length > 0 && comp.type !== 'SWITCH' && comp.type !== 'BUTTON' && comp.type !== 'CLOCK' && comp.type !== 'CONST';
+          const canInvertIn = comp.inputs && comp.inputs.length > 0 && comp.type !== 'PROBE';
+
+          if (canInvertOut) {
             const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR' || comp.type === 'XNOR');
             const invOutItem = document.createElement('div');
             invOutItem.className = 'ctx-item';
@@ -18046,36 +18264,38 @@
               this.hideContextMenu();
             });
             menu.appendChild(invOutItem);
+          }
 
-            if (comp.inputs && comp.inputs.length > 0) {
-              const inInvLabel = document.createElement('div');
-              inInvLabel.className = 'ctx-sub-label';
-              inInvLabel.textContent = 'Eingänge invertieren (○):';
-              menu.appendChild(inInvLabel);
+          if (canInvertIn) {
+            const inInvLabel = document.createElement('div');
+            inInvLabel.className = 'ctx-sub-label';
+            inInvLabel.textContent = 'Eingänge invertieren (○):';
+            menu.appendChild(inInvLabel);
 
-              const inInvRow = document.createElement('div');
-              inInvRow.className = 'ctx-sub-row';
-              for (let i = 0; i < comp.inputs.length; i++) {
-                const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
-                const chip = document.createElement('span');
-                chip.className = 'ctx-chip' + (isInv ? ' active' : '');
-                chip.textContent = `○ X${i + 1}`;
-                chip.title = `Eingang X${i + 1} ${isInv ? 'ent-negieren' : 'negieren'}`;
-                chip.addEventListener('click', () => {
-                  if (this.engine.mode === 'sim') return;
-                  if (!Array.isArray(comp.params.invertedInputs)) {
-                    comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
-                  }
-                  comp.params.invertedInputs[i] = !isInv;
-                  this.circuit.syncImmediateWireLevels();
-                  this.inspector.render(comp.id, null);
-                  this.refreshAll();
-                  this.hideContextMenu();
-                });
-                inInvRow.appendChild(chip);
-              }
-              menu.appendChild(inInvRow);
+            const inInvRow = document.createElement('div');
+            inInvRow.className = 'ctx-sub-row';
+            for (let i = 0; i < comp.inputs.length; i++) {
+              const pin = comp.inputs[i];
+              const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
+              const chip = document.createElement('span');
+              chip.className = 'ctx-chip' + (isInv ? ' active' : '');
+              const pinLabel = pin.name || `X${i + 1}`;
+              chip.textContent = `○ ${pinLabel}`;
+              chip.title = `Eingang ${pinLabel} ${isInv ? 'ent-negieren' : 'negieren'}`;
+              chip.addEventListener('click', () => {
+                if (this.engine.mode === 'sim') return;
+                if (!Array.isArray(comp.params.invertedInputs)) {
+                  comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
+                }
+                comp.params.invertedInputs[i] = !isInv;
+                this.circuit.syncImmediateWireLevels();
+                this.inspector.render(comp.id, null);
+                this.refreshAll();
+                this.hideContextMenu();
+              });
+              inInvRow.appendChild(chip);
             }
+            menu.appendChild(inInvRow);
           }
 
           if (this.renderer.isGate(comp.type) && comp.type !== 'NOT') {
@@ -18199,7 +18419,11 @@
               comp.y + 40,
               { ...comp.params, label: comp.params.label ? `${comp.params.label}_2` : undefined }
             );
-            this.selectItem(newComp.id, null);
+            if (newComp) {
+              const sn = this.snapOpenWiresToComponent(newComp);
+              if (sn > 0) this.showToast(sn === 1 ? '1 offene Leitung eingerastet' : `${sn} offene Leitungen eingerastet`);
+            }
+            this.selectItem(newComp ? newComp.id : null, null);
             this.highlightInspector();
             this.refreshAll();
             this.hideContextMenu();

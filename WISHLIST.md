@@ -43,10 +43,29 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-023** | Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen | `alpha` | 🟢 **Completed** | Beim Rechtsklick auf einen Leitungs-Eckpunkt (Wegpunkt) kann nicht nur der einzelne Eckpunkt gelöscht werden, sondern direkt auch die gesamte Leitung („Ganze Leitung löschen“); zudem Option zum Begradigen und Neu verlegen. |
 | **WISH-024** | Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls | `alpha` | 🟢 **Completed** | Ungewolltes vertikales Zoom-Skalieren & blauer 3px-Balken entfernt; flüssiges horizontales Bewegen/Pannen entlang des Zeit-/Tickstrahls; synchrone Playback-Controls (-1 Tick, Start/Pause, +1 Tick) im Diagramm-Header. |
 | **WISH-025** | Taktfrequenz im laufenden Betrieb ändern & Impulsdiagramm-Klammern synchronisieren | `alpha` | 🟢 **Completed** | Taktfrequenz-Slider (`#slider-freq`) ohne Ruckeln im laufenden Betrieb stufenlos verstellbar (Smooth-Scaling des Akkumulators); Impulsdiagramm-Klammern (`[` und `]`) bleiben während der Simulation fest an ihren Ticks verankert und lassen sich flüssig verschieben; Taktänderung aktualisiert die Millisekunden-Dauer der Klammern und die Loop-Playback-Rate in Echtzeit. |
+| **WISH-026** | Auto-Snap offener Leitungen, vereinte NOT-Palette mit Pin-Invertierung & Wire-Inlining | `alpha` | 🟢 **Completed** | Offene Leitungs-Enden (`toPoint` und `fromPoint`) rasten beim Platzieren (Drag & Drop) oder Einfügen (Strg+V, Duplizieren) von Modulen automatisch an deren Pins ein. Palette auf ein einziges NOT-Gatter vereinheitlicht (redundanten Negator entfernt); NOT invertiert bei Drop auf Pin beliebiger Module den Ein-/Ausgang (○-Blase) und schaltet sich bei Drop auf eine Leitung automatisch inline als Invertierer dazwischen. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-026 (Auto-Snap offener Leitungen, vereinte NOT-Palette, Pin-Invertierung & Wire-Inlining)**:
+  - **Auto-Snap offener Leitungen an neue/gepastete Module**:
+    - Neue Methode `Circuit.prototype.snapOpenWiresToComponent(comp, snapRadius = 24)` und `App.prototype.snapOpenWiresToComponent`.
+    - Beim Drag & Drop aus der Palette, beim Einfügen per Tastaturkürzel (Strg+V / `pasteClipboard`), beim Duplizieren der Auswahl (`duplicateSelection`) und beim Duplizieren per Kontextmenü („Bauteil duplizieren“) werden alle im Fangradius befindlichen offenen Leitungs-Enden (`w.toPoint` an Eingangs-Pins) und offenen Leitungs-Starts (`w.fromPoint` an Ausgangs-Pins) automatisch sauber angeschlossen.
+    - Leitungs-Wegpunkte werden nach dem Einrasten begradigt (`cleanWireWaypoints`) und Signalpegel sofort synchronisiert (`syncImmediateWireLevels`). Toast-Rückmeldung bei erfolgreichem Einrasten.
+  - **Palette auf ein einziges NOT vereinheitlicht**:
+    - Redundanter Eintrag `NEGATOR` aus der Palette entfernt; nur noch ein einziges `NOT`-Element vorhanden.
+    - Drag & Drop des NOT-Gatters unterstützt 3 intuitive Anwendungsfälle:
+      1. **Drop auf Pin eines beliebigen Moduls**: Invertiert den Pin direkt (Eingangs-Invertierung `invertedInputs[i]` oder Ausgangs-Invertierung `invertedOutput`).
+      2. **Drop auf eine bestehende Leitung**: `circuit.inlineGateIntoWire(wire, 'NOT', x, y)` trennt die Leitung automatisch auf und schaltet das NOT-Gatter inline dazwischen (Signalquelle speist NOT-Eingang, NOT-Ausgang speist das ursprüngliche Ziel).
+      3. **Drop auf freie Arbeitsfläche**: Platziert ein normales NOT-Gatter und rastet offene Leitungen in der Nähe automatisch ein.
+  - **Pin-Invertierung (`○`) auf ALLEN Modulen (Gates & IC-Module)**:
+    - `Component.prototype.getEffectiveInputValue(idx)` vereinheitlicht das Auslesen von invertierten Eingängen über alle Modultypen (Full Adder, Multiplexer, Decoder, BCD-Decoder, 4-Bit Counter, Shift Register, D-FF, JK-FF, T-FF, SR-Latch, LED, 7-Segment).
+    - `CanvasRenderer.prototype.drawComponentPins` zeichnet gestochen scharfe Negations-Blasen (`○`, Radius 3.2px) an den Eingängen und Ausgängen aller Nicht-Gatter-Module.
+    - Kontextmenü und Alt-Klick unterstützen Pin-Invertierung nun für sämtliche Bauteile mit Ein- oder Ausgängen.
+  - **GUI-Kontrast im Kontextmenü gehärtet**:
+    - Bulletproof CSS-Regeln für `.ctx-item` und Kindelemente (`.ctx-item *`) im Java Swing- und Light CAD-Design, sodass Text und Icons bei Hover und Normalzustand stets maximalen Kontrast aufweisen.
 
 - **WISH-025 (Taktfrequenz im laufenden Betrieb & Impulsdiagramm-Klammern)**:
   - **Taktfrequenz im laufenden Betrieb**:
