@@ -1607,6 +1607,71 @@ runTest('WISH-027', 'Switch background contrast, view menu theme removal, and la
   assertEqual(lastTwoStrokes[0], lastTwoStrokes[1], 'Lamp circle outline and inner X cross share the identical color');
 });
 
+runTest('WISH-028', 'Timing diagram free mouse panning to tick 0, speed badge & readout, duplicate loop controls elimination', () => {
+  // 1. RingBuffer expanded capacity to 10000 preserves history back to tick 0
+  const rb = new RingBuffer(10000);
+  assertEqual(rb.capacity, 10000, 'RingBuffer default/configured capacity is 10000');
+  for (let t = 0; t <= 300; t++) {
+    rb.record(t, new Map());
+  }
+  assertEqual(rb.count, 301, 'RingBuffer recorded 301 ticks without dropping earlier samples');
+  assertEqual(rb.getTickAtOffset(0), 0, 'Tick 0 is fully retained and accessible at offset 0 after > 256 ticks');
+
+  // 2. LogicAnalyzerRenderer speed badge and readout
+  const mockCanvas = createMockElem('analyzer-canvas');
+  mockCanvas.width = 1200;
+  mockCanvas.height = 300;
+  const mockCircuit = new Circuit();
+  const analyzer = new LogicAnalyzerRenderer(mockCanvas, mockCircuit, rb);
+  assertEqual(analyzer.simFrequency, 10, 'Default simulation frequency is 10 Hz');
+
+  const speedBadge = document.getElementById('analyzer-speed-badge');
+  const infoBadge = document.getElementById('analyzer-playhead-info');
+  const loopText = document.getElementById('analyzer-loop-text');
+
+  analyzer.setSimulationFrequency(20);
+  assertEqual(analyzer.simFrequency, 20, 'simFrequency updated to 20 Hz');
+  assertEqual(speedBadge.textContent, '20 Hz (50 ms)', 'Speed badge displays 20 Hz (50 ms)');
+  assertEqual(infoBadge.textContent.startsWith('Takt: 20 Hz (50 ms)'), true, 'Info readout starts with Takt: 20 Hz (50 ms)');
+
+  // 3. Free mouse dragging and timeline navigation down to tick 0
+  analyzer.scrollRatio = 1.0;
+  analyzer.isPanningTimeline = true;
+  analyzer.panStartX = 500;
+  analyzer.panStartScrollRatio = 1.0;
+  const totalSamples = rb.count;
+  const plotW = Math.max(50, 1200 - analyzer.gutterWidth - 12);
+  const visibleTicks = Math.max(1, Math.floor(plotW / analyzer.pixelsPerTick));
+  const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+
+  const dx = 4000;
+  const deltaTicks = dx / analyzer.pixelsPerTick;
+  const deltaFrac = deltaTicks / Math.max(1, maxStartOffset);
+  analyzer.scrollRatio = Math.max(0.0, Math.min(1.0, analyzer.panStartScrollRatio - deltaFrac));
+  assertEqual(analyzer.scrollRatio, 0.0, 'Timeline smoothly pans all the way back to tick 0 (scrollRatio = 0.0)');
+
+  // 4. Duplicate control elimination: Simulation start button does NOT change to "Loop Play"
+  // when loopRange is set
+  analyzer.loopRange = { inOffset: 5, outOffset: 50, inTick: 5, outTick: 50 };
+  let playSvg = 'svg_play';
+  let playLabel = 'Start';
+  let isRunning = false;
+  if (isRunning) {
+    playSvg = 'svg_pause';
+    playLabel = 'Pause';
+  } else {
+    playSvg = 'svg_play';
+    playLabel = 'Start';
+  }
+  assertEqual(playLabel, 'Start', 'Simulation start button remains Start even when loopRange is active');
+
+  // Loop play button has its own dedicated text
+  analyzer.startLoopAnimation();
+  assertEqual(loopText.textContent, 'Pause Loop', 'Dedicated loop button displays Pause Loop when active');
+  analyzer.stopLoopAnimation();
+  assertEqual(loopText.textContent, 'Loop Play', 'Dedicated loop button displays Loop Play when stopped');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

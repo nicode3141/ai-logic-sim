@@ -4243,7 +4243,7 @@
             <span id="analyzer-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             <span>Impulsdiagramm</span>
           </button>
-          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 0/256 Ticks)</span>
+          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 0 Ticks)</span>
         </div>
 
         <div class="toolbar-group sim-deck" id="analyzer-sim-controls">
@@ -4259,6 +4259,7 @@
             <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
             <span class="btn-text">+1 Tick</span>
           </button>
+          <span id="analyzer-speed-badge" style="font-size: 11px; padding: 2px 7px; background: var(--bg-elevated); border: 1px solid var(--border-dim); border-radius: var(--btn-radius); font-family: var(--font-mono); color: var(--accent-cyan); display: inline-flex; align-items: center;" title="Aktuelle Simulations-Geschwindigkeit">10 Hz (100 ms)</span>
         </div>
 
         <div class="toolbar-group">
@@ -5932,10 +5933,10 @@
     const HEX_CHARS = ['0','1','2','3','4','5','6','7','8','9','A','b','C','d','E','F'];
 
     /**
-     * O(1) RingBuffer for Logic Analyzer Waveform History (Capacity N = 256 Ticks)
+     * O(1) RingBuffer for Logic Analyzer Waveform History (Capacity N = 10000 Ticks)
      */
     class RingBuffer {
-      constructor(capacity = 256) {
+      constructor(capacity = 10000) {
         this.capacity = capacity;
         this.ticks = new Uint32Array(capacity);
         this.channels = new Map(); // probeId -> Uint8Array(capacity)
@@ -12333,6 +12334,13 @@
           const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
 
           if (this.activeBracketDrag === 'in' && this.loopRange) {
+            if (this.hoverX < this.gutterWidth + 24 && maxStartOffset > 0) {
+              const overDist = Math.max(1, (this.gutterWidth + 24) - this.hoverX);
+              const step = Math.min(0.05, (overDist / 20) * 0.03);
+              this.scrollRatio = Math.max(0.0, this.scrollRatio - step);
+              const scrollSlider = document.getElementById('slider-time-scroll');
+              if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+            }
             const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
             const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
             const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, currentStartOffset + relIdx));
@@ -12343,6 +12351,14 @@
             this.render();
             return;
           } else if (this.activeBracketDrag === 'out' && this.loopRange) {
+            const plotRight = this.gutterWidth + plotW;
+            if (this.hoverX > plotRight - 24 && maxStartOffset > 0) {
+              const overDist = Math.max(1, this.hoverX - (plotRight - 24));
+              const step = Math.min(0.05, (overDist / 20) * 0.03);
+              this.scrollRatio = Math.min(1.0, this.scrollRatio + step);
+              const scrollSlider = document.getElementById('slider-time-scroll');
+              if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+            }
             const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
             const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
             const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, currentStartOffset + relIdx));
@@ -12356,7 +12372,11 @@
 
           if (this.isPanningTimeline && this.panStartX !== null) {
             const dx = clientX - this.panStartX;
-            const deltaFrac = (dx / plotW) * (visibleTicks / Math.max(1, totalSamples));
+            if (Math.abs(dx) > 3) {
+              this.panHasMoved = true;
+            }
+            const deltaTicks = dx / this.pixelsPerTick;
+            const deltaFrac = deltaTicks / Math.max(1, maxStartOffset);
             this.scrollRatio = Math.max(0.0, Math.min(1.0, this.panStartScrollRatio - deltaFrac));
             const scrollSlider = document.getElementById('slider-time-scroll');
             if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
@@ -12367,6 +12387,20 @@
 
           // Direct smooth playhead navigation along the time axis (Tickstrahl)
           const plotRight = this.gutterWidth + plotW;
+          if (this.hoverX < this.gutterWidth + 24 && maxStartOffset > 0) {
+            const overDist = Math.max(1, (this.gutterWidth + 24) - this.hoverX);
+            const step = Math.min(0.05, (overDist / 20) * 0.03);
+            this.scrollRatio = Math.max(0.0, this.scrollRatio - step);
+            const scrollSlider = document.getElementById('slider-time-scroll');
+            if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+          } else if (this.hoverX > plotRight - 24 && maxStartOffset > 0) {
+            const overDist = Math.max(1, this.hoverX - (plotRight - 24));
+            const step = Math.min(0.05, (overDist / 20) * 0.03);
+            this.scrollRatio = Math.min(1.0, this.scrollRatio + step);
+            const scrollSlider = document.getElementById('slider-time-scroll');
+            if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+          }
+
           const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
           const clampedX = Math.max(this.gutterWidth, Math.min(plotRight, this.hoverX));
           const relIdx = Math.floor((clampedX - this.gutterWidth) / this.pixelsPerTick);
@@ -12413,7 +12447,7 @@
           } else if (this.hoverY <= 22) {
             this.canvas.style.cursor = 'ew-resize';
           } else {
-            this.canvas.style.cursor = 'crosshair';
+            this.canvas.style.cursor = 'grab';
           }
           this.render();
         });
@@ -12443,6 +12477,7 @@
               this.isPanningTimeline = true;
               this.panStartX = e.clientX;
               this.panStartScrollRatio = this.scrollRatio;
+              this.panHasMoved = false;
               this.canvas.style.cursor = 'grabbing';
               return;
             }
@@ -12467,20 +12502,40 @@
               this.stopLoopAnimation();
             }
 
-            this.isScrubbing = true;
-            this.scrubStartedInRuler = (my <= 22);
+            const phX = (this.playheadOffset !== null)
+              ? this.gutterWidth + (this.playheadOffset - startOffset + 0.5) * this.pixelsPerTick
+              : -999;
+            const isNearPlayhead = Math.abs(mx - phX) <= 8;
 
-            const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
-            this.setPlayheadOffset(targetOffset);
-            this.render();
+            if (my <= 22 || isNearPlayhead) {
+              this.isScrubbing = true;
+              this.scrubStartedInRuler = true;
+              const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
+              const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
+              this.setPlayheadOffset(targetOffset);
+              this.canvas.style.cursor = 'ew-resize';
+              this.render();
+            } else {
+              this.isPanningTimeline = true;
+              this.panStartX = e.clientX;
+              this.panStartScrollRatio = this.scrollRatio;
+              this.panHasMoved = false;
+              const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
+              this.panClickTargetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
+              this.canvas.style.cursor = 'grabbing';
+            }
           }
         });
 
         window.addEventListener('mouseup', () => {
+          if (this.isPanningTimeline && !this.panHasMoved && this.panClickTargetOffset !== undefined) {
+            this.setPlayheadOffset(this.panClickTargetOffset);
+          }
           this.isScrubbing = false;
           this.isPanningTimeline = false;
           this.panStartX = null;
+          this.panHasMoved = false;
+          this.panClickTargetOffset = undefined;
           this.activeBracketDrag = null;
           this.scrubStartedInRuler = false;
           this.scrubOriginY = null;
@@ -12758,6 +12813,8 @@
 
         const btnLoop = document.getElementById('btn-analyzer-loop');
         if (btnLoop) btnLoop.classList.add('active');
+        const loopText = document.getElementById('analyzer-loop-text');
+        if (loopText) loopText.textContent = 'Pause Loop';
 
         if (this.loopInterval) clearInterval(this.loopInterval);
         const loopTickMs = Math.max(10, Math.round(1000 / (this.simFrequency || 10)));
@@ -12785,6 +12842,8 @@
         }
         const btnLoop = document.getElementById('btn-analyzer-loop');
         if (btnLoop) btnLoop.classList.remove('active');
+        const loopText = document.getElementById('analyzer-loop-text');
+        if (loopText) loopText.textContent = 'Loop Play';
         this.updateLoopUi();
         if (this.callbacks?.onLoopStateChange) this.callbacks.onLoopStateChange();
       }
@@ -12793,6 +12852,11 @@
         const oldFreq = this.simFrequency || 10;
         const newFreq = Math.max(1, Math.min(60, parseInt(freq, 10) || 10));
         this.simFrequency = newFreq;
+
+        const speedBadge = document.getElementById('analyzer-speed-badge');
+        if (speedBadge) {
+          speedBadge.textContent = `${newFreq} Hz (${Math.round(1000 / newFreq)} ms)`;
+        }
 
         if (this.loopRange && this.ringBuffer && this.ringBuffer.count > 0 && oldFreq !== newFreq) {
           const inOffset = this.loopRange.inOffset;
@@ -12865,6 +12929,13 @@
       }
 
       updateLoopUi() {
+        const speedBadge = document.getElementById('analyzer-speed-badge');
+        const freq = this.simFrequency || 10;
+        const tickMs = Math.round(1000 / freq);
+        if (speedBadge) {
+          speedBadge.textContent = `${freq} Hz (${tickMs} ms)`;
+        }
+
         const badge = document.getElementById('analyzer-playhead-info');
         if (!badge) return;
 
@@ -12876,10 +12947,10 @@
         const startOffset = Math.round(maxStartOffset * this.scrollRatio);
         const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
 
-        let info = '';
+        let info = `Takt: ${freq} Hz (${tickMs} ms)`;
         if (this.playheadOffset !== null && totalSamples > 0) {
           const tick = this.ringBuffer.getTickAtOffset(this.playheadOffset);
-          info += `Playhead: t = ${tick}`;
+          info += ` | Playhead: t = ${tick}`;
         }
         if (totalSamples > 0) {
           const tStart = this.ringBuffer.getTickAtOffset(startOffset);
@@ -12890,9 +12961,8 @@
           const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
           const span = Math.max(1, tOut - tIn);
-          const freq = this.simFrequency || 10;
           const ms = Math.round((span / freq) * 1000);
-          info += ` | [ Klammern: t = ${tIn}..${tOut} (${span} T | ${ms} ms @ ${freq} Hz) ]`;
+          info += ` | [ Klammern: t = ${tIn}..${tOut} (${span} T | ${ms} ms) ]`;
         }
         badge.textContent = info;
       }
@@ -12970,7 +13040,7 @@
         const probes = this.circuit.getProbes();
         const countLabel = document.getElementById('analyzer-probe-count');
         if (countLabel) {
-          countLabel.textContent = `(${probes.length} Kanäle | ${this.ringBuffer.count}/256 Ticks)`;
+          countLabel.textContent = `(${probes.length} Kanäle | ${this.ringBuffer.count} Ticks)`;
         }
 
         if (probes.length === 0) {
@@ -14921,7 +14991,7 @@
         this.id = id;
         this.title = title || 'Schaltung';
         this.circuit = circuit || new Circuit();
-        this.ringBuffer = ringBuffer || new RingBuffer(256);
+        this.ringBuffer = ringBuffer || new RingBuffer(10000);
         this.undoStack = [];
         this.redoStack = [];
         this.lastSnapshot = null;
@@ -14938,7 +15008,7 @@
      */
     class LogicSimApp {
       constructor() {
-        this.ringBuffer = new RingBuffer(256);
+        this.ringBuffer = new RingBuffer(10000);
         this.circuit = new Circuit();
         this.clipboard = null;
         this.lastMouseWorldPos = null;
@@ -16304,17 +16374,7 @@
         let playLabel = 'Start';
         let playClass = 'btn btn-primary';
 
-        if (this.analyzer?.loopRange) {
-          if (this.analyzer.isLoopPlaying) {
-            playSvg = ICONS.pause;
-            playLabel = 'Pause Loop';
-            playClass = 'btn btn-warning';
-          } else {
-            playSvg = ICONS.play;
-            playLabel = 'Loop Play';
-            playClass = 'btn btn-primary';
-          }
-        } else if (this.engine.running) {
+        if (this.engine.running) {
           playSvg = ICONS.pause;
           playLabel = 'Pause';
           playClass = 'btn btn-warning';
@@ -16477,19 +16537,15 @@
         });
 
         const onToggleSimPlay = () => {
-          if (this.analyzer?.loopRange) {
-            if (this.engine.running) this.engine.pause();
-            this.analyzer.toggleLoopAnimation();
-            this.updateHUDAndToolbar();
-          } else {
-            if (this.analyzer?.isLoopPlaying) this.analyzer.stopLoopAnimation();
-            if (!this.engine.running && this.analyzer?.playheadOffset !== null) {
-              this.analyzer.playheadOffset = null;
-              this.analyzer.updateLoopUi();
-              this.analyzer.render();
-            }
-            this.engine.toggleRun();
+          if (this.analyzer?.isLoopPlaying) {
+            this.analyzer.stopLoopAnimation();
           }
+          if (!this.engine.running && this.analyzer?.playheadOffset !== null) {
+            this.analyzer.playheadOffset = null;
+            this.analyzer.updateLoopUi();
+            this.analyzer.render();
+          }
+          this.engine.toggleRun();
         };
 
         document.getElementById('btn-sim-start').addEventListener('click', onToggleSimPlay);
