@@ -32,6 +32,7 @@ The **Alpha Milestone** represents a comprehensive transformation of the AI Logi
 * **Dynamic Loop Brackets (WISH-025)**: Bracket controls (<kbd>[ In</kbd> and <kbd>] Out</kbd>) for loop playback anchored to exact ticks, with real-time millisecond duration scaling upon frequency adjustments.
 
 #### 3. Visual Customization & Signal Contrasts
+* **Pushbutton (Taster) Lever & DIN EN 60617 Actuator (WISH-030)**: Complete geometry refactoring for `BUTTON` components: unpressed resting state cleanly contacts 0 (`botY`), pressed active state connects to 1 (`topY`), and the actuator plunger with tactile push cap is centered at the blade midpoint without overlapping contacts or text labels.
 * **Signal Colors (HIGH & LOW) Customization (WISH-021)**: Full user control over HIGH (1) and LOW (0) wire colors with live preview bar, 8 balanced color presets, and fluid 60 FPS color pickers.
 * **DIN EN 60617 Lamp Indicator Symbol (WISH-020, WISH-027)**: LEDs/lamps rendered according to international electrical standards as a pure circle with an internal diagonal cross (X), matching the outer outline color across both active and inactive states.
 * **Switch & Source Component Contrast (WISH-027)**: Switch, button, and clock chassis interiors utilize `pal.gateFill` (clean white `#ffffff` in Java Swing and Light CAD), guaranteeing distinct visual contrast against dark LOW signal colors.

@@ -1672,6 +1672,73 @@ runTest('WISH-028', 'Timing diagram free mouse panning to tick 0, speed badge & 
   assertEqual(loopText.textContent, 'Loop Play', 'Dedicated loop button displays Loop Play when stopped');
 });
 
+runTest('WISH-030', 'Pushbutton (Taster) lever geometry & DIN EN 60617 actuator without collisions, analyzer tick readout cleanup', () => {
+  // 1. Button component structure and state
+  const btn = new Component('btn_rst', 'BUTTON', 100, 200, { label: 'Reset (RST)' });
+  assertEqual(btn.type, 'BUTTON', 'Component is BUTTON');
+  assertEqual(btn.state.pressed, 0, 'Initial state is not pressed');
+  assertEqual(btn.outputs[0].value, 0, 'Initial output is 0');
+
+  // Verify state computation
+  btn.state.pressed = 1;
+  btn.compute();
+  assertEqual(btn.nextOutputs[0], 1, 'Pressing button outputs 1');
+  btn.commit();
+  assertEqual(btn.outputs[0].value, 1, 'Output value updated to 1');
+
+  btn.state.pressed = 0;
+  btn.compute();
+  assertEqual(btn.nextOutputs[0], 0, 'Releasing button outputs 0');
+  btn.commit();
+  assertEqual(btn.outputs[0].value, 0, 'Output value returned to 0');
+
+  // 2. Rendering of BUTTON interior in both unpressed and pressed states
+  const mockCanvas = createMockElem('c1');
+  const circuit = new Circuit();
+  const btnComp = circuit.addComponent('BUTTON', 100, 200, { label: 'Reset (RST)' }, 'btn_rst');
+  const renderer = new CanvasRenderer(mockCanvas, circuit);
+
+  // Unpressed state
+  let linePaths = [];
+  const origMoveTo = mockCtx.moveTo;
+  const origLineTo = mockCtx.lineTo;
+  mockCtx.moveTo = (x, y) => linePaths.push({ type: 'move', x, y });
+  mockCtx.lineTo = (x, y) => linePaths.push({ type: 'line', x, y });
+
+  renderer.drawComponentInterior(mockCtx, btnComp);
+  // In unpressed state, lever must connect from pivot (x+width-14 = 166, cy = 220) to botY (termX+2 = 126, cy+9 = 229)
+  const unpressedLever = linePaths.find(p => p.type === 'line' && p.x === 126 && p.y === 229);
+  assertEqual(Boolean(unpressedLever), true, 'Unpressed lever connects cleanly to terminal 0 (botY = 229)');
+
+  // Pressed state
+  linePaths = [];
+  btnComp.state.pressed = 1;
+  renderer.drawComponentInterior(mockCtx, btnComp);
+  // In pressed state, lever must connect from pivot to topY (termX+2 = 126, cy-9 = 211)
+  const pressedLever = linePaths.find(p => p.type === 'line' && p.x === 126 && p.y === 211);
+  assertEqual(Boolean(pressedLever), true, 'Pressed lever connects cleanly to terminal 1 (topY = 211)');
+
+  // Actuator rod and cap must be centered safely at midX = 146, far from termX = 124
+  const actuatorRod = linePaths.find(p => p.type === 'move' && p.x === 146);
+  assertEqual(Boolean(actuatorRod), true, 'DIN actuator push rod is positioned at midX = 146 without overlapping terminals');
+
+  mockCtx.moveTo = origMoveTo;
+  mockCtx.lineTo = origLineTo;
+
+  // 3. Analyzer probe count formatting (no confusing /256 fractions)
+  const rb = new RingBuffer(10000);
+  for (let i = 0; i < 256; i++) rb.record(i, new Map());
+  const anaCanvas = createMockElem('ana');
+  const led = circuit.addComponent('LED', 300, 200, {}, 'led_1');
+  const w1 = circuit.addWire(btnComp.id, 0, led.id, 0);
+  circuit.addProbe(w1.id, { id: 'pr1', name: 'Lead 1', color: '#00e676' });
+  const analyzer = new LogicAnalyzerRenderer(anaCanvas, circuit, rb);
+
+  analyzer.render();
+  const countLabel = document.getElementById('analyzer-probe-count');
+  assertEqual(countLabel.textContent, '(1 Kanal | 256 Ticks)', 'Count label shows clean single channel with tick count, no /256 capacity fraction');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

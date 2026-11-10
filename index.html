@@ -4243,7 +4243,7 @@
             <span id="analyzer-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             <span>Impulsdiagramm</span>
           </button>
-          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle | 0 Ticks)</span>
+          <span id="analyzer-probe-count" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">(0 Kanäle)</span>
         </div>
 
         <div class="toolbar-group sim-deck" id="analyzer-sim-controls">
@@ -5430,6 +5430,7 @@
       [/^(.+) \((Links|Rechts|aktiv)\)$/, (m, tr) => `${tr(m[1])} (${{ Links: 'left', Rechts: 'right', aktiv: 'active' }[m[2]]})`],
       [/^Schaltung (\d+)$/, (m) => `Circuit ${m[1]}`],
       [/^\((\d+) Kan(?:al|äle) \| (.+) Ticks\)$/, (m) => `(${I18N_PLURAL(m[1], 'channel', 'channels')} | ${m[2]} ticks)`],
+      [/^\((\d+) Kan(?:al|äle)\)$/, (m) => `(${I18N_PLURAL(m[1], 'channel', 'channels')})`],
       [/^✓ angeordnet: (\d+)\/(\d+) gerade, (\d+) Kreuzung(?:en)?$/, (m) => `✓ aligned: ${m[1]}/${m[2]} straight, ${I18N_PLURAL(m[3], 'crossing', 'crossings')}`],
       [/^Stufe (\d)( · |: )(.+)$/, (m, tr) => `Level ${m[1]}${m[2]}${tr(m[3])}`],
       [/^STUFE (\d)$/, (m) => `LEVEL ${m[1]}`],
@@ -11738,23 +11739,28 @@
             const topY = cy - 9;
             const botY = cy + 9;
 
+            // 1. Separate, isolated contact and pivot dots
             ctx.fillStyle = pal.leadLine;
             ctx.beginPath();
             ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
             ctx.fill();
+
             ctx.beginPath();
             ctx.arc(termX, botY, 2.5, 0, Math.PI * 2);
             ctx.fill();
+
             ctx.beginPath();
             ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
 
+            // 2. Terminal labels '1' and '0'
             ctx.font = '700 9px monospace';
             ctx.fillStyle = isPressed ? highColor : pal.textMuted;
             ctx.fillText('1', termX - 8, topY + 3);
             ctx.fillStyle = !isPressed ? pal.textLabel : pal.textMuted;
             ctx.fillText('0', termX - 8, botY + 3);
 
+            // 3. Fixed output connection from pivot to right chassis border
             ctx.strokeStyle = isPressed ? highColor : pal.leadLine;
             ctx.lineWidth = isPressed ? 2.2 : 1.5;
             ctx.beginPath();
@@ -11762,27 +11768,33 @@
             ctx.lineTo(x + width, cy);
             ctx.stroke();
 
-            const bladeTargetY = isPressed ? topY : (topY + botY) / 2 + 3;
+            // 4. Contact blade / lever:
+            // When pressed -> connects cleanly to 1 (topY); when released -> rests cleanly on 0 (botY)
+            const targetY = isPressed ? topY : botY;
             ctx.strokeStyle = isPressed ? highColor : (pal.textLabel || '#e2e8f0');
             ctx.lineWidth = 2.4;
             ctx.beginPath();
             ctx.moveTo(pivotX, pivotY);
-            ctx.lineTo(termX + (isPressed ? 1 : 3), bladeTargetY);
+            ctx.lineTo(termX + 2, targetY);
             ctx.stroke();
 
-            const stemX = termX + 13;
-            const capY = isPressed ? cy - 7 : cy - 12;
-            ctx.strokeStyle = isPressed ? highColor : pal.leadLine;
-            ctx.lineWidth = 1.8;
+            // 5. Push-button actuator symbol (DIN EN 60617 Stößel & Betätigungstaste)
+            // Centered safely on the blade without colliding with terminal pins
+            const midX = Math.round((pivotX + termX + 2) / 2);
+            const leverMidY = Math.round((pivotY + targetY) / 2);
+            const capY = isPressed ? cy - 8 : cy - 13;
+
+            ctx.strokeStyle = isPressed ? highColor : (pal.chassisStroke || pal.leadLine);
+            ctx.lineWidth = 1.6;
             ctx.beginPath();
-            ctx.moveTo(stemX, capY);
-            ctx.lineTo(stemX, bladeTargetY - 2);
-            ctx.moveTo(stemX - 7, capY);
-            ctx.lineTo(stemX + 7, capY);
+            ctx.moveTo(midX, leverMidY);
+            ctx.lineTo(midX, capY);
+            ctx.moveTo(midX - 5, capY);
+            ctx.lineTo(midX + 5, capY);
             ctx.stroke();
 
-            ctx.fillStyle = isPressed ? highColor : pal.chassisStroke;
-            this.roundRect(ctx, stemX - 8, capY - 3, 16, 4, 1.5);
+            ctx.fillStyle = isPressed ? highColor : (pal.leadLine || '#64748b');
+            this.roundRect(ctx, midX - 6, capY - 2.5, 12, 3, 1);
             ctx.fill();
             break;
           }
@@ -13060,7 +13072,10 @@
         const probes = this.circuit.getProbes();
         const countLabel = document.getElementById('analyzer-probe-count');
         if (countLabel) {
-          countLabel.textContent = `(${probes.length} Kanäle | ${this.ringBuffer.count} Ticks)`;
+          const chStr = probes.length === 1 ? '1 Kanal' : `${probes.length} Kanäle`;
+          countLabel.textContent = this.ringBuffer.count > 0
+            ? `(${chStr} | ${this.ringBuffer.count} Ticks)`
+            : `(${chStr})`;
         }
 
         if (probes.length === 0) {
