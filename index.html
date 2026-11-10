@@ -11712,6 +11712,23 @@
           styleRow.appendChild(styleSelect);
           wpSection.appendChild(styleRow);
 
+          // Clean bends button
+          const cleanBtn = document.createElement('button');
+          cleanBtn.className = 'btn';
+          cleanBtn.style.width = '100%';
+          cleanBtn.style.marginBottom = '4px';
+          cleanBtn.disabled = isSim || (!wire.waypoints || wire.waypoints.length === 0);
+          cleanBtn.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Knicke säubern / Begradigen</span>`;
+          cleanBtn.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            if (window.logicSimApp) {
+              window.logicSimApp.cleanWireWaypoints(wire);
+              this.render(null, wire.id);
+              window.logicSimApp.renderer.render();
+            }
+          });
+          wpSection.appendChild(cleanBtn);
+
           // Reset to auto-route button
           const autoBtn = document.createElement('button');
           autoBtn.className = 'btn';
@@ -14234,19 +14251,74 @@
         }
       }
 
+      cleanWireWaypoints(wire) {
+        if (!wire || !wire.waypoints || wire.waypoints.length === 0) return;
+        const pts = this.renderer.getWirePolyline(wire);
+        if (pts.length <= 2) {
+          wire.waypoints = [];
+          return;
+        }
+        const simple = this.renderer.simplifyCollinear(pts);
+        if (simple.length <= 2) {
+          wire.waypoints = [];
+        } else {
+          wire.waypoints = simple.slice(1, -1).map(p => ({
+            x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
+            y: Math.round(p.y / GRID_SIZE) * GRID_SIZE
+          }));
+        }
+      }
+
+      straightenWire(wire) {
+        if (!wire) return;
+        wire.waypoints = [];
+        wire.channelOffset = 0;
+        wire.autoRouted = true;
+        this.renderer.render();
+        if (this.inspector) this.inspector.render(null, wire.id);
+      }
+
+      deconflictWireChannels() {
+        if (!this.circuit || !this.circuit.wires) return;
+        const wires = this.circuit.wires.filter(w => !w.waypoints || w.waypoints.length === 0);
+        if (wires.length <= 1) return;
+
+        const groups = new Map();
+        for (const w of wires) {
+          const pts = this.renderer.getWirePolyline(w);
+          if (!pts || pts.length < 2) continue;
+          const p1 = pts[0], p2 = pts[pts.length - 1];
+          if (p1.y === p2.y) continue;
+          if (p2.x < p1.x + 20) continue;
+
+          const colKey = `${Math.round(p1.x / 40) * 40}->${Math.round(p2.x / 40) * 40}`;
+          if (!groups.has(colKey)) groups.set(colKey, []);
+          groups.get(colKey).push({ wire: w, p1, p2 });
+        }
+
+        for (const [key, list] of groups.entries()) {
+          if (list.length <= 1) continue;
+          list.sort((a, b) => (a.p1.y - b.p1.y) || (a.p2.y - b.p2.y));
+          const count = list.length;
+          const midIdx = (count - 1) / 2;
+          for (let i = 0; i < count; i++) {
+            list[i].wire.channelOffset = (i - Math.floor(count / 2)) * GRID_SIZE;
+          }
+        }
+      }
+
       addWaypointToWire(wire, worldPos) {
         if (!wire) return;
         this.ensureWireWaypoints(wire);
         const snapX = Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
         const snapY = Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
 
-        const fromComp = this.circuit.getComponent(wire.fromCompId);
-        const toComp = this.circuit.getComponent(wire.toCompId);
-        if (!fromComp || !toComp) return;
-        const p1 = fromComp.getPinWorldPos(true, wire.fromPin);
-        const p2 = toComp.getPinWorldPos(false, wire.toPin);
+        const pts = this.renderer.getWirePolyline(wire);
+        if (!pts || pts.length < 2) return;
+        const p1 = pts[0];
+        const p2 = pts[pts.length - 1];
 
-        const fullList = [p1, ...wire.waypoints, p2];
+        const fullList = [p1, ...(wire.waypoints || []), p2];
         let bestSeg = 0;
         let minDistSq = Infinity;
         for (let i = 0; i < fullList.length - 1; i++) {
@@ -14256,6 +14328,7 @@
             bestSeg = i;
           }
         }
+        if (!wire.waypoints) wire.waypoints = [];
         wire.waypoints.splice(bestSeg, 0, { x: snapX, y: snapY });
       }
 
@@ -15201,13 +15274,16 @@
             const hitSeg = this.renderer.findWireSegmentAt(world.x, world.y, 6);
             if (hitSeg && hitSeg.wire.id === this.renderer.selectedWireId) {
               this.ensureWireWaypoints(hitSeg.wire);
+              const segPts = this.renderer.getWirePolyline(hitSeg.wire);
               this.draggingSegment = {
                 wire: hitSeg.wire,
                 segmentIndex: hitSeg.segmentIndex,
                 isHorizontal: hitSeg.isHorizontal,
                 isVertical: hitSeg.isVertical,
                 pA: hitSeg.pA,
-                pB: hitSeg.pB
+                pB: hitSeg.pB,
+                p1: segPts[0],
+                p2: segPts[segPts.length - 1]
               };
               canvas.style.cursor = hitSeg.isHorizontal ? 'row-resize' : 'col-resize';
               return;
@@ -15421,22 +15497,82 @@
           }
 
           if (this.draggingSegment && this.engine.mode === 'edit') {
-            const { wire, segmentIndex, isHorizontal, isVertical } = this.draggingSegment;
+            const dragSeg = this.draggingSegment;
+            const { wire, isHorizontal, isVertical } = dragSeg;
+            const p1 = dragSeg.p1 || (wire.waypoints && wire.waypoints[0]) || { x: 0, y: 0 };
+            const p2 = dragSeg.p2 || (wire.waypoints && wire.waypoints[wire.waypoints.length - 1]) || { x: 0, y: 0 };
+
             if (isHorizontal) {
               const ny = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
-              if (segmentIndex > 0 && wire.waypoints[segmentIndex - 1]) {
-                wire.waypoints[segmentIndex - 1].y = ny;
-              }
-              if (segmentIndex < wire.waypoints.length && wire.waypoints[segmentIndex]) {
-                wire.waypoints[segmentIndex].y = ny;
+              if (dragSeg.segmentIndex === 0) {
+                if (!wire.waypoints || wire.waypoints.length === 0) {
+                  const s1 = p1.x < p2.x ? 1 : -1;
+                  const s2 = p1.x < p2.x ? -1 : 1;
+                  wire.waypoints = [
+                    { x: p1.x + s1 * 20, y: p1.y },
+                    { x: p1.x + s1 * 20, y: ny },
+                    { x: p2.x + s2 * 20, y: ny },
+                    { x: p2.x + s2 * 20, y: p2.y }
+                  ];
+                  dragSeg.segmentIndex = 2;
+                } else {
+                  const s1 = p1.x < wire.waypoints[0].x ? 1 : -1;
+                  wire.waypoints.unshift(
+                    { x: p1.x + s1 * 20, y: p1.y },
+                    { x: p1.x + s1 * 20, y: ny }
+                  );
+                  if (wire.waypoints[2]) wire.waypoints[2].y = ny;
+                  dragSeg.segmentIndex = 2;
+                }
+              } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
+                const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                const s2 = lastWp.x < p2.x ? -1 : 1;
+                lastWp.y = ny;
+                wire.waypoints.push(
+                  { x: p2.x + s2 * 20, y: ny },
+                  { x: p2.x + s2 * 20, y: p2.y }
+                );
+              } else {
+                const wp1 = wire.waypoints[dragSeg.segmentIndex - 1];
+                const wp2 = wire.waypoints[dragSeg.segmentIndex];
+                if (wp1) wp1.y = ny;
+                if (wp2) wp2.y = ny;
               }
             } else if (isVertical) {
               const nx = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
-              if (segmentIndex > 0 && wire.waypoints[segmentIndex - 1]) {
-                wire.waypoints[segmentIndex - 1].x = nx;
-              }
-              if (segmentIndex < wire.waypoints.length && wire.waypoints[segmentIndex]) {
-                wire.waypoints[segmentIndex].x = nx;
+              if (dragSeg.segmentIndex === 0) {
+                if (!wire.waypoints || wire.waypoints.length === 0) {
+                  const s1 = p1.y < p2.y ? 1 : -1;
+                  const s2 = p1.y < p2.y ? -1 : 1;
+                  wire.waypoints = [
+                    { x: p1.x, y: p1.y + s1 * 20 },
+                    { x: nx, y: p1.y + s1 * 20 },
+                    { x: nx, y: p2.y + s2 * 20 },
+                    { x: p2.x, y: p2.y + s2 * 20 }
+                  ];
+                  dragSeg.segmentIndex = 2;
+                } else {
+                  const s1 = p1.y < wire.waypoints[0].y ? 1 : -1;
+                  wire.waypoints.unshift(
+                    { x: p1.x, y: p1.y + s1 * 20 },
+                    { x: nx, y: p1.y + s1 * 20 }
+                  );
+                  if (wire.waypoints[2]) wire.waypoints[2].x = nx;
+                  dragSeg.segmentIndex = 2;
+                }
+              } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
+                const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                const s2 = lastWp.y < p2.y ? -1 : 1;
+                lastWp.x = nx;
+                wire.waypoints.push(
+                  { x: nx, y: p2.y + s2 * 20 },
+                  { x: p2.x, y: p2.y + s2 * 20 }
+                );
+              } else {
+                const wp1 = wire.waypoints[dragSeg.segmentIndex - 1];
+                const wp2 = wire.waypoints[dragSeg.segmentIndex];
+                if (wp1) wp1.x = nx;
+                if (wp2) wp2.x = nx;
               }
             }
             this.renderer.render();
@@ -15563,13 +15699,17 @@
           }
 
           if (this.draggingWaypoint) {
+            const w = this.draggingWaypoint.wire;
             this.draggingWaypoint = null;
             this.renderer.activeWaypointDrag = null;
+            if (w) this.cleanWireWaypoints(w);
             this.refreshAll();
           }
 
           if (this.draggingSegment) {
+            const w = this.draggingSegment.wire;
             this.draggingSegment = null;
+            if (w) this.cleanWireWaypoints(w);
             this.refreshAll();
           }
 
@@ -15977,30 +16117,7 @@
             return;
           }
 
-          // In Edit Mode without Shift: right-click on an existing wire immediately starts a new connection!
-          if (this.engine.mode === 'edit' && !e.shiftKey) {
-            const hitWire = this.renderer.findWireAt(world.x, world.y, 8);
-            if (hitWire) {
-              const pts = this.renderer.getWirePolyline(hitWire);
-              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
-              const startX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : Math.round(world.x / GRID_SIZE) * GRID_SIZE;
-              const startY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : Math.round(world.y / GRID_SIZE) * GRID_SIZE;
-              this.renderer.activeWireDrag = {
-                fromWireId: hitWire.id,
-                fromPoint: { x: startX, y: startY },
-                compId: null,
-                isOutput: true,
-                startX,
-                startY,
-                waypoints: [],
-                currX: world.x,
-                currY: world.y
-              };
-              this.showToast('Neue Verbindung ab Leitung gestartet · Klicke Ziel-Pin, Leitung oder freie Stelle (Umschalt+Rechtsklick für Menü)');
-              this.renderer.render();
-              return;
-            }
-          }
+          // In Edit Mode: contextmenu on existing wire opens the comprehensive wire menu (use LMB drag for branching)
 
           const hitProbe = this.renderer.findProbeAt(world.x, world.y);
           if (hitProbe) {
@@ -16491,6 +16608,19 @@
             this.hideContextMenu();
           });
           menu.appendChild(addWpItem);
+
+          const cleanBendsWire = document.createElement('div');
+          cleanBendsWire.className = 'ctx-item';
+          cleanBendsWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Überflüssige Knicke entfernen (Begradigen)</span>`;
+          cleanBendsWire.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.cleanWireWaypoints(wire);
+            this.renderer.render();
+            this.inspector.render(null, wire.id);
+            this.hideContextMenu();
+            this.showToast('Leitung begradigt');
+          });
+          menu.appendChild(cleanBendsWire);
 
           const autoRouteWire = document.createElement('div');
           autoRouteWire.className = 'ctx-item';
@@ -17190,6 +17320,7 @@
       /** Menu action "Leitungen neu verlegen": tidy all wires, keep the components where they are. */
       autoRouteAllWires() {
         const outcome = this.routeWires(null);
+        this.deconflictWireChannels();
         this.renderer.render();
         if (this.renderer.selectedWireId && this.inspector) {
           this.inspector.render(null, this.renderer.selectedWireId);

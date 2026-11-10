@@ -698,6 +698,68 @@ runTest('WISH-009', 'Interactive input change propagates wires without bypassing
   assertEqual(notGate.outputs[0].value, 0, 'After Tick 2: output transitions to 0 after propagation delay');
 });
 
+runTest('WISH-004', 'cleanWireWaypoints and straightenWire simplify collinear and redundant bends', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const sw = c.addComponent('SWITCH', 40, 100);
+  const led = c.addComponent('LED', 300, 100);
+  const wire = c.addWire(sw.id, 0, led.id, 0);
+
+  // Add collinear and redundant waypoints forming an in-line jog
+  wire.waypoints = [
+    { x: 120, y: 120 },
+    { x: 200, y: 120 },
+    { x: 240, y: 120 }
+  ];
+
+  app.cleanWireWaypoints(wire);
+  // All waypoints share y=120 with pins -> collinear with endpoints -> waypoints removed!
+  assertEqual(wire.waypoints.length, 0, 'cleanWireWaypoints eliminates collinear in-line waypoints');
+
+  // Test straightenWire resets wire to auto-route
+  wire.waypoints = [{ x: 160, y: 160 }, { x: 200, y: 160 }];
+  wire.channelOffset = 20;
+  wire.autoRouted = false;
+  app.straightenWire(wire);
+  assertEqual(wire.waypoints.length, 0, 'straightenWire resets waypoints');
+  assertEqual(wire.channelOffset, 0, 'straightenWire resets channelOffset');
+  assertEqual(wire.autoRouted, true, 'straightenWire marks wire auto-routed');
+});
+
+runTest('WISH-004', 'deconflictWireChannels distributes parallel wire channels to prevent overlap', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const sw1 = c.addComponent('SWITCH', 40, 100);
+  const sw2 = c.addComponent('SWITCH', 40, 200);
+  const andGate = c.addComponent('AND', 300, 120);
+
+  const w1 = c.addWire(sw1.id, 0, andGate.id, 0);
+  const w2 = c.addWire(sw2.id, 0, andGate.id, 1);
+
+  assertEqual(w1.channelOffset, 0);
+  assertEqual(w2.channelOffset, 0);
+
+  app.deconflictWireChannels();
+
+  // The two parallel wires sharing the vertical channel must have distinct offsets
+  assertEqual(w1.channelOffset !== w2.channelOffset, true, 'Parallel wires receive distinct channel offsets');
+  assertEqual(w1.channelOffset % 20, 0, 'w1 channelOffset is grid-aligned');
+  assertEqual(w2.channelOffset % 20, 0, 'w2 channelOffset is grid-aligned');
+});
+
+runTest('WISH-004', 'addWaypointToWire supports floating and branch wires safely', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const sw = c.addComponent('SWITCH', 40, 100);
+  const w1 = c.addWire(sw.id, 0, null, 0, null, [], { toPoint: { x: 200, y: 120 } });
+
+  // Floating wire with toCompId = null
+  app.addWaypointToWire(w1, { x: 160, y: 120 });
+  assertEqual(w1.waypoints.length, 1, 'Waypoint added to floating wire');
+  assertEqual(w1.waypoints[0].x, 160, 'Waypoint x matches snap grid');
+  assertEqual(w1.waypoints[0].y, 120, 'Waypoint y matches snap grid');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
