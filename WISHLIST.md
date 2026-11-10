@@ -27,14 +27,37 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-007** | Floating / Terminus-Free Connections (No module required at end) | `feat/floating-connections` | 🟢 **Completed** | Connections do not strictly require a module at both ends (support stubs, test points, dangling terminals). |
 | **WISH-008** | Code Quality Improvement & Comment Cleanup | `feat/code-cleanup` | 🟢 **Completed** | Cleaned up 370+ redundant/noisy comments, streamlined code structure, optimized helper routines, and improved maintainability. |
 | **WISH-009** | Realistic Gate Propagation Delay & Global Configuration | `feat/gate-delay` | 🟢 **Completed** | Global gate delay (1–20 ticks), toggleable badge display (off by default), and realistic inertial transition timing ("wie im echten Leben"). |
-| **WISH-010** | Statusleiste: Koordinaten-Direkteingabe per Doppelklick & 10000x10000 Canvas-Limitierung | `feat/status-coords-bounds` | 🟡 **In Progress** | Koordinatenanzeige ganz unten links in Statusleiste platzieren; Doppelklick öffnet Koordinaten-Eingabe zum Anspringen/Zentrieren; Spielfeld strikt auf 10000x10000 begrenzen. |
-| **WISH-011** | Norm-Leiste ganz oben entfernen | `feat/remove-norm-bar` | 🟡 **In Progress** | Obere Norm-Leiste / Menü-Eintrag aus Menüleiste & Toolbar entfernen; Normen-Wahl sauber in Einstellungen behalten. |
-| **WISH-012** | „Auswahl ausrichten“-Schalterleiste entfernen | `feat/remove-align-tools` | 🟡 **In Progress** | Die 8 Ausrichtungs-Schalter und Titel „Auswahl ausrichten“ aus dem Layout-Bereich entfernen (wie im Screenshot markiert). |
-| **WISH-013** | Maus-Steuerung & Kontextmenü-Optimierung (Mausklick-Halten-Verbindung entfernen) | `feat/tweak-mouse-controls` | 🟡 **In Progress** | Ungewolltes Starten neuer Leitungen durch Halten der linken Maustaste auf Leitungen entfernen; Mausbedienung & Kontextmenü bereinigen. |
+| **WISH-010** | Statusleiste: Koordinaten-Direkteingabe per Doppelklick & Canvas-Limitierung | `alpha` | 🟢 **Completed** | Koordinatenanzeige ganz unten links in Statusleiste platziert; Doppelklick öffnet Koordinaten-Eingabe zum Anspringen/Zentrieren. |
+| **WISH-011** | Norm-Leiste ganz oben entfernen | `alpha` | 🟢 **Completed** | Obere Norm-Leiste / Menü-Eintrag aus Menüleiste & Toolbar entfernt; Normen-Wahl sauber in Einstellungen behalten. |
+| **WISH-012** | „Auswahl ausrichten“-Schalterleiste entfernen | `alpha` | 🟢 **Completed** | Die 8 Ausrichtungs-Schalter und Titel „Auswahl ausrichten“ aus dem Layout-Bereich entfernt (wie im Screenshot markiert). |
+| **WISH-013** | Maus-Steuerung & Kontextmenü-Optimierung (Mausklick-Halten-Verbindung entfernen) | `alpha` | 🟢 **Completed** | Ungewolltes Starten neuer Leitungen durch Halten der linken Maustaste auf Leitungen entfernt; Leitungen werden sauber selektiert; Abzweigen gezielt über Kontextmenü. |
+| **WISH-014** | Spielfeld-Koordinaten von -5000,-5000 bis 5000,5000 & Start bei 0 | `alpha` | 🟢 **Completed** | Spielfeld auf -5000 bis 5000 px skaliert (10000x10000 px zentriert); Viewport startet bei (0, 0); Reset View und Neuer Tab zentrieren auf Ursprung (0, 0); Raster mit Achsenkreuz bei (0, 0). |
+| **WISH-015** | Premiere Pro Playhead-Scrubbing & Zeitrahmen-Dynamik im Impulsdiagramm | `alpha` | 🟢 **Completed** | Zeitrahmen ändert sich beim Bewegen des Playheads wie in Premiere Pro: Edge Auto-Scrolling an den Rändern der Zeitleiste; vertikales Ziehen in der Zeitachse zoomt den sichtbaren Zeitrahmen stufenlos; Navigator-Leiste im Header und Anzeige des aktiven Zeitrahmens. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-014 & WISH-010**:
+  - Spielfeldgrenzen auf `[-5000, 5000]` in X und Y angepasst (10.000 × 10.000 px Arbeitsfläche, Ursprung im Zentrum).
+  - Doppelklick-Editor ganz unten links in der Statusleiste mit Bereich `-5000` bis `+5000 px`.
+  - Ansicht startet zentriert bei `(0, 0)`.
+  - Raster visualisiert Ursprung `0, 0 px (Zentrum)`, Achsenkreuz und Randkoordinaten `-5000, -5000 px` und `5000, 5000 px`.
+  - Panning und Bauteilverschiebungen stoppen verlässlich an den Feldgrenzen.
+- **WISH-015**:
+  - Impulsdiagramm Playhead-Scrubbing im Stil von Adobe Premiere Pro implementiert:
+  - Automatisches Scrollen (Edge Auto-Scroll) des sichtbaren Zeitfensters beim Bewegen des Playheads gegen die Ränder.
+  - Dynamisches Skalieren/Zoomen des Zeitrahmens (`pixelsPerTick`) beim vertikalen Ziehen in der Zeitachse (Time Ruler).
+  - Time-Navigator-Balken oben in der Kopfzeile des Impulsdiagramms, der den aktuell angezeigten Zeitrahmen visualisiert.
+  - Erweiterte Playhead-Info zeigt aktuellen Tick und genauen sichtbaren Zeitrahmen an (`Zeitrahmen: t_start..t_end`).
+  - Mausrad über der Zeitachse zoomt direkt in den Zeitrahmen hinein/heraus.
+- **WISH-011**:
+  - Norm-Eintrag aus der oberen Menüleiste und Norm-Badge aus der Toolbar entfernt.
+- **WISH-012**:
+  - Die 8 Buttons und der Titel „Auswahl ausrichten“ aus dem Layout-Panel entfernt.
+- **WISH-013**:
+  - Ungewolltes Starten neuer Leitungen beim Ziehen mit gedrückter linker Maustaste auf Leitungen entfernt.
+  - Leitungsauswahl ist nun sauber und störungsfrei; Abzweigungen erfolgen gezielt über das Rechtsklick-Menü.
 
 - **WISH-001**: 
   - Eliminated external worktrees.

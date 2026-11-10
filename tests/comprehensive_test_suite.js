@@ -30,8 +30,12 @@ const window = {
   devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080
 };
 
+const elementRegistry = new Map();
 const document = {
-  getElementById: (id) => createMockElem(id),
+  getElementById: (id) => {
+    if (!elementRegistry.has(id)) elementRegistry.set(id, createMockElem(id));
+    return elementRegistry.get(id);
+  },
   querySelectorAll: () => [],
   querySelector: () => null,
   createElement: (tag) => createMockElem(tag),
@@ -49,9 +53,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N };'
 );
-const { LogicSimApp, CanvasRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -792,7 +796,7 @@ runTest('WISH-003', 'I18N multi-language dictionary and setLanguage switches bet
   assertEqual(app.language, 'de', 'app.language is de');
 });
 
-runTest('WISH-010', 'Coordinates display at bottom left, 10000x10000 field bounds, and popover jump', () => {
+runTest('WISH-010 & WISH-014', 'Coordinates display at bottom left, -5000..5000 field bounds, starting at 0, and popover jump', () => {
   // Check HTML elements
   const coordsIndex = html.indexOf('id="status-coords"');
   const modeIndex = html.indexOf('id="status-mode-pill"');
@@ -801,20 +805,27 @@ runTest('WISH-010', 'Coordinates display at bottom left, 10000x10000 field bound
   assertEqual(html.includes('id="coords-jump-popover"'), true, 'coords-jump-popover exists in HTML');
   assertEqual(html.includes('id="coords-input-x"'), true, 'coords-input-x exists');
   assertEqual(html.includes('id="coords-input-y"'), true, 'coords-input-y exists');
+  assertEqual(html.includes('min="-5000" max="5000"'), true, 'coords inputs bound to -5000..5000');
 
-  // Check component boundary clamping to 0..10000
-  const cOutOfBounds1 = new Component('c_neg', 'AND', -500, -200);
-  assertEqual(cOutOfBounds1.x, 0, 'Component negative x clamped to 0');
-  assertEqual(cOutOfBounds1.y, 0, 'Component negative y clamped to 0');
+  // Check component boundary clamping to -5000..5000
+  const cOutOfBounds1 = new Component('c_neg', 'AND', -12000, -8000);
+  assertEqual(cOutOfBounds1.x, -5000, 'Component negative x clamped to -5000');
+  assertEqual(cOutOfBounds1.y, -5000, 'Component negative y clamped to -5000');
 
   const cOutOfBounds2 = new Component('c_big', 'AND', 15000, 20000);
-  assertEqual(cOutOfBounds2.x, 10000, 'Component x clamped to 10000');
-  assertEqual(cOutOfBounds2.y, 10000, 'Component y clamped to 10000');
+  assertEqual(cOutOfBounds2.x, 5000, 'Component x clamped to 5000');
+  assertEqual(cOutOfBounds2.y, 5000, 'Component y clamped to 5000');
+
+  const cZero = new Component('c_zero', 'AND', 0, 0);
+  assertEqual(cZero.x, 0, 'Component origin x is 0');
+  assertEqual(cZero.y, 0, 'Component origin y is 0');
 
   // Check updateStatusCoords clamping
   const app = new LogicSimApp();
-  app.updateStatusCoords({ x: -200, y: 15000 });
-  assertEqual(app._statusCoordText, 'X: 0 px, Y: 10000 px', 'Status coords clamps display to 0..10000');
+  app.updateStatusCoords({ x: -10000, y: 15000 });
+  assertEqual(app._statusCoordText, 'X: -5000 px, Y: 5000 px', 'Status coords clamps display to -5000..5000');
+  app.updateStatusCoords({ x: 0, y: 0 });
+  assertEqual(app._statusCoordText, 'X: 0 px, Y: 0 px', 'Status coords shows 0, 0 at center');
 });
 
 runTest('WISH-011', 'Norm bar removed from top menubar and toolbar', () => {
@@ -834,6 +845,38 @@ runTest('WISH-013', 'Mouse click hold wire creation removed in favor of clean se
   assertEqual(app.pendingWireBranch, undefined, 'pendingWireBranch is not initialized');
   assertEqual(html.includes('this.pendingWireBranch'), false, 'pendingWireBranch completely removed from index.html');
   assertEqual(html.includes('Neue Verbindung ab hier starten'), true, 'Context menu retains intentional branch starting');
+});
+
+runTest('WISH-015', 'Timing diagram Premiere Pro playhead navigation and dynamic time frame adaptation', () => {
+  const canvas = createMockElem('canvas');
+  canvas.width = 1200;
+  canvas.height = 300;
+  const circuit = new Circuit();
+  const ringBuffer = new RingBuffer(256);
+  for (let i = 0; i < 50; i++) {
+    const samples = new Map([['probe_1', i % 2]]);
+    ringBuffer.record(i, samples);
+  }
+
+  const analyzer = new LogicAnalyzerRenderer(canvas, circuit, ringBuffer);
+  assertEqual(typeof analyzer.startEdgeAutoScroll, 'function', 'startEdgeAutoScroll method exists');
+  assertEqual(typeof analyzer.stopEdgeAutoScroll, 'function', 'stopEdgeAutoScroll method exists');
+  assertEqual(analyzer.pixelsPerTick, 12, 'default pixelsPerTick is 12');
+
+  // Verify time frame badge information formatting in updateLoopUi
+  analyzer.playheadOffset = 25;
+  analyzer.updateLoopUi();
+  const badge = document.getElementById('analyzer-playhead-info');
+  assertEqual(badge.textContent.includes('Playhead: t = 25'), true, 'Playhead tick displayed');
+  assertEqual(badge.textContent.includes('Zeitrahmen:'), true, 'Zeitrahmen info displayed');
+
+  // Test edge auto scroll adjustment
+  analyzer.isScrubbing = true;
+  analyzer.scrollRatio = 0.5;
+  analyzer.startEdgeAutoScroll(1);
+  assertEqual(Boolean(analyzer.autoscrollTimer), true, 'autoscrollTimer is active on edge');
+  analyzer.stopEdgeAutoScroll();
+  assertEqual(analyzer.autoscrollTimer, null, 'autoscrollTimer stops when leaving edge');
 });
 
 console.log('\n================================================================');

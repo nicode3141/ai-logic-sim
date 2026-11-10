@@ -3977,7 +3977,7 @@
     </section>
 
     <footer id="statusbar">
-      <span class="status-item status-coords" id="status-coords" title="Doppelklick: Zu Koordinate springen / Viewport zentrieren (Feld: 10000×10000)">X: 0 px, Y: 0 px</span>
+      <span class="status-item status-coords" id="status-coords" title="Doppelklick: Zu Koordinate springen / Viewport zentrieren (Feld: -5000 bis +5000 px)">X: 0 px, Y: 0 px</span>
       <span class="status-pill" id="status-mode-pill"><span class="status-dot"></span><span id="hud-mode">EDIT</span></span>
       <span class="status-item" title="Simulationsschritt">Tick <strong id="hud-tick">0</strong></span>
       <span class="status-item" title="Bauteile / Leitungen"><strong id="hud-comp-count">0</strong> Bauteile · <strong id="hud-wire-count">0</strong> Leitungen</span>
@@ -3990,11 +3990,11 @@
     <div id="coords-jump-popover" class="coords-popover" style="display: none;">
       <div class="coords-popover-header">
         <span>📍 Zu Koordinate springen</span>
-        <span class="coords-popover-field-limit">Max 10000×10000</span>
+        <span class="coords-popover-field-limit">-5000 bis +5000 px</span>
       </div>
       <div class="coords-popover-body">
-        <label>X: <input type="number" id="coords-input-x" min="0" max="10000" step="20" value="0" /> px</label>
-        <label>Y: <input type="number" id="coords-input-y" min="0" max="10000" step="20" value="0" /> px</label>
+        <label>X: <input type="number" id="coords-input-x" min="-5000" max="5000" step="20" value="0" /> px</label>
+        <label>Y: <input type="number" id="coords-input-y" min="-5000" max="5000" step="20" value="0" /> px</label>
       </div>
       <div class="coords-popover-actions">
         <button id="coords-jump-btn" class="btn btn-primary" style="padding: 2px 10px; font-size: 11px;">Zentrieren</button>
@@ -5170,8 +5170,8 @@
         this.type = String(type || 'BUFFER');
         const numX = Number(x);
         const numY = Number(y);
-        const safeX = (Number.isFinite(numX) && !Number.isNaN(numX)) ? Math.max(0, Math.min(10000, numX)) : 0;
-        const safeY = (Number.isFinite(numY) && !Number.isNaN(numY)) ? Math.max(0, Math.min(10000, numY)) : 0;
+        const safeX = (Number.isFinite(numX) && !Number.isNaN(numX)) ? Math.max(-5000, Math.min(5000, numX)) : 0;
+        const safeY = (Number.isFinite(numY) && !Number.isNaN(numY)) ? Math.max(-5000, Math.min(5000, numY)) : 0;
         this.x = Math.round(safeX / GRID_SIZE) * GRID_SIZE;
         this.y = Math.round(safeY / GRID_SIZE) * GRID_SIZE;
         this.width = 80;
@@ -8887,9 +8887,10 @@
         this.canvasTheme = 'tech_dots';
         this.appTheme = 'modern';
 
-        this.panX = 40;
-        this.panY = 40;
+        this.panX = 0;
+        this.panY = 0;
         this.zoom = 1.0;
+        this._initialCenterDone = false;
 
         this.selectedCompIds = new Set();
         this.selectedWireIds = new Set();
@@ -9028,6 +9029,13 @@
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
         this.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        if (!this._initialCenterDone) {
+          const w = this.canvas.width / dpr;
+          const h = this.canvas.height / dpr;
+          this.panX = Math.round(w / 2);
+          this.panY = Math.round(h / 2);
+          this._initialCenterDone = true;
+        }
         this.render();
       }
 
@@ -9680,13 +9688,14 @@
         const step = GRID_SIZE;
         if (step * this.zoom < 6) return;
 
-        const FIELD_MAX = 10000;
+        const FIELD_MIN = -5000;
+        const FIELD_MAX = 5000;
         const topLeft = this.screenToWorld(0, 0);
         const botRight = this.screenToWorld(screenW, screenH);
 
-        const startX = Math.max(0, Math.floor(topLeft.x / step) * step);
+        const startX = Math.max(FIELD_MIN, Math.floor(topLeft.x / step) * step);
         const endX = Math.min(FIELD_MAX, Math.ceil(botRight.x / step) * step);
-        const startY = Math.max(0, Math.floor(topLeft.y / step) * step);
+        const startY = Math.max(FIELD_MIN, Math.floor(topLeft.y / step) * step);
         const endY = Math.min(FIELD_MAX, Math.ceil(botRight.y / step) * step);
 
         const pal = this.getThemePalette();
@@ -9709,12 +9718,21 @@
         ctx.strokeStyle = 'rgba(0, 176, 255, 0.35)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 6]);
-        ctx.strokeRect(0, 0, FIELD_MAX, FIELD_MAX);
-        ctx.fillStyle = 'rgba(0, 176, 255, 0.6)';
-        ctx.font = '10px monospace';
+        ctx.strokeRect(FIELD_MIN, FIELD_MIN, FIELD_MAX - FIELD_MIN, FIELD_MAX - FIELD_MIN);
+
+        // Center crosshair axis lines through origin (0, 0)
+        ctx.strokeStyle = 'rgba(0, 176, 255, 0.18)';
         ctx.setLineDash([]);
-        ctx.fillText('0, 0 px', 8, 16);
-        ctx.fillText('10000, 10000 px (Feldgrenze)', FIELD_MAX - 165, FIELD_MAX - 10);
+        ctx.beginPath();
+        ctx.moveTo(FIELD_MIN, 0); ctx.lineTo(FIELD_MAX, 0);
+        ctx.moveTo(0, FIELD_MIN); ctx.lineTo(0, FIELD_MAX);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(0, 176, 255, 0.65)';
+        ctx.font = '10px monospace';
+        ctx.fillText('-5000, -5000 px', FIELD_MIN + 8, FIELD_MIN + 16);
+        ctx.fillText('0, 0 px (Zentrum)', 8, -6);
+        ctx.fillText('5000, 5000 px (Feldgrenze)', FIELD_MAX - 165, FIELD_MAX - 10);
         ctx.restore();
       }
 
@@ -10994,6 +11012,10 @@
 
         this.playheadOffset = null;
         this.isScrubbing = false;
+        this.scrubStartedInRuler = false;
+        this.scrubOriginY = null;
+        this.scrubOriginPixelsPerTick = 12;
+        this.autoscrollTimer = null;
         this.loopRange = null; // { inOffset: number, outOffset: number }
         this.isLoopPlaying = false;
         this.loopInterval = null;
@@ -11002,7 +11024,101 @@
         this.setupEvents();
       }
 
+      startEdgeAutoScroll(direction) {
+        if (this.autoscrollTimer) return;
+        this.autoscrollTimer = setInterval(() => {
+          if (!this.isScrubbing || !this.ringBuffer || this.ringBuffer.count === 0) {
+            this.stopEdgeAutoScroll();
+            return;
+          }
+          const totalSamples = this.ringBuffer.count;
+          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+
+          if (direction > 0) {
+            this.scrollRatio = Math.min(1.0, this.scrollRatio + 0.025);
+          } else {
+            this.scrollRatio = Math.max(0.0, this.scrollRatio - 0.025);
+          }
+
+          const scrollSlider = document.getElementById('slider-time-scroll');
+          if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+
+          const curStartOffset = Math.round(maxStartOffset * this.scrollRatio);
+          const plotRight = this.gutterWidth + plotW;
+          const clampedX = Math.max(this.gutterWidth, Math.min(plotRight, this.hoverX ?? plotRight));
+          const relIdx = Math.floor((clampedX - this.gutterWidth) / this.pixelsPerTick);
+          const targetOffset = Math.max(0, Math.min(totalSamples - 1, curStartOffset + relIdx));
+          this.setPlayheadOffset(targetOffset);
+          this.render();
+        }, 30);
+      }
+
+      stopEdgeAutoScroll() {
+        if (this.autoscrollTimer) {
+          clearInterval(this.autoscrollTimer);
+          this.autoscrollTimer = null;
+        }
+      }
+
       setupEvents() {
+        const handleScrubMove = (clientX, clientY) => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.hoverX = clientX - rect.left;
+          this.hoverY = clientY - rect.top;
+
+          const totalSamples = this.ringBuffer.count;
+          if (totalSamples === 0) return;
+          const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
+          const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+          const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+
+          // Premiere Pro: Vertical drag in ruler or with Alt zooms/scales the visible time frame
+          if (this.scrubStartedInRuler && this.scrubOriginY !== null) {
+            const dy = this.scrubOriginY - this.hoverY;
+            if (Math.abs(dy) > 4) {
+              const newZoom = Math.max(4, Math.min(32, Math.round(this.scrubOriginPixelsPerTick + dy / 5)));
+              if (newZoom !== this.pixelsPerTick) {
+                this.pixelsPerTick = newZoom;
+                const zoomSlider = document.getElementById('slider-time-zoom');
+                const zoomLabel = document.getElementById('label-time-zoom');
+                if (zoomSlider) zoomSlider.value = this.pixelsPerTick;
+                if (zoomLabel) zoomLabel.textContent = `${this.pixelsPerTick} px/T`;
+              }
+            }
+          }
+
+          // Premiere Pro: Edge auto-scrolling when moving playhead near or past margins
+          const plotRight = this.gutterWidth + plotW;
+          const edgeThreshold = 35;
+          if (this.hoverX > plotRight - edgeThreshold) {
+            const over = Math.max(1, this.hoverX - (plotRight - edgeThreshold));
+            const step = Math.min(0.06, 0.01 + (over / 150) * 0.04);
+            this.scrollRatio = Math.min(1.0, this.scrollRatio + step);
+            this.startEdgeAutoScroll(1);
+          } else if (this.hoverX < this.gutterWidth + edgeThreshold) {
+            const over = Math.max(1, (this.gutterWidth + edgeThreshold) - this.hoverX);
+            const step = Math.min(0.06, 0.01 + (over / 150) * 0.04);
+            this.scrollRatio = Math.max(0.0, this.scrollRatio - step);
+            this.startEdgeAutoScroll(-1);
+          } else {
+            this.stopEdgeAutoScroll();
+          }
+
+          const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
+          const clampedX = Math.max(this.gutterWidth, Math.min(plotRight, this.hoverX));
+          const relIdx = Math.floor((clampedX - this.gutterWidth) / this.pixelsPerTick);
+          const targetOffset = Math.max(0, Math.min(totalSamples - 1, currentStartOffset + relIdx));
+          this.setPlayheadOffset(targetOffset);
+
+          const scrollSlider = document.getElementById('slider-time-scroll');
+          if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
+
+          this.canvas.style.cursor = this.scrubStartedInRuler ? 'ew-resize' : 'col-resize';
+          this.render();
+        };
+
         this.canvas.addEventListener('mousemove', (e) => {
           const rect = this.canvas.getBoundingClientRect();
           this.hoverX = e.clientX - rect.left;
@@ -11031,27 +11147,39 @@
           }
 
           if (this.isScrubbing && totalSamples > 0) {
-            const relIdx = Math.floor((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
-            this.setPlayheadOffset(targetOffset);
-            this.render();
+            handleScrubMove(e.clientX, e.clientY);
             return;
           }
 
+          const phX = (this.playheadOffset !== null && totalSamples > 0)
+            ? this.gutterWidth + (this.playheadOffset - startOffset + 0.5) * this.pixelsPerTick
+            : -999;
+          const isNearPlayhead = Math.abs(this.hoverX - phX) <= 8;
+
           if (this.hoverX <= this.gutterWidth) {
             this.canvas.style.cursor = 'pointer';
+          } else if (isNearPlayhead) {
+            this.canvas.style.cursor = 'ew-resize';
           } else if (this.hoverY <= 22 && this.loopRange) {
             const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
             const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
             if (Math.abs(this.hoverX - inX) <= 6 || Math.abs(this.hoverX - outX) <= 6) {
               this.canvas.style.cursor = 'ew-resize';
             } else {
-              this.canvas.style.cursor = 'crosshair';
+              this.canvas.style.cursor = 'ew-resize';
             }
+          } else if (this.hoverY <= 22) {
+            this.canvas.style.cursor = 'ew-resize';
           } else {
             this.canvas.style.cursor = 'crosshair';
           }
           this.render();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (this.isScrubbing && this.ringBuffer.count > 0) {
+            handleScrubMove(e.clientX, e.clientY);
+          }
         });
 
         this.canvas.addEventListener('mousedown', (e) => {
@@ -11080,7 +11208,15 @@
               }
             }
 
+            if (this.isLoopPlaying) {
+              this.stopLoopAnimation();
+            }
+
             this.isScrubbing = true;
+            this.scrubStartedInRuler = (my <= 22);
+            this.scrubOriginY = my;
+            this.scrubOriginPixelsPerTick = this.pixelsPerTick;
+
             const relIdx = Math.floor((mx - this.gutterWidth) / this.pixelsPerTick);
             const targetOffset = Math.max(0, Math.min(totalSamples - 1, startOffset + relIdx));
             this.setPlayheadOffset(targetOffset);
@@ -11091,6 +11227,10 @@
         window.addEventListener('mouseup', () => {
           this.isScrubbing = false;
           this.activeBracketDrag = null;
+          this.scrubStartedInRuler = false;
+          this.scrubOriginY = null;
+          this.stopEdgeAutoScroll();
+          this.render();
         });
 
         this.canvas.addEventListener('mouseleave', () => {
@@ -11156,7 +11296,7 @@
 
         this.canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
-          if (e.ctrlKey || e.shiftKey) {
+          if (e.ctrlKey || e.shiftKey || (this.hoverY !== null && this.hoverY <= 22)) {
             const delta = e.deltaY < 0 ? 2 : -2;
             this.pixelsPerTick = Math.max(4, Math.min(32, this.pixelsPerTick + delta));
             const zoomSlider = document.getElementById('slider-time-zoom');
@@ -11371,16 +11511,29 @@
         const badge = document.getElementById('analyzer-playhead-info');
         if (!badge) return;
 
+        const totalSamples = this.ringBuffer ? this.ringBuffer.count : 0;
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        const plotW = Math.max(50, ((this.canvas ? this.canvas.width : 1200) / dpr) - this.gutterWidth - 12);
+        const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+        const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
+        const startOffset = Math.round(maxStartOffset * this.scrollRatio);
+        const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
+
         let info = '';
-        if (this.playheadOffset !== null) {
+        if (this.playheadOffset !== null && totalSamples > 0) {
           const tick = this.ringBuffer.getTickAtOffset(this.playheadOffset);
           info += `Playhead: t = ${tick}`;
+        }
+        if (totalSamples > 0) {
+          const tStart = this.ringBuffer.getTickAtOffset(startOffset);
+          const tEnd = this.ringBuffer.getTickAtOffset(Math.max(0, endOffset - 1));
+          info += ` | Zeitrahmen: ${tStart}..${tEnd} (${endOffset - startOffset} Ticks @ ${this.pixelsPerTick} px/T)`;
         }
         if (this.loopRange) {
           const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
           const span = tOut - tIn;
-          info += `  |  [ Loop: ${tIn}..${tOut} (${span} T) ]`;
+          info += ` | [ Loop: ${tIn}..${tOut} (${span} T) ]`;
         }
         badge.textContent = info;
       }
@@ -11416,6 +11569,13 @@
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
         this.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        if (!this._initialCenterDone) {
+          const w = this.canvas.width / dpr;
+          const h = this.canvas.height / dpr;
+          this.panX = Math.round(w / 2);
+          this.panY = Math.round(h / 2);
+          this._initialCenterDone = true;
+        }
         this.render();
       }
 
@@ -11467,7 +11627,7 @@
 
         const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
         let startOffset;
-        if (this.loopRange && totalSamples > 0) {
+        if (this.loopRange && totalSamples > 0 && this.isLoopPlaying) {
           const bracketCenter = (this.loopRange.inOffset + this.loopRange.outOffset) / 2;
           const targetStart = Math.round(bracketCenter - visibleTicks / 2);
           startOffset = Math.max(0, Math.min(maxStartOffset, targetStart));
@@ -11478,6 +11638,25 @@
 
         ctx.fillStyle = headerBg;
         ctx.fillRect(0, 0, width, headerH);
+
+        // Premiere Pro Time Navigator bar at top of header
+        if (totalSamples > 0) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx.fillRect(this.gutterWidth, 0, plotW, 3);
+          const barFracStart = Math.min(1.0, startOffset / Math.max(1, totalSamples));
+          const barFracEnd = Math.min(1.0, endOffset / Math.max(1, totalSamples));
+          const barX = this.gutterWidth + barFracStart * plotW;
+          const barW = Math.max(6, (barFracEnd - barFracStart) * plotW);
+          ctx.fillStyle = 'rgba(0, 176, 255, 0.6)';
+          ctx.fillRect(barX, 0, barW, 3);
+
+          if (this.playheadOffset !== null) {
+            const phBarX = this.gutterWidth + (this.playheadOffset / Math.max(1, totalSamples)) * plotW;
+            ctx.fillStyle = '#00e676';
+            ctx.fillRect(phBarX - 1.5, 0, 3, 3);
+          }
+        }
+
         ctx.strokeStyle = gridBorder;
         ctx.beginPath();
         ctx.moveTo(0, headerH);
@@ -13397,9 +13576,10 @@
         this.redoStack = [];
         this.lastSnapshot = null;
         this.scenarioKey = null;
-        this.panX = 40;
-        this.panY = 40;
+        this.panX = 0;
+        this.panY = 0;
         this.zoom = 1.0;
+        this._initialCenterDone = false;
       }
     }
 
@@ -13696,8 +13876,11 @@
         this.engine.circuit = this.circuit;
         this.engine.ringBuffer = this.ringBuffer;
         this.renderer.circuit = this.circuit;
-        this.renderer.panX = nextTab.panX ?? 40;
-        this.renderer.panY = nextTab.panY ?? 40;
+        const dpr = window.devicePixelRatio || 1;
+        const cw = (this.gridCanvas ? this.gridCanvas.width / dpr : 1200);
+        const ch = (this.gridCanvas ? this.gridCanvas.height / dpr : 800);
+        this.renderer.panX = nextTab.panX || Math.round(cw / 2);
+        this.renderer.panY = nextTab.panY || Math.round(ch / 2);
         this.renderer.zoom = nextTab.zoom ?? 1.0;
         this.renderer.selectedCompId = null;
         this.renderer.selectedWireId = null;
@@ -14006,8 +14189,11 @@
           this.setZoomRight(this.rendererRight.zoom / 1.15);
         });
         document.getElementById('btn-zoom-reset-right')?.addEventListener('click', () => {
-          this.rendererRight.panX = 40;
-          this.rendererRight.panY = 40;
+          const dpr = window.devicePixelRatio || 1;
+          const cw = (this.gridCanvasRight ? this.gridCanvasRight.width / dpr : 600);
+          const ch = (this.gridCanvasRight ? this.gridCanvasRight.height / dpr : 800);
+          this.rendererRight.panX = Math.round(cw / 2);
+          this.rendererRight.panY = Math.round(ch / 2);
           this.setZoomRight(1.0);
         });
       }
@@ -14863,8 +15049,11 @@
         if (!hasCustomWaypoints) {
           this.autoRouteAllWires();
         }
-        this.renderer.panX = 30;
-        this.renderer.panY = 20;
+        const dpr = window.devicePixelRatio || 1;
+        const cw = (this.gridCanvas ? this.gridCanvas.width / dpr : 1200);
+        const ch = (this.gridCanvas ? this.gridCanvas.height / dpr : 800);
+        this.renderer.panX = Math.round(cw / 2);
+        this.renderer.panY = Math.round(ch / 2);
         this.renderer.zoom = 1.0;
         document.getElementById('btn-zoom-reset').textContent = '100%';
         this.refreshAll();
@@ -15036,8 +15225,11 @@
           this.setZoom(this.renderer.zoom / 1.15);
         });
         document.getElementById('btn-zoom-reset').addEventListener('click', () => {
-          this.renderer.panX = 40;
-          this.renderer.panY = 40;
+          const dpr = window.devicePixelRatio || 1;
+          const cw = (this.gridCanvas ? this.gridCanvas.width / dpr : 1200);
+          const ch = (this.gridCanvas ? this.gridCanvas.height / dpr : 800);
+          this.renderer.panX = Math.round(cw / 2);
+          this.renderer.panY = Math.round(ch / 2);
           this.setZoom(1.0);
         });
       }
@@ -15521,8 +15713,12 @@
             const z = this.renderer.zoom;
             const w = canvas.width / (window.devicePixelRatio || 1);
             const h = canvas.height / (window.devicePixelRatio || 1);
-            nextPanX = Math.max(-10000 * z + 80, Math.min(w - 80, nextPanX));
-            nextPanY = Math.max(-10000 * z + 80, Math.min(h - 80, nextPanY));
+            const minPanX = 80 - 5000 * z;
+            const maxPanX = w - 80 + 5000 * z;
+            nextPanX = Math.max(minPanX, Math.min(maxPanX, nextPanX));
+            const minPanY = 80 - 5000 * z;
+            const maxPanY = h - 80 + 5000 * z;
+            nextPanY = Math.max(minPanY, Math.min(maxPanY, nextPanY));
             this.renderer.panX = nextPanX;
             this.renderer.panY = nextPanY;
             this.renderer.render();
@@ -15545,8 +15741,8 @@
             for (const [cid, pos] of this.groupStartPositions.entries()) {
               const comp = this.circuit.getComponent(cid);
               if (comp) {
-                comp.x = Math.max(0, Math.min(10000 - (comp.width || 80), pos.x + snapDx));
-                comp.y = Math.max(0, Math.min(10000 - (comp.height || 40), pos.y + snapDy));
+                comp.x = Math.max(-5000, Math.min(5000 - (comp.width || 80), pos.x + snapDx));
+                comp.y = Math.max(-5000, Math.min(5000 - (comp.height || 40), pos.y + snapDy));
               }
             }
             if (this.groupWireStartWaypoints) {
@@ -15699,8 +15895,8 @@
           if (this.draggingComp && this.engine.mode === 'edit') {
             const rawX = world.x - this.dragOffsetWorld.x;
             const rawY = world.y - this.dragOffsetWorld.y;
-            this.draggingComp.x = Math.max(0, Math.min(10000 - (this.draggingComp.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
-            this.draggingComp.y = Math.max(0, Math.min(10000 - (this.draggingComp.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
+            this.draggingComp.x = Math.max(-5000, Math.min(5000 - (this.draggingComp.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
+            this.draggingComp.y = Math.max(-5000, Math.min(5000 - (this.draggingComp.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
             this.inspector.render(this.draggingComp.id, null);
             this.renderer.render();
             return;
@@ -18388,8 +18584,8 @@
       updateStatusCoords(world) {
         const el = document.getElementById('status-coords');
         if (!el || !world) return;
-        const x = Math.max(0, Math.min(10000, Math.round(world.x / GRID_SIZE) * GRID_SIZE));
-        const y = Math.max(0, Math.min(10000, Math.round(world.y / GRID_SIZE) * GRID_SIZE));
+        const x = Math.max(-5000, Math.min(5000, Math.round(world.x / GRID_SIZE) * GRID_SIZE));
+        const y = Math.max(-5000, Math.min(5000, Math.round(world.y / GRID_SIZE) * GRID_SIZE));
         const text = `X: ${x} px, Y: ${y} px`;
         if (text !== this._statusCoordText) { this._statusCoordText = text; el.textContent = text; }
       }
@@ -18408,13 +18604,13 @@
           let curX = 0;
           let curY = 0;
           if (this.lastMouseWorldPos) {
-            curX = Math.max(0, Math.min(10000, Math.round(this.lastMouseWorldPos.x / GRID_SIZE) * GRID_SIZE));
-            curY = Math.max(0, Math.min(10000, Math.round(this.lastMouseWorldPos.y / GRID_SIZE) * GRID_SIZE));
+            curX = Math.max(-5000, Math.min(5000, Math.round(this.lastMouseWorldPos.x / GRID_SIZE) * GRID_SIZE));
+            curY = Math.max(-5000, Math.min(5000, Math.round(this.lastMouseWorldPos.y / GRID_SIZE) * GRID_SIZE));
           } else {
             const dpr = window.devicePixelRatio || 1;
             const center = this.renderer.screenToWorld((this.gridCanvas.width / dpr) / 2, (this.gridCanvas.height / dpr) / 2);
-            curX = Math.max(0, Math.min(10000, Math.round(center.x / GRID_SIZE) * GRID_SIZE));
-            curY = Math.max(0, Math.min(10000, Math.round(center.y / GRID_SIZE) * GRID_SIZE));
+            curX = Math.max(-5000, Math.min(5000, Math.round(center.x / GRID_SIZE) * GRID_SIZE));
+            curY = Math.max(-5000, Math.min(5000, Math.round(center.y / GRID_SIZE) * GRID_SIZE));
           }
           if (inputX) inputX.value = curX;
           if (inputY) inputY.value = curY;
@@ -18432,21 +18628,21 @@
         const applyCoordsJump = () => {
           const rawX = Number(inputX ? inputX.value : 0);
           const rawY = Number(inputY ? inputY.value : 0);
-          const targetX = Math.max(0, Math.min(10000, Math.round((Number.isFinite(rawX) ? rawX : 0) / GRID_SIZE) * GRID_SIZE));
-          const targetY = Math.max(0, Math.min(10000, Math.round((Number.isFinite(rawY) ? rawY : 0) / GRID_SIZE) * GRID_SIZE));
+          const targetX = Math.max(-5000, Math.min(5000, Math.round((Number.isFinite(rawX) ? rawX : 0) / GRID_SIZE) * GRID_SIZE));
+          const targetY = Math.max(-5000, Math.min(5000, Math.round((Number.isFinite(rawY) ? rawY : 0) / GRID_SIZE) * GRID_SIZE));
 
           if (this.renderer.selectedCompId) {
             const comp = this.circuit.getComponent(this.renderer.selectedCompId);
             if (comp) {
               const dx = targetX - comp.x;
               const dy = targetY - comp.y;
-              comp.x = Math.max(0, Math.min(10000 - (comp.width || 80), targetX));
-              comp.y = Math.max(0, Math.min(10000 - (comp.height || 40), targetY));
+              comp.x = Math.max(-5000, Math.min(5000 - (comp.width || 80), targetX));
+              comp.y = Math.max(-5000, Math.min(5000 - (comp.height || 40), targetY));
               for (const w of this.circuit.wires) {
                 if ((w.fromCompId === comp.id || w.toCompId === comp.id) && w.waypoints && w.waypoints.length > 0) {
                   w.waypoints = w.waypoints.map(p => ({
-                    x: Math.max(0, Math.min(10000, p.x + dx)),
-                    y: Math.max(0, Math.min(10000, p.y + dy))
+                    x: Math.max(-5000, Math.min(5000, p.x + dx)),
+                    y: Math.max(-5000, Math.min(5000, p.y + dy))
                   }));
                 }
               }
