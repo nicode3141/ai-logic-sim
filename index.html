@@ -3196,11 +3196,6 @@
               <span>Auto-Anordnen</span>
               <span class="menu-shortcut">A</span>
             </button>
-            <button class="app-menu-item" id="menu-item-layout-selection">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-              <span>Nur Auswahl anordnen</span>
-              <span class="menu-shortcut">Umschalt+A</span>
-            </button>
             <button class="app-menu-item" id="menu-item-reroute">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5v12h5"/></svg>
               <span>Leitungen neu verlegen</span>
@@ -3390,11 +3385,6 @@
               <span class="align-row-text"><strong>Alles anordnen</strong><small>Bauteile platzieren, Leitungen verlegen, Ansicht einpassen</small></span>
               <kbd>A</kbd>
             </button>
-            <button class="align-row" data-align-action="selection">
-              <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg></span>
-              <span class="align-row-text"><strong>Nur Auswahl anordnen</strong><small>Der Rest der Schaltung bleibt, wo er ist</small></span>
-              <kbd>⇧A</kbd>
-            </button>
             <button class="align-row" data-align-action="wires">
               <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5v12h5"/></svg></span>
               <span class="align-row-text"><strong>Nur Leitungen neu verlegen</strong><small>Bauteile bleiben stehen, Leitungen weichen ihnen aus</small></span>
@@ -3525,15 +3515,15 @@
           <div class="category-title">Quellen (Inputs)</div>
           <div class="palette-grid">
             <div class="palette-item" draggable="true" data-type="SWITCH" title="Schalter (0/1 umschaltbar)">
-              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="6"/><circle cx="8" cy="12" r="3.5" fill="currentColor"/></svg></div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="7" y2="12"/><circle cx="7.5" cy="12" r="1.5" fill="currentColor"/><line x1="7.5" y1="12" x2="16" y2="6.5"/><circle cx="17.5" cy="6" r="1.5"/><circle cx="17.5" cy="18" r="1.5"/><line x1="19" y1="6" x2="22" y2="6"/><line x1="19" y1="18" x2="22" y2="18"/></svg></div>
               <div class="palette-name">Schalter</div>
             </div>
             <div class="palette-item" draggable="true" data-type="BUTTON" title="Taster (1 während Mausklick)">
-              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V6a4 4 0 0 1 8 0v5"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor"/></svg></div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="15" x2="8" y2="15"/><circle cx="8" cy="15" r="1.5"/><circle cx="16" cy="15" r="1.5"/><line x1="16" y1="15" x2="22" y2="15"/><line x1="6.5" y1="11" x2="17.5" y2="11" stroke-width="2.2"/><line x1="12" y1="11" x2="12" y2="4"/><line x1="8" y1="4" x2="16" y2="4" stroke-width="2.5"/></svg></div>
               <div class="palette-name">Taster</div>
             </div>
             <div class="palette-item" draggable="true" data-type="CLOCK" title="Taktgeber (konfigurierbare Halbperiode)">
-              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 16h4V8h6v8h6V8h4"/></svg></div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M6 14h3V10h6v4h3" stroke-width="1.8"/></svg></div>
               <div class="palette-name">Taktgeber</div>
             </div>
             <div class="palette-item" draggable="true" data-type="CONST" title="Konstante: liefert dauerhaft 1 (oder 0)">
@@ -3599,7 +3589,7 @@
           <div class="category-title">Anzeigen &amp; Decoder</div>
           <div class="palette-grid single-col">
             <div class="palette-item" draggable="true" data-type="LED" title="LED-Signallampe (Grün, Rot, Gelb, Blau)">
-              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+              <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="6.34" y1="6.34" x2="17.66" y2="17.66"/><line x1="17.66" y1="6.34" x2="6.34" y2="17.66"/></svg></div>
               <div class="palette-name">Lampe (LED)</div>
             </div>
             <div class="palette-item" draggable="true" data-type="SEVEN_SEG" title="7-Segment-Anzeige (a–g, DP)">
@@ -4538,10 +4528,10 @@
     }
 
     /**
-     * Wire Connection between an Output Pin and an Input Pin
+     * Wire Connection between pins, wires, or points
      */
     class Wire {
-      constructor(id, fromCompId, fromPin, toCompId, toPin, waypoints = []) {
+      constructor(id, fromCompId, fromPin, toCompId, toPin, waypoints = [], extra = {}) {
         this.id = String(id || 'wire_unknown');
         this.fromCompId = String(fromCompId || '');
         this.fromPin = Number.isFinite(Number(fromPin)) ? Number(fromPin) : 0;
@@ -4562,6 +4552,17 @@
         this._preview = false;
         this._fromComp = null;
         this._toComp = null;
+
+        // Extended wire endpoints: connections don't strictly require a module
+        this.fromWireId = extra.fromWireId ? String(extra.fromWireId) : null;
+        this.toWireId = extra.toWireId ? String(extra.toWireId) : null;
+        this.fromPoint = (extra.fromPoint && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
+          ? { x: Math.round(Number(extra.fromPoint.x)), y: Math.round(Number(extra.fromPoint.y)) }
+          : null;
+        this.toPoint = (extra.toPoint && Number.isFinite(Number(extra.toPoint.x)) && Number.isFinite(Number(extra.toPoint.y)))
+          ? { x: Math.round(Number(extra.toPoint.x)), y: Math.round(Number(extra.toPoint.y)) }
+          : null;
+        this.style = extra.style === 'diagonal' ? 'diagonal' : (extra.style || 'orthogonal');
       }
 
       toJSON() {
@@ -4574,6 +4575,11 @@
           waypoints: this.waypoints
         };
         if (this.autoRouted && this.waypoints.length > 0) json.auto = true;
+        if (this.fromWireId) json.fromWireId = this.fromWireId;
+        if (this.toWireId) json.toWireId = this.toWireId;
+        if (this.fromPoint) json.fromPoint = this.fromPoint;
+        if (this.toPoint) json.toPoint = this.toPoint;
+        if (this.style && this.style !== 'orthogonal') json.style = this.style;
         return json;
       }
     }
@@ -5633,27 +5639,49 @@
         this.syncWirePointers();
       }
 
-      addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null, waypoints = []) {
-        const fromComp = this.getComponent(fromCompId);
-        const toComp = this.getComponent(toCompId);
-        if (!fromComp || !toComp) return null;
-        if (fromPin < 0 || fromPin >= fromComp.outputs.length) return null;
-        if (toPin < 0 || toPin >= toComp.inputs.length) return null;
+      addWire(fromCompId, fromPin, toCompId, toPin, forcedId = null, waypoints = [], extra = {}) {
+        const fromComp = fromCompId ? this.getComponent(fromCompId) : null;
+        const toComp = toCompId ? this.getComponent(toCompId) : null;
 
-        // Fan-In <= 1
-        const existingWire = this.getWireToInput(toCompId, toPin);
-        if (existingWire) {
-          this.removeWire(existingWire.id);
+        // If fromCompId is given, check validity
+        if (fromCompId && !fromComp) return null;
+        if (fromComp && (fromPin < 0 || fromPin >= fromComp.outputs.length)) return null;
+
+        // If toCompId is given, check validity and enforce Fan-In <= 1
+        if (toCompId && !toComp) return null;
+        if (toComp && (toPin < 0 || toPin >= toComp.inputs.length)) return null;
+
+        // Ensure wire has some start and some end
+        const hasStart = Boolean(fromComp || extra.fromWireId || extra.fromPoint);
+        const hasEnd = Boolean(toComp || extra.toWireId || extra.toPoint);
+        if (!hasStart && !hasEnd) return null;
+
+        if (toCompId && toComp) {
+          const existingWire = this.getWireToInput(toCompId, toPin);
+          if (existingWire) {
+            this.removeWire(existingWire.id);
+          }
         }
 
         const id = forcedId || this.generateId('wire');
-        const wire = new Wire(id, fromCompId, fromPin, toCompId, toPin, waypoints);
+        const wire = new Wire(id, fromCompId || '', fromPin || 0, toCompId || '', toPin || 0, waypoints, extra);
         wire._fromComp = fromComp;
         wire._toComp = toComp;
-        wire.level = fromComp.outputs[fromPin]?.value || 0;
+
+        let lvl = 0;
+        if (fromComp && fromComp.outputs[fromPin]) {
+          lvl = fromComp.outputs[fromPin].value || 0;
+        } else if (extra.fromWireId) {
+          const parentW = this.wireMap ? this.wireMap.get(extra.fromWireId) : this.getWire(extra.fromWireId);
+          if (parentW) lvl = parentW.level || 0;
+        }
+        wire.level = lvl;
+
         this.wires.push(wire);
         this.wireMap.set(wire.id, wire);
-        toComp.inputs[toPin].value = wire.level;
+        if (toComp && toComp.inputs[toPin]) {
+          toComp.inputs[toPin].value = wire.level;
+        }
         return wire;
       }
 
@@ -5752,11 +5780,25 @@
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
           const dst = compMap.get(w.toCompId);
-          if (!dst) { w.level = 0; continue; }
+          if (!dst) continue;
           let list = incoming.get(dst);
           if (!list) { list = []; incoming.set(dst, list); }
           list.push(w);
         }
+
+        const syncAllWireLevels = () => {
+          for (let i = 0; i < wires.length; i++) {
+            const w = wires[i];
+            if (w.fromCompId) {
+              const src = compMap.get(w.fromCompId);
+              w.level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
+            } else if (w.fromWireId) {
+              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+              w.level = srcWire ? srcWire.level : 0;
+            }
+          }
+        };
+
         const refreshInputs = (comp) => {
           const inp = comp.inputs;
           for (let p = 0; p < inp.length; p++) inp[p].value = 0;
@@ -5764,16 +5806,24 @@
           if (!list) return;
           for (let i = 0; i < list.length; i++) {
             const w = list[i];
-            const src = compMap.get(w.fromCompId);
-            const level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
+            let level = 0;
+            if (w.fromCompId) {
+              const src = compMap.get(w.fromCompId);
+              level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
+            } else if (w.fromWireId) {
+              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+              level = srcWire ? srcWire.level : 0;
+            }
             w.level = level;
             if (inp[w.toPin]) inp[w.toPin].value = level;
           }
         };
 
+        syncAllWireLevels();
         const maxPasses = Math.max(4, Math.min(64, comps.length + 2));
         for (let pass = 0; pass < maxPasses; pass++) {
           let changed = false;
+          syncAllWireLevels();
           for (let i = 0; i < comps.length; i++) {
             const comp = comps[i];
             refreshInputs(comp);
@@ -5792,6 +5842,7 @@
         }
 
         // Final propagation so every wire and input pin shows the settled state
+        syncAllWireLevels();
         for (let i = 0; i < comps.length; i++) refreshInputs(comps[i]);
       }
 
@@ -5832,12 +5883,28 @@
         for (const wData of data.wires) {
           if (!wData || typeof wData !== 'object') continue;
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
-          if (!this.getComponent(wData.fromCompId) || !this.getComponent(wData.toCompId)) {
+          const hasStart = Boolean(this.getComponent(wData.fromCompId) || wData.fromWireId || wData.fromPoint);
+          const hasEnd = Boolean(this.getComponent(wData.toCompId) || wData.toWireId || wData.toPoint);
+          if (!hasStart && !hasEnd) {
             continue;
           }
           const fromPin = parseInt(wData.fromPin, 10) || 0;
           const toPin = parseInt(wData.toPin, 10) || 0;
-          const loadedWire = this.addWire(wData.fromCompId, fromPin, wData.toCompId, toPin, wData.id, Array.isArray(wData.waypoints) ? wData.waypoints : []);
+          const loadedWire = this.addWire(
+            wData.fromCompId || null,
+            fromPin,
+            wData.toCompId || null,
+            toPin,
+            wData.id,
+            Array.isArray(wData.waypoints) ? wData.waypoints : [],
+            {
+              fromWireId: wData.fromWireId,
+              toWireId: wData.toWireId,
+              fromPoint: wData.fromPoint,
+              toPoint: wData.toPoint,
+              style: wData.style
+            }
+          );
           if (loadedWire && wData.auto === true) loadedWire.autoRouted = true;
         }
 
@@ -5877,6 +5944,22 @@
           const w = wires[i];
           const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
           w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
+        }
+
+        // Propagate across wire-to-wire branch links
+        for (let pass = 0; pass < 4; pass++) {
+          let wireChanged = false;
+          for (let i = 0; i < wires.length; i++) {
+            const w = wires[i];
+            if (w.fromWireId) {
+              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+              if (srcWire && w.level !== srcWire.level) {
+                w.level = srcWire.level;
+                wireChanged = true;
+              }
+            }
+          }
+          if (!wireChanged) break;
         }
 
         for (let i = 0; i < comps.length; i++) {
@@ -8414,26 +8497,19 @@
       }
 
       /**
-       * Computes a strictly orthogonal (90-degree) polyline path between p1 and p2.
-       * If custom waypoints are provided, routes through them.
-       * Otherwise, computes an optimal Manhattan routing with optional channelOffset.
+       * Computes polyline path between p1 and p2.
+       * Supports diagonal routing, waypoints, and orthogonal Manhattan routing with optional channelOffset.
        */
-      computeWirePath(p1, p2, waypoints = null, channelOffset = 0) {
+      computeWirePath(p1, p2, waypoints = null, channelOffset = 0, style = null) {
+        if (style === 'diagonal') {
+          if (waypoints && waypoints.length > 0) {
+            return this.simplifyCollinear([{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }]);
+          }
+          return [{ x: p1.x, y: p1.y }, { x: p2.x, y: p2.y }];
+        }
+
         if (waypoints && waypoints.length > 0) {
-          const fullPts = [{ x: p1.x, y: p1.y }];
-          for (let i = 0; i < waypoints.length; i++) {
-            const prev = fullPts[fullPts.length - 1];
-            const curr = waypoints[i];
-            if (prev.x !== curr.x && prev.y !== curr.y) {
-              fullPts.push({ x: curr.x, y: prev.y });
-            }
-            fullPts.push({ x: curr.x, y: curr.y });
-          }
-          const last = fullPts[fullPts.length - 1];
-          if (last.x !== p2.x && last.y !== p2.y) {
-            fullPts.push({ x: last.x, y: p2.y });
-          }
-          fullPts.push({ x: p2.x, y: p2.y });
+          const fullPts = [{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }];
           return this.simplifyCollinear(fullPts);
         }
 
@@ -8503,11 +8579,9 @@
           const curr = pts[i];
           const next = pts[i + 1];
 
-          const isHoriz = (prev.y === curr.y && curr.y === next.y);
-          const isVert = (prev.x === curr.x && curr.x === next.x);
-          const isIdentical = (curr.x === prev.x && curr.y === prev.y);
-
-          if (!isHoriz && !isVert && !isIdentical) {
+          if (curr.x === prev.x && curr.y === prev.y) continue;
+          const cross = (curr.y - prev.y) * (next.x - curr.x) - (curr.x - prev.x) * (next.y - curr.y);
+          if (Math.abs(cross) > 0.001) {
             res.push(curr);
           }
         }
@@ -8516,12 +8590,39 @@
       }
 
       getWirePolyline(wire) {
-        const fromComp = this.circuit.getComponent(wire.fromCompId);
-        const toComp = this.circuit.getComponent(wire.toCompId);
-        if (!fromComp || !toComp) return [];
-        const p1 = fromComp.getPinWorldPos(true, wire.fromPin);
-        const p2 = toComp.getPinWorldPos(false, wire.toPin);
-        return this.computeWirePath(p1, p2, wire._preview ? null : wire.waypoints, wire.channelOffset || 0);
+        let p1 = null;
+        let p2 = null;
+
+        if (wire.fromCompId) {
+          const fromComp = this.circuit.getComponent(wire.fromCompId);
+          if (fromComp) p1 = fromComp.getPinWorldPos(true, wire.fromPin);
+        }
+        if (!p1 && wire.fromPoint) {
+          p1 = { x: wire.fromPoint.x, y: wire.fromPoint.y };
+        } else if (!p1 && wire.fromWireId) {
+          const fw = this.circuit.getWire(wire.fromWireId);
+          if (fw) {
+            const fwPts = this.getWirePolyline(fw);
+            p1 = wire.fromPoint || (fwPts.length > 0 ? fwPts[0] : { x: 0, y: 0 });
+          }
+        }
+
+        if (wire.toCompId) {
+          const toComp = this.circuit.getComponent(wire.toCompId);
+          if (toComp) p2 = toComp.getPinWorldPos(false, wire.toPin);
+        }
+        if (!p2 && wire.toPoint) {
+          p2 = { x: wire.toPoint.x, y: wire.toPoint.y };
+        } else if (!p2 && wire.toWireId) {
+          const tw = this.circuit.getWire(wire.toWireId);
+          if (tw) {
+            const twPts = this.getWirePolyline(tw);
+            p2 = wire.toPoint || (twPts.length > 0 ? twPts[twPts.length - 1] : { x: 0, y: 0 });
+          }
+        }
+
+        if (!p1 || !p2) return [];
+        return this.computeWirePath(p1, p2, wire._preview ? null : wire.waypoints, wire.channelOffset || 0, wire.style);
       }
 
       findPinAt(worldX, worldY, radius = 10) {
@@ -8613,6 +8714,16 @@
         return false;
       }
 
+      distToWireSq(px, py, pts) {
+        if (!pts || pts.length < 2) return Infinity;
+        let minD = Infinity;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const d = this.distToSegmentSq(px, py, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+          if (d < minD) minD = d;
+        }
+        return minD;
+      }
+
       findWireJunctions(wireEntries) {
         if (!wireEntries || wireEntries.length === 0) return [];
 
@@ -8621,9 +8732,11 @@
 
         for (const entry of wireEntries) {
           const w = entry.wire;
-          const key = `${w.fromCompId}:${w.fromPin}`;
-          if (!pinGroups.has(key)) pinGroups.set(key, []);
-          pinGroups.get(key).push(entry);
+          if (w.fromCompId) {
+            const key = `${w.fromCompId}:${w.fromPin}`;
+            if (!pinGroups.has(key)) pinGroups.set(key, []);
+            pinGroups.get(key).push(entry);
+          }
         }
 
         for (const [key, group] of pinGroups.entries()) {
@@ -8638,7 +8751,6 @@
               if (i === j) continue;
               const pts1 = group[i].pts;
               const pts2 = group[j].pts;
-              // Check each vertex of pts1 (excluding p0 and the last destination pin)
               for (let k = 1; k < pts1.length - 1; k++) {
                 const pt = pts1[k];
                 for (let m = 0; m < pts2.length - 1; m++) {
@@ -8668,6 +8780,43 @@
           for (const cp of candidatePoints.values()) {
             if (Math.hypot(cp.x - p0.x, cp.y - p0.y) >= 4) {
               junctions.push(cp);
+            }
+          }
+        }
+
+        // Detect split points where wires branch from or into another wire (wire-to-wire taps)
+        for (const entry of wireEntries) {
+          const w = entry.wire;
+          if (w.fromWireId || w.fromPoint) {
+            const startPt = entry.pts[0];
+            for (const other of wireEntries) {
+              if (other.wire.id === w.id) continue;
+              if (other.wire.id === w.fromWireId || this.distToWireSq(startPt.x, startPt.y, other.pts) <= 16) {
+                if (!junctions.some(j => Math.hypot(j.x - startPt.x, j.y - startPt.y) < 6)) {
+                  junctions.push({
+                    x: startPt.x,
+                    y: startPt.y,
+                    level: w.level,
+                    isSelected: this.selectedWireIds.has(w.id) || this.selectedWireIds.has(other.wire.id) || w.id === this.selectedWireId
+                  });
+                }
+              }
+            }
+          }
+          if (w.toWireId || w.toPoint) {
+            const endPt = entry.pts[entry.pts.length - 1];
+            for (const other of wireEntries) {
+              if (other.wire.id === w.id) continue;
+              if (other.wire.id === w.toWireId || this.distToWireSq(endPt.x, endPt.y, other.pts) <= 16) {
+                if (!junctions.some(j => Math.hypot(j.x - endPt.x, j.y - endPt.y) < 6)) {
+                  junctions.push({
+                    x: endPt.x,
+                    y: endPt.y,
+                    level: w.level,
+                    isSelected: this.selectedWireIds.has(w.id) || this.selectedWireIds.has(other.wire.id) || w.id === this.selectedWireId
+                  });
+                }
+              }
             }
           }
         }
@@ -8823,6 +8972,13 @@
 
         const ratio = bestDistAlong / totalLen;
         return Math.max(0.05, Math.min(0.95, ratio));
+      }
+
+      getClosestPointOnPolyline(pts, worldPos) {
+        if (!pts || pts.length === 0) return { x: worldPos.x, y: worldPos.y };
+        if (pts.length === 1) return { x: pts[0].x, y: pts[0].y };
+        const ratio = this.getProjectedRatioOnPolyline(pts, worldPos);
+        return this.getPointAlongPolyline(pts, ratio) || { x: worldPos.x, y: worldPos.y };
       }
 
       findProbeAt(worldX, worldY) {
@@ -9130,33 +9286,36 @@
           }
           ctx.stroke();
 
-          // Draw Interactive Waypoint Handles & Midpoint '+' Handles
+          // Draw Interactive Waypoint Handles & Midpoint '+' Handles (only on explicit custom waypoints when selected)
           if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
-            // 1. Draw Corner Handles at pts.slice(1, -1)
-            for (let i = 1; i < pts.length - 1; i++) {
-              const wp = pts[i];
-              const wpIdx = i - 1;
-              const isHoveredWp = this.hoveredWaypoint &&
-                                  this.hoveredWaypoint.wire.id === w.id &&
-                                  this.hoveredWaypoint.waypointIndex === wpIdx;
+            // 1. Draw Corner Handles ONLY for actual custom waypoints on this wire
+            if (w.waypoints && w.waypoints.length > 0) {
+              for (let i = 0; i < w.waypoints.length; i++) {
+                const wp = w.waypoints[i];
+                const isHoveredWp = this.hoveredWaypoint &&
+                                    this.hoveredWaypoint.wire.id === w.id &&
+                                    this.hoveredWaypoint.waypointIndex === i;
 
-              ctx.save();
-              ctx.setLineDash([]);
-              // Glow halo
-              ctx.beginPath();
-              ctx.arc(wp.x, wp.y, isHoveredWp ? 9 : 7, 0, Math.PI * 2);
-              ctx.fillStyle = isHoveredWp ? 'rgba(0, 230, 118, 0.45)' : 'rgba(0, 176, 255, 0.28)';
-              ctx.fill();
+                ctx.save();
+                ctx.setLineDash([]);
+                // Glow halo only on hover
+                if (isHoveredWp) {
+                  ctx.beginPath();
+                  ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
+                  ctx.fillStyle = 'rgba(0, 230, 118, 0.45)';
+                  ctx.fill();
+                }
 
-              // Solid handle circle
-              ctx.beginPath();
-              ctx.arc(wp.x, wp.y, isHoveredWp ? 6.5 : 5, 0, Math.PI * 2);
-              ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
-              ctx.fill();
-              ctx.lineWidth = 2;
-              ctx.strokeStyle = isHoveredWp ? '#061014' : '#00b0ff';
-              ctx.stroke();
-              ctx.restore();
+                // Handle circle
+                ctx.beginPath();
+                ctx.arc(wp.x, wp.y, isHoveredWp ? 5.5 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = isHoveredWp ? '#061014' : '#00b0ff';
+                ctx.stroke();
+                ctx.restore();
+              }
             }
 
             // 2. Draw Midpoint '+' Handles on segments
@@ -9175,10 +9334,10 @@
               ctx.save();
               ctx.setLineDash([]);
               ctx.beginPath();
-              ctx.arc(mx, my, isHoveredMid ? 6 : 4, 0, Math.PI * 2);
-              ctx.fillStyle = isHoveredMid ? '#00e676' : 'rgba(0, 176, 255, 0.5)';
+              ctx.arc(mx, my, isHoveredMid ? 6 : 3.5, 0, Math.PI * 2);
+              ctx.fillStyle = isHoveredMid ? '#00e676' : 'rgba(0, 176, 255, 0.45)';
               ctx.fill();
-              ctx.lineWidth = 1.5;
+              ctx.lineWidth = 1.2;
               ctx.strokeStyle = isHoveredMid ? '#061014' : '#ffffff';
               ctx.stroke();
 
@@ -9212,16 +9371,6 @@
                 ctx.fillText(`${dragWp.x}, ${dragWp.y}`, dragWp.x + 10, dragWp.y - 8);
                 ctx.restore();
               }
-            }
-          } else if (isHovered && this.engine.mode === 'edit') {
-            // Subtle corner dots when hovering an unselected wire
-            for (let i = 1; i < pts.length - 1; i++) {
-              ctx.save();
-              ctx.beginPath();
-              ctx.arc(pts[i].x, pts[i].y, 3.5, 0, Math.PI * 2);
-              ctx.fillStyle = '#00b0ff';
-              ctx.fill();
-              ctx.restore();
             }
           }
 
@@ -9269,7 +9418,15 @@
         const p1 = drag.isOutput ? { x: startX, y: startY } : { x: currX, y: currY };
         const p2 = drag.isOutput ? { x: currX, y: currY } : { x: startX, y: startY };
 
-        const pts = this.computeWirePath(p1, p2, drag.waypoints);
+        let pts;
+        if (drag.waypoints && drag.waypoints.length > 0) {
+          const directWps = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
+          pts = [{ x: p1.x, y: p1.y }, ...directWps, { x: p2.x, y: p2.y }];
+        } else if (drag.style === 'diagonal') {
+          pts = [{ x: p1.x, y: p1.y }, { x: p2.x, y: p2.y }];
+        } else {
+          pts = this.computeWirePath(p1, p2, null);
+        }
         if (!pts || pts.length < 2) return;
 
         ctx.save();
@@ -9718,55 +9875,121 @@
         switch (type) {
           case 'SWITCH': {
             const isOn = comp.state.value === 1;
-            const swW = 40;
-            const swH = 20;
-            const sx = cx - swW / 2 - 4;
-            const sy = cy - swH / 2;
+            const pal = this.getThemePalette();
+            const highColor = this.highSignalColor || '#00e676';
 
-            ctx.fillStyle = isOn ? 'rgba(0, 230, 118, 0.22)' : '#0b0d10';
-            ctx.strokeStyle = isOn ? '#00e676' : '#334155';
-            ctx.lineWidth = 1.5;
-            this.roundRect(ctx, sx, sy, swW, swH, 10);
+            // DigitalSimulator 5.57 Switch (Schalter): classic SPDT lever between '1' and '0' contacts
+            const pivotX = x + width - 14;
+            const pivotY = cy;
+            const termX = x + 24;
+            const topY = cy - 9;
+            const botY = cy + 9;
+
+            // Contacts
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath();
+            ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
+            ctx.arc(termX, botY, 2.5, 0, Math.PI * 2);
+            ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
+
+            // Contact numeric markings 1 & 0
+            ctx.font = '700 9px monospace';
+            ctx.fillStyle = isOn ? highColor : '#64748b';
+            ctx.fillText('1', termX - 8, topY + 3);
+            ctx.fillStyle = !isOn ? '#94a3b8' : '#475569';
+            ctx.fillText('0', termX - 8, botY + 3);
+
+            // Lead to output terminal
+            ctx.strokeStyle = isOn ? highColor : pal.leadLine;
+            ctx.lineWidth = isOn ? 2.2 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(x + width, cy);
             ctx.stroke();
 
-            const knobX = isOn ? sx + swW - 10 : sx + 10;
+            // Switch lever arm
+            const targetY = isOn ? topY : botY;
+            ctx.strokeStyle = isOn ? highColor : (pal.textLabel || '#e2e8f0');
+            ctx.lineWidth = 2.4;
             ctx.beginPath();
-            ctx.arc(knobX, cy, 6.5, 0, Math.PI * 2);
-            ctx.fillStyle = isOn ? '#00e676' : '#64748b';
-            ctx.fill();
-
-            ctx.fillStyle = isOn ? '#00e676' : '#64748b';
-            ctx.font = '700 10px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(isOn ? '1' : '0', isOn ? sx + 11 : sx + swW - 11, cy + 3.5);
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(termX + 2, targetY);
+            ctx.stroke();
             break;
           }
 
           case 'BUTTON': {
             const isPressed = comp.state.pressed === 1;
+            const pal = this.getThemePalette();
+            const highColor = this.highSignalColor || '#00e676';
+
+            // DigitalSimulator 5.57 Pushbutton (Taster): lever contact with authentic T-plunger handle
+            const pivotX = x + width - 14;
+            const pivotY = cy;
+            const termX = x + 24;
+            const topY = cy - 9;
+            const botY = cy + 9;
+
+            // Contacts
+            ctx.fillStyle = '#64748b';
             ctx.beginPath();
-            ctx.arc(cx - 4, cy, 12, 0, Math.PI * 2);
-            ctx.fillStyle = isPressed ? '#00e676' : '#263040';
+            ctx.arc(termX, topY, 2.5, 0, Math.PI * 2);
+            ctx.arc(termX, botY, 2.5, 0, Math.PI * 2);
+            ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
             ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = isPressed ? '#ffffff' : '#475569';
+
+            // Contact markings 1 & 0
+            ctx.font = '700 9px monospace';
+            ctx.fillStyle = isPressed ? highColor : '#64748b';
+            ctx.fillText('1', termX - 8, topY + 3);
+            ctx.fillStyle = !isPressed ? '#94a3b8' : '#475569';
+            ctx.fillText('0', termX - 8, botY + 3);
+
+            // Lead to output terminal
+            ctx.strokeStyle = isPressed ? highColor : pal.leadLine;
+            ctx.lineWidth = isPressed ? 2.2 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(x + width, cy);
             ctx.stroke();
 
-            ctx.fillStyle = isPressed ? '#06120c' : '#cbd5e1';
-            ctx.font = '700 9px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(isPressed ? '1' : 'T', cx - 4, cy + 3);
+            // Contact lever arm
+            const bladeTargetY = isPressed ? topY : (topY + botY) / 2 + 3;
+            ctx.strokeStyle = isPressed ? highColor : (pal.textLabel || '#e2e8f0');
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(termX + (isPressed ? 1 : 3), bladeTargetY);
+            ctx.stroke();
+
+            // Authentic DigitalSimulator 5.57 T-plunger handle
+            const stemX = termX + 13;
+            const capY = isPressed ? cy - 7 : cy - 12;
+            ctx.strokeStyle = isPressed ? highColor : '#94a3b8';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(stemX, capY);
+            ctx.lineTo(stemX, bladeTargetY - 2);
+            ctx.moveTo(stemX - 7, capY);
+            ctx.lineTo(stemX + 7, capY);
+            ctx.stroke();
+
+            // Plunger push cap
+            ctx.fillStyle = isPressed ? highColor : '#334155';
+            this.roundRect(ctx, stemX - 8, capY - 3, 16, 4, 1.5);
+            ctx.fill();
             break;
           }
 
           case 'CLOCK': {
             const isHigh = comp.outputs[0]?.value === 1;
-            ctx.strokeStyle = isHigh ? '#00e676' : '#00b0ff';
+            const highColor = this.highSignalColor || '#00e676';
+            ctx.strokeStyle = isHigh ? highColor : '#00b0ff';
             ctx.lineWidth = 1.8;
             ctx.beginPath();
             const wx = x + 12;
-            const wy = cy - 4;
+            const wy = cy - 3;
             ctx.moveTo(wx, wy + 5);
             ctx.lineTo(wx, wy - 5);
             ctx.lineTo(wx + 9, wy - 5);
@@ -9787,6 +10010,7 @@
             const isOn = comp.inputs[0]?.value === 1;
             const cObj = LED_COLORS[comp.params.color] || LED_COLORS.green;
 
+            // DigitalSimulator 5.57 indicator lamp (circle with diagonal cross)
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx + 4, cy, 13, 0, Math.PI * 2);
@@ -9801,6 +10025,18 @@
             ctx.lineWidth = 2;
             ctx.strokeStyle = isOn ? '#ffffff' : '#334155';
             ctx.stroke();
+
+            // Lamp filament diagonal cross (DigitalSimulator lamp)
+            const cr = 7;
+            ctx.beginPath();
+            ctx.moveTo(cx + 4 - cr * 0.7, cy - cr * 0.7);
+            ctx.lineTo(cx + 4 + cr * 0.7, cy + cr * 0.7);
+            ctx.moveTo(cx + 4 + cr * 0.7, cy - cr * 0.7);
+            ctx.lineTo(cx + 4 - cr * 0.7, cy + cr * 0.7);
+            ctx.strokeStyle = isOn ? 'rgba(0, 0, 0, 0.45)' : '#475569';
+            ctx.lineWidth = 1.6;
+            ctx.stroke();
+
             ctx.restore();
             break;
           }
@@ -10416,7 +10652,7 @@
           this.render();
         }, { passive: false });
 
-        // Keyboard hotkeys for Timeline Loop (I, O, L)
+        // Keyboard hotkeys for Timeline Loop (I, O, L) and Playhead Stepping
         window.addEventListener('keydown', (e) => {
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
           if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
@@ -10433,6 +10669,16 @@
               e.preventDefault();
             }
           }
+
+          if (this.hoverX !== null || this.playheadOffset !== null) {
+            if (e.key === 'ArrowLeft' && (this.hoverX !== null || document.activeElement === this.canvas)) {
+              this.stepPlayhead(-1);
+              e.preventDefault();
+            } else if (e.key === 'ArrowRight' && (this.hoverX !== null || document.activeElement === this.canvas)) {
+              this.stepPlayhead(1);
+              e.preventDefault();
+            }
+          }
         });
       }
 
@@ -10442,6 +10688,70 @@
         if (this.callbacks?.onPlayheadChange) {
           this.callbacks.onPlayheadChange(offset);
         }
+      }
+
+      stepPlayhead(delta) {
+        const total = this.ringBuffer.count;
+        if (total === 0) return false;
+
+        let current = this.playheadOffset;
+        if (current === null) {
+          current = total - 1;
+        }
+
+        const target = current + delta;
+        if (target < 0) {
+          this.setPlayheadOffset(0);
+          this.ensurePlayheadVisible();
+          this.render();
+          return false;
+        }
+
+        if (target >= total) {
+          if (delta > 0 && this.callbacks?.onStepForwardAtEnd) {
+            const stepped = this.callbacks.onStepForwardAtEnd();
+            if (stepped) {
+              this.setPlayheadOffset(this.ringBuffer.count - 1);
+              this.ensurePlayheadVisible();
+              this.render();
+              return true;
+            }
+          }
+          this.setPlayheadOffset(total - 1);
+          this.ensurePlayheadVisible();
+          this.render();
+          return false;
+        }
+
+        this.setPlayheadOffset(target);
+        this.ensurePlayheadVisible();
+        this.render();
+        return true;
+      }
+
+      ensurePlayheadVisible() {
+        if (this.playheadOffset === null || this.ringBuffer.count === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        const plotW = Math.max(50, (this.canvas.width / dpr) - this.gutterWidth - 12);
+        const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
+        const maxStartOffset = Math.max(0, this.ringBuffer.count - visibleTicks);
+        if (maxStartOffset === 0) {
+          this.scrollRatio = 1.0;
+          return;
+        }
+
+        const currentStart = Math.round(maxStartOffset * this.scrollRatio);
+        const currentEnd = currentStart + visibleTicks;
+
+        if (this.playheadOffset < currentStart) {
+          this.scrollRatio = Math.max(0, Math.min(1, this.playheadOffset / maxStartOffset));
+        } else if (this.playheadOffset >= currentEnd - 1) {
+          const targetStart = Math.max(0, this.playheadOffset - visibleTicks + 2);
+          this.scrollRatio = Math.max(0, Math.min(1, targetStart / maxStartOffset));
+        }
+
+        const scrollSlider = document.getElementById('slider-time-scroll');
+        if (scrollSlider) scrollSlider.value = Math.round(this.scrollRatio * 100);
       }
 
       setInPoint(offset = null) {
@@ -11035,18 +11345,18 @@
             this.renderEmpty();
             return;
           }
-          const fromComp = this.circuit.getComponent(wire.fromCompId);
-          const toComp = this.circuit.getComponent(wire.toCompId);
-          const fromPinName = fromComp?.outputs[wire.fromPin]?.name || `OUT_${wire.fromPin}`;
-          const toPinName = toComp?.inputs[wire.toPin]?.name || `IN_${wire.toPin}`;
+          const fromComp = wire.fromCompId ? this.circuit.getComponent(wire.fromCompId) : null;
+          const toComp = wire.toCompId ? this.circuit.getComponent(wire.toCompId) : null;
+          const fromLabel = fromComp ? `${fromComp.params.label || wire.fromCompId} [${fromComp.outputs[wire.fromPin]?.name || `OUT_${wire.fromPin}`}]` : (wire.fromWireId ? `Abzweig von Leitung ${wire.fromWireId}` : (wire.fromPoint ? `Punkt (${wire.fromPoint.x}, ${wire.fromPoint.y})` : 'Frei'));
+          const toLabel = toComp ? `${toComp.params.label || wire.toCompId} [${toComp.inputs[wire.toPin]?.name || `IN_${wire.toPin}`}]` : (wire.toWireId ? `Mündung in Leitung ${wire.toWireId}` : (wire.toPoint ? `Punkt (${wire.toPoint.x}, ${wire.toPoint.y})` : 'Frei'));
 
           const info = document.createElement('div');
           info.className = 'prop-info-box';
           info.innerHTML = `
             <div><strong>Typ:</strong> Signalleitung (Wire)</div>
             <div><strong>ID:</strong> ${escapeHtml(wire.id)}</div>
-            <div><strong>Quelle:</strong> ${escapeHtml(fromComp?.params.label || wire.fromCompId)} [${escapeHtml(fromPinName)}]</div>
-            <div><strong>Ziel:</strong> ${escapeHtml(toComp?.params.label || wire.toCompId)} [${escapeHtml(toPinName)}]</div>
+            <div><strong>Quelle:</strong> ${escapeHtml(fromLabel)}</div>
+            <div><strong>Ziel:</strong> ${escapeHtml(toLabel)}</div>
             <div><strong>Pegel:</strong> <span style="color:${wire.level ? '#00e676' : '#94a3b8'};font-weight:700;">${wire.level} (${wire.level ? 'HIGH' : 'LOW'})</span></div>
           `;
           this.container.appendChild(info);
@@ -11063,9 +11373,34 @@
           wpHeader.style.marginBottom = '6px';
           wpHeader.innerHTML = `
             <span style="font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;">Eckpunkte &amp; Routing</span>
-            <span style="font-size:10px;color:var(--text-dim);">${wire.waypoints && wire.waypoints.length > 0 ? `${wire.waypoints.length} manuell` : 'Auto-Route'}</span>
+            <span style="font-size:10px;color:var(--text-dim);">${wire.waypoints && wire.waypoints.length > 0 ? `${wire.waypoints.length} manuell` : (wire.style === 'diagonal' ? 'Diagonal' : 'Auto-Route')}</span>
           `;
           wpSection.appendChild(wpHeader);
+
+          // Style Selector: Orthogonal vs Diagonal
+          const styleRow = document.createElement('div');
+          styleRow.style.display = 'flex';
+          styleRow.style.alignItems = 'center';
+          styleRow.style.justifyContent = 'space-between';
+          styleRow.style.marginBottom = '8px';
+          styleRow.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">Verlegungsart:</span>`;
+          const styleSelect = document.createElement('select');
+          styleSelect.className = 'inspector-select';
+          styleSelect.style.padding = '3px 6px';
+          styleSelect.style.fontSize = '11px';
+          styleSelect.innerHTML = `
+            <option value="orthogonal"${wire.style !== 'diagonal' ? ' selected' : ''}>Orthogonal (90°)</option>
+            <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}>Diagonal (Direkt)</option>
+          `;
+          styleSelect.addEventListener('change', () => {
+            wire.style = styleSelect.value;
+            this.onChange(false);
+            if (window.logicSimApp) {
+              window.logicSimApp.renderer.render();
+            }
+          });
+          styleRow.appendChild(styleSelect);
+          wpSection.appendChild(styleRow);
 
           // Reset to auto-route button
           const autoBtn = document.createElement('button');
@@ -12615,8 +12950,22 @@
             onContextMenu: (clientX, clientY, probe) => {
               this.showProbeContextMenu(clientX, clientY, probe);
             },
+            onStepForwardAtEnd: () => {
+              if (this.engine.mode === 'sim' && !this.engine.running) {
+                this.engine.stepTick();
+                return true;
+              }
+              return false;
+            },
             onPlayheadChange: (offset) => {
               if (offset !== null) {
+                const targetTick = this.ringBuffer.getTickAtOffset(offset);
+                if (this.engine.history && this.engine.history.length > 0) {
+                  const snap = this.engine.history.find(s => s.tickCount === targetTick);
+                  if (snap) {
+                    this.engine.restoreSnapshot(snap);
+                  }
+                }
                 const probes = this.circuit.getProbes();
                 for (const probe of probes) {
                   const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
@@ -12625,7 +12974,9 @@
                     wire.level = val;
                   }
                 }
+                this.circuit.syncImmediateWireLevels();
                 this.renderer.render();
+                this.updateHUDAndToolbar();
               }
             },
             onLoopStateChange: () => {
@@ -13437,6 +13788,105 @@
         }
       }
 
+      finishActiveWireAtPoint(endPoint, targetWire = null, targetPin = null, options = {}) {
+        const drag = this.renderer.activeWireDrag;
+        if (!drag) return false;
+
+        const snapX = Math.round(endPoint.x / GRID_SIZE) * GRID_SIZE;
+        const snapY = Math.round(endPoint.y / GRID_SIZE) * GRID_SIZE;
+
+        let fromCompId = null;
+        let fromPin = 0;
+        let toCompId = null;
+        let toPin = 0;
+        let fromWireId = drag.fromWireId || null;
+        let fromPoint = drag.fromPoint || (drag.compId ? null : { x: drag.startX, y: drag.startY });
+        let toWireId = targetWire ? targetWire.id : null;
+        let toPoint = targetPin ? null : { x: snapX, y: snapY };
+        let waypoints = drag.waypoints ? [...drag.waypoints] : [];
+
+        if (targetPin) {
+          if (drag.compId) {
+            fromCompId = drag.isOutput ? drag.compId : targetPin.compId;
+            fromPin = drag.isOutput ? drag.pinIndex : targetPin.pinIndex;
+            toCompId = drag.isOutput ? targetPin.compId : drag.compId;
+            toPin = drag.isOutput ? targetPin.pinIndex : drag.pinIndex;
+            if (!drag.isOutput) waypoints.reverse();
+          } else {
+            // Started from wire or free point, connecting to pin
+            if (targetPin.isOutput) {
+              fromCompId = targetPin.compId;
+              fromPin = targetPin.pinIndex;
+              toWireId = drag.fromWireId || null;
+              toPoint = drag.fromPoint || { x: drag.startX, y: drag.startY };
+              fromWireId = null;
+              fromPoint = null;
+              waypoints.reverse();
+            } else {
+              toCompId = targetPin.compId;
+              toPin = targetPin.pinIndex;
+            }
+          }
+        } else if (targetWire) {
+          if (drag.compId) {
+            if (drag.isOutput) {
+              fromCompId = drag.compId;
+              fromPin = drag.pinIndex;
+              toWireId = targetWire.id;
+              toPoint = { x: snapX, y: snapY };
+            } else {
+              fromWireId = targetWire.id;
+              fromPoint = { x: snapX, y: snapY };
+              toCompId = drag.compId;
+              toPin = drag.pinIndex;
+              waypoints.reverse();
+            }
+          } else {
+            fromWireId = drag.fromWireId || null;
+            fromPoint = drag.fromPoint || { x: drag.startX, y: drag.startY };
+            toWireId = targetWire.id;
+            toPoint = { x: snapX, y: snapY };
+          }
+        } else {
+          // Open-ended / free point termination
+          if (drag.compId) {
+            if (drag.isOutput) {
+              fromCompId = drag.compId;
+              fromPin = drag.pinIndex;
+              toPoint = { x: snapX, y: snapY };
+            } else {
+              fromPoint = { x: snapX, y: snapY };
+              toCompId = drag.compId;
+              toPin = drag.pinIndex;
+              waypoints.reverse();
+            }
+          } else {
+            fromWireId = drag.fromWireId || null;
+            fromPoint = drag.fromPoint || { x: drag.startX, y: drag.startY };
+            toPoint = { x: snapX, y: snapY };
+          }
+        }
+
+        const style = options.style || drag.style || null;
+        const tab = this.getActiveTab();
+        this.pushHistory(tab);
+        const wire = this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints, {
+          fromWireId,
+          toWireId,
+          fromPoint,
+          toPoint,
+          style
+        });
+
+        if (wire) {
+          this.finishNewWire(wire, waypoints);
+          this.circuit.syncImmediateWireLevels();
+        }
+        this.renderer.activeWireDrag = null;
+        this.refreshAll();
+        return Boolean(wire);
+      }
+
       ensureWireWaypoints(wire) {
         if (!wire) return;
         wire.autoRouted = false; // from now on the user shapes this wire by hand
@@ -13703,7 +14153,9 @@
 
         btnStart.disabled = !isSim;
         if (btnStepBack) {
-          btnStepBack.disabled = !isSim || this.engine.running || this.engine.history.length === 0;
+          const hasHistory = this.engine.history.length > 0;
+          const hasPlayheadBack = this.analyzer && this.analyzer.playheadOffset !== null && this.analyzer.playheadOffset > 0;
+          btnStepBack.disabled = !isSim || this.engine.running || (!hasPlayheadBack && !hasHistory);
         }
         btnStep.disabled = !isSim || this.engine.running;
         btnReset.disabled = !isSim;
@@ -13879,6 +14331,11 @@
             this.updateHUDAndToolbar();
           } else {
             if (this.analyzer?.isLoopPlaying) this.analyzer.stopLoopAnimation();
+            if (!this.engine.running && this.analyzer?.playheadOffset !== null) {
+              this.analyzer.playheadOffset = null;
+              this.analyzer.updateLoopUi();
+              this.analyzer.render();
+            }
             this.engine.toggleRun();
           }
         });
@@ -13939,18 +14396,30 @@
         const btnStepBack = document.getElementById('btn-sim-step-back');
         attachHoldRepeat(btnStepBack, () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
-            this.engine.stepBackTick();
+            if (this.analyzer && this.analyzer.playheadOffset !== null) {
+              this.analyzer.stepPlayhead(-1);
+            } else {
+              this.engine.stepBackTick();
+            }
           }
         });
 
         const btnStep = document.getElementById('btn-sim-step');
         attachHoldRepeat(btnStep, () => {
           if (this.engine.mode === 'sim' && !this.engine.running) {
-            this.engine.stepTick();
+            if (this.analyzer && this.analyzer.playheadOffset !== null) {
+              this.analyzer.stepPlayhead(1);
+            } else {
+              this.engine.stepTick();
+            }
           }
         });
 
         document.getElementById('btn-sim-reset').addEventListener('click', () => {
+          if (this.analyzer) {
+            this.analyzer.playheadOffset = null;
+            this.analyzer.updateLoopUi();
+          }
           this.engine.reset();
         });
 
@@ -14307,31 +14776,45 @@
 
           // EDIT MODE
           if (this.renderer.activeWireDrag) {
-            // Already routing a wire: check if clicked on compatible target pin
+            // 1. Check if clicked on a pin
             const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
-            if (
-              hitPin &&
-              hitPin.isOutput !== this.renderer.activeWireDrag.isOutput &&
-              hitPin.compId !== this.renderer.activeWireDrag.compId
-            ) {
+            if (hitPin) {
               const drag = this.renderer.activeWireDrag;
-              const fromCompId = drag.isOutput ? drag.compId : hitPin.compId;
-              const fromPin = drag.isOutput ? drag.pinIndex : hitPin.pinIndex;
-              const toCompId = drag.isOutput ? hitPin.compId : drag.compId;
-              const toPin = drag.isOutput ? hitPin.pinIndex : drag.pinIndex;
-              const waypoints = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
-
-              this.finishNewWire(this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints), waypoints);
-              this.circuit.syncImmediateWireLevels();
-              this.renderer.activeWireDrag = null;
-              this.refreshAll();
+              if (drag.compId && hitPin.compId === drag.compId && hitPin.pinIndex === drag.pinIndex) {
+                this.renderer.activeWireDrag = null;
+                this.renderer.render();
+                return;
+              }
+              this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
               return;
             }
 
-            // Clicked on canvas/grid: add a raster waypoint!
+            // 2. Check if clicked on another wire (wire-to-wire branch)
+            const hitOtherWire = this.renderer.findWireAt(world.x, world.y, 8);
+            if (hitOtherWire && hitOtherWire.id !== this.renderer.activeWireDrag.fromWireId) {
+              const pts = this.renderer.getWirePolyline(hitOtherWire);
+              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
+              const targetX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+              const targetY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+              this.finishActiveWireAtPoint({ x: targetX, y: targetY }, hitOtherWire, null);
+              return;
+            }
+
+            // 3. Clicked on canvas/grid: check if same point (double-click/click on same spot finishes free wire)
             const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
             const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+            const wps = this.renderer.activeWireDrag.waypoints;
+            const lastPt = wps && wps.length > 0 ? wps[wps.length - 1] : { x: this.renderer.activeWireDrag.startX, y: this.renderer.activeWireDrag.startY };
+            if (Math.hypot(snapX - lastPt.x, snapY - lastPt.y) < 5) {
+              this.finishActiveWireAtPoint({ x: snapX, y: snapY });
+              return;
+            }
+
+            // Otherwise add raster waypoint
             this.renderer.activeWireDrag.waypoints.push({ x: snapX, y: snapY });
+            if (e.shiftKey) {
+              this.renderer.activeWireDrag.style = 'diagonal';
+            }
             this.renderer.render();
             return;
           }
@@ -14346,7 +14829,8 @@
               startY: hitPin.y,
               waypoints: [],
               currX: world.x,
-              currY: world.y
+              currY: world.y,
+              style: e.shiftKey ? 'diagonal' : null
             };
             this.renderer.render();
             return;
@@ -14526,11 +15010,13 @@
           }
 
           if (this.renderer.activeWireDrag) {
+            if (e.shiftKey) {
+              this.renderer.activeWireDrag.style = 'diagonal';
+            }
             const snapPin = this.renderer.findPinAt(world.x, world.y, 12);
             if (
               snapPin &&
-              snapPin.isOutput !== this.renderer.activeWireDrag.isOutput &&
-              snapPin.compId !== this.renderer.activeWireDrag.compId
+              (!this.renderer.activeWireDrag.compId || (snapPin.compId !== this.renderer.activeWireDrag.compId || snapPin.pinIndex !== this.renderer.activeWireDrag.pinIndex))
             ) {
               this.renderer.activeWireDrag.currX = snapPin.x;
               this.renderer.activeWireDrag.currY = snapPin.y;
@@ -14762,17 +15248,9 @@
             const targetPin = this.renderer.findPinAt(world.x, world.y, 14);
             const drag = this.renderer.activeWireDrag;
 
-            if (targetPin && targetPin.isOutput !== drag.isOutput && targetPin.compId !== drag.compId) {
-              const fromCompId = drag.isOutput ? drag.compId : targetPin.compId;
-              const fromPin = drag.isOutput ? drag.pinIndex : targetPin.pinIndex;
-              const toCompId = drag.isOutput ? targetPin.compId : drag.compId;
-              const toPin = drag.isOutput ? targetPin.pinIndex : drag.pinIndex;
-              const waypoints = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
-
-              this.finishNewWire(this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints), waypoints);
-              this.circuit.syncImmediateWireLevels();
-              this.renderer.activeWireDrag = null;
-              this.refreshAll();
+            if (targetPin && (!drag.compId || (targetPin.compId !== drag.compId || targetPin.pinIndex !== drag.pinIndex))) {
+              this.finishActiveWireAtPoint({ x: targetPin.x, y: targetPin.y }, null, targetPin);
+              return;
             }
           }
 
@@ -14813,6 +15291,13 @@
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+
+          if (this.renderer.activeWireDrag) {
+            const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+            this.finishActiveWireAtPoint({ x: snapX, y: snapY });
+            return;
+          }
 
           // 1. Double click on existing waypoint handle: DELETE IT!
           const hitWp = this.renderer.findWaypointAt(world.x, world.y, 10);
@@ -15060,15 +15545,42 @@
 
         canvas.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          if (this.renderer.activeWireDrag) {
-            this.renderer.activeWireDrag = null;
-            this.renderer.render();
-            return;
-          }
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+
+          if (this.renderer.activeWireDrag) {
+            const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+            const snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+            this.finishActiveWireAtPoint({ x: snapX, y: snapY });
+            return;
+          }
+
+          // In Edit Mode without Shift: right-click on an existing wire immediately starts a new connection!
+          if (this.engine.mode === 'edit' && !e.shiftKey) {
+            const hitWire = this.renderer.findWireAt(world.x, world.y, 8);
+            if (hitWire) {
+              const pts = this.renderer.getWirePolyline(hitWire);
+              const proj = this.renderer.getClosestPointOnPolyline(pts, world);
+              const startX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : Math.round(world.x / GRID_SIZE) * GRID_SIZE;
+              const startY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : Math.round(world.y / GRID_SIZE) * GRID_SIZE;
+              this.renderer.activeWireDrag = {
+                fromWireId: hitWire.id,
+                fromPoint: { x: startX, y: startY },
+                compId: null,
+                isOutput: true,
+                startX,
+                startY,
+                waypoints: [],
+                currX: world.x,
+                currY: world.y
+              };
+              this.showToast('Neue Verbindung ab Leitung gestartet · Klicke Ziel-Pin, Leitung oder freie Stelle (Umschalt+Rechtsklick für Menü)');
+              this.renderer.render();
+              return;
+            }
+          }
 
           const hitProbe = this.renderer.findProbeAt(world.x, world.y);
           if (hitProbe) {
@@ -15239,7 +15751,7 @@
             const sep = document.createElement('div');
             sep.className = 'ctx-divider';
             menu.appendChild(sep);
-            addAction(ICONS.autoLayout, 'Auswahl automatisch anordnen (Umschalt+A)', () => this.runAlignAction('selection'));
+            addAction(ICONS.autoLayout, 'Schaltung automatisch anordnen (A)', () => this.runAlignAction('all'));
             addAction(ICONS.chevronRight, 'Links bündig ausrichten', () => this.alignSelection('left'));
             addAction(ICONS.chevronUp, 'Oben bündig ausrichten', () => this.alignSelection('top'));
             if (selComps.size >= 3) {
@@ -15506,6 +16018,43 @@
             this.hideContextMenu();
           });
           menu.appendChild(openInspect);
+
+          const branchItem = document.createElement('div');
+          branchItem.className = 'ctx-item';
+          branchItem.innerHTML = `<span>${ICONS.wire}</span> <span>Neue Verbindung ab hier starten</span>`;
+          branchItem.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            const pts = this.renderer.getWirePolyline(wire);
+            const proj = this.renderer.getClosestPointOnPolyline(pts, worldPos);
+            const startX = proj ? Math.round(proj.x / GRID_SIZE) * GRID_SIZE : Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
+            const startY = proj ? Math.round(proj.y / GRID_SIZE) * GRID_SIZE : Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
+            this.renderer.activeWireDrag = {
+              fromWireId: wire.id,
+              fromPoint: { x: startX, y: startY },
+              compId: null,
+              isOutput: true,
+              startX,
+              startY,
+              waypoints: [],
+              currX: worldPos.x,
+              currY: worldPos.y
+            };
+            this.hideContextMenu();
+            this.renderer.render();
+          });
+          menu.appendChild(branchItem);
+
+          const styleItem = document.createElement('div');
+          styleItem.className = 'ctx-item';
+          const isDiag = wire.style === 'diagonal';
+          styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Orthogonal (90°)' : 'Zu Diagonal (Direkt)'}</span>`;
+          styleItem.addEventListener('click', () => {
+            wire.style = isDiag ? 'orthogonal' : 'diagonal';
+            this.renderer.render();
+            this.inspector.render(null, wire.id);
+            this.hideContextMenu();
+          });
+          menu.appendChild(styleItem);
 
           const addWpItem = document.createElement('div');
           addWpItem.className = 'ctx-item';
@@ -15986,7 +16535,7 @@
           if (!isCtrl && !e.altKey) {
             const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
             const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
-            if (k === 'a') { e.preventDefault(); this.runAlignAction(e.shiftKey ? 'selection' : 'all'); return; }
+            if (k === 'a') { e.preventDefault(); this.runAlignAction('all'); return; }
             if (k === 'l') { e.preventDefault(); this.runAlignAction('wires'); return; }
             if (k === 'f') { e.preventDefault(); this.runAlignAction('fit'); return; }
             if (k === 'g') { e.preventDefault(); this.openScenarioGallery(); return; }
@@ -16000,12 +16549,37 @@
             if (k === '+' || k === '=') { e.preventDefault(); this.setZoom(this.renderer.zoom * 1.15); return; }
             if (k === '-') { e.preventDefault(); this.setZoom(this.renderer.zoom / 1.15); return; }
             if (k === '0') { e.preventDefault(); this.renderer.panX = 40; this.renderer.panY = 40; this.setZoom(1.0); return; }
-            if (k === '.' && this.engine.mode === 'sim' && !this.engine.running) { e.preventDefault(); this.engine.stepTick(); return; }
-            if (k === ',' && this.engine.mode === 'sim' && !this.engine.running) { e.preventDefault(); this.engine.stepBackTick(); return; }
+            if (k === '.' && this.engine.mode === 'sim' && !this.engine.running) {
+              e.preventDefault();
+              if (this.analyzer && this.analyzer.playheadOffset !== null) {
+                this.analyzer.stepPlayhead(1);
+              } else {
+                this.engine.stepTick();
+              }
+              return;
+            }
+            if (k === ',' && this.engine.mode === 'sim' && !this.engine.running) {
+              e.preventDefault();
+              if (this.analyzer && this.analyzer.playheadOffset !== null) {
+                this.analyzer.stepPlayhead(-1);
+              } else {
+                this.engine.stepBackTick();
+              }
+              return;
+            }
             if (arrows[k]) {
               if (this.nudgeSelection(arrows[k][0], arrows[k][1])) e.preventDefault();
               return;
             }
+          }
+
+          if (e.key === 'Enter' && this.renderer.activeWireDrag) {
+            e.preventDefault();
+            const drag = this.renderer.activeWireDrag;
+            const snapX = Math.round(drag.currX / GRID_SIZE) * GRID_SIZE;
+            const snapY = Math.round(drag.currY / GRID_SIZE) * GRID_SIZE;
+            this.finishActiveWireAtPoint({ x: snapX, y: snapY });
+            return;
           }
 
           if (e.key === 'Escape') {
@@ -16433,9 +17007,8 @@
         }
         if (this._layoutAnim) this.finishLayoutAnimation();
 
-        const selected = this.renderer.selectedCompIds;
-        const useSelection = options.scope === 'selection' || (options.scope === undefined && selected && selected.size >= 2);
-        const scope = useSelection && selected && selected.size >= 2 ? new Set(selected) : null;
+        // Auto-Anordnen always arranges the entire circuit
+        const scope = null;
 
         this.checkpointHistory();
         const before = new Map();
@@ -16666,7 +17239,6 @@
         const chkSmart = document.getElementById('chk-smart-wires');
         if (chkSmart) chkSmart.addEventListener('change', () => { this.smartWires = Boolean(chkSmart.checked); this.saveSettings(); });
 
-        document.getElementById('menu-item-layout-selection')?.addEventListener('click', () => this.runAlignAction('selection'));
         document.getElementById('menu-item-reroute')?.addEventListener('click', () => this.runAlignAction('wires'));
         document.getElementById('menu-item-zoom-fit')?.addEventListener('click', () => this.runAlignAction('fit'));
         document.getElementById('btn-zoom-fit')?.addEventListener('click', () => this.runAlignAction('fit'));
@@ -16683,14 +17255,8 @@
           if (typeof btn.offsetWidth === 'number') void btn.offsetWidth;
           btn.classList.add('is-busy');
         }
-        if (action === 'all') {
+        if (action === 'all' || action === 'selection') {
           this.autoAlign({ scope: 'all' });
-        } else if (action === 'selection') {
-          if (!this.renderer.selectedCompIds || this.renderer.selectedCompIds.size < 2) {
-            this.showToast('Wähle zuerst mindestens zwei Bauteile aus (Rahmen ziehen oder Umschalt+Klick).');
-            return;
-          }
-          this.autoAlign({ scope: 'selection' });
         } else if (action === 'wires') {
           if (this.circuit.wires.length === 0) { this.showToast('Es gibt noch keine Leitungen.'); return; }
           this.checkpointHistory();
@@ -16714,7 +17280,6 @@
         if (label) label.textContent = count === 1 ? '1 Bauteil gewählt' : `${count} Bauteile gewählt`;
         document.querySelectorAll('#align-popover [data-align]').forEach(b => { b.disabled = count < 2; });
         document.querySelectorAll('#align-popover [data-distribute]').forEach(b => { b.disabled = count < 3; });
-        document.querySelectorAll('#align-popover [data-align-action="selection"]').forEach(b => { b.disabled = count < 2; });
         document.querySelectorAll('#seg-layout-spacing [data-spacing]').forEach(b => {
           b.classList.toggle('active', b.getAttribute('data-spacing') === this.layoutSpacing);
         });
@@ -17189,15 +17754,15 @@
       updateStatusHint() {
         let text;
         if (this.renderer.activeWireDrag) {
-          text = 'Leitung: Ziel-Pin anklicken · Klick auf die Fläche setzt einen Stützpunkt · Esc bricht ab';
+          text = 'Verbindung ziehen: Ziel-Pin, Leitung oder freie Stelle anklicken · Doppelklick/Rechtsklick/Enter schließt ab · Esc bricht ab · Umschalt für diagonal';
         } else if (this.engine.mode === 'sim') {
           text = 'Simulation: Schalter anklicken, Taster gedrückt halten · Leertaste startet/pausiert · Tab wechselt zurück in den Edit-Modus';
         } else if (this.renderer.selectedCompIds && this.renderer.selectedCompIds.size >= 2) {
-          text = 'Mehrere Bauteile gewählt: Umschalt+A ordnet nur die Auswahl an · Pfeiltasten verschieben · Entf löscht';
+          text = 'Mehrere Bauteile gewählt: A ordnet die gesamte Schaltung an · Pfeiltasten verschieben · Entf löscht';
         } else if (this.circuit.components.length === 0) {
           text = 'Ziehe Bauteile aus der Palette auf die Fläche oder öffne mit G ein Szenario';
         } else {
-          text = 'Von Pin zu Pin ziehen verdrahtet · A ordnet automatisch an · F passt die Ansicht ein · ? zeigt alle Kürzel';
+          text = 'Rechtsklick auf Leitung zweigt ab · A ordnet automatisch an · F passt die Ansicht ein · ? zeigt alle Kürzel';
         }
         if (text === this._statusHintText) return;
         this._statusHintText = text;
