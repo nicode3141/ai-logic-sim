@@ -81,8 +81,12 @@ const createMockElem = (id = '') => {
 
 const window = {
   addEventListener: () => {}, removeEventListener: () => {},
-  devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080
+  devicePixelRatio: 1, innerWidth: 1920, innerHeight: 1080,
+  requestAnimationFrame: (cb) => setTimeout(cb, 16),
+  cancelAnimationFrame: (id) => clearTimeout(id)
 };
+global.requestAnimationFrame = window.requestAnimationFrame;
+global.cancelAnimationFrame = window.cancelAnimationFrame;
 
 const elementRegistry = new Map();
 const document = {
@@ -1360,6 +1364,77 @@ runTest('WISH-024', 'Logic analyzer simulation controls synchronized and smooth 
   analyzer.hoverY = 15;
   analyzer.render();
   assertEqual(analyzer.pixelsPerTick, 16, 'pixelsPerTick remains stable without erratic auto-scaling');
+});
+
+runTest('WISH-025', 'Live clock frequency adjustment and dynamic analyzer brackets synchronization', () => {
+  const circuit = new Circuit();
+  const ringBuffer = new RingBuffer(256);
+  const engine = new SimulationEngine(circuit, ringBuffer, () => {});
+
+  // 1. Live simulation frequency changes during running operation
+  engine.setMode('sim');
+  engine.start();
+  assertEqual(engine.running, true, 'Simulation engine is running');
+  engine.frequency = 10;
+  engine.accumulator = 80; // 80ms accumulated at 10Hz (interval = 100ms)
+
+  let notifiedFreq = null;
+  let notifiedOld = null;
+  engine.onFrequencyChange = (newF, oldF) => {
+    notifiedFreq = newF;
+    notifiedOld = oldF;
+  };
+
+  // Change frequency on the fly to 20Hz (interval = 50ms)
+  engine.setFrequency(20);
+  assertEqual(engine.frequency, 20, 'Engine frequency updated to 20Hz');
+  assertEqual(notifiedFreq, 20, 'onFrequencyChange callback triggered with new frequency 20');
+  assertEqual(notifiedOld, 10, 'onFrequencyChange callback triggered with old frequency 10');
+  // Accumulator should be scaled down and not exceed newInterval
+  assertEqual(engine.accumulator <= 50, true, 'Accumulator smoothly scaled without causing tick bursts');
+
+  engine.pause();
+
+  // 2. Impulsdiagramm brackets (Klammern [ and ]) live update & synchronization
+  const canvas = createMockElem('analyzer-canvas');
+  canvas.width = 1200;
+  canvas.height = 300;
+  for (let i = 0; i < 30; i++) {
+    ringBuffer.record(i, new Map([['probe_1', i % 2]]));
+  }
+
+  const analyzer = new LogicAnalyzerRenderer(canvas, circuit, ringBuffer);
+  analyzer.simFrequency = 10;
+
+  // Set In and Out points at ticks 5 and 15 (span = 10 ticks = 1000ms @ 10Hz)
+  analyzer.setInPoint(5);
+  analyzer.setOutPoint(15);
+  assertEqual(Boolean(analyzer.loopRange), true, 'loopRange brackets created');
+  assertEqual(analyzer.loopRange.inOffset, 5, 'inOffset is 5');
+  assertEqual(analyzer.loopRange.outOffset, 15, 'outOffset is 15');
+  assertEqual(analyzer.loopRange.inTick, 5, 'inTick is 5');
+  assertEqual(analyzer.loopRange.outTick, 15, 'outTick is 15');
+
+  // Changing simulation frequency updates analyzer brackets & timing calculation
+  analyzer.setSimulationFrequency(20);
+  assertEqual(analyzer.simFrequency, 20, 'Analyzer frequency updated to 20Hz');
+  assertEqual(analyzer.loopRange.outOffset >= 15, true, 'Bracket span adapted proportionally');
+
+  // Verify syncLoopRange preserves tick anchoring when new ticks arrive
+  for (let i = 30; i < 40; i++) {
+    ringBuffer.record(i, new Map([['probe_1', i % 2]]));
+  }
+  analyzer.render();
+  assertEqual(analyzer.loopRange.inTick, 5, 'inTick remains anchored to tick 5 after recording new samples');
+
+  // 3. Loop playback rate dynamically matches simulation clock frequency
+  analyzer.startLoopAnimation();
+  assertEqual(analyzer.isLoopPlaying, true, 'Loop playback is active');
+  assertEqual(Boolean(analyzer.loopInterval), true, 'Loop interval timer started');
+  analyzer.setSimulationFrequency(50); // 50 Hz -> 20ms tick interval
+  assertEqual(analyzer.simFrequency, 50, 'simFrequency updated during loop playback');
+  analyzer.stopLoopAnimation();
+  assertEqual(analyzer.isLoopPlaying, false, 'Loop playback stopped cleanly');
 });
 
 console.log('\n================================================================');

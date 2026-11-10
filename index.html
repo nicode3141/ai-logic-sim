@@ -8759,7 +8759,17 @@
       }
 
       setFrequency(hz) {
-        this.frequency = Math.max(1, Math.min(60, parseInt(hz, 10) || 10));
+        const oldFreq = this.frequency || 10;
+        const newFreq = Math.max(1, Math.min(60, parseInt(hz, 10) || 10));
+        this.frequency = newFreq;
+        if (this.running) {
+          const oldInterval = 1000 / oldFreq;
+          const newInterval = 1000 / newFreq;
+          this.accumulator = Math.max(0, Math.min(newInterval, (this.accumulator / oldInterval) * newInterval));
+        }
+        if (typeof this.onFrequencyChange === 'function') {
+          this.onFrequencyChange(newFreq, oldFreq);
+        }
       }
 
       reset() {
@@ -8900,8 +8910,11 @@
           this.accumulator -= interval;
           ticksThisFrame++;
         }
+        if (this.accumulator > interval * 2) {
+          this.accumulator = interval;
+        }
 
-        this.rafId = requestAnimationFrame((t) => this.loop(t));
+        this.rafId = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame((t) => this.loop(t)) : null;
       }
     }
 
@@ -12123,10 +12136,11 @@
         this.scrubOriginY = null;
         this.scrubOriginPixelsPerTick = 12;
         this.autoscrollTimer = null;
-        this.loopRange = null; // { inOffset: number, outOffset: number }
+        this.loopRange = null; // { inOffset: number, outOffset: number, inTick: number, outTick: number }
         this.isLoopPlaying = false;
         this.loopInterval = null;
         this.activeBracketDrag = null; // 'in' | 'out' | null
+        this.simFrequency = 10;
 
         this.setupEvents();
       }
@@ -12181,6 +12195,28 @@
           const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
           const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
 
+          if (this.activeBracketDrag === 'in' && this.loopRange) {
+            const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
+            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, currentStartOffset + relIdx));
+            this.loopRange.inOffset = targetOffset;
+            this.loopRange.inTick = this.ringBuffer.getTickAtOffset(targetOffset);
+            this.canvas.style.cursor = 'ew-resize';
+            this.updateLoopUi();
+            this.render();
+            return;
+          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
+            const currentStartOffset = Math.round(maxStartOffset * this.scrollRatio);
+            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
+            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, currentStartOffset + relIdx));
+            this.loopRange.outOffset = targetOffset;
+            this.loopRange.outTick = this.ringBuffer.getTickAtOffset(targetOffset);
+            this.canvas.style.cursor = 'ew-resize';
+            this.updateLoopUi();
+            this.render();
+            return;
+          }
+
           if (this.isPanningTimeline && this.panStartX !== null) {
             const dx = clientX - this.panStartX;
             const deltaFrac = (dx / plotW) * (visibleTicks / Math.max(1, totalSamples));
@@ -12215,23 +12251,7 @@
           const maxStartOffset = Math.max(0, totalSamples - visibleTicks);
           const startOffset = Math.round(maxStartOffset * this.scrollRatio);
 
-          if (this.activeBracketDrag === 'in' && this.loopRange) {
-            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.max(0, Math.min(this.loopRange.outOffset - 1, startOffset + relIdx));
-            this.loopRange.inOffset = targetOffset;
-            this.updateLoopUi();
-            this.render();
-            return;
-          } else if (this.activeBracketDrag === 'out' && this.loopRange) {
-            const relIdx = Math.round((this.hoverX - this.gutterWidth) / this.pixelsPerTick);
-            const targetOffset = Math.min(totalSamples - 1, Math.max(this.loopRange.inOffset + 1, startOffset + relIdx));
-            this.loopRange.outOffset = targetOffset;
-            this.updateLoopUi();
-            this.render();
-            return;
-          }
-
-          if ((this.isScrubbing || this.isPanningTimeline) && totalSamples > 0) {
+          if ((this.isScrubbing || this.isPanningTimeline || this.activeBracketDrag) && totalSamples > 0) {
             handleScrubMove(e.clientX, e.clientY);
             return;
           }
@@ -12248,7 +12268,7 @@
           } else if (this.hoverY <= 22 && this.loopRange) {
             const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
             const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
-            if (Math.abs(this.hoverX - inX) <= 6 || Math.abs(this.hoverX - outX) <= 6) {
+            if (Math.abs(this.hoverX - inX) <= 8 || Math.abs(this.hoverX - outX) <= 8) {
               this.canvas.style.cursor = 'ew-resize';
             } else {
               this.canvas.style.cursor = 'ew-resize';
@@ -12262,7 +12282,7 @@
         });
 
         window.addEventListener('mousemove', (e) => {
-          if ((this.isScrubbing || this.isPanningTimeline) && this.ringBuffer.count > 0) {
+          if ((this.isScrubbing || this.isPanningTimeline || this.activeBracketDrag) && this.ringBuffer.count > 0) {
             handleScrubMove(e.clientX, e.clientY);
           }
         });
@@ -12295,11 +12315,13 @@
             if (my <= 22 && this.loopRange) {
               const inX = this.gutterWidth + (this.loopRange.inOffset - startOffset) * this.pixelsPerTick;
               const outX = this.gutterWidth + (this.loopRange.outOffset - startOffset + 1) * this.pixelsPerTick;
-              if (Math.abs(mx - inX) <= 7) {
+              if (Math.abs(mx - inX) <= 8) {
                 this.activeBracketDrag = 'in';
+                this.canvas.style.cursor = 'ew-resize';
                 return;
-              } else if (Math.abs(mx - outX) <= 7) {
+              } else if (Math.abs(mx - outX) <= 8) {
                 this.activeBracketDrag = 'out';
+                this.canvas.style.cursor = 'ew-resize';
                 return;
               }
             }
@@ -12513,12 +12535,22 @@
         const total = this.ringBuffer.count;
         if (total === 0) return;
         const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
-        const effective = target !== null ? target : 0;
-        const currentOut = this.loopRange ? this.loopRange.outOffset : Math.min(total - 1, effective + 20);
+        const effective = target !== null ? target : Math.max(0, total - 1);
+        const inTick = this.ringBuffer.getTickAtOffset(effective);
+
+        let outOffset = this.loopRange ? this.loopRange.outOffset : Math.min(total - 1, effective + (this.simFrequency || 10));
+        let outTick = this.loopRange ? (this.loopRange.outTick ?? this.ringBuffer.getTickAtOffset(outOffset)) : (inTick + (this.simFrequency || 10));
+
+        if (effective >= outOffset) {
+          outOffset = Math.min(total - 1, effective + 1);
+          outTick = inTick + 1;
+        }
 
         this.loopRange = {
-          inOffset: Math.min(effective, currentOut),
-          outOffset: Math.max(effective + 1, currentOut)
+          inOffset: Math.min(effective, outOffset - 1),
+          outOffset: outOffset,
+          inTick: inTick,
+          outTick: outTick
         };
         this.updateLoopUi();
         this.render();
@@ -12529,12 +12561,22 @@
         const total = this.ringBuffer.count;
         if (total === 0) return;
         const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
-        const effective = target !== null ? target : total - 1;
-        const currentIn = this.loopRange ? this.loopRange.inOffset : Math.max(0, effective - 20);
+        const effective = target !== null ? target : Math.max(0, total - 1);
+        const outTick = this.ringBuffer.getTickAtOffset(effective);
+
+        let inOffset = this.loopRange ? this.loopRange.inOffset : Math.max(0, effective - (this.simFrequency || 10));
+        let inTick = this.loopRange ? (this.loopRange.inTick ?? this.ringBuffer.getTickAtOffset(inOffset)) : Math.max(0, outTick - (this.simFrequency || 10));
+
+        if (effective <= inOffset) {
+          inOffset = Math.max(0, effective - 1);
+          inTick = Math.max(0, outTick - 1);
+        }
 
         this.loopRange = {
-          inOffset: Math.min(currentIn, effective - 1),
-          outOffset: Math.max(currentIn + 1, effective)
+          inOffset: inOffset,
+          outOffset: Math.max(inOffset + 1, effective),
+          inTick: inTick,
+          outTick: outTick
         };
         this.updateLoopUi();
         this.render();
@@ -12562,8 +12604,14 @@
         if (total === 0) return;
 
         if (!this.loopRange) {
-          const out = Math.min(total - 1, 30);
-          this.loopRange = { inOffset: 0, outOffset: out };
+          const inOff = Math.max(0, total - (this.simFrequency || 10));
+          const out = total - 1;
+          this.loopRange = {
+            inOffset: inOff,
+            outOffset: out,
+            inTick: this.ringBuffer.getTickAtOffset(inOff),
+            outTick: this.ringBuffer.getTickAtOffset(out)
+          };
         }
 
         this.isLoopPlaying = true;
@@ -12575,6 +12623,7 @@
         if (btnLoop) btnLoop.classList.add('active');
 
         if (this.loopInterval) clearInterval(this.loopInterval);
+        const loopTickMs = Math.max(10, Math.round(1000 / (this.simFrequency || 10)));
         this.loopInterval = setInterval(() => {
           if (!this.loopRange || this.ringBuffer.count === 0) {
             this.stopLoopAnimation();
@@ -12588,7 +12637,7 @@
             this.callbacks.onPlayheadChange(this.playheadOffset);
           }
           this.render();
-        }, 60);
+        }, loopTickMs);
       }
 
       stopLoopAnimation() {
@@ -12601,6 +12650,81 @@
         if (btnLoop) btnLoop.classList.remove('active');
         this.updateLoopUi();
         if (this.callbacks?.onLoopStateChange) this.callbacks.onLoopStateChange();
+      }
+
+      setSimulationFrequency(freq) {
+        const oldFreq = this.simFrequency || 10;
+        const newFreq = Math.max(1, Math.min(60, parseInt(freq, 10) || 10));
+        this.simFrequency = newFreq;
+
+        if (this.loopRange && this.ringBuffer && this.ringBuffer.count > 0 && oldFreq !== newFreq) {
+          const inOffset = this.loopRange.inOffset;
+          const oldSpan = Math.max(1, this.loopRange.outOffset - inOffset);
+          const scaledSpan = Math.max(1, Math.min(this.ringBuffer.count - 1 - inOffset, Math.round(oldSpan * (newFreq / oldFreq))));
+          this.loopRange.outOffset = inOffset + scaledSpan;
+          this.loopRange.inTick = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
+          this.loopRange.outTick = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
+        }
+
+        if (this.isLoopPlaying) {
+          if (this.loopInterval) clearInterval(this.loopInterval);
+          const loopTickMs = Math.max(10, Math.round(1000 / newFreq));
+          this.loopInterval = setInterval(() => {
+            if (!this.loopRange || this.ringBuffer.count === 0) {
+              this.stopLoopAnimation();
+              return;
+            }
+            this.playheadOffset++;
+            if (this.playheadOffset > this.loopRange.outOffset) {
+              this.playheadOffset = this.loopRange.inOffset;
+            }
+            if (this.callbacks?.onPlayheadChange) {
+              this.callbacks.onPlayheadChange(this.playheadOffset);
+            }
+            this.render();
+          }, loopTickMs);
+        }
+
+        this.updateLoopUi();
+        this.render();
+      }
+
+      getOffsetForTick(tick) {
+        const count = this.ringBuffer ? this.ringBuffer.count : 0;
+        if (count === 0) return 0;
+        let low = 0;
+        let high = count - 1;
+        while (low <= high) {
+          const mid = (low + high) >> 1;
+          const t = this.ringBuffer.getTickAtOffset(mid);
+          if (t === tick) return mid;
+          if (t < tick) low = mid + 1;
+          else high = mid - 1;
+        }
+        return Math.max(0, Math.min(count - 1, low));
+      }
+
+      syncLoopRange() {
+        if (!this.loopRange || !this.ringBuffer || this.ringBuffer.count === 0) return;
+        if (this.activeBracketDrag) return;
+
+        const total = this.ringBuffer.count;
+        const oldestTick = this.ringBuffer.getTickAtOffset(0);
+        const newestTick = this.ringBuffer.getTickAtOffset(total - 1);
+
+        if (this.loopRange.inTick !== undefined && this.loopRange.outTick !== undefined) {
+          if (this.loopRange.inTick >= oldestTick && this.loopRange.inTick <= newestTick) {
+            this.loopRange.inOffset = this.getOffsetForTick(this.loopRange.inTick);
+          } else if (this.loopRange.inTick < oldestTick) {
+            this.loopRange.inOffset = 0;
+          }
+
+          if (this.loopRange.outTick >= oldestTick && this.loopRange.outTick <= newestTick) {
+            this.loopRange.outOffset = this.getOffsetForTick(this.loopRange.outTick);
+          } else if (this.loopRange.outTick > newestTick) {
+            this.loopRange.outOffset = total - 1;
+          }
+        }
       }
 
       updateLoopUi() {
@@ -12628,8 +12752,10 @@
         if (this.loopRange) {
           const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
-          const span = tOut - tIn;
-          info += ` | [ Loop: ${tIn}..${tOut} (${span} T) ]`;
+          const span = Math.max(1, tOut - tIn);
+          const freq = this.simFrequency || 10;
+          const ms = Math.round((span / freq) * 1000);
+          info += ` | [ Klammern: t = ${tIn}..${tOut} (${span} T | ${ms} ms @ ${freq} Hz) ]`;
         }
         badge.textContent = info;
       }
@@ -12700,6 +12826,9 @@
 
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
+
+        this.syncLoopRange();
+        this.updateLoopUi();
 
         const probes = this.circuit.getProbes();
         const countLabel = document.getElementById('analyzer-probe-count');
@@ -14769,6 +14898,14 @@
             }
           }
         );
+        if (this.analyzer) {
+          this.analyzer.setSimulationFrequency(this.engine.frequency || 10);
+        }
+        this.engine.onFrequencyChange = (newFreq, oldFreq) => {
+          if (this.analyzer) {
+            this.analyzer.setSimulationFrequency(newFreq);
+          }
+        };
         this.inspector = new InspectorUI(
           this.inspectorContainer,
           this.circuit,
@@ -16303,15 +16440,22 @@
 
         const sliderFreq = document.getElementById('slider-freq');
         const labelFreq = document.getElementById('label-freq');
-        sliderFreq.addEventListener('input', (e) => {
-          const val = parseInt(e.target.value, 10);
-          labelFreq.textContent = `${val} Hz`;
+        const handleFreqChange = (raw) => {
+          const val = Math.max(1, Math.min(60, parseInt(raw, 10) || 10));
+          if (sliderFreq && sliderFreq.value !== String(val)) sliderFreq.value = val;
+          if (labelFreq) labelFreq.textContent = `${val} Hz`;
           this.engine.setFrequency(val);
-        });
-        attachSliderHoldRepeat(sliderFreq, (val) => {
-          labelFreq.textContent = `${val} Hz`;
-          this.engine.setFrequency(val);
-        });
+        };
+        if (sliderFreq) {
+          sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value));
+          sliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value));
+          sliderFreq.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const step = e.deltaY < 0 ? 1 : -1;
+            const current = parseInt(sliderFreq.value, 10) || 10;
+            handleFreqChange(current + step);
+          }, { passive: false });
+        }
 
         const btnUndo = document.getElementById('btn-quick-undo');
         if (btnUndo) {

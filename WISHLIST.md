@@ -42,10 +42,25 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-022** | Offene Leitungs-Enden verschieben & interaktiv verbinden | `alpha` | 🟢 **Completed** | Freie Leitungs-Endpunkte (offene Drähte) lassen sich per Maus greifen, im Raster verschieben und direkt auf Bauteil-Pins fallen lassen, um die Verbindung herzustellen. Visuelles Feedback mit Fang-Aura, Drag-Cursor und Kontextmenü. |
 | **WISH-023** | Eckpunkt-Kontextmenü: Ganze Leitung löschen & Begradigen | `alpha` | 🟢 **Completed** | Beim Rechtsklick auf einen Leitungs-Eckpunkt (Wegpunkt) kann nicht nur der einzelne Eckpunkt gelöscht werden, sondern direkt auch die gesamte Leitung („Ganze Leitung löschen“); zudem Option zum Begradigen und Neu verlegen. |
 | **WISH-024** | Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls | `alpha` | 🟢 **Completed** | Ungewolltes vertikales Zoom-Skalieren & blauer 3px-Balken entfernt; flüssiges horizontales Bewegen/Pannen entlang des Zeit-/Tickstrahls; synchrone Playback-Controls (-1 Tick, Start/Pause, +1 Tick) im Diagramm-Header. |
+| **WISH-025** | Taktfrequenz im laufenden Betrieb ändern & Impulsdiagramm-Klammern synchronisieren | `alpha` | 🟢 **Completed** | Taktfrequenz-Slider (`#slider-freq`) ohne Ruckeln im laufenden Betrieb stufenlos verstellbar (Smooth-Scaling des Akkumulators); Impulsdiagramm-Klammern (`[` und `]`) bleiben während der Simulation fest an ihren Ticks verankert und lassen sich flüssig verschieben; Taktänderung aktualisiert die Millisekunden-Dauer der Klammern und die Loop-Playback-Rate in Echtzeit. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-025 (Taktfrequenz im laufenden Betrieb & Impulsdiagramm-Klammern)**:
+  - **Taktfrequenz im laufenden Betrieb**:
+    - Der Takt-Slider (`#slider-freq`) lässt sich während einer laufenden Schaltungssimulation flüssig und direkt per Maus oder Mausrad verstellen.
+    - `SimulationEngine.setFrequency` skaliert den `accumulator` proportional zum neuen Taktintervall (`1000 / frequency`), sodass keine plötzlichen Tick-Staus (Burst) oder Hänger beim Verstellen entstehen.
+    - Beseitigung der störenden `attachSliderHoldRepeat`-Überlagerung auf dem nativen Range-Input, wodurch der Slider ohne Ruckeln auf Eingaben reagiert.
+  - **Klammern im Impulsdiagramm (`[` In und `]` Out)**:
+    - Verankerung an absoluten Tick-Nummern (`inTick`, `outTick`) mit binärer Suche (`getOffsetForTick`), sodass die Klammern beim Eintreffen neuer Simulations-Ticks exakt an ihrer Position im Signalverlauf stehen bleiben und nicht mehr wegrutschen.
+    - Setzen von `[ In` und `] Out` während der laufenden Simulation setzt den Marker präzise an den aktuellen Live-Tick (statt fehlerhaft auf 0).
+    - Fensterweites, flüssiges Ziehen der Klammern (`activeBracketDrag`) über die gesamte Canvas- und Window-Fläche mit 8px Fangradius.
+    - **Dynamische Synchronisierung mit der Taktfrequenz**:
+      - Ändern der Taktfrequenz aktualisiert live die Millisekunden-Dauer der Klammern im Diagramm-Header: `[ Klammern: t = A..B (ΔT Ticks | X ms @ Y Hz) ]`.
+      - Bei aktivem Loop-Playback wird die Abspielgeschwindigkeit (`loopInterval`) sofort auf die neue Taktfrequenz (`1000 / frequency` ms) angepasst.
+  - **Test-Abdeckung**: Neuer Test `[WISH-025]` in `tests/comprehensive_test_suite.js`, alle 45 Tests bestehen fehlerfrei.
 
 - **WISH-024 (Impulsdiagramm: Auto-Skalierung & blauen Balken entfernen, Zeitstrahl-Panning & Playback-Controls)**:
   - **Blauen Balken entfernt**: Der 3px hohe blaue Navigator-Balken (`ctx.fillRect(barX, 0, barW, 3)`) am oberen Rand des Impulsdiagramms wurde vollständig entfernt.
