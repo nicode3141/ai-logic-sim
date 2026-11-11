@@ -17,6 +17,7 @@ The **Alpha Milestone** represents a comprehensive transformation of the AI Logi
 ### ✨ Added
 
 #### 1. Wire Topology, Branching & Auto-Snapping
+* **Lock Auto-Align and Layout Menu in Simulation Mode (WISH-036)**: Disabled and locked the Auto-Anordnen split button (`#btn-auto-route`), dropdown chevron (`#btn-align-menu`), and align popover (`#align-popover`) in simulation mode (`disabled = true`, CSS `pointer-events: none`). Automatically closes any active popover upon switching to simulation mode; guards shortcuts (<kbd>A</kbd>, <kbd>L</kbd>), menubar entries (`#menu-item-layout`, `#menu-item-reroute`), context menu items, and calls to `autoAlign()`.
 * **UI Scaling / Oberflächengröße (WISH-035)**: Added continuous scaling of chrome UI elements (menus, toolbar, palette, tabs, inspector, modals, context menus) between 80% and 160% in 5% increments without distorting canvas coordinate mathematics.
 * **Component Palette View Switch (WISH-035)**: Toggle component palette between text labels (`Beschriftung`) and rendered graphic thumbnails (`Vorschau`), rendering live miniature schematics of components and custom modules.
 * **Manhattan Wire Routing Hardening (WISH-035)**: Fixed unintended diagonal slant routing on normal wires with waypoints when `allowDiagonalWires` was active. Regular wires strictly follow 90° Manhattan bends; only explicit diagonal wires use diagonal segments.

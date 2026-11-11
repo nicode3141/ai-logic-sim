@@ -53,10 +53,21 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-033** | Leitungsbrücken bei schrägen Verbindungen aktivieren & Globale Einstellung für schräge Leitungen | `alpha` | 🟢 **Completed** | Universelle 2D-Kreuzungsberechnung und Jumper-Bögen für schräge Leitungen (`style: diagonal`) bei aktiven Brücken; deterministische Priorisierung (Horizontal > Diagonal > Vertikal) mit stufenlosem Kreisbogen-Rendering entlang beliebig gewinkelter Leitungsvektoren; neue globale Einstellung "Schräge Leitungen erlauben" im Einstellungen-Modal und Menü "Ansicht" mit striktem orthogonalen Manhattan-Fallback, persistiert in `localStorage`. |
 | **WISH-034** | Schutz vor versehentlichem Abreißen von Gatter-Verbindungen & Automatisches Mergen offener Leitungsenden | `feat/prevent-accidental-wire-disconnect-and-auto-merge` | 🟢 **Completed** | Beseitigung des versehentlichen Abreißens von Gatter-Verbindungen beim Bauteil-Bewegen durch Bauteilkorpus-Priorität vor Pin-Klicks, Verkleinerung des Pin-Fangradius (von 14px auf 9px) und Erhöhung des Abriss-Schwellenwerts auf 24px (bei <24px bleibt die Verbindung unberührt, bei >=24px wird sie sauber als offenes Leitungsende gelöst statt gelöscht zu werden); Automatisches Mergen (`mergeOpenWireTermini`) aller offenen Leitungsenden (`toPoint` & `fromPoint`), die an denselben Koordinaten zusammentreffen, zu einer einzigen kontinuierlichen, leitenden Verbindung. |
 | **WISH-035** | UI-Skalierung (Oberflächengröße), Paletten-Vorschau, NOT-Lead-Fix & Saubere Manhattan-Wegpunktführung | `fix/wire-interactions-and-merge-hardening` | 🟢 **Completed** | Stufenlose UI-Skalierung (80%–160%) für Menüs, Toolbar, Palette & Inspector; Umschaltung der Bauteil-Palette zwischen Beschriftung und gezeichneter Echtzeit-Vorschau; Beseitigung ungewollter Diagonalschrägen bei normalen Leitungen mit Wegpunkten; NOT-Gatter Leads im 40x40-Raster korrigiert; Schutz belegter Eingangspins vor versehentlichem Leitungsabriss beim Verschieben von Gattern. |
+| **WISH-036** | Auto-Anordnen & Layout-Menü im Simulationsmodus strikt sperren und schließen | `fix/disable-auto-align-in-sim-mode` | 🟢 **Completed** | Auto-Anordnen Split-Button (`#btn-auto-route`), Caret-Button (`#btn-align-menu`) und Popover-Menü (`#align-popover`) werden im Simulationsmodus vollständig deaktiviert (`disabled = true`, `pointer-events: none`). Laufendes Popover schließt sich bei Moduswechsel zu Simulation sofort. Tastenkürzel (`A`, `L`), Menüeinträge und Kontextmenü-Einträge sind im Simulationsmodus blockiert. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-036 (Auto-Anordnen & Layout-Menü im Simulationsmodus strikt sperren und schließen)**:
+  - **Vollständige Sperrung im Simulationsmodus**:
+    - Der Split-Button `#align-split` erhält in CSS bei `.sim-locked` `pointer-events: none;` und `cursor: not-allowed;` für Container und alle Schaltflächen.
+    - `updateHUDAndToolbar()` setzt explizit `#btn-auto-route.disabled = isSim` und `#btn-align-menu.disabled = isSim`.
+    - Beim Umschalten auf Simulationsmodus wird ein etwaig noch geöffnetes `#align-popover` Menü sofort per `this.closeAlignMenu()` geschlossen.
+    - Klicks auf den Chevron-Pfeil (`#btn-align-menu`) und Aufrufe von `open()` werden im Simulationsmodus unmittelbar ignoriert.
+    - `autoAlign()` besitzt eine harte Prüfung `if (this.engine.mode !== 'edit')` und blockiert jede Neuordnung während der Simulation mit informativem Toast-Hinweis.
+    - Tastenkürzel (`A` für Alles anordnen, `L` für Leitungen neu verlegen), Menüleisten-Einträge (`#menu-item-layout`, `#menu-item-reroute`) sowie die Kontextmenü-Punkte auf der Arbeitsfläche werden im Simulationsmodus unterbunden.
+  - **Test-Abdeckung**: Neuer Test `[WISH-036]` in `tests/comprehensive_test_suite.js`, alle 55 Tests und alle 6 Suiten bestehen zu 100%.
 
 - **WISH-035 (UI-Skalierung, Paletten-Vorschau, NOT-Lead-Fix & Saubere Manhattan-Wegpunktführung)**:
   - **Stufenlose UI-Skalierung (Oberflächengröße 80%–160%)**:

@@ -15,6 +15,7 @@ const mockCtx = {
 };
 
 const createMockElem = (id = '') => {
+  const classes = new Set();
   const el = {
     id, _textContent: '', value: '10', width: 1200, height: 800,
     children: [],
@@ -45,7 +46,19 @@ const createMockElem = (id = '') => {
       if (idx !== -1) this.children.splice(idx, 1);
       return child;
     },
-    classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+    classList: {
+      add: (c) => classes.add(c),
+      remove: (c) => classes.delete(c),
+      toggle: (c, force) => {
+        if (force !== undefined) {
+          if (force) classes.add(c); else classes.delete(c);
+          return force;
+        }
+        if (classes.has(c)) { classes.delete(c); return false; }
+        classes.add(c); return true;
+      },
+      contains: (c) => classes.has(c)
+    },
     style: {}, getContext: () => mockCtx,
     parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 1200, height: 800 })
@@ -1977,6 +1990,62 @@ runTest('WISH-035', 'UI scaling, palette previews, and Manhattan wire routing th
     }
   }
   assertEqual(allOrthogonal, true, 'Normal wire with waypoints routes orthogonally (Manhattan) without diagonal slants');
+});
+
+runTest('WISH-036', 'Auto-Anordnen and align menu locked and disabled in simulation mode', () => {
+  const btnAutoRoute = document.getElementById('btn-auto-route');
+  const btnAlignMenu = document.getElementById('btn-align-menu');
+  const alignSplit = document.getElementById('align-split');
+  const popover = document.getElementById('align-popover');
+  btnAlignMenu.listeners['click'] = [];
+  popover.style.display = 'none';
+
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const sw = c.addComponent('SWITCH', 40, 40);
+  const led = c.addComponent('LED', 300, 40);
+  c.addWire(sw.id, 0, led.id, 0);
+
+  // 1. In edit mode, auto-align is enabled and popover can be toggled
+  app.engine.mode = 'edit';
+  app.updateHUDAndToolbar();
+  assertEqual(btnAutoRoute.disabled, false, 'Auto-route button is enabled in edit mode');
+  assertEqual(btnAlignMenu.disabled, false, 'Align menu caret is enabled in edit mode');
+  assertEqual(alignSplit.classList.contains('sim-locked'), false, 'align-split does not have sim-locked in edit mode');
+
+  // Open the popover in edit mode
+  btnAlignMenu.click();
+  assertEqual(popover.style.display, 'flex', 'Popover opens in edit mode');
+
+  // 2. Switching to simulation mode immediately locks toolbar and closes popover
+  app.engine.mode = 'sim';
+  app.updateHUDAndToolbar();
+  assertEqual(btnAutoRoute.disabled, true, 'Auto-route button is disabled in sim mode');
+  assertEqual(btnAlignMenu.disabled, true, 'Align menu caret is disabled in sim mode');
+  assertEqual(alignSplit.classList.contains('sim-locked'), true, 'align-split has sim-locked in sim mode');
+  assertEqual(popover.style.display, 'none', 'Align popover is immediately closed on switching to sim mode');
+
+  // 3. Clicking caret in simulation mode is blocked and never opens popover
+  btnAlignMenu.click();
+  assertEqual(popover.style.display, 'none', 'Clicking caret in simulation mode does not open popover');
+
+  // 4. autoAlign and runAlignAction are strictly guarded in simulation mode
+  const origX = sw.x;
+  const origY = sw.y;
+  const res = app.autoAlign();
+  assertEqual(res, null, 'autoAlign returns null in simulation mode');
+  assertEqual(sw.x, origX, 'Component position unchanged by autoAlign in sim mode');
+  assertEqual(sw.y, origY, 'Component position unchanged by autoAlign in sim mode');
+
+  app.runAlignAction('all');
+  assertEqual(sw.x, origX, 'Component position unchanged by runAlignAction(all) in sim mode');
+
+  // 5. Switching back to edit mode re-enables buttons and clears sim-locked
+  app.engine.mode = 'edit';
+  app.updateHUDAndToolbar();
+  assertEqual(btnAutoRoute.disabled, false, 'Auto-route button re-enabled in edit mode');
+  assertEqual(btnAlignMenu.disabled, false, 'Align menu caret re-enabled in edit mode');
+  assertEqual(alignSplit.classList.contains('sim-locked'), false, 'align-split clears sim-locked in edit mode');
 });
 
 console.log('\n================================================================');

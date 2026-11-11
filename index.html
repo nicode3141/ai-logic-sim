@@ -2581,6 +2581,14 @@
 
     .align-split.sim-locked {
       opacity: 0.45;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    .align-split.sim-locked button,
+    .align-split.sim-locked .btn-caret {
+      pointer-events: none;
+      cursor: not-allowed;
     }
 
     .btn.is-busy {
@@ -16825,6 +16833,13 @@
         sidebar.classList.toggle('sim-locked', isSim);
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
+        const btnAutoRoute = document.getElementById('btn-auto-route');
+        if (btnAutoRoute) btnAutoRoute.disabled = isSim;
+        const btnAlignMenu = document.getElementById('btn-align-menu');
+        if (btnAlignMenu) btnAlignMenu.disabled = isSim;
+        if (isSim && typeof this.closeAlignMenu === 'function') {
+          this.closeAlignMenu();
+        }
 
         const btnStart = document.getElementById('btn-sim-start');
         const btnStepBack = document.getElementById('btn-sim-step-back');
@@ -19252,30 +19267,32 @@
           });
           menu.appendChild(normRow);
 
-          const div2 = document.createElement('div');
-          div2.className = 'ctx-divider';
-          menu.appendChild(div2);
+          if (this.engine.mode === 'edit') {
+            const div2 = document.createElement('div');
+            div2.className = 'ctx-divider';
+            menu.appendChild(div2);
 
-          const autoLayoutAll = document.createElement('div');
-          autoLayoutAll.className = 'ctx-item';
-          autoLayoutAll.innerHTML = `<span>${ICONS.autoLayout}</span> <span>Alles anordnen</span>`;
-          autoLayoutAll.addEventListener('click', () => {
-            this.hideContextMenu();
-            this.autoAlign({ scope: 'all' });
-          });
-          menu.appendChild(autoLayoutAll);
+            const autoLayoutAll = document.createElement('div');
+            autoLayoutAll.className = 'ctx-item';
+            autoLayoutAll.innerHTML = `<span>${ICONS.autoLayout}</span> <span>Alles anordnen</span>`;
+            autoLayoutAll.addEventListener('click', () => {
+              this.hideContextMenu();
+              this.autoAlign({ scope: 'all' });
+            });
+            menu.appendChild(autoLayoutAll);
 
-          const autoRouteAll = document.createElement('div');
-          autoRouteAll.className = 'ctx-item';
-          autoRouteAll.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Nur Leitungen neu verlegen</span>`;
-          autoRouteAll.addEventListener('click', () => {
-            this.hideContextMenu();
-            this.checkpointHistory();
-            this.autoRouteAllWires();
-            this.refreshAll();
-            this.showToast('Alle Leitungen neu verlegt');
-          });
-          menu.appendChild(autoRouteAll);
+            const autoRouteAll = document.createElement('div');
+            autoRouteAll.className = 'ctx-item';
+            autoRouteAll.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Nur Leitungen neu verlegen</span>`;
+            autoRouteAll.addEventListener('click', () => {
+              this.hideContextMenu();
+              this.checkpointHistory();
+              this.autoRouteAllWires();
+              this.refreshAll();
+              this.showToast('Alle Leitungen neu verlegt');
+            });
+            menu.appendChild(autoRouteAll);
+          }
 
           const divTt = document.createElement('div');
           divTt.className = 'ctx-divider';
@@ -19596,8 +19613,18 @@
           if (!isCtrl && !e.altKey) {
             const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
             const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
-            if (k === 'a') { e.preventDefault(); this.runAlignAction('all'); return; }
-            if (k === 'l') { e.preventDefault(); this.runAlignAction('wires'); return; }
+            if (k === 'a') {
+              e.preventDefault();
+              if (this.engine.mode === 'sim') return;
+              this.runAlignAction('all');
+              return;
+            }
+            if (k === 'l') {
+              e.preventDefault();
+              if (this.engine.mode === 'sim') return;
+              this.runAlignAction('wires');
+              return;
+            }
             if (k === 'f') { e.preventDefault(); this.runAlignAction('fit'); return; }
             if (k === 'g') { e.preventDefault(); this.openScenarioGallery(); return; }
             if (k === '?') { e.preventDefault(); this.showModal('help-modal'); return; }
@@ -20068,6 +20095,10 @@
        * components are selected), animates the change and fits the view.
        */
       autoAlign(options = {}) {
+        if (this.engine.mode !== 'edit') {
+          this.showToast('Anordnen geht nur im Edit-Modus (Tab).');
+          return null;
+        }
         const circuit = this.circuit;
         if (!circuit || circuit.components.length === 0) {
           this.showToast('Die Arbeitsfläche ist leer – es gibt nichts anzuordnen.');
@@ -20252,6 +20283,7 @@
           if (typeof caret.setAttribute === 'function') caret.setAttribute('aria-expanded', 'false');
         };
         const open = () => {
+          if (this.engine.mode === 'sim') return;
           this.updateAlignMenuState();
           pop.style.display = 'flex';
           if (typeof caret.setAttribute === 'function') caret.setAttribute('aria-expanded', 'true');
@@ -20260,7 +20292,8 @@
 
         caret.addEventListener('click', (e) => {
           if (e && e.stopPropagation) e.stopPropagation();
-          if (pop.style.display === 'none') open(); else close();
+          if (this.engine.mode === 'sim') return;
+          if (pop.style.display !== 'flex') open(); else close();
         });
         window.addEventListener('mousedown', (e) => {
           if (pop.style.display !== 'none' && split && typeof split.contains === 'function' && !split.contains(e.target)) close();
@@ -20311,7 +20344,10 @@
           });
         }
 
-        document.getElementById('menu-item-reroute')?.addEventListener('click', () => this.runAlignAction('wires'));
+        document.getElementById('menu-item-reroute')?.addEventListener('click', () => {
+          if (this.engine.mode === 'sim') return;
+          this.runAlignAction('wires');
+        });
         document.getElementById('menu-item-zoom-fit')?.addEventListener('click', () => this.runAlignAction('fit'));
         document.getElementById('btn-zoom-fit')?.addEventListener('click', () => this.runAlignAction('fit'));
       }
@@ -21857,6 +21893,7 @@
         });
         document.getElementById('menu-item-layout')?.addEventListener('click', () => {
           closeAllMenus();
+          if (this.engine.mode === 'sim') return;
           this.autoAlign();
         });
 
