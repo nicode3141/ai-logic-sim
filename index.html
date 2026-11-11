@@ -3628,6 +3628,100 @@
       .btn-text-full { display: none; }
       #toolbar, #toolbar > .toolbar-group { flex-wrap: wrap; }
     }
+    /* --- UI scale (Einstellungen > Oberflaechengroesse) --------------------------------
+       Only the chrome is scaled with CSS zoom; the drawing canvases keep their size so the
+       pointer maths on them stays exact. The toolbar wraps instead of overlapping. */
+    :root { --ui-scale: 1; }
+    #app-menubar, #toolbar, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .menubar-dropdown {
+      zoom: var(--ui-scale, 1);
+    }
+    #toolbar {
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+    #toolbar > .toolbar-group {
+      flex-wrap: wrap;
+    }
+
+    /* --- Palette view switch: labels / drawn previews ----------------------------- */
+    .palette-view-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px 0;
+    }
+    .palette-view-label {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    .palette-view-switch {
+      display: flex;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--control-radius);
+      overflow: hidden;
+    }
+    .palette-view-btn {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border: 0;
+      padding: 3px 8px;
+      font-size: 10.5px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .palette-view-btn + .palette-view-btn {
+      border-left: 1px solid var(--border-bright);
+    }
+    .palette-view-btn:hover {
+      color: var(--text-main);
+    }
+    .palette-view-btn.active {
+      background: var(--accent-blue-dim);
+      color: var(--text-main);
+    }
+    #sidebar.palette-preview .palette-icon {
+      display: none;
+    }
+    #sidebar.palette-preview .palette-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      height: auto;
+    }
+    #sidebar.palette-preview .palette-name {
+      text-align: center;
+    }
+    .palette-module-del {
+      position: absolute;
+      top: 2px;
+      right: 3px;
+      background: none;
+      border: 0;
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1;
+      padding: 1px 4px;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .palette-module-del:hover {
+      color: var(--accent-red);
+    }
+    .palette-module-hint {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      padding: 4px 2px;
+    }
+    .palette-preview-canvas {
+      display: block;
+      width: 100%;
+      height: 62px;
+      border-radius: var(--control-radius);
+      background: var(--bg-deep);
+      border: 1px solid var(--border-dim);
+    }
   </style>
 </head>
 <body>
@@ -3974,6 +4068,13 @@
         <div class="panel-header">
           <span data-i18n="palette.title">Bauteil-Palette</span>
           <span style="font-size: 10px; color: var(--text-dim);">Drag &amp; Drop</span>
+        </div>
+        <div class="palette-view-bar">
+          <span class="palette-view-label">Ansicht</span>
+          <div class="palette-view-switch" role="group" aria-label="Palettenansicht">
+            <button type="button" class="palette-view-btn active" data-palette-view="labels" aria-pressed="true" title="Bauteile mit Beschriftung anzeigen">Beschriftung</button>
+            <button type="button" class="palette-view-btn" data-palette-view="preview" aria-pressed="false" title="Bauteile als gezeichnete Vorschau anzeigen">Vorschau</button>
+          </div>
         </div>
         <div class="palette-search">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
@@ -4627,6 +4728,19 @@
             </div>
           </div>
 
+          <!-- 3b. Oberflaechengroesse -->
+          <div class="settings-section">
+            <div class="settings-section-title">Oberflächengröße (Schrift &amp; Bedienelemente):</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Menüs, Werkzeugleiste, Palette und Eigenschaften größer oder kleiner darstellen. Die Zeichenfläche bleibt unverändert.</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button class="btn" id="btn-ui-scale-down" title="Kleiner">A&minus;</button>
+              <input type="range" id="settings-ui-scale" min="80" max="160" step="5" value="100" style="flex: 1;" aria-label="Oberflächengröße in Prozent" />
+              <button class="btn" id="btn-ui-scale-up" title="Größer">A+</button>
+              <span id="settings-ui-scale-value" style="min-width: 48px; text-align: right; font-family: var(--font-mono); color: var(--text-main);">100 %</span>
+            </div>
+          </div>
+
+          <!-- 4. Workbench-Design & Themes -->
           <div class="settings-section">
             <div class="settings-section-title">Design:</div>
             <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">Aussehen der Oberfläche:</div>
@@ -5628,6 +5742,50 @@
       bubbleDiameter: 7.2
     };
 
+    // Length of the lead stub that sticks out of a gate body (one grid cell, so the pins stay on the grid)
+    const GATE_PIN_STUB = GRID_SIZE;
+
+    // ---- Eigene Module: stored per browser in localStorage ----
+    const CUSTOM_MODULES_KEY = 'logicsim_custom_modules';
+    const CUSTOM_MODULE_LIMIT = 60;
+    const CUSTOM_MODULE_MAX_PARTS = 300;
+    const CUSTOM_MODULE_TYPES = [
+      'SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'BUFFER',
+      'TRI_STATE', 'MAJORITY', 'LED', 'SEVEN_SEG', 'BCD_DEC', 'HEX_DISPLAY', 'FULL_ADDER', 'MUX', 'DECODER',
+      'COUNTER', 'SHIFT_REG', 'SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'
+    ];
+
+    /** Accepts only well-formed module data (also used for data read back from localStorage). */
+    function sanitizeCustomModule(m) {
+      if (!m || typeof m !== 'object') return null;
+      if (typeof m.id !== 'string' || !/^mod_[a-z0-9]{4,30}$/i.test(m.id)) return null;
+      const name = String(m.name || 'Modul').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 40) || 'Modul';
+      const num = (v) => (Number.isFinite(Number(v)) ? Math.max(-100000, Math.min(100000, Number(v))) : NaN);
+      if (!Array.isArray(m.components) || m.components.length === 0 || m.components.length > CUSTOM_MODULE_MAX_PARTS) return null;
+      const components = [];
+      for (const c of m.components) {
+        if (!c || typeof c !== 'object' || !CUSTOM_MODULE_TYPES.includes(c.type)) return null;
+        const dx = num(c.dx), dy = num(c.dy);
+        if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
+        const params = c.params && typeof c.params === 'object' && !Array.isArray(c.params) ? c.params : {};
+        components.push({ type: c.type, dx: Math.round(dx / GRID_SIZE) * GRID_SIZE, dy: Math.round(dy / GRID_SIZE) * GRID_SIZE, params });
+      }
+      const wires = [];
+      const wireList = Array.isArray(m.wires) ? m.wires : [];
+      for (const w of wireList.slice(0, CUSTOM_MODULE_MAX_PARTS * 4)) {
+        if (!w || typeof w !== 'object') continue;
+        const from = Number(w.from), to = Number(w.to), fp = Number(w.fp), tp = Number(w.tp);
+        if (![from, to, fp, tp].every(Number.isInteger)) continue;
+        if (from < 0 || to < 0 || from >= components.length || to >= components.length || fp < 0 || tp < 0) continue;
+        const wp = (Array.isArray(w.wp) ? w.wp : [])
+          .map(p => ({ dx: num(p && p.dx), dy: num(p && p.dy) }))
+          .filter(p => Number.isFinite(p.dx) && Number.isFinite(p.dy))
+          .map(p => ({ dx: Math.round(p.dx / GRID_SIZE) * GRID_SIZE, dy: Math.round(p.dy / GRID_SIZE) * GRID_SIZE }));
+        wires.push({ from, fp, to, tp, wp });
+      }
+      return { id: m.id, name, components, wires };
+    }
+
     const GATE_IEC_SYMBOLS = {
       NOT: '1',
       BUFFER: '1',
@@ -6560,7 +6718,7 @@
         this.inputs = inNames.map((name, idx) => ({
           name,
           index: idx,
-          relX: 0,
+          relX: (GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? -GATE_PIN_STUB : 0,
           relY: inOffsets[idx] !== undefined ? inOffsets[idx] : this.computePinRelY(idx, inNames.length),
           value: prevInVals[idx] ?? 0
         }));
@@ -6568,7 +6726,7 @@
         this.outputs = outNames.map((name, idx) => ({
           name,
           index: idx,
-          relX: this.width,
+          relX: this.width + ((GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? GATE_PIN_STUB : 0),
           relY: outOffsets[idx] !== undefined ? outOffsets[idx] : this.computePinRelY(idx, outNames.length),
           value: prevOutVals[idx] ?? 0
         }));
@@ -7290,7 +7448,10 @@
 
           for (const w of this.wires) {
             if (w.toPoint && !w.toCompId && !w.toWireId) {
-              const d = Math.hypot(w.toPoint.x - pinPos.x, w.toPoint.y - pinPos.y);
+              const minX = Math.min(comp.x, pinPos.x);
+              const maxX = Math.max(comp.x, pinPos.x);
+              const clampedX = Math.max(minX, Math.min(maxX, w.toPoint.x));
+              const d = Math.hypot(w.toPoint.x - clampedX, w.toPoint.y - pinPos.y);
               if (d <= snapRadius && w.fromCompId !== comp.id) {
                 w.toCompId = comp.id;
                 w.toPin = i;
@@ -7310,7 +7471,10 @@
           const pinPos = comp.getPinWorldPos(true, i);
           for (const w of this.wires) {
             if (w.fromPoint && !w.fromCompId && !w.fromWireId) {
-              const d = Math.hypot(w.fromPoint.x - pinPos.x, w.fromPoint.y - pinPos.y);
+              const minX = Math.min(comp.x + comp.width, pinPos.x);
+              const maxX = Math.max(comp.x + comp.width, pinPos.x);
+              const clampedX = Math.max(minX, Math.min(maxX, w.fromPoint.x));
+              const d = Math.hypot(w.fromPoint.x - clampedX, w.fromPoint.y - pinPos.y);
               if (d <= snapRadius && w.toCompId !== comp.id) {
                 w.fromCompId = comp.id;
                 w.fromPin = i;
@@ -7361,11 +7525,18 @@
                 w1.toPin = w2.toPin;
                 w1.toWireId = w2.toWireId;
                 w1.toPoint = w2.toPoint ? { ...w2.toPoint } : null;
-                w1._toComp = w2._toComp;
+                w1._toComp = w2._toComp || (w1.toCompId ? this.getComponent(w1.toCompId) : null);
+                if (w2.style === 'diagonal') w1.style = 'diagonal';
 
                 const wps1 = w1.waypoints || [];
                 const wps2 = w2.waypoints || [];
-                w1.waypoints = [...wps1, P, ...wps2];
+                const combined = [];
+                for (const pt of [...wps1, P, ...wps2]) {
+                  if (combined.length === 0 || Math.hypot(pt.x - combined[combined.length - 1].x, pt.y - combined[combined.length - 1].y) > 2) {
+                    combined.push({ x: pt.x, y: pt.y });
+                  }
+                }
+                w1.waypoints = combined;
 
                 for (const other of this.wires) {
                   if (other.fromWireId === w2.id) other.fromWireId = w1.id;
@@ -7375,6 +7546,10 @@
                   for (const pr of this.probes) {
                     if (pr.wireId === w2.id) pr.wireId = w1.id;
                   }
+                }
+
+                if (w1._toComp && w1._toComp.inputs[w1.toPin]) {
+                  w1._toComp.inputs[w1.toPin].value = w1.level || 0;
                 }
 
                 this.removeWire(w2.id);
@@ -7390,11 +7565,18 @@
                 w1.fromPin = w2.fromPin;
                 w1.fromWireId = w2.fromWireId;
                 w1.fromPoint = w2.fromPoint ? { ...w2.fromPoint } : null;
-                w1._fromComp = w2._fromComp;
+                w1._fromComp = w2._fromComp || (w1.fromCompId ? this.getComponent(w1.fromCompId) : null);
+                if (w2.style === 'diagonal') w1.style = 'diagonal';
 
                 const wps1 = w1.waypoints || [];
                 const wps2 = w2.waypoints || [];
-                w1.waypoints = [...wps2, P, ...wps1];
+                const combined = [];
+                for (const pt of [...wps2, P, ...wps1]) {
+                  if (combined.length === 0 || Math.hypot(pt.x - combined[combined.length - 1].x, pt.y - combined[combined.length - 1].y) > 2) {
+                    combined.push({ x: pt.x, y: pt.y });
+                  }
+                }
+                w1.waypoints = combined;
 
                 for (const other of this.wires) {
                   if (other.fromWireId === w2.id) other.fromWireId = w1.id;
@@ -7404,6 +7586,13 @@
                   for (const pr of this.probes) {
                     if (pr.wireId === w2.id) pr.wireId = w1.id;
                   }
+                }
+
+                if (w1._fromComp && w1._fromComp.outputs[w1.fromPin]) {
+                  w1.level = w1._fromComp.outputs[w1.fromPin].value || 0;
+                }
+                if (w1._toComp && w1._toComp.inputs[w1.toPin]) {
+                  w1._toComp.inputs[w1.toPin].value = w1.level || 0;
                 }
 
                 this.removeWire(w2.id);
@@ -7423,13 +7612,15 @@
 
               // 4. Both have open end meeting at same point
               if (w1OpenEnd && w2OpenEnd && Math.hypot(w1.toPoint.x - w2.toPoint.x, w1.toPoint.y - w2.toPoint.y) <= snapRadius) {
-                if (!w2.toCompId && w1.fromCompId && !w2.fromCompId) {
+                const w1HasDriver = Boolean(w1.fromCompId || w1.fromWireId);
+                const w2HasDriver = Boolean(w2.fromCompId || w2.fromWireId);
+                if (w1HasDriver && !w2HasDriver) {
                   w2.fromWireId = w1.id;
                   w2.fromPoint = null;
                   mergesCount++;
                   changed = true;
                   break;
-                } else if (!w1.toCompId && w2.fromCompId && !w1.fromCompId) {
+                } else if (!w1HasDriver && w2HasDriver) {
                   w1.fromWireId = w2.id;
                   w1.fromPoint = null;
                   mergesCount++;
@@ -10318,21 +10509,16 @@
         }
 
         if (waypoints && waypoints.length > 0) {
-          if (canDiagonal) {
-            const fullPts = [{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }];
-            return this.simplifyCollinear(fullPts);
-          } else {
-            const fullPts = [{ x: p1.x, y: p1.y }];
-            const allWps = [...waypoints, { x: p2.x, y: p2.y }];
-            for (const nextPt of allWps) {
-              const lastPt = fullPts[fullPts.length - 1];
-              if (lastPt.x !== nextPt.x && lastPt.y !== nextPt.y) {
-                fullPts.push({ x: nextPt.x, y: lastPt.y });
-              }
-              fullPts.push({ x: nextPt.x, y: nextPt.y });
+          const fullPts = [{ x: p1.x, y: p1.y }];
+          const allWps = [...waypoints, { x: p2.x, y: p2.y }];
+          for (const nextPt of allWps) {
+            const lastPt = fullPts[fullPts.length - 1];
+            if (lastPt.x !== nextPt.x && lastPt.y !== nextPt.y) {
+              fullPts.push({ x: nextPt.x, y: lastPt.y });
             }
-            return this.simplifyCollinear(fullPts);
+            fullPts.push({ x: nextPt.x, y: nextPt.y });
           }
+          return this.simplifyCollinear(fullPts);
         }
 
         const x1 = p1.x;
@@ -11699,7 +11885,10 @@
           ctx.restore();
         }
 
-        const outPinX = x + width;
+        // 3. Output Inversion Bubble & Lead Line
+        const outPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const inPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const outPinX = x + width + outPinStub;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
         if (isOutInv) {
@@ -11752,11 +11941,11 @@
 
           const leadTargetX = inputBoundaryX + backOffset;
           const inLeadEnd = isInv ? leadTargetX - dBubble - 1 : leadTargetX;
-          if (inLeadEnd > x) {
+          if (inLeadEnd > x - inPinStub) {
             ctx.save();
             ctx.beginPath();
             ctx.lineCap = 'butt';
-            ctx.moveTo(x, py);
+            ctx.moveTo(x - inPinStub, py);
             ctx.lineTo(inLeadEnd, py);
             ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
             ctx.lineWidth = isHigh ? 2.2 : 1.4;
@@ -11851,7 +12040,10 @@
         const sym = GATE_IEC_SYMBOLS[type] || (type.startsWith('X') ? (comp.params.xorMode === 'parity' ? '≠' : '=1') : '&');
         ctx.fillText(sym, cx, cy + 5);
 
-        const outPinX = x + width;
+        // Output Bubble & Lead Line
+        const outPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const inPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const outPinX = x + width + outPinStub;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
         if (isOutInv) {
@@ -11899,10 +12091,10 @@
           }
 
           const inLeadEnd = isInv ? gx1 - dBubble - 1 : gx1;
-          if (inLeadEnd > x) {
+          if (inLeadEnd > x - inPinStub) {
             ctx.save();
             ctx.beginPath();
-            ctx.moveTo(x, py);
+            ctx.moveTo(x - inPinStub, py);
             ctx.lineTo(inLeadEnd, py);
             ctx.strokeStyle = isHigh ? highColor : pal.leadLine;
             ctx.lineWidth = isHigh ? 2.2 : 1.4;
@@ -15452,6 +15644,8 @@
         this.compMouseDownPos = null;
 
         this.allowEditModeInteraction = true;
+        this.uiScale = 1;
+        this.paletteView = 'labels';     // 'labels' | 'preview' (drawn component thumbnails)
         this.smartWires = true;          // re-route automatic wires when components move
         this.layoutSpacing = 'normal';   // 'compact' | 'normal' | 'wide'
         this.layoutInputs = 'auto';      // 'auto' (best of both) | 'left' | 'near'
@@ -15498,6 +15692,7 @@
             this.rendererRight.resize();
           }
           this.analyzer.resize();
+          if (this.paletteView === 'preview') this.renderPalettePreviews();
         });
 
         const restored = this.loadTabsFromStorage() || this.loadCircuitFromStorage();
@@ -17038,6 +17233,17 @@
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
+            if (type.startsWith('MODULE:')) {
+              const rect = this.gridCanvas.getBoundingClientRect();
+              const center = this.renderer.screenToWorld(rect.width / 2, rect.height / 2);
+              const tab = this.getActiveTab();
+              if (tab) this.pushHistory(tab);
+              if (this.placeCustomModule(this.circuit, this.renderer, type.slice(7), center.x, center.y)) {
+                this.renderer.render();
+                this.refreshAll();
+              }
+              return;
+            }
             if (type === 'PROBE') {
               let targetWire = null;
               if (this.renderer.selectedWireId) {
@@ -17218,6 +17424,15 @@
             return;
           }
 
+          if (type.startsWith('MODULE:')) {
+            const placed = this.placeCustomModule(tab.circuit, renderer, type.slice(7), worldPos.x, worldPos.y);
+            if (placed) {
+              renderer.render();
+              this.refreshAll();
+            }
+            return;
+          }
+
           const customParams = this.getDefaultParamsForNewComponent(type);
           const comp = tab.circuit.addComponent(
             type,
@@ -17262,7 +17477,6 @@
             this.cleanWireWaypoints(w);
           }
           this.circuit.syncImmediateWireLevels();
-          this.showToast(`${count} offene Verbindung${count > 1 ? 'en' : ''} zusammengeführt (Merged)`);
           this.refreshAll();
         }
         return count;
@@ -17404,13 +17618,17 @@
           }
 
           const hitCompDirect = this.renderer.findComponentAt(world.x, world.y);
-          const isInsideCompBody = hitCompDirect && (
-            world.x >= hitCompDirect.x + 5 && world.x <= hitCompDirect.x + hitCompDirect.width - 5 &&
-            world.y >= hitCompDirect.y + 5 && world.y <= hitCompDirect.y + hitCompDirect.height - 5
+          // Only start wire drag from pin if clicked directly on pin radius (~8px)
+          const rawPin = this.renderer.findPinAt(world.x, world.y, 8);
+          // An input pin with an existing wire is occupied: clicking it must drag the gate safely rather than tearing off wires
+          const isOccupiedInput = rawPin && !rawPin.isOutput && Boolean(this.circuit.getWireToInput(rawPin.compId, rawPin.pinIndex));
+          // If clicked well inside the component body, prioritize dragging the component
+          const isWellInsideBody = hitCompDirect && (
+            world.x >= hitCompDirect.x + 8 && world.x <= hitCompDirect.x + hitCompDirect.width - 8 &&
+            world.y >= hitCompDirect.y + 8 && world.y <= hitCompDirect.y + hitCompDirect.height - 8
           );
-          const hitPin = !isInsideCompBody ? this.renderer.findPinAt(world.x, world.y, 9) : null;
+          const hitPin = (rawPin && !isOccupiedInput && !isWellInsideBody) ? rawPin : null;
           if (hitPin) {
-            const existingInputWire = !hitPin.isOutput ? this.circuit.getWireToInput(hitPin.compId, hitPin.pinIndex) : null;
             this.renderer.activeWireDrag = {
               compId: hitPin.compId,
               isOutput: hitPin.isOutput,
@@ -17420,8 +17638,7 @@
               waypoints: [],
               currX: world.x,
               currY: world.y,
-              style: (e.shiftKey && this.allowDiagonalWires !== false) ? 'diagonal' : null,
-              existingWire: existingInputWire
+              style: (e.shiftKey && this.allowDiagonalWires !== false) ? 'diagonal' : null
             };
             this.isMouseDraggingWire = true;
             this.renderer.render();
@@ -17814,7 +18031,9 @@
 
           if (e.target === canvas) {
             const probe = this.renderer.findProbeAt(world.x, world.y);
-            const pin = !probe ? this.renderer.findPinAt(world.x, world.y) : null;
+            const rawPin = !probe ? this.renderer.findPinAt(world.x, world.y, 8) : null;
+            const isOccupiedInput = rawPin && !rawPin.isOutput && Boolean(this.circuit.getWireToInput(rawPin.compId, rawPin.pinIndex));
+            const pin = (!this.renderer.activeWireDrag && isOccupiedInput) ? null : rawPin;
             const hitTerminus = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findOpenTerminusAt(world.x, world.y, 12) : null;
             const hitWp = (!probe && !pin && !hitTerminus && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
             const hitMid = (!probe && !pin && !hitTerminus && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
@@ -17896,21 +18115,8 @@
               this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
               this.mergeOpenWireTermini(16);
             } else if (dragDist >= 24) {
-              if (drag.existingWire) {
-                // Detach existing wire cleanly to open point { snapX, snapY } without destroying it!
-                const w = drag.existingWire;
-                w.toCompId = '';
-                w.toPin = 0;
-                w.toPoint = { x: snapX, y: snapY };
-                this.cleanWireWaypoints(w);
-                this.circuit.syncImmediateWireLevels();
-                this.mergeOpenWireTermini(16);
-                this.showToast('Verbindung von Gatter gelöst (Offenes Leitungsende)');
-                this.refreshAll();
-              } else {
-                this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
-                this.mergeOpenWireTermini(16);
-              }
+              this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
+              this.mergeOpenWireTermini(16);
             } else {
               this.renderer.activeWireDrag = null;
               this.refreshAll();
@@ -18570,6 +18776,17 @@
               addAction(ICONS.autoRoute, 'Vertikal gleichmäßig verteilen', () => this.distributeSelection('v'));
               addAction(ICONS.autoRoute, 'Horizontal gleichmäßig verteilen', () => this.distributeSelection('h'));
             }
+          }
+
+          if (selComps.size >= 1 && this.engine.mode === 'edit') {
+            const saveModule = document.createElement('div');
+            saveModule.className = 'ctx-item';
+            saveModule.innerHTML = `<span>${ICONS.copy}</span> <span>Als eigenes Modul speichern…</span>`;
+            saveModule.addEventListener('click', () => {
+              this.hideContextMenu();
+              this.saveSelectionAsModule();
+            });
+            menu.appendChild(saveModule);
           }
 
           const div = document.createElement('div');
@@ -19628,8 +19845,26 @@
           }
         }
         if (targets.length === 0) return 0;
-        this.routeWires(targets);
+        this.tidyWireCorners(targets);
         return targets.length;
+      }
+
+      /**
+       * Keeps the current shape of the given wires (used after a component moved): nothing is re-routed,
+       * only redundant corner points are removed (collinear or duplicate points of the drawn path).
+       */
+      tidyWireCorners(wireIds) {
+        let changed = 0;
+        for (const id of wireIds) {
+          const w = this.circuit.getWire(id);
+          if (!w || !w.waypoints || w.waypoints.length === 0) continue;
+          const pts = this.renderer.getWirePolyline(w);
+          if (pts.length < 2) continue;
+          const corners = pts.slice(1, -1).map(p => ({ x: p.x, y: p.y }));
+          if (corners.length !== w.waypoints.length) changed++;
+          w.waypoints = corners;
+        }
+        return changed;
       }
 
       getCircuitBounds(circuit = this.circuit, renderer = this.renderer) {
@@ -19982,6 +20217,8 @@
         this.initScenarioEvents();
         this.initHelpEvents();
         this.initPaletteSearchEvents();
+        this.initPaletteViewToggle();
+        this.renderCustomModulePalette();
       }
 
 
@@ -20510,6 +20747,309 @@
         document.getElementById('btn-close-help-footer')?.addEventListener('click', () => this.closeAllModals());
       }
 
+
+      /** Wires the Beschriftung / Vorschau switch of the component palette. */
+      initPaletteViewToggle() {
+        document.querySelectorAll('[data-palette-view]').forEach(btn => {
+          btn.addEventListener('click', () => this.setPaletteView(btn.getAttribute('data-palette-view')));
+        });
+        this.setPaletteView(this.paletteView, { save: false });
+      }
+
+      setPaletteView(view, options = {}) {
+        this.paletteView = view === 'preview' ? 'preview' : 'labels';
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('palette-preview', this.paletteView === 'preview');
+        document.querySelectorAll('[data-palette-view]').forEach(btn => {
+          const on = btn.getAttribute('data-palette-view') === this.paletteView;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-pressed', String(on));
+        });
+        if (this.paletteView === 'preview') this.renderPalettePreviews();
+        if (options.save !== false) this.saveSettings();
+      }
+
+      /** Draws every palette entry as a small picture of the real component (same drawing code as the canvas). */
+      renderPalettePreviews() {
+        if (!this.renderer || typeof document === 'undefined') return;
+        const dpr = Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 3);
+        document.querySelectorAll('#sidebar .palette-item[data-type]').forEach(item => {
+          let canvas = item.querySelector('canvas.palette-preview-canvas');
+          if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.className = 'palette-preview-canvas';
+            canvas.setAttribute('aria-hidden', 'true');
+            item.insertBefore(canvas, item.firstChild);
+          }
+          this.drawPaletteThumbnail(canvas, item.getAttribute('data-type'), dpr);
+        });
+      }
+
+      drawPaletteThumbnail(canvas, type, dpr) {
+        const cssW = Math.max(60, canvas.clientWidth || 96);
+        const cssH = canvas.clientHeight || 62;
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const parts = this.buildPaletteThumbParts(type);
+        if (!parts || parts.comps.length === 0) return;
+        const b = this.getComponentsBounds(parts.comps);
+        // labels sit above the bodies: leave room for them at the top
+        const top = b.minY - 14;
+        const bw = Math.max(1, b.maxX - b.minX);
+        const bh = Math.max(1, b.maxY - top);
+        const pad = 8;
+        const scale = Math.min((cssW - pad * 2) / bw, (cssH - pad * 2) / bh, 1.4);
+        const ox = cssW / 2 - (b.minX + bw / 2) * scale;
+        const oy = cssH / 2 - (top + bh / 2) * scale;
+        ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);
+        try {
+          // wires of a module first, so the gates sit on top of them
+          if (parts.links.length > 0) {
+            const pal = this.renderer.getThemePalette();
+            ctx.save();
+            ctx.strokeStyle = pal.wireLow;
+            ctx.lineWidth = 1.5 / scale;
+            ctx.lineJoin = 'round';
+            for (const link of parts.links) {
+              const pts = this.renderer.computeWirePath(link.p1, link.p2, link.wp, 0);
+              ctx.beginPath();
+              pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+          for (const comp of parts.comps) this.renderer.drawSingleComponent(ctx, comp);
+        } catch (err) {
+          console.warn('Palette preview failed for', type, err);
+        }
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+
+      /** Components (and wires for a module) of a palette entry, laid out in their own coordinate frame. */
+      buildPaletteThumbParts(type) {
+        try {
+          if (type.startsWith('MODULE:')) {
+            const mod = this.findCustomModule(type.slice(7));
+            if (!mod) return null;
+            const comps = mod.components.map((c, i) => new Component(`palette_m${i}`, c.type, c.dx, c.dy, c.params));
+            const links = [];
+            for (const w of mod.wires) {
+              const a = comps[w.from], b = comps[w.to];
+              if (!a || !b) continue;
+              links.push({
+                p1: a.getPinWorldPos(true, w.fp),
+                p2: b.getPinWorldPos(false, w.tp),
+                wp: (w.wp || []).map(p => ({ x: p.dx, y: p.dy }))
+              });
+            }
+            return { comps, links };
+          }
+          return { comps: [new Component(`palette_${type}`, type, 0, 0)], links: [] };
+        } catch (err) {
+          return null;
+        }
+      }
+
+      /** Bounding box of component bodies and their pins. */
+      getComponentsBounds(comps) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const c of comps) {
+          minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+          maxX = Math.max(maxX, c.x + c.width); maxY = Math.max(maxY, c.y + c.height);
+          for (const p of [...c.inputs, ...c.outputs]) {
+            minX = Math.min(minX, c.x + p.relX); maxX = Math.max(maxX, c.x + p.relX);
+            minY = Math.min(minY, c.y + p.relY); maxY = Math.max(maxY, c.y + p.relY);
+          }
+        }
+        if (!Number.isFinite(minX)) return { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+        return { minX, minY, maxX, maxY };
+      }
+
+      // ---------------- Eigene Module ----------------
+
+      /** Validated list of the user's own modules (stored in this browser). */
+      getCustomModules() {
+        if (this._customModules) return this._customModules;
+        let list = [];
+        try {
+          const raw = localStorage.getItem(CUSTOM_MODULES_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          if (Array.isArray(parsed)) list = parsed.map(m => sanitizeCustomModule(m)).filter(Boolean).slice(0, CUSTOM_MODULE_LIMIT);
+        } catch (err) {
+          list = [];
+        }
+        this._customModules = list;
+        return list;
+      }
+
+      storeCustomModules(list) {
+        this._customModules = list;
+        try {
+          localStorage.setItem(CUSTOM_MODULES_KEY, JSON.stringify(list));
+          return true;
+        } catch (err) {
+          this.showToast('Modul konnte nicht gespeichert werden (Browser-Speicher voll?).');
+          return false;
+        }
+      }
+
+      findCustomModule(id) {
+        return this.getCustomModules().find(m => m.id === id) || null;
+      }
+
+      /** Menu action: takes the selected components (and the wires between them) and stores them as a module. */
+      saveSelectionAsModule() {
+        const circuit = this.circuit;
+        const comps = Array.from(this.renderer.selectedCompIds || [])
+          .map(id => circuit.getComponent(id))
+          .filter(c => c && c.type !== 'PROBE');
+        if (comps.length === 0) {
+          this.showToast('Markiere zuerst die Bauteile, aus denen das Modul entstehen soll.');
+          return null;
+        }
+        const list = this.getCustomModules();
+        if (list.length >= CUSTOM_MODULE_LIMIT) {
+          this.showToast(`Es können höchstens ${CUSTOM_MODULE_LIMIT} eigene Module gespeichert werden.`);
+          return null;
+        }
+        const suggested = `Modul ${list.length + 1}`;
+        const answer = window.prompt('Name des neuen Moduls:', suggested);
+        if (answer === null) return null;
+        const name = answer.trim() || suggested;
+
+        const minX = Math.min(...comps.map(c => c.x));
+        const minY = Math.min(...comps.map(c => c.y));
+        const index = new Map(comps.map((c, i) => [c.id, i]));
+        const mod = sanitizeCustomModule({
+          id: `mod_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+          name,
+          components: comps.map(c => ({
+            type: c.type,
+            dx: c.x - minX,
+            dy: c.y - minY,
+            params: JSON.parse(JSON.stringify(c.params || {}))
+          })),
+          wires: circuit.wires
+            .filter(w => index.has(w.fromCompId) && index.has(w.toCompId))
+            .map(w => ({
+              from: index.get(w.fromCompId),
+              fp: w.fromPin,
+              to: index.get(w.toCompId),
+              tp: w.toPin,
+              wp: (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
+            }))
+        });
+        if (!mod) {
+          this.showToast('Dieses Modul konnte nicht gespeichert werden.');
+          return null;
+        }
+        if (!this.storeCustomModules([...list, mod])) return null;
+        this.renderCustomModulePalette();
+        this.showToast(`📦 Modul „${mod.name}“ gespeichert – zu finden unter „Eigene Module“ in der Palette.`);
+        return mod;
+      }
+
+      /** Puts a module on the given circuit, centred on the world position. Selects the new parts. */
+      placeCustomModule(circuit, renderer, moduleId, worldX, worldY) {
+        const mod = this.findCustomModule(moduleId);
+        if (!mod || !circuit || !renderer) {
+          this.showToast('Das Modul ist nicht mehr vorhanden.');
+          return false;
+        }
+        const parts = this.buildPaletteThumbParts(`MODULE:${mod.id}`);
+        if (!parts) return false;
+        const b = this.getComponentsBounds(parts.comps);
+        const ox = Math.round((worldX - (b.minX + b.maxX) / 2) / GRID_SIZE) * GRID_SIZE;
+        const oy = Math.round((worldY - (b.minY + b.maxY) / 2) / GRID_SIZE) * GRID_SIZE;
+        const created = mod.components.map(c => circuit.addComponent(c.type, ox + c.dx, oy + c.dy, c.params || {}));
+        for (const w of mod.wires) {
+          const a = created[w.from], b2 = created[w.to];
+          if (!a || !b2) continue;
+          const waypoints = (w.wp || []).map(p => ({ x: ox + p.dx, y: oy + p.dy }));
+          circuit.addWire(a.id, w.fp, b2.id, w.tp, null, waypoints);
+        }
+        renderer.selectedCompIds.clear();
+        for (const c of created) renderer.selectedCompIds.add(c.id);
+        renderer.selectedWireId = null;
+        if (this.renderer === renderer) this.inspector?.render(null, null);
+        return true;
+      }
+
+      /** Palette category "Eigene Module": one entry per saved module (drag or double-click to place). */
+      renderCustomModulePalette() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+        let cat = document.getElementById('palette-category-modules');
+        if (!cat) {
+          cat = document.createElement('div');
+          cat.className = 'palette-category';
+          cat.id = 'palette-category-modules';
+          const title = document.createElement('div');
+          title.className = 'category-title';
+          title.textContent = 'Eigene Module';
+          title.addEventListener('click', () => cat.classList.toggle('collapsed'));
+          const grid = document.createElement('div');
+          grid.className = 'palette-grid single-col';
+          grid.id = 'palette-modules-grid';
+          cat.appendChild(title);
+          cat.appendChild(grid);
+          const anchor = document.getElementById('palette-empty');
+          if (anchor && anchor.parentNode === sidebar) anchor.insertAdjacentElement('afterend', cat);
+          else sidebar.insertBefore(cat, sidebar.children[2] || null);
+        }
+        const grid = document.getElementById('palette-modules-grid');
+        grid.innerHTML = '';
+        const list = this.getCustomModules();
+        if (list.length === 0) {
+          const hint = document.createElement('div');
+          hint.className = 'palette-module-hint';
+          hint.textContent = 'Noch keine eigenen Module. Markiere mehrere Bauteile und wähle im Kontextmenü „Als eigenes Modul speichern…“.';
+          grid.appendChild(hint);
+        }
+        for (const mod of list) {
+          const item = document.createElement('div');
+          item.className = 'palette-item';
+          item.draggable = true;
+          item.dataset.type = `MODULE:${mod.id}`;
+          item.title = `Modul „${mod.name}“ (${mod.components.length} Bauteile, ${mod.wires.length} Leitungen): ziehen oder doppelklicken`;
+          item.innerHTML = `
+            <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4M6.5 10v4"/></svg></div>
+            <div class="palette-name"></div>
+            <button type="button" class="palette-module-del" title="Modul löschen" aria-label="Modul löschen">&times;</button>
+          `;
+          item.querySelector('.palette-name').textContent = mod.name;
+          item.addEventListener('dragstart', (e) => {
+            if (this.engine.mode === 'sim') { e.preventDefault(); return; }
+            e.dataTransfer.setData('text/plain', item.dataset.type);
+            e.dataTransfer.effectAllowed = 'copy';
+          });
+          item.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.palette-module-del')) return;
+            if (this.engine.mode === 'sim') return;
+            const rect = this.gridCanvas.getBoundingClientRect();
+            const center = this.renderer.screenToWorld(rect.width / 2, rect.height / 2);
+            const tab = this.getActiveTab();
+            if (tab) this.pushHistory(tab);
+            if (this.placeCustomModule(this.circuit, this.renderer, mod.id, center.x, center.y)) {
+              this.renderer.render();
+              this.refreshAll();
+            }
+          });
+          item.querySelector('.palette-module-del').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!window.confirm(`Modul „${mod.name}“ wirklich löschen?`)) return;
+            this.storeCustomModules(this.getCustomModules().filter(m => m.id !== mod.id));
+            this.renderCustomModulePalette();
+            this.showToast(`Modul „${mod.name}“ gelöscht.`);
+          });
+          grid.appendChild(item);
+        }
+        if (this.paletteView === 'preview') this.renderPalettePreviews();
+        const q = document.getElementById('palette-search-input');
+        if (q && q.value && typeof q.dispatchEvent === 'function') q.dispatchEvent(new Event('input'));
+      }
 
       initPaletteSearchEvents() {
         const input = document.getElementById('palette-search-input');
@@ -21630,6 +22170,16 @@
           });
         }
 
+        // 3b. UI scale
+        const uiScaleInput = document.getElementById('settings-ui-scale');
+        if (uiScaleInput) {
+          uiScaleInput.value = String(Math.round(this.uiScale * 100));
+          uiScaleInput.addEventListener('input', (e) => this.setUiScale(Number(e.target.value) / 100));
+        }
+        document.getElementById('btn-ui-scale-down')?.addEventListener('click', () => this.setUiScale(this.uiScale - 0.05));
+        document.getElementById('btn-ui-scale-up')?.addEventListener('click', () => this.setUiScale(this.uiScale + 0.05));
+
+        // 6. Reset Settings
         const btnReset = document.getElementById('btn-reset-settings');
         if (btnReset) {
           btnReset.addEventListener('click', () => {
@@ -21640,6 +22190,7 @@
             this.setAllowDiagonalWires(true);
             this.setShowGateDelay(false);
             this.setGlobalGateDelay(1, true);
+            this.setUiScale(1);
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
             if (chkInteractive) chkInteractive.checked = true;
@@ -21663,6 +22214,29 @@
         if (this.renderer) this.renderer.render();
         if (this.rendererRight) this.rendererRight.render();
         if (this.analyzer) this.analyzer.render();
+      }
+
+      /**
+       * Scales the application chrome (menus, toolbar, palette, inspector, dialogs) in 5 % steps
+       * between 80 % and 160 %. The drawing canvases are not scaled, they just get re-measured.
+       */
+      setUiScale(value, options = {}) {
+        const num = Number(value);
+        const clamped = Number.isFinite(num) ? Math.max(0.8, Math.min(1.6, num)) : 1;
+        this.uiScale = Math.round(clamped * 20) / 20;
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style) {
+          document.documentElement.style.setProperty('--ui-scale', String(this.uiScale));
+          const pct = Math.round(this.uiScale * 100);
+          const slider = document.getElementById('settings-ui-scale');
+          if (slider) slider.value = String(pct);
+          const label = document.getElementById('settings-ui-scale-value');
+          if (label) label.textContent = `${pct} %`;
+        }
+        // the canvases take their size from their containers: let them re-measure after the layout change
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+          window.dispatchEvent(new Event('resize'));
+        }
+        if (options.save !== false) this.saveSettings();
       }
 
       setHighSignalColor(color, doRender = true) {
@@ -21849,6 +22423,7 @@
         const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
         if (!themeKeys.includes(theme)) theme = 'modern';
         this.appTheme = theme;
+        if (this.paletteView === 'preview') this.renderPalettePreviews();
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.setAttribute) {
           document.documentElement.setAttribute('data-theme', theme);
         }
@@ -21986,6 +22561,8 @@
             if (['compact', 'normal', 'wide'].includes(s.layoutSpacing)) this.layoutSpacing = s.layoutSpacing;
             if (['auto', 'left', 'near'].includes(s.layoutInputs)) this.layoutInputs = s.layoutInputs;
             if (s.symbolStandard) this.setSymbolStandard(s.symbolStandard);
+            if (typeof s.uiScale === 'number') this.setUiScale(s.uiScale, { save: false });
+            if (['labels', 'preview'].includes(s.paletteView)) this.paletteView = s.paletteView;
             if (s.appTheme) this.setAppTheme(s.appTheme);
             else if (s.canvasTheme) {
               if (s.canvasTheme === 'deep_black') this.setAppTheme('pitch_black');
@@ -22042,7 +22619,9 @@
             layoutInputs: this.layoutInputs,
             canvasTheme: this.canvasTheme,
             appTheme: this.appTheme,
-            symbolStandard: this.symbolStandard
+            symbolStandard: this.symbolStandard,
+            uiScale: this.uiScale,
+            paletteView: this.paletteView
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));

@@ -1935,6 +1935,50 @@ runTest('WISH-034', 'Auto-merge matching open wire ends and resilient pin detach
   assertEqual(openBranch2.fromPoint, null, 'Branch fromPoint cleared');
 });
 
+runTest('WISH-035', 'UI scaling, palette previews, and Manhattan wire routing through waypoints', () => {
+  const app = new LogicSimApp();
+
+  // 1. UI Scaling validation & clamping (80% - 160% in 5% increments)
+  app.setUiScale(1.25, { save: false });
+  assertEqual(app.uiScale, 1.25, 'UI scale set to 125%');
+  app.setUiScale(0.5, { save: false });
+  assertEqual(app.uiScale, 0.8, 'UI scale clamped at lower bound 80%');
+  app.setUiScale(2.5, { save: false });
+  assertEqual(app.uiScale, 1.6, 'UI scale clamped at upper bound 160%');
+  app.setUiScale(1.0, { save: false });
+  assertEqual(app.uiScale, 1.0, 'UI scale reset to 100%');
+
+  // 2. Palette view toggle validation
+  assertEqual(app.paletteView, 'labels', 'Palette default view is labels');
+  app.setPaletteView('preview', { save: false });
+  assertEqual(app.paletteView, 'preview', 'Palette view switched to preview');
+  const thumbParts = app.buildPaletteThumbParts('AND');
+  assertEqual(Boolean(thumbParts && thumbParts.comps.length === 1), true, 'Built thumb parts for AND gate');
+  const bounds = app.getComponentsBounds(thumbParts.comps);
+  assertEqual(bounds.maxX > bounds.minX, true, 'Component bounds valid for palette thumbnail');
+  app.setPaletteView('labels', { save: false });
+  assertEqual(app.paletteView, 'labels', 'Palette view restored to labels');
+
+  // 3. Orthogonal Manhattan routing preserved through waypoints when allowDiagonalWires is active
+  app.setAllowDiagonalWires(true);
+  const p1 = { x: 100, y: 100 };
+  const p2 = { x: 300, y: 200 };
+  const wps = [{ x: 200, y: 140 }];
+  const path = app.renderer.computeWirePath(p1, p2, wps, 0, null);
+  assertEqual(path.length >= 3, true, 'Path computed with waypoints');
+  // Verify that all segments in an orthogonal path are horizontal or vertical
+  let allOrthogonal = true;
+  for (let i = 0; i < path.length - 1; i++) {
+    const dx = Math.abs(path[i+1].x - path[i].x);
+    const dy = Math.abs(path[i+1].y - path[i].y);
+    if (dx > 0.001 && dy > 0.001) {
+      allOrthogonal = false;
+      break;
+    }
+  }
+  assertEqual(allOrthogonal, true, 'Normal wire with waypoints routes orthogonally (Manhattan) without diagonal slants');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
