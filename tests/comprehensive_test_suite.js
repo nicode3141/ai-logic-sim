@@ -1815,6 +1815,81 @@ runTest('WISH-032', 'Compact 40x40 NOT gate dimensions, pin geometry and grid al
   assertEqual(inlineRes.gate.y % 20, 0, 'Inlined NOT gate Y position is aligned to 20px grid');
 });
 
+runTest('WISH-033', 'Wire bridges on diagonal connections and global allowDiagonalWires setting', () => {
+  let arcCount = 0;
+  const mockArcCtx = Object.assign({}, mockCtx, {
+    arc: () => { arcCount++; }
+  });
+  const mockCanvas = Object.assign({}, createMockElem('grid-canvas'), {
+    getContext: () => mockArcCtx
+  });
+
+  const circuit = new Circuit();
+  const c1 = circuit.addComponent('SWITCH', 0, 0);
+  const c2 = circuit.addComponent('LED', 200, 200);
+  const c3 = circuit.addComponent('SWITCH', 0, 200);
+  const c4 = circuit.addComponent('LED', 200, 0);
+  const c5 = circuit.addComponent('SWITCH', 100, -50);
+  const c6 = circuit.addComponent('LED', 100, 250);
+
+  // Wire 1: Diagonal (0, 20) -> (200, 220)
+  const w1 = circuit.addWire(c1.id, 0, c2.id, 0, null, null, { style: 'diagonal' });
+  // Wire 2: Diagonal (0, 220) -> (200, 20)
+  const w2 = circuit.addWire(c3.id, 0, c4.id, 0, null, null, { style: 'diagonal' });
+
+  const engine = new SimulationEngine(circuit, new RingBuffer(10), () => {});
+  const renderer = new CanvasRenderer(mockCanvas, circuit, engine);
+
+  assertEqual(renderer.showWireBridges, true, 'Wire bridges enabled by default');
+  assertEqual(renderer.allowDiagonalWires, true, 'Diagonal wires allowed by default');
+
+  // Test 1: Diagonal crossing diagonal produces bridge jumper arc
+  arcCount = 0;
+  renderer.drawWires(mockArcCtx);
+  assertEqual(arcCount > 0, true, 'Bridge arc drawn when two diagonal wires cross');
+
+  // Test 2: Diagonal crossing vertical wire produces bridge jumper arc
+  circuit.removeWire(w2.id);
+  const cVerticalSw = circuit.addComponent('SWITCH', 60, -20); // Output pin at (140, 0)
+  const cVerticalLed = circuit.addComponent('LED', 140, 220); // Input pin at (140, 240)
+  const w3 = circuit.addWire(cVerticalSw.id, 0, cVerticalLed.id, 0); // Vertical through x=140 from y=0 to y=240
+  arcCount = 0;
+  renderer.drawWires(mockArcCtx);
+  assertEqual(arcCount > 0, true, 'Bridge arc drawn when diagonal wire crosses vertical wire');
+
+  // Test 3: Disabling showWireBridges suppresses all bridge arcs
+  renderer.showWireBridges = false;
+  arcCount = 0;
+  renderer.drawWires(mockArcCtx);
+  assertEqual(arcCount, 0, 'No bridge arcs drawn when showWireBridges is false');
+  renderer.showWireBridges = true;
+
+  // Test 4: allowDiagonalWires setting restricts diagonal routing to orthogonal Manhattan
+  const p1 = { x: 0, y: 0 };
+  const p2 = { x: 100, y: 100 };
+  const diagPath = renderer.computeWirePath(p1, p2, null, 0, 'diagonal');
+  assertEqual(diagPath.length, 2, 'Diagonal wire path has 2 points when allowDiagonalWires=true');
+
+  renderer.allowDiagonalWires = false;
+  const orthoFallbackPath = renderer.computeWirePath(p1, p2, null, 0, 'diagonal');
+  assertEqual(orthoFallbackPath.length > 2, true, 'Diagonal wire falls back to orthogonal bends when allowDiagonalWires=false');
+  for (let i = 0; i < orthoFallbackPath.length - 1; i++) {
+    const a = orthoFallbackPath[i];
+    const b = orthoFallbackPath[i + 1];
+    const isOrtho = (a.x === b.x) || (a.y === b.y);
+    assertEqual(isOrtho, true, `Segment ${i} in fallback path must be strictly orthogonal (horizontal or vertical)`);
+  }
+
+  // Test 5: Waypoint decomposition when allowDiagonalWires=false
+  const diagWpPath = renderer.computeWirePath(p1, p2, [{ x: 50, y: 20 }], 0, null);
+  for (let i = 0; i < diagWpPath.length - 1; i++) {
+    const a = diagWpPath[i];
+    const b = diagWpPath[i + 1];
+    const isOrtho = (a.x === b.x) || (a.y === b.y);
+    assertEqual(isOrtho, true, `Segment ${i} with diagonal waypoints must be strictly orthogonal`);
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

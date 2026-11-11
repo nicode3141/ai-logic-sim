@@ -3767,6 +3767,10 @@
               <span class="norm-check" id="check-view-bridges">✓</span>
               <span data-i18n="menu.view.bridges">Leitungsbrücken bei Kreuzungen</span>
             </button>
+            <button class="app-menu-item" id="menu-item-toggle-diagonal">
+              <span class="norm-check" id="check-view-diagonal">✓</span>
+              <span data-i18n="menu.view.diagonal">Schräge Leitungen erlauben</span>
+            </button>
             <div class="app-menu-divider"></div>
             <div class="menu-section-header" style="padding: 4px 10px 2px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="menu.view.language">Sprache / Language</div>
             <button class="app-menu-item" id="menu-lang-de" data-lang-btn="de">
@@ -4613,6 +4617,13 @@
                   <div style="font-size: 11px; color: var(--text-dim);">Kreuzende Leitungen als Bogen zeichnen. Aus: gerade Kreuzungen.</div>
                 </div>
               </label>
+              <label class="settings-checkbox-label">
+                <input type="checkbox" id="settings-allow-diagonal-wires" checked />
+                <div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schräge Leitungen erlauben</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Diagonale Leitungsführung mit Umschalt-Taste erlauben. Aus: strikt rechtwinklig.</div>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -4810,6 +4821,7 @@
           'menu.view.analyzer': 'Impulsdiagramm',
           'menu.view.inspector': 'Inspector',
           'menu.view.bridges': 'Leitungsbrücken',
+          'menu.view.diagonal': 'Schräge Leitungen',
           'menu.view.theme': 'Theme',
           'menu.view.language': 'Sprache',
           'menu.analysis': 'Analyse',
@@ -4938,6 +4950,7 @@
           'menu.view.analyzer': 'Timing Diagram',
           'menu.view.inspector': 'Inspector',
           'menu.view.bridges': 'Wire Bridges',
+          'menu.view.diagonal': 'Diagonal Wires',
           'menu.view.theme': 'Theme',
           'menu.view.language': 'Language',
           'menu.analysis': 'Analysis',
@@ -9962,6 +9975,7 @@
         this.activeTerminusDrag = null;
         this.selectionBox = null;
         this.showWireBridges = true;
+        this.allowDiagonalWires = true;
         this.showGateDelay = false;
         this.highSignalColor = '#00ff66';
         this.highSignalGlow = 'rgba(0, 255, 102, 0.7)';
@@ -10177,7 +10191,8 @@
        * Supports diagonal routing, waypoints, and orthogonal Manhattan routing with optional channelOffset.
        */
       computeWirePath(p1, p2, waypoints = null, channelOffset = 0, style = null) {
-        if (style === 'diagonal') {
+        const canDiagonal = this.allowDiagonalWires !== false;
+        if (style === 'diagonal' && canDiagonal) {
           if (waypoints && waypoints.length > 0) {
             return this.simplifyCollinear([{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }]);
           }
@@ -10185,8 +10200,21 @@
         }
 
         if (waypoints && waypoints.length > 0) {
-          const fullPts = [{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }];
-          return this.simplifyCollinear(fullPts);
+          if (canDiagonal) {
+            const fullPts = [{ x: p1.x, y: p1.y }, ...waypoints, { x: p2.x, y: p2.y }];
+            return this.simplifyCollinear(fullPts);
+          } else {
+            const fullPts = [{ x: p1.x, y: p1.y }];
+            const allWps = [...waypoints, { x: p2.x, y: p2.y }];
+            for (const nextPt of allWps) {
+              const lastPt = fullPts[fullPts.length - 1];
+              if (lastPt.x !== nextPt.x && lastPt.y !== nextPt.y) {
+                fullPts.push({ x: nextPt.x, y: lastPt.y });
+              }
+              fullPts.push({ x: nextPt.x, y: nextPt.y });
+            }
+            return this.simplifyCollinear(fullPts);
+          }
         }
 
         const x1 = p1.x;
@@ -10258,6 +10286,22 @@
         }
         res.push(pts[pts.length - 1]);
         return res;
+      }
+
+      getWireNet(wire) {
+        if (!wire) return '';
+        let curr = wire;
+        let hops = 0;
+        while (curr && curr.fromWireId && !curr.fromCompId && hops < 16) {
+          const parent = this.circuit ? (this.circuit.getWire ? this.circuit.getWire(curr.fromWireId) : (this.circuit.wires ? this.circuit.wires.find(x => x.id === curr.fromWireId) : null)) : null;
+          if (!parent) break;
+          curr = parent;
+          hops++;
+        }
+        if (curr && curr.fromCompId) {
+          return `${curr.fromCompId}:${curr.fromPin}`;
+        }
+        return curr ? curr.id : wire.id;
       }
 
       getWirePolyline(wire) {
@@ -10897,25 +10941,94 @@
 
         const wireEntries = [];
         const showBridges = Boolean(this.showWireBridges);
-        const allVertSegments = [];
 
         for (const w of this.circuit.wires) {
           const pts = this.getWirePolyline(w);
           if (pts.length < 2) continue;
           wireEntries.push({ wire: w, pts });
+        }
 
-          if (showBridges) {
+        const segmentCrossingsMap = new Map();
+
+        if (showBridges) {
+          const allSegments = [];
+          for (const entry of wireEntries) {
+            const w = entry.wire;
+            const pts = entry.pts;
+            const net = this.getWireNet(w);
             for (let i = 0; i < pts.length - 1; i++) {
               const pA = pts[i];
               const pB = pts[i + 1];
-              if (pA.x === pB.x && pA.y !== pB.y) {
-                allVertSegments.push({
-                  wireId: w.id,
-                  net: w.fromCompId ? (w.fromCompId + ':' + w.fromPin) : w.id,
-                  x: pA.x,
-                  minY: Math.min(pA.y, pB.y),
-                  maxY: Math.max(pA.y, pB.y)
-                });
+              const dx = pB.x - pA.x;
+              const dy = pB.y - pA.y;
+              const len = Math.hypot(dx, dy);
+              if (len < 16) continue;
+              const isH = Math.abs(dy) < 1e-4;
+              const isV = Math.abs(dx) < 1e-4;
+              const rank = isH ? 3 : (isV ? 1 : 2);
+              allSegments.push({
+                wireId: w.id,
+                net,
+                segIndex: i,
+                pA,
+                pB,
+                dx,
+                dy,
+                len,
+                rank,
+                minX: Math.min(pA.x, pB.x),
+                maxX: Math.max(pA.x, pB.x),
+                minY: Math.min(pA.y, pB.y),
+                maxY: Math.max(pA.y, pB.y)
+              });
+            }
+          }
+
+          for (let i = 0; i < allSegments.length; i++) {
+            const s1 = allSegments[i];
+            for (let j = i + 1; j < allSegments.length; j++) {
+              const s2 = allSegments[j];
+              if (s1.wireId === s2.wireId || s1.net === s2.net) continue;
+
+              if (s1.maxX < s2.minX + 6 || s1.minX > s2.maxX - 6 ||
+                  s1.maxY < s2.minY + 6 || s1.minY > s2.maxY - 6) {
+                continue;
+              }
+
+              const denom = s1.dx * s2.dy - s1.dy * s2.dx;
+              if (Math.abs(denom) < 1e-6) continue;
+
+              const deltaX = s2.pA.x - s1.pA.x;
+              const deltaY = s2.pA.y - s1.pA.y;
+              const t = (deltaX * s2.dy - deltaY * s2.dx) / denom;
+              const u = (deltaX * s1.dy - deltaY * s1.dx) / denom;
+
+              const minDist = 8;
+              const tMargin = minDist / s1.len;
+              const uMargin = minDist / s2.len;
+
+              if (t >= tMargin && t <= 1 - tMargin && u >= uMargin && u <= 1 - uMargin) {
+                const ix = s1.pA.x + t * s1.dx;
+                const iy = s1.pA.y + t * s1.dy;
+
+                let s1Wins = false;
+                if (s1.rank !== s2.rank) {
+                  s1Wins = s1.rank > s2.rank;
+                } else if (s1.wireId !== s2.wireId) {
+                  s1Wins = String(s1.wireId) < String(s2.wireId);
+                } else {
+                  s1Wins = s1.segIndex < s2.segIndex;
+                }
+
+                const winSeg = s1Wins ? s1 : s2;
+                const winDist = (s1Wins ? t : u) * winSeg.len;
+                const key = `${winSeg.wireId}:${winSeg.segIndex}`;
+                let list = segmentCrossingsMap.get(key);
+                if (!list) {
+                  list = [];
+                  segmentCrossingsMap.set(key, list);
+                }
+                list.push({ x: ix, y: iy, dist: winDist });
               }
             }
           }
@@ -10957,37 +11070,30 @@
             const pA = pts[i];
             const pB = pts[i + 1];
 
-            if (showBridges && pA.y === pB.y && pA.x !== pB.x) {
-              const minX = Math.min(pA.x, pB.x);
-              const maxX = Math.max(pA.x, pB.x);
-              const y = pA.y;
+            const key = `${w.id}:${i}`;
+            const crossings = segmentCrossingsMap.get(key);
 
-              const crossings = [];
-              const ownNet = w.fromCompId ? (w.fromCompId + ':' + w.fromPin) : w.id;
-              for (const vs of allVertSegments) {
-                if (vs.wireId !== w.id && vs.net !== ownNet && vs.x > minX + 6 && vs.x < maxX - 6 && y > vs.minY + 6 && y < vs.maxY - 6) {
-                  crossings.push(vs.x);
-                }
+            if (showBridges && crossings && crossings.length > 0) {
+              crossings.sort((a, b) => a.dist - b.dist);
+
+              const dx = pB.x - pA.x;
+              const dy = pB.y - pA.y;
+              const theta = Math.atan2(dy, dx);
+              const cosT = Math.cos(theta);
+              const sinT = Math.sin(theta);
+              const r = 5;
+
+              let lastDist = -Infinity;
+              for (const c of crossings) {
+                if (c.dist - lastDist < 10) continue;
+                lastDist = c.dist;
+
+                const ex = c.x - r * cosT;
+                const ey = c.y - r * sinT;
+                ctx.lineTo(ex, ey);
+                ctx.arc(c.x, c.y, r, theta + Math.PI, theta, false);
               }
-
-              if (crossings.length === 0) {
-                ctx.lineTo(pB.x, pB.y);
-              } else {
-                const goingRight = pA.x < pB.x;
-                crossings.sort((a, b) => goingRight ? a - b : b - a);
-
-                for (const cx of crossings) {
-                  const r = 5;
-                  if (goingRight) {
-                    ctx.lineTo(cx - r, y);
-                    ctx.arc(cx, y, r, Math.PI, 0, false);
-                  } else {
-                    ctx.lineTo(cx + r, y);
-                    ctx.arc(cx, y, r, 0, Math.PI, false);
-                  }
-                }
-                ctx.lineTo(pB.x, pB.y);
-              }
+              ctx.lineTo(pB.x, pB.y);
             } else {
               ctx.lineTo(pB.x, pB.y);
             }
@@ -11180,7 +11286,7 @@
         if (drag.waypoints && drag.waypoints.length > 0) {
           const directWps = drag.isOutput ? drag.waypoints : [...drag.waypoints].reverse();
           pts = [{ x: p1.x, y: p1.y }, ...directWps, { x: p2.x, y: p2.y }];
-        } else if (drag.style === 'diagonal') {
+        } else if (drag.style === 'diagonal' && this.allowDiagonalWires !== false) {
           pts = [{ x: p1.x, y: p1.y }, { x: p2.x, y: p2.y }];
         } else {
           pts = this.computeWirePath(p1, p2, null);
@@ -13557,9 +13663,10 @@
           styleSelect.className = 'inspector-select';
           styleSelect.style.padding = '3px 6px';
           styleSelect.style.fontSize = '11px';
+          const diagAllowed = !window.logicSimApp || window.logicSimApp.allowDiagonalWires !== false;
           styleSelect.innerHTML = `
             <option value="orthogonal"${wire.style !== 'diagonal' ? ' selected' : ''}>Rechtwinklig</option>
-            <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}>Diagonal</option>
+            <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}${diagAllowed ? '' : ' disabled'}>Diagonal${diagAllowed ? '' : ' (in Einstellungen deaktiviert)'}</option>
           `;
           styleSelect.addEventListener('change', () => {
             wire.style = styleSelect.value;
@@ -15097,6 +15204,9 @@
         this.showWireBridges = true;
         this.renderer.showWireBridges = this.showWireBridges;
         this.rendererRight.showWireBridges = this.showWireBridges;
+        this.allowDiagonalWires = true;
+        this.renderer.allowDiagonalWires = this.allowDiagonalWires;
+        this.rendererRight.allowDiagonalWires = this.allowDiagonalWires;
         this.globalGateDelay = 1;
         this.showGateDelay = false;
         this.renderer.showGateDelay = this.showGateDelay;
@@ -16057,7 +16167,7 @@
           }
         }
 
-        const style = options.style || drag.style || null;
+        const style = (this.allowDiagonalWires === false) ? 'orthogonal' : (options.style || drag.style || null);
         const tab = this.getActiveTab();
         this.pushHistory(tab);
         const wire = this.circuit.addWire(fromCompId, fromPin, toCompId, toPin, null, waypoints, {
@@ -17153,7 +17263,7 @@
             }
 
             this.renderer.activeWireDrag.waypoints.push({ x: snapX, y: snapY });
-            if (e.shiftKey) {
+            if (e.shiftKey && this.allowDiagonalWires !== false) {
               this.renderer.activeWireDrag.style = 'diagonal';
             }
             this.renderer.render();
@@ -17171,7 +17281,7 @@
               waypoints: [],
               currX: world.x,
               currY: world.y,
-              style: e.shiftKey ? 'diagonal' : null
+              style: (e.shiftKey && this.allowDiagonalWires !== false) ? 'diagonal' : null
             };
             this.isMouseDraggingWire = true;
             this.renderer.render();
@@ -17380,7 +17490,7 @@
           }
 
           if (this.renderer.activeWireDrag) {
-            if (e.shiftKey) {
+            if (e.shiftKey && this.allowDiagonalWires !== false) {
               this.renderer.activeWireDrag.style = 'diagonal';
             }
             const snapPin = this.renderer.findPinAt(world.x, world.y, 12);
@@ -18596,13 +18706,21 @@
           const styleItem = document.createElement('div');
           styleItem.className = 'ctx-item';
           const isDiag = wire.style === 'diagonal';
-          styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Rechtwinklig' : 'Zu Diagonal'}</span>`;
-          styleItem.addEventListener('click', () => {
-            wire.style = isDiag ? 'orthogonal' : 'diagonal';
-            this.renderer.render();
-            this.inspector.render(null, wire.id);
-            this.hideContextMenu();
-          });
+          const diagAllowed = this.allowDiagonalWires !== false;
+          if (!diagAllowed && !isDiag) {
+            styleItem.style.opacity = '0.5';
+            styleItem.style.cursor = 'not-allowed';
+            styleItem.title = 'Schräge Leitungen sind in den Einstellungen deaktiviert';
+            styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: Nur Rechtwinklig (Schräg deaktiviert)</span>`;
+          } else {
+            styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Rechtwinklig' : 'Zu Diagonal'}</span>`;
+            styleItem.addEventListener('click', () => {
+              wire.style = isDiag ? 'orthogonal' : 'diagonal';
+              this.renderer.render();
+              this.inspector.render(null, wire.id);
+              this.hideContextMenu();
+            });
+          }
           menu.appendChild(styleItem);
 
           const addWpItem = document.createElement('div');
@@ -20922,6 +21040,8 @@
         if (chkAutoSave) chkAutoSave.checked = Boolean(this.autoSaveCircuit);
         const chkWireBridges = document.getElementById('settings-wire-bridges');
         if (chkWireBridges) chkWireBridges.checked = Boolean(this.showWireBridges);
+        const chkAllowDiagonal = document.getElementById('settings-allow-diagonal-wires');
+        if (chkAllowDiagonal) chkAllowDiagonal.checked = Boolean(this.allowDiagonalWires !== false);
         const chkGateDelay = document.getElementById('settings-show-gate-delay');
         if (chkGateDelay) chkGateDelay.checked = Boolean(this.showGateDelay);
         const sliderGlobalDelay = document.getElementById('settings-global-delay-slider');
@@ -21091,6 +21211,12 @@
           this.setShowWireBridges(!this.showWireBridges);
           this.saveSettings();
           this.showToast(`Leitungsbrücken ${this.showWireBridges ? 'aktiviert' : 'deaktiviert'}`);
+        });
+        document.getElementById('menu-item-toggle-diagonal')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.setAllowDiagonalWires(!this.allowDiagonalWires);
+          this.saveSettings();
+          this.showToast(`Schräge Leitungen ${this.allowDiagonalWires ? 'erlaubt' : 'deaktiviert'}`);
         });
         document.getElementById('menu-item-toggle-gate-delay')?.addEventListener('click', () => {
           closeAllMenus();
@@ -21299,6 +21425,15 @@
           });
         }
 
+        const chkAllowDiagonal = document.getElementById('settings-allow-diagonal-wires');
+        if (chkAllowDiagonal) {
+          chkAllowDiagonal.checked = this.allowDiagonalWires !== false;
+          chkAllowDiagonal.addEventListener('change', (e) => {
+            this.setAllowDiagonalWires(e.target.checked);
+            this.saveSettings();
+          });
+        }
+
         const chkGateDelay = document.getElementById('settings-show-gate-delay');
         if (chkGateDelay) {
           chkGateDelay.checked = this.showGateDelay;
@@ -21346,6 +21481,7 @@
             this.setSymbolStandard('DIN_40700');
             this.setAppTheme('modern');
             this.setShowWireBridges(false);
+            this.setAllowDiagonalWires(true);
             this.setShowGateDelay(false);
             this.setGlobalGateDelay(1, true);
             this.allowEditModeInteraction = true;
@@ -21353,6 +21489,8 @@
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
             if (chkWireBridges) chkWireBridges.checked = false;
+            const chkAllowDiagonal = document.getElementById('settings-allow-diagonal-wires');
+            if (chkAllowDiagonal) chkAllowDiagonal.checked = true;
             if (chkGateDelay) chkGateDelay.checked = false;
             if (delaySlider) delaySlider.value = '1';
             if (delayVal) delayVal.textContent = '1 Tick';
@@ -21609,6 +21747,22 @@
         if (this.rendererRight) this.rendererRight.render();
       }
 
+      setAllowDiagonalWires(allowed) {
+        this.allowDiagonalWires = Boolean(allowed);
+        if (this.renderer) this.renderer.allowDiagonalWires = this.allowDiagonalWires;
+        if (this.rendererRight) this.rendererRight.allowDiagonalWires = this.allowDiagonalWires;
+
+        if (typeof document !== 'undefined') {
+          const chkSettings = document.getElementById('settings-allow-diagonal-wires');
+          if (chkSettings) chkSettings.checked = this.allowDiagonalWires;
+          const checkView = document.getElementById('check-view-diagonal');
+          if (checkView) checkView.innerHTML = this.allowDiagonalWires ? '✓' : '&nbsp;';
+        }
+
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+      }
+
       setShowGateDelay(enabled) {
         this.showGateDelay = Boolean(enabled);
         if (this.renderer) this.renderer.showGateDelay = this.showGateDelay;
@@ -21669,6 +21823,7 @@
             if (s.autoSaveCircuit !== undefined) this.autoSaveCircuit = Boolean(s.autoSaveCircuit);
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
             if (s.showWireBridges !== undefined) this.setShowWireBridges(Boolean(s.showWireBridges));
+            if (s.allowDiagonalWires !== undefined) this.setAllowDiagonalWires(Boolean(s.allowDiagonalWires));
             if (s.globalGateDelay !== undefined) this.setGlobalGateDelay(s.globalGateDelay, false);
             if (s.showGateDelay !== undefined) this.setShowGateDelay(Boolean(s.showGateDelay));
             if (s.layoutAnimation !== undefined) this.layoutAnimation = Boolean(s.layoutAnimation);
@@ -21688,6 +21843,12 @@
             try { localStorage.setItem('logicsim_wire_bridges', 'true'); } catch (_) {}
           } else if (storedBridges === 'true' || storedBridges === null) {
             this.setShowWireBridges(true);
+          }
+          const storedDiagonal = localStorage.getItem('logicsim_allow_diagonal_wires');
+          if (storedDiagonal !== null) {
+            this.setAllowDiagonalWires(storedDiagonal === 'true');
+          } else {
+            this.setAllowDiagonalWires(true);
           }
           const storedDelay = localStorage.getItem('logicsim_global_delay');
           if (storedDelay !== null) {
@@ -21717,6 +21878,7 @@
             autoSaveCircuit: this.autoSaveCircuit,
             smartWires: this.smartWires,
             showWireBridges: this.showWireBridges,
+            allowDiagonalWires: this.allowDiagonalWires !== false,
             globalGateDelay: this.globalGateDelay,
             showGateDelay: this.showGateDelay,
             layoutAnimation: this.layoutAnimation,
@@ -21728,6 +21890,7 @@
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));
+          localStorage.setItem('logicsim_allow_diagonal_wires', String(this.allowDiagonalWires !== false));
           localStorage.setItem('logicsim_global_delay', String(this.globalGateDelay));
           localStorage.setItem('logicsim_show_gate_delay', String(this.showGateDelay));
           localStorage.setItem('logicsim_theme', this.appTheme);
