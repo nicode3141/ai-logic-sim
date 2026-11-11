@@ -52,10 +52,25 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-032** | Kompaktes NOT-Gatter (50% Breitenreduktion auf 40x40, perfekte 20px-Rasterung & platzsparendes Wire-Inlining) | `alpha` | 🟢 **Completed** | NOT-Gatter von sperrigen 80x40 Pixeln auf kompakte 40x40 Pixel (2x2 Rasterzellen) verkleinert. Exakte Zentrierung der Ein- und Ausgangs-Pins auf der 20px-Rasterachse (`relX = 0 / 40`, `relY = 20`); harmonische Dreiecks-Proportionen (32px Basis, 24px Schenkel, 7.2px Inversionsblase); Drag & Drop und Wire-Inlining zentrieren präzise mit 20px Offset. |
 | **WISH-033** | Leitungsbrücken bei schrägen Verbindungen aktivieren & Globale Einstellung für schräge Leitungen | `alpha` | 🟢 **Completed** | Universelle 2D-Kreuzungsberechnung und Jumper-Bögen für schräge Leitungen (`style: diagonal`) bei aktiven Brücken; deterministische Priorisierung (Horizontal > Diagonal > Vertikal) mit stufenlosem Kreisbogen-Rendering entlang beliebig gewinkelter Leitungsvektoren; neue globale Einstellung "Schräge Leitungen erlauben" im Einstellungen-Modal und Menü "Ansicht" mit striktem orthogonalen Manhattan-Fallback, persistiert in `localStorage`. |
 | **WISH-034** | Schutz vor versehentlichem Abreißen von Gatter-Verbindungen & Automatisches Mergen offener Leitungsenden | `feat/prevent-accidental-wire-disconnect-and-auto-merge` | 🟢 **Completed** | Beseitigung des versehentlichen Abreißens von Gatter-Verbindungen beim Bauteil-Bewegen durch Bauteilkorpus-Priorität vor Pin-Klicks, Verkleinerung des Pin-Fangradius (von 14px auf 9px) und Erhöhung des Abriss-Schwellenwerts auf 24px (bei <24px bleibt die Verbindung unberührt, bei >=24px wird sie sauber als offenes Leitungsende gelöst statt gelöscht zu werden); Automatisches Mergen (`mergeOpenWireTermini`) aller offenen Leitungsenden (`toPoint` & `fromPoint`), die an denselben Koordinaten zusammentreffen, zu einer einzigen kontinuierlichen, leitenden Verbindung. |
+| **WISH-035** | UI-Skalierung (Oberflächengröße), Paletten-Vorschau, NOT-Lead-Fix & Saubere Manhattan-Wegpunktführung | `fix/wire-interactions-and-merge-hardening` | 🟢 **Completed** | Stufenlose UI-Skalierung (80%–160%) für Menüs, Toolbar, Palette & Inspector; Umschaltung der Bauteil-Palette zwischen Beschriftung und gezeichneter Echtzeit-Vorschau; Beseitigung ungewollter Diagonalschrägen bei normalen Leitungen mit Wegpunkten; NOT-Gatter Leads im 40x40-Raster korrigiert; Schutz belegter Eingangspins vor versehentlichem Leitungsabriss beim Verschieben von Gattern. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-035 (UI-Skalierung, Paletten-Vorschau, NOT-Lead-Fix & Saubere Manhattan-Wegpunktführung)**:
+  - **Stufenlose UI-Skalierung (Oberflächengröße 80%–160%)**:
+    - Neue Benutzer-Einstellung in den Einstellungen (`#settings-ui-scale`) und per Buttons `A-` / `A+`, um Menüs, Werkzeugleiste, Palette, Tabs, Inspector, Modale und Kontextmenüs flexibel zu skalieren.
+    - Die Zeichenfläche (Canvas) behält ihre exakten Pixel- und Mauskoordinaten bei.
+  - **Umschaltung der Bauteil-Palette (Beschriftung / Vorschau)**:
+    - Neue Umschaltleiste in der Palette (`.palette-view-bar`): Schneller Wechsel zwischen klassischer Textbeschriftung (`labels`) und gerenderter Miniatur-Vorschau (`preview`), die jedes Gatter, jede Meldeleuchte und jedes Modul exakt wie auf dem Schaltplan darstellt.
+  - **Saubere Manhattan-Wegpunktführung (Orthogonales Routing)**:
+    - Fehler behoben, bei dem Leitungen mit Wegpunkten bei aktivierter Diagonalfunktion ungewollt schräg durch das Gitter gezogen wurden. Normale Leitungen bleiben strikt rechtwinklig (90° Manhattan-Knicke); diagonale Verbindungen werden nur bei explizitem Shift-Drag verwendet.
+  - **NOT-Gatter Leads im kompakten 40x40-Raster**:
+    - Die für 80px-Gatter gedachten 20px-Leads wurden beim kompakten 40x40 NOT-Gatter entfernt, sodass Pins und Anschlüsse exakt bündig auf dem 20px-Gitter liegen.
+  - **Robuster Schutz belegter Pins**:
+    - Belegte Eingangspins fangen keine Zieh-Events mehr ab und reißen niemals versehentlich ab; Klicks auf das Gatter verschieben zuverlässig die gesamte Baugruppe samt intakter Leitungen.
+  - **Test-Abdeckung**: Neuer Test `[WISH-035]` in `tests/comprehensive_test_suite.js`, alle 54 Tests und alle 6 Suiten bestehen zu 100%.
 
 - **WISH-034 (Schutz vor versehentlichem Abreißen von Gatter-Verbindungen & Automatisches Mergen offener Leitungsenden)**:
   - **Schutz vor versehentlichem Abreißen von Verbindungen**:
