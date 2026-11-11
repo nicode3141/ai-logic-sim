@@ -1890,6 +1890,51 @@ runTest('WISH-033', 'Wire bridges on diagonal connections and global allowDiagon
   }
 });
 
+runTest('WISH-034', 'Auto-merge matching open wire ends and resilient pin detachment protection', () => {
+  const circuit = new Circuit();
+  const sw = circuit.addComponent('SWITCH', 0, 100);
+  const led = circuit.addComponent('LED', 300, 100);
+
+  // 1. Wire 1: SWITCH output (80, 120) to open point (160, 120)
+  const w1 = circuit.addWire(sw.id, 0, null, 0, null, [], {
+    toPoint: { x: 160, y: 120 }
+  });
+  // 2. Wire 2: open point (160, 120) to LED input (300, 120)
+  const w2 = circuit.addWire(null, 0, led.id, 0, null, [], {
+    fromPoint: { x: 160, y: 120 }
+  });
+
+  assertEqual(circuit.wires.length, 2, 'Initially 2 separate open wires exist');
+  assertEqual(Boolean(w1.toPoint), true, 'Wire 1 has open toPoint');
+  assertEqual(Boolean(w2.fromPoint), true, 'Wire 2 has open fromPoint');
+
+  // Trigger mergeOpenWireTermini
+  const mergedCount = circuit.mergeOpenWireTermini(16);
+  assertEqual(mergedCount, 1, 'Exactly 1 merge occurred between the matching open ends');
+  assertEqual(circuit.wires.length, 1, 'Merged into a single continuous wire');
+
+  const mergedWire = circuit.wires[0];
+  assertEqual(mergedWire.fromCompId, sw.id, 'Merged wire connects directly from SWITCH');
+  assertEqual(mergedWire.toCompId, led.id, 'Merged wire connects directly to LED');
+  assertEqual(mergedWire.toPoint, null, 'toPoint cleared after merge');
+  assertEqual(mergedWire.fromPoint, null, 'fromPoint cleared after merge');
+
+  // Verify electrical propagation through merged wire
+  sw.outputs[0].value = 1;
+  circuit.syncImmediateWireLevels();
+  assertEqual(mergedWire.level, 1, 'Signal propagates through merged wire');
+  assertEqual(led.inputs[0].value, 1, 'LED receives signal 1 through merged wire');
+
+  // 3. Test merging of two open input branches
+  const led2 = circuit.addComponent('LED', 300, 200);
+  const openBranch1 = circuit.addWire(null, 0, led.id, 0, null, [], { fromPoint: { x: 200, y: 200 } });
+  const openBranch2 = circuit.addWire(null, 0, led2.id, 0, null, [], { fromPoint: { x: 200, y: 200 } });
+  const branchMergeCount = circuit.mergeOpenWireTermini(16);
+  assertEqual(branchMergeCount, 1, 'Two open inputs at same point merge into trunk and branch');
+  assertEqual(openBranch2.fromWireId, openBranch1.id, 'Second branch attaches to first branch wire');
+  assertEqual(openBranch2.fromPoint, null, 'Branch fromPoint cleared');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
