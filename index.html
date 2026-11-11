@@ -7327,7 +7327,125 @@
         if (snappedCount > 0) {
           this.syncImmediateWireLevels();
         }
+        snappedCount += this.mergeOpenWireTermini(snapRadius);
         return snappedCount;
+      }
+
+      mergeOpenWireTermini(snapRadius = 16) {
+        if (!this.wires || this.wires.length < 2) return 0;
+        let mergesCount = 0;
+        let changed = true;
+        let passes = 0;
+
+        while (changed && passes < 10) {
+          changed = false;
+          passes++;
+
+          for (let i = 0; i < this.wires.length; i++) {
+            const w1 = this.wires[i];
+            if (!w1) continue;
+
+            for (let j = i + 1; j < this.wires.length; j++) {
+              const w2 = this.wires[j];
+              if (!w2 || w1.id === w2.id) continue;
+
+              const w1OpenEnd = Boolean(w1.toPoint && !w1.toCompId && !w1.toWireId);
+              const w1OpenStart = Boolean(w1.fromPoint && !w1.fromCompId && !w1.fromWireId);
+              const w2OpenEnd = Boolean(w2.toPoint && !w2.toCompId && !w2.toWireId);
+              const w2OpenStart = Boolean(w2.fromPoint && !w2.fromCompId && !w2.fromWireId);
+
+              // 1. w1 has open end, w2 has open start meeting at same point
+              if (w1OpenEnd && w2OpenStart && Math.hypot(w1.toPoint.x - w2.fromPoint.x, w1.toPoint.y - w2.fromPoint.y) <= snapRadius) {
+                const P = { x: Math.round(w1.toPoint.x / GRID_SIZE) * GRID_SIZE, y: Math.round(w1.toPoint.y / GRID_SIZE) * GRID_SIZE };
+                w1.toCompId = w2.toCompId;
+                w1.toPin = w2.toPin;
+                w1.toWireId = w2.toWireId;
+                w1.toPoint = w2.toPoint ? { ...w2.toPoint } : null;
+                w1._toComp = w2._toComp;
+
+                const wps1 = w1.waypoints || [];
+                const wps2 = w2.waypoints || [];
+                w1.waypoints = [...wps1, P, ...wps2];
+
+                for (const other of this.wires) {
+                  if (other.fromWireId === w2.id) other.fromWireId = w1.id;
+                  if (other.toWireId === w2.id) other.toWireId = w1.id;
+                }
+                if (this.probes) {
+                  for (const pr of this.probes) {
+                    if (pr.wireId === w2.id) pr.wireId = w1.id;
+                  }
+                }
+
+                this.removeWire(w2.id);
+                mergesCount++;
+                changed = true;
+                break;
+              }
+
+              // 2. w1 has open start, w2 has open end meeting at same point
+              if (w1OpenStart && w2OpenEnd && Math.hypot(w1.fromPoint.x - w2.toPoint.x, w1.fromPoint.y - w2.toPoint.y) <= snapRadius) {
+                const P = { x: Math.round(w2.toPoint.x / GRID_SIZE) * GRID_SIZE, y: Math.round(w2.toPoint.y / GRID_SIZE) * GRID_SIZE };
+                w1.fromCompId = w2.fromCompId;
+                w1.fromPin = w2.fromPin;
+                w1.fromWireId = w2.fromWireId;
+                w1.fromPoint = w2.fromPoint ? { ...w2.fromPoint } : null;
+                w1._fromComp = w2._fromComp;
+
+                const wps1 = w1.waypoints || [];
+                const wps2 = w2.waypoints || [];
+                w1.waypoints = [...wps2, P, ...wps1];
+
+                for (const other of this.wires) {
+                  if (other.fromWireId === w2.id) other.fromWireId = w1.id;
+                  if (other.toWireId === w2.id) other.toWireId = w1.id;
+                }
+                if (this.probes) {
+                  for (const pr of this.probes) {
+                    if (pr.wireId === w2.id) pr.wireId = w1.id;
+                  }
+                }
+
+                this.removeWire(w2.id);
+                mergesCount++;
+                changed = true;
+                break;
+              }
+
+              // 3. Both have open start meeting at same point (both are inputs from point P)
+              if (w1OpenStart && w2OpenStart && Math.hypot(w1.fromPoint.x - w2.fromPoint.x, w1.fromPoint.y - w2.fromPoint.y) <= snapRadius) {
+                w2.fromWireId = w1.id;
+                w2.fromPoint = null;
+                mergesCount++;
+                changed = true;
+                break;
+              }
+
+              // 4. Both have open end meeting at same point
+              if (w1OpenEnd && w2OpenEnd && Math.hypot(w1.toPoint.x - w2.toPoint.x, w1.toPoint.y - w2.toPoint.y) <= snapRadius) {
+                if (!w2.toCompId && w1.fromCompId && !w2.fromCompId) {
+                  w2.fromWireId = w1.id;
+                  w2.fromPoint = null;
+                  mergesCount++;
+                  changed = true;
+                  break;
+                } else if (!w1.toCompId && w2.fromCompId && !w1.fromCompId) {
+                  w1.fromWireId = w2.id;
+                  w1.fromPoint = null;
+                  mergesCount++;
+                  changed = true;
+                  break;
+                }
+              }
+            }
+            if (changed) break;
+          }
+        }
+
+        if (mergesCount > 0) {
+          this.syncImmediateWireLevels();
+        }
+        return mergesCount;
       }
 
       inlineGateIntoWire(wire, gateType = 'NOT', x, y, customParams = {}) {
@@ -16181,6 +16299,7 @@
         if (wire) {
           this.finishNewWire(wire, waypoints);
           this.circuit.syncImmediateWireLevels();
+          this.mergeOpenWireTermini(16);
         }
         this.renderer.activeWireDrag = null;
         this.refreshAll();
@@ -17135,6 +17254,20 @@
         return count;
       }
 
+      mergeOpenWireTermini(snapRadius = 16) {
+        if (!this.circuit) return 0;
+        const count = this.circuit.mergeOpenWireTermini(snapRadius);
+        if (count > 0) {
+          for (const w of this.circuit.wires) {
+            this.cleanWireWaypoints(w);
+          }
+          this.circuit.syncImmediateWireLevels();
+          this.showToast(`${count} offene Verbindung${count > 1 ? 'en' : ''} zusammengeführt (Merged)`);
+          this.refreshAll();
+        }
+        return count;
+      }
+
       getDefaultParamsForNewComponent(type) {
         if (type === 'PROBE') {
           const probeIdx = this.circuit.getProbes().length;
@@ -17270,8 +17403,14 @@
             return;
           }
 
-          const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+          const hitCompDirect = this.renderer.findComponentAt(world.x, world.y);
+          const isInsideCompBody = hitCompDirect && (
+            world.x >= hitCompDirect.x + 5 && world.x <= hitCompDirect.x + hitCompDirect.width - 5 &&
+            world.y >= hitCompDirect.y + 5 && world.y <= hitCompDirect.y + hitCompDirect.height - 5
+          );
+          const hitPin = !isInsideCompBody ? this.renderer.findPinAt(world.x, world.y, 9) : null;
           if (hitPin) {
+            const existingInputWire = !hitPin.isOutput ? this.circuit.getWireToInput(hitPin.compId, hitPin.pinIndex) : null;
             this.renderer.activeWireDrag = {
               compId: hitPin.compId,
               isOutput: hitPin.isOutput,
@@ -17281,7 +17420,8 @@
               waypoints: [],
               currX: world.x,
               currY: world.y,
-              style: (e.shiftKey && this.allowDiagonalWires !== false) ? 'diagonal' : null
+              style: (e.shiftKey && this.allowDiagonalWires !== false) ? 'diagonal' : null,
+              existingWire: existingInputWire
             };
             this.isMouseDraggingWire = true;
             this.renderer.render();
@@ -17750,12 +17890,27 @@
             const drag = this.renderer.activeWireDrag;
             const dragDist = Math.hypot(world.x - drag.startX, world.y - drag.startY);
 
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 10);
 
             if (hitPin && (!drag.compId || (hitPin.compId !== drag.compId || hitPin.pinIndex !== drag.pinIndex))) {
               this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
-            } else if (dragDist >= 12) {
-              this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
+              this.mergeOpenWireTermini(16);
+            } else if (dragDist >= 24) {
+              if (drag.existingWire) {
+                // Detach existing wire cleanly to open point { snapX, snapY } without destroying it!
+                const w = drag.existingWire;
+                w.toCompId = '';
+                w.toPin = 0;
+                w.toPoint = { x: snapX, y: snapY };
+                this.cleanWireWaypoints(w);
+                this.circuit.syncImmediateWireLevels();
+                this.mergeOpenWireTermini(16);
+                this.showToast('Verbindung von Gatter gelöst (Offenes Leitungsende)');
+                this.refreshAll();
+              } else {
+                this.finishActiveWireAtPoint({ x: snapX, y: snapY }, null, null);
+                this.mergeOpenWireTermini(16);
+              }
             } else {
               this.renderer.activeWireDrag = null;
               this.refreshAll();
@@ -17770,7 +17925,7 @@
             this.renderer.activeTerminusDrag = null;
             this.renderer.hoveredPin = null;
 
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            const hitPin = this.renderer.findPinAt(world.x, world.y, 10);
             if (hitPin) {
               if (dragTerm.isEnd && !hitPin.isOutput && (!wire.fromCompId || hitPin.compId !== wire.fromCompId)) {
                 wire.toCompId = hitPin.compId;
@@ -17789,6 +17944,7 @@
               this.cleanWireWaypoints(wire);
               this.circuit.syncImmediateWireLevels();
             }
+            this.mergeOpenWireTermini(16);
             this.commitHistory(this.getActiveTab());
             this.refreshAll();
           }
