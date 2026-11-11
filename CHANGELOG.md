@@ -17,6 +17,8 @@ The **Alpha Milestone** represents a comprehensive transformation of the AI Logi
 ### ✨ Added
 
 #### 1. Wire Topology, Branching & Auto-Snapping
+* **Diagonal Wire Bridges & Jumper Arches (WISH-033)**: Extended wire crossing bridges (`showWireBridges`) from axis-aligned orthogonal segments to full arbitrary 2D line segment intersections. Crossings involving diagonal wires (`style: diagonal`) render smooth 5px half-circle jumper arches aligned along the wire's angle vector $\theta = \operatorname{atan2}(dy, dx)$, with deterministic priority layering (Horizontal > Diagonal > Vertical) preventing double-bridge flicker.
+* **Global Setting for Diagonal Wires (WISH-033)**: Added user preference toggle `allowDiagonalWires` (defaults to `true`), accessible via the Settings modal (`#settings-allow-diagonal-wires`) and the View menu (`#menu-item-toggle-diagonal`). Disabling diagonal wires forces strict orthogonal Manhattan routing across manual drag previews, Inspector style controls, context menu operations, and existing circuit polyline evaluations.
 * **Floating & Terminus-Free Connections (WISH-007)**: Wires and test leads can now terminate freely on the canvas grid without strictly requiring a component pin at both ends; visual terminal pad markers indicate open endpoints.
 * **Interactive Moving & Reconnecting of Wire Termini (WISH-022)**: Open wire ends (`toPoint` and free `fromPoint`) can be grabbed via LMB drag, moved across the grid, and dropped directly onto component pins to establish permanent electrical connections.
 * **Auto-Snap of Open Wires (WISH-026)**: Open wire ends automatically detect and snap to pins when components are placed via Drag & Drop, pasted via keyboard shortcut (<kbd>Ctrl</kbd>+<kbd>V</kbd>), or duplicated.
