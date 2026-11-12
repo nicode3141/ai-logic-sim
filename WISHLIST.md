@@ -79,6 +79,9 @@ feat/*, fix/*, chore/*, docs/* ──► PR / merge ──► dev ──► PR /
 | **WISH-043** | Kontextmenü-Scrolling (`max-height`) & Viewport-Clamping | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | `max-height: calc(100vh - 24px)` mit vertikalem Scrollen und Viewport-Bounding-Box-Clamping für Kontextmenüs gegen Abschneiden am Bildschirmrand. |
 | **WISH-044** | Performante Signalfarb-Auswahl (rAF-Throttling & debounced Storage) | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Farbauswahl für HIGH- und LOW-Signale per `requestAnimationFrame` flüssig gedrosselt, `saveSettings()` erst beim `change`-Event. |
 | **WISH-045** | Branching-Modell-Migration auf `main` + `dev` & Prompt-Log | `chore/branch-model-main-dev` | 🟢 **Completed** | Legacy-Tiers `alpha`/`beta` durch `main` (Production) und `dev` (Development/Integration) ersetzt; Feature-Branch-Workflow (`feat/*`, `fix/*`, `chore/*`, `docs/*`, `hotfix/*`) dokumentiert; Commit-Konvention inkl. `Co-authored-by` festgehalten; Prompt-Log unter `docu/PROMPT_LOG.md` angelegt. |
+| **WISH-046** | Bauteil-Palette im Simulationsmodus abgedunkelt & gesperrt | `fix/palette-sim-lock` | 🟢 **Completed** | 55 % Deckkraft; Drag & Drop, Doppelklick und Löschen in der Simulation gesperrt. |
+| **WISH-047** | Doppelte Takt-/Zoom-Anzeige im Impulsdiagramm entfernt, Leeres-Arbeitsfläche-Popup entfernt | `feat/palette-sim-edit-and-slider-dedup` | 🟢 **Completed** | Nur noch Slider ohne zusätzliche Hz-/ms-/px-pro-Tick-Texte. |
+| **WISH-048** | Kamera folgt beim Verschieben ausgewählter Module | `feat/drag-autopan` | 🟢 **Completed** | Auto-Scroll am Rand der Arbeitsfläche beim Ziehen von Modulen. |
 
 ---
 

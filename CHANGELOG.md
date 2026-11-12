@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ Added
+- **Feature:** Die Kamera folgt beim Verschieben ausgewählter Module - am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit (WISH-048).
+
 ### 🔧 Changed
+- **Feature:** Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt, nur noch die Slider (WISH-047).
+- **Fix:** Bauteil-Palette ist im Simulationsmodus abgedunkelt (55 %) und gesperrt (WISH-046).
 - Migrated the long-lived branching model from the legacy `alpha`/`beta` tiers to `main` (production) and `dev` (development/integration) (WISH-045).
 - Documented the short-lived feature-branch workflow and Conventional Commit standard, including the required `Co-authored-by` trailer, in `CONTRIBUTING.md` and `WISHLIST.md`.
 - Updated the CI branch filters to `main`, `dev`, and the `feat/*`, `fix/*`, `chore/*`, `docs/*`, `hotfix/*` prefixes.
 - Added `docu/PROMPT_LOG.md` as the chronological, multi-person prompt log.
 
 ### 🗑️ Removed
+- **Fix:** Störendes "Arbeitsfläche ist leer"-Popup entfernt (WISH-047).
 - Retired the legacy remote branches `alpha`, `beta`, and the merged `feat/alpha-wishlist-batch-37-44`; history is preserved through release and archive tags.
 
 ---
