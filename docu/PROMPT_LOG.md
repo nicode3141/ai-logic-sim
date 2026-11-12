@@ -20,3 +20,25 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > please stick to all md files and do what they say. Also keep log of the propmts I ve sent you and add them to /docu. This is a multi person project so we will use industry standards. Currently we have main alpha beta branch. Please migrate this to only main and dev branch. Dev contains any thing dev and main is the production. After that we have to create feature branches. Add tghis to md file. Please use commits like that: industry style commit messages + Co-authored-by: opencode-agent[bot] <156322137+opencode-agent[bot]@users.noreply.github.com>
+
+---
+
+## 2026-11-12 — Migration status check
+
+- **Author:** nicode
+- **Branch:** `dev`
+- **Related:** WISH-045
+- **Prompt:**
+
+> What did we do so far?
+
+---
+
+## 2026-11-12 — Continue migration and verification
+
+- **Author:** nicode
+- **Branch:** `dev`
+- **Related:** WISH-045
+- **Prompt:**
+
+> Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
