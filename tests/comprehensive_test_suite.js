@@ -1027,28 +1027,34 @@ runTest('WISH-016', 'Consistent design colors, module styling, and high contrast
 });
 
 runTest('WISH-017', 'Complete English language support and phrase dictionary parity', () => {
-  assertEqual(typeof I18N, 'object');
-  assertEqual(typeof I18N.t, 'function');
-  assertEqual(typeof I18N.phrase, 'function');
+  const originalLang = I18N.currentLang;
+  I18N.currentLang = 'en';
+  try {
+    assertEqual(typeof I18N, 'object');
+    assertEqual(typeof I18N.t, 'function');
+    assertEqual(typeof I18N.phrase, 'function');
 
-  // Verify critical UI strings exist in English phrase dictionary
-  const criticalPhrases = [
-    'Interaktion & Bedienung:',
-    'Erscheinungsbild & Workbench-Design:',
-    'Schaltsymbol-Norm:',
-    'Leitungs- & Signalfarben (HIGH-Zustand 1):',
-    'Eckpunkte & Routing',
-    'Wahrheitstabelle (Truth Table)',
-    'Boolesche Schaltalgebra & Gatter-Synthese',
-    '📍 Zu Koordinate springen',
-    'Im Inspector anzeigen',
-    'Bauteil duplizieren',
-    'Bauteil löschen'
-  ];
-  for (const phrase of criticalPhrases) {
-    const en = I18N.phrase(phrase);
-    assertEqual(typeof en, 'string', `Translation for "${phrase}" must be a string`);
-    assertEqual(en !== phrase, true, `Translation for "${phrase}" must not be identical to German source: got "${en}"`);
+    // Verify critical UI strings exist in English phrase dictionary
+    const criticalPhrases = [
+      'Interaktion & Bedienung:',
+      'Erscheinungsbild & Workbench-Design:',
+      'Schaltsymbol-Norm:',
+      'Leitungs- & Signalfarben (HIGH-Zustand 1):',
+      'Eckpunkte & Routing',
+      'Wahrheitstabelle (Truth Table)',
+      'Boolesche Schaltalgebra & Gatter-Synthese',
+      '📍 Zu Koordinate springen',
+      'Im Inspector anzeigen',
+      'Bauteil duplizieren',
+      'Bauteil löschen'
+    ];
+    for (const phrase of criticalPhrases) {
+      const en = I18N.phrase(phrase);
+      assertEqual(typeof en, 'string', `Translation for "${phrase}" must be a string`);
+      assertEqual(en !== phrase, true, `Translation for "${phrase}" must not be identical to German source: got "${en}"`);
+    }
+  } finally {
+    I18N.currentLang = originalLang;
   }
 });
 
