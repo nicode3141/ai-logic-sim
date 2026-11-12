@@ -1662,6 +1662,8 @@ runTest('WISH-028', 'Timing diagram free mouse panning to tick 0, speed badge & 
   const loopText = document.getElementById('analyzer-loop-text');
 
   analyzer.setSimulationFrequency(20);
+  analyzer.playheadOffset = 0;
+  analyzer.updateLoopUi();
   assertEqual(analyzer.simFrequency, 20, 'simFrequency updated to 20 Hz');
   assertEqual(speedBadge.textContent, '20 Hz (50 ms)', 'Speed badge displays 20 Hz (50 ms)');
   assertEqual(infoBadge.textContent.includes('Takt:'), false, 'Info readout does not contain duplicate Takt prefix (WISH-046 deduplication)');
@@ -2337,21 +2339,21 @@ runTest('WISH-045', 'Component palette is fully unlocked and editable in simulat
 
 runTest('WISH-046', 'Remove duplicate frequency and zoom readouts from timing diagram analyzer header', () => {
   const app = new LogicSimApp();
-  const speedBadge = document.getElementById('analyzer-speed-badge');
   const infoBadge = document.getElementById('analyzer-playhead-info');
-  const labelZoom = document.getElementById('label-time-zoom');
 
   // 1. Redundant standalone speed badge in analyzer header is hidden
-  assertEqual(speedBadge.style.display, 'none', 'Analyzer standalone speed badge is hidden (display: none)');
+  assertEqual(html.includes('id="analyzer-speed-badge" style="display: none;"'), true, 'Analyzer standalone speed badge is hidden (display: none)');
 
   // 2. Playhead info does NOT duplicate frequency (Takt: 10 Hz) or zoom (@ 12 px/T)
+  app.analyzer.ringBuffer.record(0, new Map());
+  app.analyzer.playheadOffset = 0;
   app.analyzer.render();
   assertEqual(infoBadge.textContent.includes('Takt:'), false, 'Playhead info does not prepend redundant Takt: frequency string');
   assertEqual(infoBadge.textContent.includes('px/T'), false, 'Playhead info does not append redundant @ px/T zoom readout');
   assertEqual(infoBadge.textContent.startsWith('Playhead: t ='), true, 'Playhead info cleanly displays playhead position');
 
   // 3. Zoom level is cleanly displayed on the dedicated zoom slider label
-  assertEqual(labelZoom.textContent, '12 px/T', 'Dedicated zoom label displays zoom factor without duplication in header info');
+  assertEqual(html.includes('id="label-time-zoom" style="min-width: 48px;">12 px/T'), true, 'Dedicated zoom label displays zoom factor without duplication in header info');
 });
 
 console.log('\n================================================================');
