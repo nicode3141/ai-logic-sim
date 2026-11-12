@@ -8,7 +8,7 @@ This file is the fast path to understanding the project. When in doubt, prefer t
 
 ## 1. Project Summary
 
-AI Logic Simulator is an offline-capable, browser-based digital logic circuit simulator. It is a **single-file application**: all HTML, CSS, and JavaScript live in `index.html` (roughly 23,000 lines / 1 MB). There is no build step, bundler, package dependency, or CDN requirement.
+AI Logic Simulator is an offline-capable, browser-based digital logic circuit simulator. It should be both for personal projects and for industrial use. It is a **single-file application**: all HTML, CSS, and JavaScript live in `index.html` (roughly 23,000 lines / 1 MB). There is no build step, bundler, package dependency, or CDN requirement.
 
 Main capabilities:
 
@@ -56,28 +56,6 @@ npm run test:bench
 ```
 
 CI uses **Node.js 20**. Tests use only Node built-ins and require no `npm install`.
-
----
-
-## 3. Repository Map
-
-| Path | Purpose |
-|---|---|
-| `index.html` | Entire application: DOM, CSS, and JavaScript. Primary source file. |
-| `tests/` | Node-based test, stress, fuzz, security, layout, and benchmark suites. |
-| `tests/run_all_tests.js` | Unified CI test runner. |
-| `tests/output/` | Generated SVG/layout artifacts. Gitignored; safe to delete. |
-| `WISHLIST.md` | Feature tracker, WISH IDs, branch history, and completed-work notes. |
-| `CHANGELOG.md` | Keep-a-Changelog-style release history. |
-| `CONTRIBUTING.md` | Branching model, commit standard, testing, and versioning rules. |
-| `docu/PROMPT_LOG.md` | Chronological log of user prompts and related work. Append-only. |
-| `docu/AUTO_LAYOUT_SPEC.md` | Detailed auto-layout and orthogonal-routing specification. |
-| `docu/docu.txt` | Older pre-repository prompt notes. |
-| `.github/workflows/test.yml` | CI test workflow. |
-| `.github/workflows/static.yml` | GitHub Pages deployment from `main`. |
-| `.github/pull_request_template.md` | Pull-request checklist. |
-| `package.json` | Metadata, version, and test scripts. No runtime dependencies. |
-| `scratch_check.ps1`, `tests/test_fix.js` | Small scratch/utility files. Do not treat them as core tooling. |
 
 ---
 
@@ -153,25 +131,25 @@ The comprehensive test suite loads `index.html`, extracts the first `<script>` b
 
 ### 5.2 Core domain classes
 
-| Class/component | Responsibility |
-|---|---|
-| `RingBuffer` | Fixed-capacity circular sample history, default 10,000 ticks, used by the logic analyzer. |
-| `Wire` | Endpoints, waypoints, branching, routing style, signal level, JSON serialization. |
-| `Probe` | Logic-analyzer channel metadata, color, and sampling. |
-| `Component` | Component state, pins, parameters, logic evaluation, JSON serialization, hit testing. |
-| `Circuit` | Owns components, wires, probes, O(1) lookup maps, IDs, import/export, topology operations. |
-| `SimulationEngine` | Tick loop, two-phase evaluation, frequency, run/pause/reset, gate-delay handling, history. |
-| `AutoLayoutEngine` | Layered left-to-right placement, pin constraints, spacing, feedback handling. |
-| `WireRouter` | Orthogonal routing, trunk/channel allocation, crossing/bend optimization. |
-| `LayoutMetrics` | Layout quality scoring and benchmark metrics. |
-| `CanvasRenderer` | Main canvas rendering, components, pins, wires, themes, bridges, hit testing. |
-| `LogicAnalyzerRenderer` | Waveform rendering, probes, timeline, playhead, loop range, pan/zoom/scrub. |
-| `InspectorUI` | Inspector panel for selected components, wires, and probes. |
-| `BooleanParser` | Boolean-expression parsing and validation with safety limits. |
-| `TruthTableGenerator` | Truth-table generation and normal-form extraction. |
-| `ScenarioBuilder` | Builds predefined scenario circuits and localized variants. |
-| `TabSession` | Per-tab circuit, ring buffer, undo/redo stacks, pan/zoom, scenario state. |
-| `LogicSimApp` | Application controller: DOM wiring, events, modes, tabs, persistence, dialogs, settings. |
+| Class/component         | Responsibility                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `RingBuffer`            | Fixed-capacity circular sample history, default 10,000 ticks, used by the logic analyzer.  |
+| `Wire`                  | Endpoints, waypoints, branching, routing style, signal level, JSON serialization.          |
+| `Probe`                 | Logic-analyzer channel metadata, color, and sampling.                                      |
+| `Component`             | Component state, pins, parameters, logic evaluation, JSON serialization, hit testing.      |
+| `Circuit`               | Owns components, wires, probes, O(1) lookup maps, IDs, import/export, topology operations. |
+| `SimulationEngine`      | Tick loop, two-phase evaluation, frequency, run/pause/reset, gate-delay handling, history. |
+| `AutoLayoutEngine`      | Layered left-to-right placement, pin constraints, spacing, feedback handling.              |
+| `WireRouter`            | Orthogonal routing, trunk/channel allocation, crossing/bend optimization.                  |
+| `LayoutMetrics`         | Layout quality scoring and benchmark metrics.                                              |
+| `CanvasRenderer`        | Main canvas rendering, components, pins, wires, themes, bridges, hit testing.              |
+| `LogicAnalyzerRenderer` | Waveform rendering, probes, timeline, playhead, loop range, pan/zoom/scrub.                |
+| `InspectorUI`           | Inspector panel for selected components, wires, and probes.                                |
+| `BooleanParser`         | Boolean-expression parsing and validation with safety limits.                              |
+| `TruthTableGenerator`   | Truth-table generation and normal-form extraction.                                         |
+| `ScenarioBuilder`       | Builds predefined scenario circuits and localized variants.                                |
+| `TabSession`            | Per-tab circuit, ring buffer, undo/redo stacks, pan/zoom, scenario state.                  |
+| `LogicSimApp`           | Application controller: DOM wiring, events, modes, tabs, persistence, dialogs, settings.   |
 
 The file also contains dictionaries, theme palettes, component metrics, demo presets, scenario definitions, icon SVG strings, and helper functions.
 
@@ -269,14 +247,14 @@ When adding a setting, update both the load and save paths and preserve backward
 
 All suites are Node scripts. The unified runner executes each suite in a separate process and fails the run if any suite exits non-zero.
 
-| Suite | Focus |
-|---|---|
+| Suite                         | Focus                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
 | `comprehensive_test_suite.js` | Logic rules, security bounds, interaction invariants, UI contract, i18n, WISH regression tests. |
-| `security_audit.js` | HTML escaping, sanitization, coordinate/parameter poisoning, parser and import limits. |
-| `stress_test.js` | Feedback loops, clone/rollback state, topology roundtrips, simulation resilience. |
-| `fuzz_torture_suite.js` | Fuzzed inputs, malformed topology, extreme nesting and pathological cases. |
-| `benchmark_sim.js` | Simulation throughput/performance. |
-| `layout_eval.js` | Auto-layout quality: crossings, collisions, bends, straight wires, beauty score. |
+| `security_audit.js`           | HTML escaping, sanitization, coordinate/parameter poisoning, parser and import limits.          |
+| `stress_test.js`              | Feedback loops, clone/rollback state, topology roundtrips, simulation resilience.               |
+| `fuzz_torture_suite.js`       | Fuzzed inputs, malformed topology, extreme nesting and pathological cases.                      |
+| `benchmark_sim.js`            | Simulation throughput/performance.                                                              |
+| `layout_eval.js`              | Auto-layout quality: crossings, collisions, bends, straight wires, beauty score.                |
 
 ### Test harness details
 
