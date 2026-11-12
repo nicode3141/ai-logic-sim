@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### 🔧 Changed
+- Migrated the long-lived branching model from the legacy `alpha`/`beta` tiers to `main` (production) and `dev` (development/integration) (WISH-045).
+- Documented the short-lived feature-branch workflow and Conventional Commit standard, including the required `Co-authored-by` trailer, in `CONTRIBUTING.md` and `WISHLIST.md`.
+- Updated the CI branch filters to `main`, `dev`, and the `feat/*`, `fix/*`, `chore/*`, `docs/*`, `hotfix/*` prefixes.
+- Added `docu/PROMPT_LOG.md` as the chronological, multi-person prompt log.
+
+### 🗑️ Removed
+- Retired the legacy remote branches `alpha`, `beta`, and the merged `feat/alpha-wishlist-batch-37-44`; history is preserved through release and archive tags.
+
+---
+
 ## [1.1.2-alpha] - 2026-11-12
 
 ### 🚀 Alpha Batch Release (WISH-037 through WISH-044) & Team Collaboration Setup
