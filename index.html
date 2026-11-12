@@ -4313,13 +4313,6 @@
               </div>
             </div>
 
-            <div id="empty-hint" class="empty-hint" style="display: none;">
-              <div class="empty-hint-icon">&amp;</div>
-              <div class="empty-hint-title">Die Arbeitsfläche ist leer</div>
-              <div class="empty-hint-text">Ziehe Bauteile aus der Palette hierher oder starte mit einem Szenario.</div>
-              <button class="btn btn-primary" id="empty-hint-gallery">Szenarien ansehen</button>
-            </div>
-
             <div id="zoom-controls">
               <button class="zoom-btn" id="btn-zoom-fit" title="Ganze Schaltung einpassen (F)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
               <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -4426,7 +4419,7 @@
           <div class="freq-control" style="padding: 2px 8px;">
             <span class="freq-label">Zeit-Zoom:</span>
             <input type="range" id="slider-time-zoom" min="4" max="32" value="12" />
-            <span class="freq-val" id="label-time-zoom" style="min-width: 48px;">12 px/T</span>
+            <span class="freq-val" id="label-time-zoom" style="display: none;">12 px/T</span>
           </div>
 
           <div class="freq-control" style="padding: 2px 8px;">
@@ -21486,8 +21479,6 @@
             q.style.display = 'none';
           }
         }
-        const empty = document.getElementById('empty-hint');
-        if (empty) empty.style.display = this.circuit.components.length === 0 ? 'flex' : 'none';
         this.updateStatusHint();
       }
 
