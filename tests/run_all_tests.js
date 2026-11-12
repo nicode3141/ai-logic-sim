@@ -8,6 +8,7 @@ const testSuites = [
   { name: 'Comprehensive & Logic Hardening Suite', script: 'comprehensive_test_suite.js' },
   { name: 'Security & Penetration Audit Suite', script: 'security_audit.js' },
   { name: 'Stress & Feedback Loop Resilience Suite', script: 'stress_test.js' },
+  { name: 'Extreme Fuzzing, Pen-Testing & Torture Suite', script: 'fuzz_torture_suite.js' },
   { name: 'Simulation Engine Performance Benchmark', script: 'benchmark_sim.js' },
   { name: 'Orthogonal Layout & Beauty Evaluation Suite', script: 'layout_eval.js' }
 ];
