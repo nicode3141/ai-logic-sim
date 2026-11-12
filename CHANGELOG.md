@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.3-alpha] - 2026-11-12
+- Bauteil-Palette ist im Simulationsmodus bearbeitbar (Drag & Drop, Doppelklick, Löschen).
+- Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt (nur noch Slider).
+- Leeres-Arbeitsfläche-Popup entfernt.
+
 ## [1.1.2-alpha] - 2026-11-12
 
 ### ðŸš€ Alpha Batch Release (WISH-037 through WISH-044) & Team Collaboration Setup
