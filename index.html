@@ -804,7 +804,8 @@
     }
 
     #sidebar.sim-locked {
-      opacity: 0.55;
+      /* Palette remains fully active, crisp, and interactive in simulation mode */
+      opacity: 1;
     }
 
     .panel-header {
@@ -4395,7 +4396,7 @@
             <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16" y="4" width="3" height="16" rx="0.8"/></svg></span>
             <span class="btn-text">+1 Tick</span>
           </button>
-          <span id="analyzer-speed-badge" style="font-size: 11px; padding: 2px 7px; background: var(--bg-elevated); border: 1px solid var(--border-dim); border-radius: var(--btn-radius); font-family: var(--font-mono); color: var(--accent-cyan); display: inline-flex; align-items: center;" title="Aktuelle Simulations-Geschwindigkeit">10 Hz (100 ms)</span>
+          <span id="analyzer-speed-badge" style="display: none;" title="Aktuelle Simulations-Geschwindigkeit">10 Hz (100 ms)</span>
           <div class="freq-control disabled" id="analyzer-freq-control-box" style="margin-left: 6px;">
             <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
             <input type="range" id="analyzer-slider-freq" min="1" max="60" value="10" />
@@ -13615,24 +13616,24 @@
         const startOffset = Math.round(maxStartOffset * this.scrollRatio);
         const endOffset = Math.min(totalSamples, startOffset + visibleTicks);
 
-        let info = `Takt: ${freq} Hz (${tickMs} ms)`;
+        const parts = [];
         if (this.playheadOffset !== null && totalSamples > 0) {
           const tick = this.ringBuffer.getTickAtOffset(this.playheadOffset);
-          info += ` | Playhead: t = ${tick}`;
+          parts.push(`Playhead: t = ${tick}`);
         }
         if (totalSamples > 0) {
           const tStart = this.ringBuffer.getTickAtOffset(startOffset);
           const tEnd = this.ringBuffer.getTickAtOffset(Math.max(0, endOffset - 1));
-          info += ` | Zeitrahmen: ${tStart}..${tEnd} (${endOffset - startOffset} Ticks @ ${this.pixelsPerTick} px/T)`;
+          parts.push(`Zeitrahmen: ${tStart}..${tEnd} (${endOffset - startOffset} Ticks)`);
         }
         if (this.loopRange) {
           const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
           const span = Math.max(1, tOut - tIn);
           const ms = Math.round((span / freq) * 1000);
-          info += ` | [ Klammern: t = ${tIn}..${tOut} (${span} T | ${ms} ms) ]`;
+          parts.push(`Klammern: t = ${tIn}..${tOut} (${span} T | ${ms} ms)`);
         }
-        badge.textContent = info;
+        badge.textContent = parts.join(' | ');
       }
 
       getHoveredOffset() {
@@ -17018,7 +17019,7 @@
         btnSim.className = 'mode-btn' + (isSim ? ' active-sim' : '');
 
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('sim-locked', isSim);
+        if (sidebar) sidebar.classList.remove('sim-locked');
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -17452,16 +17453,11 @@
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
           item.addEventListener('dragstart', (e) => {
-            if (this.engine.mode === 'sim') {
-              e.preventDefault();
-              return;
-            }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
 
           item.addEventListener('dblclick', () => {
-            if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
             if (type.startsWith('MODULE:')) {
               const rect = this.gridCanvas.getBoundingClientRect();
@@ -17469,6 +17465,7 @@
               const tab = this.getActiveTab();
               if (tab) this.pushHistory(tab);
               if (this.placeCustomModule(this.circuit, this.renderer, type.slice(7), center.x, center.y)) {
+                if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
                 this.renderer.render();
                 this.refreshAll();
               }
@@ -17530,13 +17527,11 @@
       attachPaletteDrop(canvas, getTargetTab, getRenderer) {
         if (!canvas) return;
         canvas.addEventListener('dragover', (e) => {
-          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
         });
 
         canvas.addEventListener('drop', (e) => {
-          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           const type = e.dataTransfer.getData('text/plain');
           if (!type) return;
@@ -21395,18 +21390,17 @@
           item.appendChild(delBtn);
 
           item.addEventListener('dragstart', (e) => {
-            if (this.engine.mode === 'sim') { e.preventDefault(); return; }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
           item.addEventListener('dblclick', (e) => {
             if (e.target.closest('.palette-module-del')) return;
-            if (this.engine.mode === 'sim') return;
             const rect = this.gridCanvas.getBoundingClientRect();
             const center = this.renderer.screenToWorld(rect.width / 2, rect.height / 2);
             const tab = this.getActiveTab();
             if (tab) this.pushHistory(tab);
             if (this.placeCustomModule(this.circuit, this.renderer, mod.id, center.x, center.y)) {
+              if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
               this.renderer.render();
               this.refreshAll();
             }
