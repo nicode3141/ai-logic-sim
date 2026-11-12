@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2-alpha] - 2026-11-12
+
+### 🚀 Alpha Batch Release (WISH-037 through WISH-044) & Team Collaboration Setup
+
+#### ✨ Features & Improvements
+* **Custom Module Compression as Black-Box IC (`CUSTOM_IC`) (WISH-039)**:
+  - Users can choose between saving selections as a compressed single component (**Black-Box IC**) or as a multi-part circuit group (**Macro**).
+  - In IC mode, external inputs (switches/buttons/clocks) become component input pins, and external outputs (LEDs/hex displays) become output pins.
+  - Subcircuit simulation runs within the single placed `CUSTOM_IC` element via multi-pass propagation.
+  - Marked with `[IC]` badge in the component palette.
+* **Mirrored Frequency & Clock Slider with Millisecond Timing (WISH-041)**:
+  - Added `#analyzer-slider-freq` directly into the logic analyzer header with bidirectional synchronization to the main toolbar slider.
+  - Extended frequency display to include period in milliseconds: `X Hz (Y ms)`.
+  - Removed confusing tick fraction readout from probe count label (now clean `(X Kanäle)`).
+  - Automatically hides simulation controls when the logic analyzer is collapsed.
+* **Split-Screen Inspector Expand Docking (WISH-040)**:
+  - Inspector gear/expand button automatically docks below the split pane header at `top: 68px` in split-screen mode (`.split-screen-active`), eliminating control overlaps.
+* **Pushbutton (BUTTON) Wire Stability (WISH-038)**:
+  - Pressing or holding a pushbutton in edit mode no longer resets or reroutes connected wires or waypoints.
+* **Pushbutton Lever Visual Refactoring**:
+  - Removed bulky colliding rectangle cap from the pushbutton lever blade; implemented crisp DIN EN 60617 mechanical actuator plunger.
+* **Auto-Anordnen Simulation Lock in Classic Theme**:
+  - Added explicit CSS rules for `[data-theme="java_swing"] .align-split.sim-locked` so caret button is visibly disabled and unbeveled in simulation mode.
+* **NOT Gate Lock & Pin Inversion Detection (WISH-042)**:
+  - Fixed NOT gate width lock at 40x40 in `rebuildPins()`.
+  - Expanded drop detection radius to 30px when dragging NOT gates onto input pins.
+* **Context Menu Viewport Clamping (WISH-043)**:
+  - Added `max-height: calc(100vh - 24px)` with vertical scrolling and bounding-box clamping.
+* **High-Performance Color Picker (WISH-044)**:
+  - Throttled signal color pickers with `requestAnimationFrame` and deferred settings storage.
+* **Team Collaboration & CI Infrastructure**:
+  - Added GitHub Actions CI workflow (`.github/workflows/test.yml`) running all test suites on PRs and pushes.
+  - Added PR template (`.github/pull_request_template.md`), Issue templates, `CONTRIBUTING.md`, and `package.json`.
+
+---
+
 ## [1.1.0-alpha] - 2026-11-10
 
 ### 🚀 Milestone Overview

@@ -4059,7 +4059,7 @@
           <div class="freq-control disabled" id="freq-control-box">
             <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
             <input type="range" id="slider-freq" min="1" max="60" value="10" />
-            <span class="freq-val" id="label-freq">10 Hz</span>
+            <span class="freq-val" id="label-freq">10 Hz (100 ms)</span>
           </div>
         </div>
       </div>
@@ -4396,6 +4396,11 @@
             <span class="btn-text">+1 Tick</span>
           </button>
           <span id="analyzer-speed-badge" style="font-size: 11px; padding: 2px 7px; background: var(--bg-elevated); border: 1px solid var(--border-dim); border-radius: var(--btn-radius); font-family: var(--font-mono); color: var(--accent-cyan); display: inline-flex; align-items: center;" title="Aktuelle Simulations-Geschwindigkeit">10 Hz (100 ms)</span>
+          <div class="freq-control disabled" id="analyzer-freq-control-box" style="margin-left: 6px;">
+            <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
+            <input type="range" id="analyzer-slider-freq" min="1" max="60" value="10" />
+            <span class="freq-val" id="analyzer-label-freq">10 Hz (100 ms)</span>
+          </div>
         </div>
 
         <div class="toolbar-group">
@@ -5797,9 +5802,14 @@
       if (kind === 'ic') {
         const inputs = Array.isArray(m.inputs) ? m.inputs.map((p, i) => ({
           name: String(p?.name || `IN${i}`).slice(0, 16),
-          targetCompIdx: Number(p?.targetCompIdx ?? 0),
-          targetPin: Number(p?.targetPin ?? 0)
-        })) : [{ name: 'IN', targetCompIdx: 0, targetPin: 0 }];
+          targets: Array.isArray(p?.targets) ? p.targets.map(t => ({
+            targetCompIdx: Number(t?.targetCompIdx ?? 0),
+            targetPin: Number(t?.targetPin ?? 0)
+          })) : [{
+            targetCompIdx: Number(p?.targetCompIdx ?? 0),
+            targetPin: Number(p?.targetPin ?? 0)
+          }]
+        })) : [{ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] }];
         const outputs = Array.isArray(m.outputs) ? m.outputs.map((p, i) => ({
           name: String(p?.name || `OUT${i}`).slice(0, 16),
           sourceCompIdx: Number(p?.sourceCompIdx ?? 0),
@@ -6927,6 +6937,10 @@
       /**
        * PHASE 1 (Read & Compute)
        */
+      step(inputValues) {
+        return this.compute(inputValues);
+      }
+
       compute(inputValues) {
         if (inputValues) {
           const len = Math.min(this.inputs.length, inputValues.length);
@@ -7272,7 +7286,7 @@
             if (this.params && this.params.subcircuit) {
               if (!this._internalCircuit) {
                 const sub = this.params.subcircuit;
-                this._internalComps = (sub.components || []).map(c => new Component(c.type, c.dx || 0, c.dy || 0, c.params || {}));
+                this._internalComps = (sub.components || []).map((c, i) => new Component(`ic_sub_${i}`, c.type, c.dx || 0, c.dy || 0, c.params || {}));
                 this._internalWires = sub.wires || [];
                 this._internalCircuit = true;
               }
@@ -7280,13 +7294,17 @@
               for (let i = 0; i < ins.length; i++) {
                 const port = ins[i];
                 const inVal = this.inputs[i]?.value ? 1 : 0;
-                if (port && port.targetCompIdx !== undefined && this._internalComps[port.targetCompIdx]) {
-                  const ic = this._internalComps[port.targetCompIdx];
-                  if (ic.inputs && ic.inputs[port.targetPin]) ic.inputs[port.targetPin].value = inVal;
+                if (!port) continue;
+                const targets = Array.isArray(port.targets) ? port.targets : (port.targetCompIdx !== undefined ? [port] : []);
+                for (const t of targets) {
+                  const comp = this._internalComps[t.targetCompIdx];
+                  if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                    comp.inputs[t.targetPin].value = inVal;
+                  }
                 }
               }
-              for (let iter = 0; iter < 3; iter++) {
-                for (const c of this._internalComps) c.step();
+              for (let iter = 0; iter < 4; iter++) {
+                for (const c of this._internalComps) c.compute();
                 for (const c of this._internalComps) c.commit(true);
                 for (const w of this._internalWires) {
                   const fromC = this._internalComps[w.from];
@@ -12345,20 +12363,16 @@
             // Centered safely on the blade without colliding with terminal pins
             const midX = Math.round((pivotX + termX + 2) / 2);
             const leverMidY = Math.round((pivotY + targetY) / 2);
-            const capY = isPressed ? cy - 8 : cy - 13;
+            const capY = isPressed ? cy - 10 : cy - 14;
 
             ctx.strokeStyle = isPressed ? highColor : (pal.chassisStroke || pal.leadLine);
             ctx.lineWidth = 1.6;
             ctx.beginPath();
             ctx.moveTo(midX, leverMidY);
             ctx.lineTo(midX, capY);
-            ctx.moveTo(midX - 5, capY);
-            ctx.lineTo(midX + 5, capY);
+            ctx.moveTo(midX - 4, capY);
+            ctx.lineTo(midX + 4, capY);
             ctx.stroke();
-
-            ctx.fillStyle = isPressed ? highColor : (pal.leadLine || '#64748b');
-            this.roundRect(ctx, midX - 6, capY - 2.5, 12, 3, 1);
-            ctx.fill();
             break;
           }
 
@@ -13695,9 +13709,7 @@
         const countLabel = document.getElementById('analyzer-probe-count');
         if (countLabel) {
           const chStr = probes.length === 1 ? '1 Kanal' : `${probes.length} Kanäle`;
-          countLabel.textContent = this.ringBuffer.count > 0
-            ? `(${chStr} | ${this.ringBuffer.count} Ticks)`
-            : `(${chStr})`;
+          countLabel.textContent = `(${chStr})`;
         }
 
         if (probes.length === 0) {
@@ -17042,6 +17054,10 @@
 
         btnReset.disabled = !isSim;
         freqBox.classList.toggle('disabled', !isSim);
+        const anaFreqBox = document.getElementById('analyzer-freq-control-box');
+        if (anaFreqBox) anaFreqBox.classList.toggle('disabled', !isSim);
+        const anaSliderFreq = document.getElementById('analyzer-slider-freq');
+        if (anaSliderFreq) anaSliderFreq.disabled = !isSim;
 
         const playIcon = document.getElementById('sim-play-icon');
         const playText = document.getElementById('sim-play-text');
@@ -17323,22 +17339,45 @@
 
         const sliderFreq = document.getElementById('slider-freq');
         const labelFreq = document.getElementById('label-freq');
-        const handleFreqChange = (raw) => {
+        const analyzerSliderFreq = document.getElementById('analyzer-slider-freq');
+        const analyzerLabelFreq = document.getElementById('analyzer-label-freq');
+        const analyzerSpeedBadge = document.getElementById('analyzer-speed-badge');
+
+        const handleFreqChange = (raw, origin = null) => {
           const val = Math.max(1, Math.min(60, parseInt(raw, 10) || 10));
-          if (sliderFreq && sliderFreq.value !== String(val)) sliderFreq.value = val;
-          if (labelFreq) labelFreq.textContent = `${val} Hz`;
+          const ms = Math.round(1000 / val);
+          const fullText = `${val} Hz (${ms} ms)`;
+
+          if (sliderFreq && origin !== 'top' && sliderFreq.value !== String(val)) sliderFreq.value = String(val);
+          if (labelFreq) labelFreq.textContent = fullText;
+
+          if (analyzerSliderFreq && origin !== 'analyzer' && analyzerSliderFreq.value !== String(val)) analyzerSliderFreq.value = String(val);
+          if (analyzerLabelFreq) analyzerLabelFreq.textContent = fullText;
+          if (analyzerSpeedBadge) analyzerSpeedBadge.textContent = fullText;
+
           this.engine.setFrequency(val);
         };
         if (sliderFreq) {
-          sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value));
-          sliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value));
+          sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value, 'top'));
+          sliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value, 'top'));
           sliderFreq.addEventListener('wheel', (e) => {
             e.preventDefault();
             const step = e.deltaY < 0 ? 1 : -1;
             const current = parseInt(sliderFreq.value, 10) || 10;
-            handleFreqChange(current + step);
+            handleFreqChange(current + step, 'top');
           }, { passive: false });
         }
+        if (analyzerSliderFreq) {
+          analyzerSliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value, 'analyzer'));
+          analyzerSliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value, 'analyzer'));
+          analyzerSliderFreq.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const step = e.deltaY < 0 ? 1 : -1;
+            const current = parseInt(analyzerSliderFreq.value, 10) || 10;
+            handleFreqChange(current + step, 'analyzer');
+          }, { passive: false });
+        }
+        handleFreqChange(this.engine.frequency || 10);
 
         const btnUndo = document.getElementById('btn-quick-undo');
         if (btnUndo) {
@@ -21165,31 +21204,29 @@
           const inputs = [];
           for (const inC of inputComps) {
             const outgoing = circuit.wires.filter(w => w.fromCompId === inC.id && gateIndex.has(w.toCompId));
-            if (outgoing.length > 0) {
-              const label = inC.params.label || inC.type;
-              for (const w of outgoing) {
-                inputs.push({
-                  name: label,
-                  targetCompIdx: gateIndex.get(w.toCompId),
-                  targetPin: w.toPin
-                });
-              }
-            }
+            const label = inC.params.label || inC.type || 'IN';
+            const targets = outgoing.map(w => ({
+              targetCompIdx: gateIndex.get(w.toCompId),
+              targetPin: w.toPin
+            }));
+            inputs.push({
+              name: label,
+              targets: targets.length > 0 ? targets : [{ targetCompIdx: 0, targetPin: 0 }]
+            });
           }
-          if (inputs.length === 0) inputs.push({ name: 'IN', targetCompIdx: 0, targetPin: 0 });
+          if (inputs.length === 0) inputs.push({ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] });
 
           const outputs = [];
           for (const outC of outputComps) {
             const incoming = circuit.wires.filter(w => w.toCompId === outC.id && gateIndex.has(w.fromCompId));
+            const label = outC.params.label || outC.type || 'OUT';
             if (incoming.length > 0) {
-              const label = outC.params.label || outC.type;
-              for (const w of incoming) {
-                outputs.push({
-                  name: label,
-                  sourceCompIdx: gateIndex.get(w.fromCompId),
-                  sourcePin: w.fromPin
-                });
-              }
+              const w = incoming[0];
+              outputs.push({
+                name: label,
+                sourceCompIdx: gateIndex.get(w.fromCompId),
+                sourcePin: w.fromPin
+              });
             }
           }
           if (outputs.length === 0) outputs.push({ name: 'OUT', sourceCompIdx: Math.max(0, gates.length - 1), sourcePin: 0 });

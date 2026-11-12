@@ -33,7 +33,20 @@ const createMockElem = (id = '') => {
       }
     },
     querySelectorAll(sel) { return []; },
-    querySelector(sel) { return null; },
+    querySelector(sel) {
+      if (!sel) return null;
+      if (sel.startsWith('.')) {
+        const cls = sel.slice(1);
+        for (const c of this.children) {
+          if (c.classList && c.classList.contains(cls)) return c;
+          if (typeof c.querySelector === 'function') {
+            const sub = c.querySelector(sel);
+            if (sub) return sub;
+          }
+        }
+      }
+      return null;
+    },
     setAttribute(k, v) { this[k] = v; },
     getAttribute(k) { return this[k] || null; },
     hasAttribute(k) { return k in this; },
@@ -1755,7 +1768,7 @@ runTest('WISH-030', 'Pushbutton (Taster) lever geometry & DIN EN 60617 actuator 
 
   analyzer.render();
   const countLabel = document.getElementById('analyzer-probe-count');
-  assertEqual(countLabel.textContent, '(1 Kanal | 256 Ticks)', 'Count label shows clean single channel with tick count, no /256 capacity fraction');
+  assertEqual(countLabel.textContent, '(1 Kanal)', 'Count label shows clean single channel count without confusing tick fractions');
 });
 
 runTest('WISH-031', 'Overhauled theme system, cohesive surface elevation, neutral slate wireLow, and optical lamp illumination', () => {
@@ -2183,6 +2196,7 @@ runTest('WISH-039', 'Custom module saving with compression (Black-Box IC vs Macr
   assertEqual(icComp.nextOutputs[1], 1, 'Half-adder IC COUT output (A=1, B=1) is 1');
 
   // 2. Save as Macro Group
+  app.renderer.selectedCompIds = new Set([swA.id, swB.id, xor.id, and.id, ledS.id, ledC.id]);
   const macroMod = app.saveSelectionAsModule('HalfAdder_Macro', false);
   assertEqual(macroMod !== null, true, 'Macro module created');
   assertEqual(macroMod.kind, 'macro', 'Module kind is "macro"');
