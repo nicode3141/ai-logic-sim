@@ -67,3 +67,18 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > write an AGENTS.MD file covering up everything you know and think about this project
+
+---
+
+## 2026-11-12 — Palette sperren, Kamera-Auto-Pan, Branch-/Docs-Regeln
+
+- **Author:** Leegende
+- **Branch:** `fix/palette-sim-lock`, `feat/drag-autopan`, `docs/changelog-wishlist-catchup`
+- **Related:** WISH-046, WISH-047, WISH-048
+- **Prompt:**
+
+> die opcacity von modulen ist jetzt 100% ich wil ldas es null ist und man auch nichts ändern kann im simulationsmodus bzw. vielleicht exited man den simulationsmodus bzw. pausiert die abläufe
+> wenn ich module selected habe und verschiebe mache das die kamera mit folgt unf man das so verschieben kann
+> gibt es einen weg die merges zu verstecken und außerdem löschst du die alten branches nicht. Außerdem passe die contribution.md file nochmal so an das auch ein changelog aufgeschrieben wird mit fix und feature ähnlich wie bei der wishlist und schreibe auch rein das man diese wishlist bzw. offene requests noch fixed
+> kannst du bitte alpha in dev mergen
+> Wir haben jetzt nochmal die contribution, agents und changelogs angepasst. Bitte befolge jetzt genau so wie es dort steht und arbeite mit pull requests!!!!
