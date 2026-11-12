@@ -90,7 +90,8 @@ feat/*, fix/*, chore/*, docs/* ──► PR / merge ──► dev ──► PR /
   - Short-lived Feature-Branch-Workflow für `feat/*`, `fix/*`, `chore/*`, `docs/*` und `hotfix/*` in `WISHLIST.md` und `CONTRIBUTING.md` dokumentiert.
   - CI-Branchfilter in `.github/workflows/test.yml` auf `main`, `dev` und die Feature-Branch-Präfixe umgestellt.
   - Chronologisches Prompt-Log unter `docu/PROMPT_LOG.md` eingeführt.
-  - Legacy-Branches `alpha`, `beta` und der gemergte Feature-Branch entfernt; `beta`-Historie über den Tag `archive/beta` gesichert.
+  - Den finalen `alpha`-Stand (`v1.1.3-alpha`) vor dem Löschen nach `dev` gemergt und als `archive/alpha` getaggt.
+  - Legacy-Branches `alpha`, `beta` und der gemergte Feature-Branch entfernt; `alpha`-Historie über `archive/alpha` und `beta`-Historie über `archive/beta` gesichert.
 
 - **WISH-037 bis WISH-044 (Alpha Batch v1.1.2-alpha)**:
   - **WISH-037 (Veraltetes „bündig ausrichten“ entfernt)**:
