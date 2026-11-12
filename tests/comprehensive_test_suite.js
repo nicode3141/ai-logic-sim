@@ -2321,25 +2321,17 @@ runTest('WISH-044', 'Signal color picker uses requestAnimationFrame throttling a
   }
 });
 
-runTest('WISH-045', 'Component palette is fully unlocked and editable in simulation mode', () => {
+runTest('WISH-045', 'Component palette is dimmed and locked in simulation mode', () => {
   const app = new LogicSimApp();
   const sidebar = document.getElementById('sidebar');
-
-  // 1. In edit mode, sidebar is unlocked
   app.engine.mode = 'edit';
   app.updateHUDAndToolbar();
   assertEqual(sidebar.classList.contains('sim-locked'), false, 'Sidebar is not sim-locked in edit mode');
-
-  // 2. In sim mode, sidebar remains unlocked and editable
   app.engine.mode = 'sim';
   app.updateHUDAndToolbar();
-  assertEqual(sidebar.classList.contains('sim-locked'), false, 'Sidebar remains unlocked and not sim-locked in sim mode');
-
-  // 3. Components can be dropped and placed onto canvas during sim mode
-  const initialCompCount = app.circuit.components.length;
-  const newComp = app.circuit.addComponent('AND', 200, 150);
-  assertEqual(app.circuit.components.length, initialCompCount + 1, 'Component successfully added during simulation mode');
-  assertEqual(newComp.type, 'AND', 'Added component type is AND');
+  assertEqual(sidebar.classList.contains('sim-locked'), true, 'Sidebar is sim-locked in sim mode');
+  const html = require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
+  assertEqual(/#sidebar\.sim-locked\s*\{[^}]*opacity:\s*0\.55/.test(html), true, 'Locked sidebar is dimmed');
 });
 
 runTest('WISH-046', 'Remove duplicate frequency and zoom readouts from timing diagram analyzer header', () => {
@@ -2356,6 +2348,17 @@ runTest('WISH-046', 'Remove duplicate frequency and zoom readouts from timing di
 
   // 3. Zoom level is cleanly displayed on the dedicated zoom slider label
   assertEqual(/id="label-time-zoom"[^>]*display:\s*none/.test(require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8')), true, 'Zoom readout next to slider is hidden');
+});
+
+runTest('WISH-047', 'Camera auto-pans while dragging selected modules near the canvas edge', () => {
+  const app = new LogicSimApp();
+  assertEqual(typeof app.startDragAutoPan, 'function', 'startDragAutoPan is available');
+  const html = require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
+  assertEqual(html.includes('this.startDragAutoPan()') && html.includes('__autoPan'), true, 'mousemove drag triggers auto-pan loop');
+  app.engine.mode = 'edit';
+  app.isDraggingGroup = false; app.draggingComp = null;
+  app.startDragAutoPan();
+  assertEqual(Boolean(app._autoPanActive), false, 'No auto-pan loop when nothing is dragged');
 });
 
 console.log('\n================================================================');

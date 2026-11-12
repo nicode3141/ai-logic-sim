@@ -804,8 +804,7 @@
     }
 
     #sidebar.sim-locked {
-      /* Palette remains fully active, crisp, and interactive in simulation mode */
-      opacity: 1;
+      opacity: 0.55;
     }
 
     .panel-header {
@@ -17012,7 +17011,7 @@
         btnSim.className = 'mode-btn' + (isSim ? ' active-sim' : '');
 
         const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.remove('sim-locked');
+        sidebar.classList.toggle('sim-locked', isSim);
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -17446,11 +17445,16 @@
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
           item.addEventListener('dragstart', (e) => {
+            if (this.engine.mode === 'sim') {
+              e.preventDefault();
+              return;
+            }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
 
           item.addEventListener('dblclick', () => {
+            if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
             if (type.startsWith('MODULE:')) {
               const rect = this.gridCanvas.getBoundingClientRect();
@@ -17458,7 +17462,6 @@
               const tab = this.getActiveTab();
               if (tab) this.pushHistory(tab);
               if (this.placeCustomModule(this.circuit, this.renderer, type.slice(7), center.x, center.y)) {
-                if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
                 this.renderer.render();
                 this.refreshAll();
               }
@@ -17520,11 +17523,13 @@
       attachPaletteDrop(canvas, getTargetTab, getRenderer) {
         if (!canvas) return;
         canvas.addEventListener('dragover', (e) => {
+          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
         });
 
         canvas.addEventListener('drop', (e) => {
+          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           const type = e.dataTransfer.getData('text/plain');
           if (!type) return;
@@ -18008,8 +18013,10 @@
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
           this.lastMouseWorldPos = { x: world.x, y: world.y };
+          this.lastDragClient = { x: e.clientX, y: e.clientY };
           if (e.target === canvas) this.updateStatusCoords(world);
           this.updateStatusHint();
+          if (!e.__autoPan) this.startDragAutoPan();
 
           if (this.isPanning) {
             let nextPanX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
@@ -21383,17 +21390,18 @@
           item.appendChild(delBtn);
 
           item.addEventListener('dragstart', (e) => {
+            if (this.engine.mode === 'sim') { e.preventDefault(); return; }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
           item.addEventListener('dblclick', (e) => {
             if (e.target.closest('.palette-module-del')) return;
+            if (this.engine.mode === 'sim') return;
             const rect = this.gridCanvas.getBoundingClientRect();
             const center = this.renderer.screenToWorld(rect.width / 2, rect.height / 2);
             const tab = this.getActiveTab();
             if (tab) this.pushHistory(tab);
             if (this.placeCustomModule(this.circuit, this.renderer, mod.id, center.x, center.y)) {
-              if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
               this.renderer.render();
               this.refreshAll();
             }
@@ -21480,6 +21488,36 @@
           }
         }
         this.updateStatusHint();
+      }
+
+      startDragAutoPan() {
+        if (this._autoPanActive) return;
+        if (!(this.isDraggingGroup || this.draggingComp) || this.engine.mode !== 'edit') return;
+        if (typeof requestAnimationFrame !== 'function' || typeof MouseEvent === 'undefined') return;
+        this._autoPanActive = true;
+        const step = () => {
+          const dragging = (this.isDraggingGroup || this.draggingComp) && this.engine.mode === 'edit';
+          const canvas = this.renderer && this.renderer.canvas;
+          if (!dragging || !canvas || !this.lastDragClient) { this._autoPanActive = false; return; }
+          const rect = canvas.getBoundingClientRect();
+          const EDGE = 48, MAX = 18;
+          const p = this.lastDragClient;
+          const speed = (d) => d < EDGE ? Math.min(MAX, Math.ceil((EDGE - Math.max(0, d)) / EDGE * MAX)) : 0;
+          let vx = 0, vy = 0;
+          vx += speed(p.x - rect.left); vx -= speed(rect.right - p.x);
+          vy += speed(p.y - rect.top); vy -= speed(rect.bottom - p.y);
+          if (vx !== 0 || vy !== 0) {
+            const z = this.renderer.zoom;
+            const w = rect.width, h = rect.height;
+            this.renderer.panX = Math.max(80 - 5000 * z, Math.min(w - 80 + 5000 * z, this.renderer.panX + vx));
+            this.renderer.panY = Math.max(80 - 5000 * z, Math.min(h - 80 + 5000 * z, this.renderer.panY + vy));
+            const ev = new MouseEvent('mousemove', { clientX: p.x, clientY: p.y, bubbles: true });
+            ev.__autoPan = true;
+            window.dispatchEvent(ev);
+          }
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
       }
 
       updateStatusHint() {
