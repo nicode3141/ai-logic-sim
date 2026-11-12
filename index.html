@@ -2580,15 +2580,38 @@
     }
 
     .align-split.sim-locked {
-      opacity: 0.45;
-      pointer-events: none;
-      cursor: not-allowed;
+      opacity: 0.45 !important;
+      pointer-events: none !important;
+      cursor: not-allowed !important;
     }
 
     .align-split.sim-locked button,
+    .align-split.sim-locked .btn,
     .align-split.sim-locked .btn-caret {
-      pointer-events: none;
-      cursor: not-allowed;
+      pointer-events: none !important;
+      cursor: not-allowed !important;
+      opacity: 0.5 !important;
+    }
+
+    [data-theme="java_swing"] .align-split.sim-locked,
+    [data-theme="java_swing"] .align-split.sim-locked button,
+    [data-theme="java_swing"] .align-split.sim-locked .btn,
+    [data-theme="java_swing"] .align-split.sim-locked .btn-caret {
+      opacity: 0.45 !important;
+      pointer-events: none !important;
+      cursor: not-allowed !important;
+      color: #808080 !important;
+      box-shadow: none !important;
+    }
+
+    .split-screen-active #btn-inspector-expand {
+      top: 68px !important;
+    }
+
+    #analyzer-panel.collapsed #analyzer-sim-controls,
+    #analyzer-panel.collapsed #analyzer-freq-control-box,
+    #analyzer-panel.collapsed .analyzer-loop-group {
+      display: none !important;
     }
 
     .btn.is-busy {
@@ -4036,7 +4059,7 @@
           <div class="freq-control disabled" id="freq-control-box">
             <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
             <input type="range" id="slider-freq" min="1" max="60" value="10" />
-            <span class="freq-val" id="label-freq">10 Hz</span>
+            <span class="freq-val" id="label-freq">10 Hz (100 ms)</span>
           </div>
         </div>
       </div>
@@ -4373,6 +4396,11 @@
             <span class="btn-text">+1 Tick</span>
           </button>
           <span id="analyzer-speed-badge" style="font-size: 11px; padding: 2px 7px; background: var(--bg-elevated); border: 1px solid var(--border-dim); border-radius: var(--btn-radius); font-family: var(--font-mono); color: var(--accent-cyan); display: inline-flex; align-items: center;" title="Aktuelle Simulations-Geschwindigkeit">10 Hz (100 ms)</span>
+          <div class="freq-control disabled" id="analyzer-freq-control-box" style="margin-left: 6px;">
+            <span class="freq-label" data-i18n="toolbar.sim.clock">Takt:</span>
+            <input type="range" id="analyzer-slider-freq" min="1" max="60" value="10" />
+            <span class="freq-val" id="analyzer-label-freq">10 Hz (100 ms)</span>
+          </div>
         </div>
 
         <div class="toolbar-group">
@@ -5760,7 +5788,7 @@
     const CUSTOM_MODULE_TYPES = [
       'SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'BUFFER',
       'TRI_STATE', 'MAJORITY', 'LED', 'SEVEN_SEG', 'BCD_DEC', 'HEX_DISPLAY', 'FULL_ADDER', 'MUX', 'DECODER',
-      'COUNTER', 'SHIFT_REG', 'SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'
+      'COUNTER', 'SHIFT_REG', 'SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH', 'CUSTOM_IC'
     ];
 
     /** Accepts only well-formed module data (also used for data read back from localStorage). */
@@ -5769,6 +5797,50 @@
       if (typeof m.id !== 'string' || !/^mod_[a-z0-9]{4,30}$/i.test(m.id)) return null;
       const name = String(m.name || 'Modul').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 40) || 'Modul';
       const num = (v) => (Number.isFinite(Number(v)) ? Math.max(-100000, Math.min(100000, Number(v))) : NaN);
+      const kind = m.kind === 'ic' ? 'ic' : 'macro';
+
+      if (kind === 'ic') {
+        const inputs = Array.isArray(m.inputs) ? m.inputs.map((p, i) => ({
+          name: String(p?.name || `IN${i}`).slice(0, 16),
+          targets: Array.isArray(p?.targets) ? p.targets.map(t => ({
+            targetCompIdx: Number(t?.targetCompIdx ?? 0),
+            targetPin: Number(t?.targetPin ?? 0)
+          })) : [{
+            targetCompIdx: Number(p?.targetCompIdx ?? 0),
+            targetPin: Number(p?.targetPin ?? 0)
+          }]
+        })) : [{ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] }];
+        const outputs = Array.isArray(m.outputs) ? m.outputs.map((p, i) => ({
+          name: String(p?.name || `OUT${i}`).slice(0, 16),
+          sourceCompIdx: Number(p?.sourceCompIdx ?? 0),
+          sourcePin: Number(p?.sourcePin ?? 0)
+        })) : [{ name: 'OUT', sourceCompIdx: 0, sourcePin: 0 }];
+        const sub = m.subcircuit || {};
+        const subComps = (Array.isArray(sub.components) ? sub.components : []).map(c => ({
+          type: CUSTOM_MODULE_TYPES.includes(c.type) ? c.type : 'BUFFER',
+          dx: Math.round(num(c.dx || 0) / GRID_SIZE) * GRID_SIZE,
+          dy: Math.round(num(c.dy || 0) / GRID_SIZE) * GRID_SIZE,
+          params: c.params && typeof c.params === 'object' ? c.params : {}
+        }));
+        const subWires = (Array.isArray(sub.wires) ? sub.wires : []).map(w => ({
+          from: Number(w.from || 0),
+          fp: Number(w.fp || 0),
+          to: Number(w.to || 0),
+          tp: Number(w.tp || 0),
+          wp: (Array.isArray(w.wp) ? w.wp : []).map(p => ({ dx: Math.round(num(p.dx || 0) / GRID_SIZE) * GRID_SIZE, dy: Math.round(num(p.dy || 0) / GRID_SIZE) * GRID_SIZE }))
+        }));
+        return {
+          id: m.id,
+          name,
+          kind: 'ic',
+          inputs,
+          outputs,
+          subcircuit: { components: subComps, wires: subWires },
+          components: [{ type: 'CUSTOM_IC', dx: 0, dy: 0, params: { label: name, inputs, outputs, subcircuit: { components: subComps, wires: subWires } } }],
+          wires: []
+        };
+      }
+
       if (!Array.isArray(m.components) || m.components.length === 0 || m.components.length > CUSTOM_MODULE_MAX_PARTS) return null;
       const components = [];
       for (const c of m.components) {
@@ -5791,7 +5863,7 @@
           .map(p => ({ dx: Math.round(p.dx / GRID_SIZE) * GRID_SIZE, dy: Math.round(p.dy / GRID_SIZE) * GRID_SIZE }));
         wires.push({ from, fp, to, tp, wp });
       }
-      return { id: m.id, name, components, wires };
+      return { id: m.id, name, kind: 'macro', components, wires };
     }
 
     const GATE_IEC_SYMBOLS = {
@@ -6472,6 +6544,15 @@
               color: customParams.color ?? PROBE_PALETTE[0]
             };
             break;
+          case 'CUSTOM_IC':
+            this.params = {
+              label: customParams.label ?? 'IC',
+              moduleId: customParams.moduleId ?? null,
+              inputs: Array.isArray(customParams.inputs) ? customParams.inputs : ['IN'],
+              outputs: Array.isArray(customParams.outputs) ? customParams.outputs : ['OUT'],
+              subcircuit: customParams.subcircuit ?? null
+            };
+            break;
         }
 
         if (Array.isArray(customParams.invertedInputs)) {
@@ -6718,6 +6799,20 @@
             inOffsets = [20];
             outNames = [];
             break;
+
+          case 'CUSTOM_IC': {
+            const ins = Array.isArray(this.params?.inputs) && this.params.inputs.length > 0 ? this.params.inputs : ['IN'];
+            const outs = Array.isArray(this.params?.outputs) && this.params.outputs.length > 0 ? this.params.outputs : ['OUT'];
+            inNames = ins.map((name, i) => (typeof name === 'string' ? name : (name?.name || `IN${i}`)));
+            outNames = outs.map((name, i) => (typeof name === 'string' ? name : (name?.name || `OUT${i}`)));
+            const maxCount = Math.max(inNames.length, outNames.length, 1);
+            this.height = Math.max(40, maxCount * 20 + 20);
+            const maxLabelLen = Math.max(...inNames.concat(outNames).map(s => String(s).length), (this.params?.label || 'IC').length, 2);
+            this.width = Math.max(80, Math.min(220, maxLabelLen * 8 + 48));
+            inOffsets = inNames.map((_, i) => 20 + i * 20);
+            outOffsets = outNames.map((_, i) => 20 + i * 20);
+            break;
+          }
         }
 
         const prevInVals = this.inputs.map(p => p.value);
@@ -6842,6 +6937,10 @@
       /**
        * PHASE 1 (Read & Compute)
        */
+      step(inputValues) {
+        return this.compute(inputValues);
+      }
+
       compute(inputValues) {
         if (inputValues) {
           const len = Math.min(this.inputs.length, inputValues.length);
@@ -7181,6 +7280,53 @@
             this.state.nextQ = nextQ;
             this.nextOutputs[0] = nextQ;
             this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'CUSTOM_IC': {
+            if (this.params && this.params.subcircuit) {
+              if (!this._internalCircuit) {
+                const sub = this.params.subcircuit;
+                this._internalComps = (sub.components || []).map((c, i) => new Component(`ic_sub_${i}`, c.type, c.dx || 0, c.dy || 0, c.params || {}));
+                this._internalWires = sub.wires || [];
+                this._internalCircuit = true;
+              }
+              const ins = this.params.inputs || [];
+              for (let i = 0; i < ins.length; i++) {
+                const port = ins[i];
+                const inVal = this.inputs[i]?.value ? 1 : 0;
+                if (!port) continue;
+                const targets = Array.isArray(port.targets) ? port.targets : (port.targetCompIdx !== undefined ? [port] : []);
+                for (const t of targets) {
+                  const comp = this._internalComps[t.targetCompIdx];
+                  if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                    comp.inputs[t.targetPin].value = inVal;
+                  }
+                }
+              }
+              for (let iter = 0; iter < 4; iter++) {
+                for (const c of this._internalComps) c.compute();
+                for (const c of this._internalComps) c.commit(true);
+                for (const w of this._internalWires) {
+                  const fromC = this._internalComps[w.from];
+                  const toC = this._internalComps[w.to];
+                  if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
+                    toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
+                  }
+                }
+              }
+              const outs = this.params.outputs || [];
+              for (let j = 0; j < outs.length; j++) {
+                const port = outs[j];
+                let outVal = 0;
+                if (port && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
+                  const oc = this._internalComps[port.sourceCompIdx];
+                  outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
+                }
+                this.nextOutputs[j] = outVal;
+              }
+              break;
+            }
+            this.nextOutputs[0] = this.inputs[0]?.value ? 1 : 0;
             break;
           }
         }
@@ -12217,20 +12363,16 @@
             // Centered safely on the blade without colliding with terminal pins
             const midX = Math.round((pivotX + termX + 2) / 2);
             const leverMidY = Math.round((pivotY + targetY) / 2);
-            const capY = isPressed ? cy - 8 : cy - 13;
+            const capY = isPressed ? cy - 10 : cy - 14;
 
             ctx.strokeStyle = isPressed ? highColor : (pal.chassisStroke || pal.leadLine);
             ctx.lineWidth = 1.6;
             ctx.beginPath();
             ctx.moveTo(midX, leverMidY);
             ctx.lineTo(midX, capY);
-            ctx.moveTo(midX - 5, capY);
-            ctx.lineTo(midX + 5, capY);
+            ctx.moveTo(midX - 4, capY);
+            ctx.lineTo(midX + 4, capY);
             ctx.stroke();
-
-            ctx.fillStyle = isPressed ? highColor : (pal.leadLine || '#64748b');
-            this.roundRect(ctx, midX - 6, capY - 2.5, 12, 3, 1);
-            ctx.fill();
             break;
           }
 
@@ -12582,6 +12724,48 @@
             ctx.font = '700 10px monospace';
             ctx.textAlign = 'right';
             ctx.fillText(isHigh ? '1' : '0', x + width - 7, cy + 3.5);
+            break;
+          }
+
+          case 'CUSTOM_IC': {
+            const isSel = this.selectedCompIds ? this.selectedCompIds.has(comp.id) : (this.selectedCompId === comp.id);
+            ctx.fillStyle = pal.moduleFill || '#18202c';
+            ctx.strokeStyle = isSel ? (this.accentColor || '#00b0ff') : (pal.chassisStroke || '#334155');
+            ctx.lineWidth = isSel ? 2.2 : 1.6;
+            this.roundRect(ctx, x, y, width, height, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            // IC orientation notch at top
+            ctx.fillStyle = pal.leadLine || '#334155';
+            ctx.beginPath();
+            ctx.arc(cx, y + 2, 4, 0, Math.PI);
+            ctx.fill();
+
+            // Center Chip Label
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.fillStyle = isSel ? (this.accentColor || '#00b0ff') : (pal.textLabel || '#f8fafc');
+            ctx.textAlign = 'center';
+            ctx.fillText(comp.params?.label || 'IC', cx, cy + 4);
+
+            // Pin labels
+            ctx.font = '600 8.5px monospace';
+            const ins = comp.params?.inputs || [];
+            for (let i = 0; i < ins.length; i++) {
+              const pName = typeof ins[i] === 'string' ? ins[i] : (ins[i]?.name || `IN${i}`);
+              const py = y + 20 + i * 20;
+              ctx.textAlign = 'left';
+              ctx.fillStyle = pal.textMuted || '#94a3b8';
+              ctx.fillText(pName, x + 6, py + 3);
+            }
+            const outs = comp.params?.outputs || [];
+            for (let j = 0; j < outs.length; j++) {
+              const pName = typeof outs[j] === 'string' ? outs[j] : (outs[j]?.name || `OUT${j}`);
+              const py = y + 20 + j * 20;
+              ctx.textAlign = 'right';
+              ctx.fillStyle = pal.textMuted || '#94a3b8';
+              ctx.fillText(pName, x + width - 6, py + 3);
+            }
             break;
           }
         }
@@ -13525,9 +13709,7 @@
         const countLabel = document.getElementById('analyzer-probe-count');
         if (countLabel) {
           const chStr = probes.length === 1 ? '1 Kanal' : `${probes.length} Kanäle`;
-          countLabel.textContent = this.ringBuffer.count > 0
-            ? `(${chStr} | ${this.ringBuffer.count} Ticks)`
-            : `(${chStr})`;
+          countLabel.textContent = `(${chStr})`;
         }
 
         if (probes.length === 0) {
@@ -16017,6 +16199,12 @@
           this.showToast('Einzelansicht aktiv');
         }
 
+        document.body.classList.toggle('split-screen-active', Boolean(this.splitScreenMode));
+        const btnInspectorExpand = document.getElementById('btn-inspector-expand');
+        if (btnInspectorExpand) {
+          btnInspectorExpand.style.top = this.splitScreenMode ? '68px' : '44px';
+        }
+
         this.renderTabsBar();
         this.updateSplitSelectOptions();
         this.saveTabsToStorage();
@@ -16866,6 +17054,10 @@
 
         btnReset.disabled = !isSim;
         freqBox.classList.toggle('disabled', !isSim);
+        const anaFreqBox = document.getElementById('analyzer-freq-control-box');
+        if (anaFreqBox) anaFreqBox.classList.toggle('disabled', !isSim);
+        const anaSliderFreq = document.getElementById('analyzer-slider-freq');
+        if (anaSliderFreq) anaSliderFreq.disabled = !isSim;
 
         const playIcon = document.getElementById('sim-play-icon');
         const playText = document.getElementById('sim-play-text');
@@ -17147,22 +17339,45 @@
 
         const sliderFreq = document.getElementById('slider-freq');
         const labelFreq = document.getElementById('label-freq');
-        const handleFreqChange = (raw) => {
+        const analyzerSliderFreq = document.getElementById('analyzer-slider-freq');
+        const analyzerLabelFreq = document.getElementById('analyzer-label-freq');
+        const analyzerSpeedBadge = document.getElementById('analyzer-speed-badge');
+
+        const handleFreqChange = (raw, origin = null) => {
           const val = Math.max(1, Math.min(60, parseInt(raw, 10) || 10));
-          if (sliderFreq && sliderFreq.value !== String(val)) sliderFreq.value = val;
-          if (labelFreq) labelFreq.textContent = `${val} Hz`;
+          const ms = Math.round(1000 / val);
+          const fullText = `${val} Hz (${ms} ms)`;
+
+          if (sliderFreq && origin !== 'top' && sliderFreq.value !== String(val)) sliderFreq.value = String(val);
+          if (labelFreq) labelFreq.textContent = fullText;
+
+          if (analyzerSliderFreq && origin !== 'analyzer' && analyzerSliderFreq.value !== String(val)) analyzerSliderFreq.value = String(val);
+          if (analyzerLabelFreq) analyzerLabelFreq.textContent = fullText;
+          if (analyzerSpeedBadge) analyzerSpeedBadge.textContent = fullText;
+
           this.engine.setFrequency(val);
         };
         if (sliderFreq) {
-          sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value));
-          sliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value));
+          sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value, 'top'));
+          sliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value, 'top'));
           sliderFreq.addEventListener('wheel', (e) => {
             e.preventDefault();
             const step = e.deltaY < 0 ? 1 : -1;
             const current = parseInt(sliderFreq.value, 10) || 10;
-            handleFreqChange(current + step);
+            handleFreqChange(current + step, 'top');
           }, { passive: false });
         }
+        if (analyzerSliderFreq) {
+          analyzerSliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value, 'analyzer'));
+          analyzerSliderFreq.addEventListener('change', (e) => handleFreqChange(e.target.value, 'analyzer'));
+          analyzerSliderFreq.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const step = e.deltaY < 0 ? 1 : -1;
+            const current = parseInt(analyzerSliderFreq.value, 10) || 10;
+            handleFreqChange(current + step, 'analyzer');
+          }, { passive: false });
+        }
+        handleFreqChange(this.engine.frequency || 10);
 
         const btnUndo = document.getElementById('btn-quick-undo');
         if (btnUndo) {
@@ -18737,12 +18952,13 @@
         menu.appendChild(inspectItem);
 
         menu.style.display = 'block';
-        const mw = menu.offsetWidth || 210;
-        const mh = menu.offsetHeight || 160;
+        const rect = menu.getBoundingClientRect ? menu.getBoundingClientRect() : null;
+        const mw = (rect && rect.width) || menu.offsetWidth || 210;
+        const mh = (rect && rect.height) || menu.offsetHeight || 160;
         let px = clientX;
         let py = clientY;
-        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
-        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        if (px + mw > window.innerWidth - 12) px = Math.max(10, window.innerWidth - mw - 12);
+        if (py + mh > window.innerHeight - 12) py = Math.max(10, window.innerHeight - mh - 12);
         menu.style.left = `${Math.max(10, px)}px`;
         menu.style.top = `${Math.max(10, py)}px`;
       }
@@ -18785,8 +19001,6 @@
             sep.className = 'ctx-divider';
             menu.appendChild(sep);
             addAction(ICONS.autoLayout, 'Alles anordnen (A)', () => this.runAlignAction('all'));
-            addAction(ICONS.chevronRight, 'Links bündig ausrichten', () => this.alignSelection('left'));
-            addAction(ICONS.chevronUp, 'Oben bündig ausrichten', () => this.alignSelection('top'));
             if (selComps.size >= 3) {
               addAction(ICONS.autoRoute, 'Vertikal gleichmäßig verteilen', () => this.distributeSelection('v'));
               addAction(ICONS.autoRoute, 'Horizontal gleichmäßig verteilen', () => this.distributeSelection('h'));
@@ -19329,12 +19543,13 @@
         }
 
         menu.style.display = 'block';
-        const mw = menu.offsetWidth || 210;
-        const mh = menu.offsetHeight || 220;
+        const rect = menu.getBoundingClientRect ? menu.getBoundingClientRect() : null;
+        const mw = (rect && rect.width) || menu.offsetWidth || 210;
+        const mh = (rect && rect.height) || menu.offsetHeight || 220;
         let px = clientX;
         let py = clientY;
-        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
-        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        if (px + mw > window.innerWidth - 12) px = Math.max(10, window.innerWidth - mw - 12);
+        if (py + mh > window.innerHeight - 12) py = Math.max(10, window.innerHeight - mh - 12);
         menu.style.left = `${Math.max(10, px)}px`;
         menu.style.top = `${Math.max(10, py)}px`;
       }
@@ -19423,12 +19638,13 @@
         menu.appendChild(delItem);
 
         menu.style.display = 'block';
-        const mw = menu.offsetWidth || 210;
-        const mh = menu.offsetHeight || 220;
+        const rect = menu.getBoundingClientRect ? menu.getBoundingClientRect() : null;
+        const mw = (rect && rect.width) || menu.offsetWidth || 210;
+        const mh = (rect && rect.height) || menu.offsetHeight || 220;
         let px = clientX;
         let py = clientY;
-        if (px + mw > window.innerWidth - 12) px = window.innerWidth - mw - 12;
-        if (py + mh > window.innerHeight - 12) py = window.innerHeight - mh - 12;
+        if (px + mw > window.innerWidth - 12) px = Math.max(10, window.innerWidth - mw - 12);
+        if (py + mh > window.innerHeight - 12) py = Math.max(10, window.innerHeight - mh - 12);
         menu.style.left = `${Math.max(10, px)}px`;
         menu.style.top = `${Math.max(10, py)}px`;
       }
@@ -20936,7 +21152,7 @@
       }
 
       /** Menu action: takes the selected components (and the wires between them) and stores them as a module. */
-      saveSelectionAsModule() {
+      saveSelectionAsModule(nameArg = null, compressArg = null) {
         const circuit = this.circuit;
         const comps = Array.from(this.renderer.selectedCompIds || [])
           .map(id => circuit.getComponent(id))
@@ -20951,39 +21167,131 @@
           return null;
         }
         const suggested = `Modul ${list.length + 1}`;
-        const answer = window.prompt('Name des neuen Moduls:', suggested);
-        if (answer === null) return null;
-        const name = answer.trim() || suggested;
+        let name = nameArg;
+        let isCompress = compressArg;
 
-        const minX = Math.min(...comps.map(c => c.x));
-        const minY = Math.min(...comps.map(c => c.y));
-        const index = new Map(comps.map((c, i) => [c.id, i]));
-        const mod = sanitizeCustomModule({
-          id: `mod_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
-          name,
-          components: comps.map(c => ({
-            type: c.type,
-            dx: c.x - minX,
-            dy: c.y - minY,
-            params: JSON.parse(JSON.stringify(c.params || {}))
-          })),
-          wires: circuit.wires
-            .filter(w => index.has(w.fromCompId) && index.has(w.toCompId))
+        if (name === null) {
+          const answer = window.prompt('Name des neuen Moduls:', suggested);
+          if (answer === null) return null;
+          name = answer.trim() || suggested;
+        }
+        if (isCompress === null) {
+          const hasInputs = comps.some(c => c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK');
+          const hasOutputs = comps.some(c => c.type === 'LED' || c.type === 'HEX_DISPLAY');
+          if (hasInputs || hasOutputs) {
+            isCompress = window.confirm(
+              'Möchtest du das Modul in ein einzelnes Bauteil (Black-Box IC) komprimieren?\n\n' +
+              '[OK] = Komprimiertes IC-Bauteil (Schalter/Taster werden zu Pins, LEDs zu Ausgängen)\n' +
+              '[Abbrechen] = Schaltungs-Gruppe (Makro, Bauteile 1:1 platzieren)'
+            );
+          } else {
+            isCompress = false;
+          }
+        }
+
+        let modData = null;
+
+        if (isCompress) {
+          const inputComps = comps.filter(c => c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK');
+          const outputComps = comps.filter(c => c.type === 'LED' || c.type === 'HEX_DISPLAY');
+          const internalComps = comps.filter(c => !inputComps.includes(c) && !outputComps.includes(c));
+
+          const gates = internalComps.length > 0 ? internalComps : comps;
+          const minX = Math.min(...gates.map(c => c.x));
+          const minY = Math.min(...gates.map(c => c.y));
+          const gateIndex = new Map(gates.map((c, i) => [c.id, i]));
+
+          const inputs = [];
+          for (const inC of inputComps) {
+            const outgoing = circuit.wires.filter(w => w.fromCompId === inC.id && gateIndex.has(w.toCompId));
+            const label = inC.params.label || inC.type || 'IN';
+            const targets = outgoing.map(w => ({
+              targetCompIdx: gateIndex.get(w.toCompId),
+              targetPin: w.toPin
+            }));
+            inputs.push({
+              name: label,
+              targets: targets.length > 0 ? targets : [{ targetCompIdx: 0, targetPin: 0 }]
+            });
+          }
+          if (inputs.length === 0) inputs.push({ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] });
+
+          const outputs = [];
+          for (const outC of outputComps) {
+            const incoming = circuit.wires.filter(w => w.toCompId === outC.id && gateIndex.has(w.fromCompId));
+            const label = outC.params.label || outC.type || 'OUT';
+            if (incoming.length > 0) {
+              const w = incoming[0];
+              outputs.push({
+                name: label,
+                sourceCompIdx: gateIndex.get(w.fromCompId),
+                sourcePin: w.fromPin
+              });
+            }
+          }
+          if (outputs.length === 0) outputs.push({ name: 'OUT', sourceCompIdx: Math.max(0, gates.length - 1), sourcePin: 0 });
+
+          const subWires = circuit.wires
+            .filter(w => gateIndex.has(w.fromCompId) && gateIndex.has(w.toCompId))
             .map(w => ({
-              from: index.get(w.fromCompId),
+              from: gateIndex.get(w.fromCompId),
               fp: w.fromPin,
-              to: index.get(w.toCompId),
+              to: gateIndex.get(w.toCompId),
               tp: w.toPin,
               wp: (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
-            }))
-        });
+            }));
+
+          modData = {
+            id: `mod_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+            name,
+            kind: 'ic',
+            inputs,
+            outputs,
+            subcircuit: {
+              components: gates.map(c => ({
+                type: c.type,
+                dx: c.x - minX,
+                dy: c.y - minY,
+                params: JSON.parse(JSON.stringify(c.params || {}))
+              })),
+              wires: subWires
+            }
+          };
+        } else {
+          const minX = Math.min(...comps.map(c => c.x));
+          const minY = Math.min(...comps.map(c => c.y));
+          const index = new Map(comps.map((c, i) => [c.id, i]));
+          modData = {
+            id: `mod_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+            name,
+            kind: 'macro',
+            components: comps.map(c => ({
+              type: c.type,
+              dx: c.x - minX,
+              dy: c.y - minY,
+              params: JSON.parse(JSON.stringify(c.params || {}))
+            })),
+            wires: circuit.wires
+              .filter(w => index.has(w.fromCompId) && index.has(w.toCompId))
+              .map(w => ({
+                from: index.get(w.fromCompId),
+                fp: w.fromPin,
+                to: index.get(w.toCompId),
+                tp: w.toPin,
+                wp: (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
+              }))
+          };
+        }
+
+        const mod = sanitizeCustomModule(modData);
         if (!mod) {
           this.showToast('Dieses Modul konnte nicht gespeichert werden.');
           return null;
         }
         if (!this.storeCustomModules([...list, mod])) return null;
         this.renderCustomModulePalette();
-        this.showToast(`📦 Modul „${mod.name}“ gespeichert – zu finden unter „Eigene Module“ in der Palette.`);
+        const typeDesc = mod.kind === 'ic' ? 'Komprimiertes IC-Bauteil' : 'Schaltungs-Gruppe';
+        this.showToast(`📦 Modul „${mod.name}“ (${typeDesc}) gespeichert – zu finden unter „Eigene Module“ in der Palette.`);
         return mod;
       }
 
@@ -20993,6 +21301,22 @@
         if (!mod || !circuit || !renderer) {
           this.showToast('Das Modul ist nicht mehr vorhanden.');
           return false;
+        }
+        if (mod.kind === 'ic') {
+          const gx = Math.round(worldX / GRID_SIZE) * GRID_SIZE;
+          const gy = Math.round(worldY / GRID_SIZE) * GRID_SIZE;
+          const ic = circuit.addComponent('CUSTOM_IC', gx, gy, {
+            label: mod.name,
+            moduleId: mod.id,
+            inputs: mod.inputs,
+            outputs: mod.outputs,
+            subcircuit: mod.subcircuit
+          });
+          renderer.selectedCompIds.clear();
+          renderer.selectedCompIds.add(ic.id);
+          renderer.selectedWireId = null;
+          if (this.renderer === renderer) this.inspector?.render(null, null);
+          return true;
         }
         const parts = this.buildPaletteThumbParts(`MODULE:${mod.id}`);
         if (!parts) return false;
@@ -21049,13 +21373,27 @@
           item.className = 'palette-item';
           item.draggable = true;
           item.dataset.type = `MODULE:${mod.id}`;
-          item.title = `Modul „${mod.name}“ (${mod.components.length} Bauteile, ${mod.wires.length} Leitungen): ziehen oder doppelklicken`;
-          item.innerHTML = `
-            <div class="palette-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4M6.5 10v4"/></svg></div>
-            <div class="palette-name"></div>
-            <button type="button" class="palette-module-del" title="Modul löschen" aria-label="Modul löschen">&times;</button>
-          `;
-          item.querySelector('.palette-name').textContent = mod.name;
+          item.title = `Modul „${mod.name}“ (${mod.kind === 'ic' ? 'Komprimierter IC' : 'Schaltungs-Gruppe'}): ziehen oder doppelklicken`;
+
+          const iconDiv = document.createElement('div');
+          iconDiv.className = 'palette-icon';
+          iconDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4M6.5 10v4"/></svg>`;
+
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'palette-name';
+          nameDiv.textContent = `${mod.name}${mod.kind === 'ic' ? ' [IC]' : ''}`;
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'palette-module-del';
+          delBtn.title = 'Modul löschen';
+          delBtn.setAttribute('aria-label', 'Modul löschen');
+          delBtn.innerHTML = '&times;';
+
+          item.appendChild(iconDiv);
+          item.appendChild(nameDiv);
+          item.appendChild(delBtn);
+
           item.addEventListener('dragstart', (e) => {
             if (this.engine.mode === 'sim') { e.preventDefault(); return; }
             e.dataTransfer.setData('text/plain', item.dataset.type);
@@ -21073,7 +21411,7 @@
               this.refreshAll();
             }
           });
-          item.querySelector('.palette-module-del').addEventListener('click', (e) => {
+          delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!window.confirm(`Modul „${mod.name}“ wirklich löschen?`)) return;
             this.storeCustomModules(this.getCustomModules().filter(m => m.id !== mod.id));
@@ -22055,13 +22393,19 @@
 
         const colorHigh = document.getElementById('settings-color-high');
         const hexHigh = document.getElementById('settings-hex-high');
+        let highColorRaf = null;
         if (colorHigh) {
           colorHigh.addEventListener('input', (e) => {
             const val = e.target.value;
             if (hexHigh && document.activeElement !== hexHigh) hexHigh.value = val;
-            this.setHighSignalColor(val);
+            if (highColorRaf) cancelAnimationFrame(highColorRaf);
+            highColorRaf = requestAnimationFrame(() => {
+              this.setHighSignalColor(val);
+            });
           });
           colorHigh.addEventListener('change', () => {
+            if (highColorRaf) cancelAnimationFrame(highColorRaf);
+            this.setHighSignalColor(colorHigh.value);
             this.saveSettings();
           });
         }
@@ -22071,7 +22415,10 @@
             if (!val.startsWith('#')) val = '#' + val;
             if (/^#[0-9a-fA-F]{6}$/.test(val)) {
               if (colorHigh) colorHigh.value = val;
-              this.setHighSignalColor(val);
+              if (highColorRaf) cancelAnimationFrame(highColorRaf);
+              highColorRaf = requestAnimationFrame(() => {
+                this.setHighSignalColor(val);
+              });
             }
           });
           hexHigh.addEventListener('change', () => {
@@ -22088,13 +22435,19 @@
 
         const colorLow = document.getElementById('settings-color-low');
         const hexLow = document.getElementById('settings-hex-low');
+        let lowColorRaf = null;
         if (colorLow) {
           colorLow.addEventListener('input', (e) => {
             const val = e.target.value;
             if (hexLow && document.activeElement !== hexLow) hexLow.value = val;
-            this.setLowSignalColor(val);
+            if (lowColorRaf) cancelAnimationFrame(lowColorRaf);
+            lowColorRaf = requestAnimationFrame(() => {
+              this.setLowSignalColor(val);
+            });
           });
           colorLow.addEventListener('change', () => {
+            if (lowColorRaf) cancelAnimationFrame(lowColorRaf);
+            this.setLowSignalColor(colorLow.value);
             this.saveSettings();
           });
         }

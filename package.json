@@ -1,0 +1,22 @@
+{
+  "name": "ai-logic-sim",
+  "version": "1.1.2-alpha",
+  "description": "Interactive Web-Based Digital Logic Circuit Simulator with Logic Analyzer, Multi-Pane View, and Truth Table Synthesis",
+  "main": "index.html",
+  "scripts": {
+    "test": "node tests/run_all_tests.js",
+    "test:comprehensive": "node tests/comprehensive_test_suite.js",
+    "test:fuzz": "node tests/fuzz_torture_suite.js",
+    "test:layout": "node tests/layout_eval.js",
+    "test:bench": "node tests/benchmark_sim.js"
+  },
+  "keywords": [
+    "digital-logic",
+    "circuit-simulator",
+    "logic-gates",
+    "boolean-algebra",
+    "logic-analyzer"
+  ],
+  "author": "AI Logic Sim Team",
+  "license": "MIT"
+}

@@ -54,10 +54,50 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-034** | Schutz vor versehentlichem Abreißen von Gatter-Verbindungen & Automatisches Mergen offener Leitungsenden | `feat/prevent-accidental-wire-disconnect-and-auto-merge` | 🟢 **Completed** | Beseitigung des versehentlichen Abreißens von Gatter-Verbindungen beim Bauteil-Bewegen durch Bauteilkorpus-Priorität vor Pin-Klicks, Verkleinerung des Pin-Fangradius (von 14px auf 9px) und Erhöhung des Abriss-Schwellenwerts auf 24px (bei <24px bleibt die Verbindung unberührt, bei >=24px wird sie sauber als offenes Leitungsende gelöst statt gelöscht zu werden); Automatisches Mergen (`mergeOpenWireTermini`) aller offenen Leitungsenden (`toPoint` & `fromPoint`), die an denselben Koordinaten zusammentreffen, zu einer einzigen kontinuierlichen, leitenden Verbindung. |
 | **WISH-035** | UI-Skalierung (Oberflächengröße), Paletten-Vorschau, NOT-Lead-Fix & Saubere Manhattan-Wegpunktführung | `fix/wire-interactions-and-merge-hardening` | 🟢 **Completed** | Stufenlose UI-Skalierung (80%–160%) für Menüs, Toolbar, Palette & Inspector; Umschaltung der Bauteil-Palette zwischen Beschriftung und gezeichneter Echtzeit-Vorschau; Beseitigung ungewollter Diagonalschrägen bei normalen Leitungen mit Wegpunkten; NOT-Gatter Leads im 40x40-Raster korrigiert; Schutz belegter Eingangspins vor versehentlichem Leitungsabriss beim Verschieben von Gattern. |
 | **WISH-036** | Auto-Anordnen & Layout-Menü im Simulationsmodus strikt sperren und schließen | `fix/disable-auto-align-in-sim-mode` | 🟢 **Completed** | Auto-Anordnen Split-Button (`#btn-auto-route`), Caret-Button (`#btn-align-menu`) und Popover-Menü (`#align-popover`) werden im Simulationsmodus vollständig deaktiviert (`disabled = true`, `pointer-events: none`). Laufendes Popover schließt sich bei Moduswechsel zu Simulation sofort. Tastenkürzel (`A`, `L`), Menüeinträge und Kontextmenü-Einträge sind im Simulationsmodus blockiert. |
+| **WISH-037** | Veraltetes „bündig ausrichten“ aus Kontextmenü entfernen | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Menüeinträge „Links bündig ausrichten“ und „Oben bündig ausrichten“ vollständig aus dem Mehrfachauswahl-Kontextmenü entfernt. |
+| **WISH-038** | Leitungs-Stabilisierung beim Taster-Druck (`BUTTON`) im Edit-Modus | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Klicks und Halten auf Taster (`BUTTON`) im Edit-Modus verformen oder verändern keine angeschlossenen Leitungen mehr (`wire._preview` und `draggingComp` werden bei Taster-Interaktion übersprungen). |
+| **WISH-039** | Eigene Module: Komprimiertes IC-Bauteil (Black-Box) vs. Makro-Gruppe | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Beim Speichern eigener Module Auswahl zwischen komprimiertem Black-Box IC (`CUSTOM_IC`) und Schaltungs-Gruppe (Makro). Bei IC werden Schalter/Taster/Takte zu externen Eingangspins, LEDs/Displays zu Ausgangspins, interne Gatter komprimiert und in der Simulation korrekt evaluiert. |
+| **WISH-040** | Split-Screen Header-Kollision mit Inspector-Expand-Button behoben | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Bei aktivem Split-Screen dockt der Inspector-Expand/Einstellungs-Button (`#btn-inspector-expand`) automatisch auf `top: 68px` unterhalb der 28px Pane-Kopfzeile ab (`.split-screen-active`). |
+| **WISH-041** | Frequenz-Steuerung & Zeit-Anzeige im Impulsdiagramm gespiegelt (`ms`), Ticks-Bereinigung | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Gespiegelter Frequenz-Slider `#analyzer-slider-freq` im Impulsdiagramm-Header mit bidirektionaler Synchronisation; ms-Zeitangabe (`10 Hz (100 ms)`) in oberer Toolbar und Analyzer; Bereinigung der verwirrenden Kanal-Tick-Anzeige zu sauberen `(X Kanäle)`; Ausblenden der Controls bei eingeklapptem Analyzer. |
+| **WISH-042** | NOT-Gatter 40x40 Größen-Arretierung & 30px Pin-Fangbereich | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Breiten-Rücksprung von 40px auf 80px in `rebuildPins()` dauerhaft behoben; Fangradius beim Fallenlassen von NOT/Negator auf Gatterpins zur Signalinvertierung auf 30px erweitert. |
+| **WISH-043** | Kontextmenü-Scrolling (`max-height`) & Viewport-Clamping | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | `max-height: calc(100vh - 24px)` mit vertikalem Scrollen und Viewport-Bounding-Box-Clamping für Kontextmenüs gegen Abschneiden am Bildschirmrand. |
+| **WISH-044** | Performante Signalfarb-Auswahl (rAF-Throttling & debounced Storage) | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Farbauswahl für HIGH- und LOW-Signale per `requestAnimationFrame` flüssig gedrosselt, `saveSettings()` erst beim `change`-Event. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-037 bis WISH-044 (Alpha Batch v1.1.2-alpha)**:
+  - **WISH-037 (Veraltetes „bündig ausrichten“ entfernt)**:
+    - Einträge „Links bündig ausrichten“ und „Oben bündig ausrichten“ restlos aus dem Kontextmenü für Mehrfachauswahlen entfernt.
+  - **WISH-038 (Taster-Verbindungsstabilität im Edit-Modus)**:
+    - Klick- und Halte-Interaktion auf Taster (`BUTTON`) im Edit-Modus setzt direkt `pressed = 1` und triggert Sofort-Pegelsynchronisation ohne `beginDragPreview` oder `draggingComp`.
+    - Bestehende Leitungsverläufe, Segmente und Wegpunkte bleiben unberührt.
+  - **WISH-039 (Eigene Module: Komprimiertes IC-Bauteil vs. Makro-Gruppe)**:
+    - Abfrage beim Speichern: Black-Box IC (`CUSTOM_IC`) oder Schaltungs-Gruppe (Makro).
+    - IC-Kompression konvertiert Schalter/Taster/Takte zu externen Eingängen, LEDs/Displays zu externen Ausgängen; interne Gatter werden als kompaktes Subcircuit im IC gekapselt und per `compute()` simuliert.
+    - Vollständige Drag&Drop- und Paletten-Unterstützung mit Kennzeichnung `[IC]`.
+  - **WISH-040 (Split-Screen Inspector-Expand Docking)**:
+    - `.split-screen-active #btn-inspector-expand` dockt auf `top: 68px` unterhalb der Split-Pane-Header-Leiste ab, um Überlappungen mit Select/Close-Buttons zu verhindern.
+  - **WISH-041 (Frequenz-Steuerung gespiegelt, ms-Readout & Ticks-Bereinigung)**:
+    - Gespiegelter Slider `#analyzer-slider-freq` im Impulsdiagramm-Header mit bidirektionaler Synchronisation zum Haupt-Takt-Slider.
+    - Anzeige im Format `${val} Hz (${ms} ms)` auf beiden Slidern.
+    - Bereinigung der verwirrenden Kanal-/Tick-Anzeige im Impulsdiagramm auf saubere `(X Kanäle)`.
+    - Ausblenden der Controls im eingeklappten Zustand des Analyzers.
+  - **WISH-042 (NOT-Gatter 40x40 Arretierung & 30px Pin-Fangbereich)**:
+    - Feste Verankerung der NOT-Gatter-Dimensionen (40x40) in `rebuildPins()`, verhindert Rücksprung auf 80x40.
+    - Pin-Fangbereich beim Drag&Drop von NOT/Negator auf Gatterpins zur Signalinvertierung auf 30px erweitert.
+  - **WISH-043 (Kontextmenü Viewport-Clamping & Scrolling)**:
+    - `max-height: calc(100vh - 24px)` und vertikales Scrollen in `.context-menu`.
+    - Dynamische Randberechnung (`getBoundingClientRect`) in `showContextMenu` und `showWaypointContextMenu`.
+  - **WISH-044 (Performante Signalfarb-Auswahl)**:
+    - `requestAnimationFrame`-Drosselung bei fortlaufender Farbauswahl (Color Picker `input`).
+    - Speicherung in `localStorage` (`saveSettings`) erst beim `change`-Event.
+  - **Taster (BUTTON) Hebel-Refactor (`media_1794386632823_9d671721.jpg`)**:
+    - Entfernung des störenden massiven 12x3px Rechteck-Blocks vom Taster-Hebel.
+    - Schlanke, DIN EN 60617 konforme T-Stößel-Darstellung ohne Überlappungen mit dem roten Hebel oder Pin 1.
+  - **Auto-Anordnen Sperrung im Classic/Java-Swing Theme (`media_1794386036260_a766cd4f.png`)**:
+    - Spezifische CSS-Regeln für `[data-theme="java_swing"] .align-split.sim-locked`, um `!important`-Überschreibungen abzusichern. Caret und Button sind im Simulationsmodus unmissverständlich grau, ohne 3D-Bevel und unklickbar.
 
 - **WISH-036 (Auto-Anordnen & Layout-Menü im Simulationsmodus strikt sperren und schließen)**:
   - **Vollständige Sperrung im Simulationsmodus**:

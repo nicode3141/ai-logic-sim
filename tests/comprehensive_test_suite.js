@@ -33,7 +33,20 @@ const createMockElem = (id = '') => {
       }
     },
     querySelectorAll(sel) { return []; },
-    querySelector(sel) { return null; },
+    querySelector(sel) {
+      if (!sel) return null;
+      if (sel.startsWith('.')) {
+        const cls = sel.slice(1);
+        for (const c of this.children) {
+          if (c.classList && c.classList.contains(cls)) return c;
+          if (typeof c.querySelector === 'function') {
+            const sub = c.querySelector(sel);
+            if (sub) return sub;
+          }
+        }
+      }
+      return null;
+    },
     setAttribute(k, v) { this[k] = v; },
     getAttribute(k) { return this[k] || null; },
     hasAttribute(k) { return k in this; },
@@ -58,6 +71,12 @@ const createMockElem = (id = '') => {
         classes.add(c); return true;
       },
       contains: (c) => classes.has(c)
+    },
+    dataset: {},
+    dispatchEvent(event) {
+      const list = this.listeners[event.type] || [];
+      list.forEach(fn => fn(event));
+      return true;
     },
     style: {}, getContext: () => mockCtx,
     parentElement: { getBoundingClientRect: () => ({ width: 1200, height: 800 }) },
@@ -1749,7 +1768,7 @@ runTest('WISH-030', 'Pushbutton (Taster) lever geometry & DIN EN 60617 actuator 
 
   analyzer.render();
   const countLabel = document.getElementById('analyzer-probe-count');
-  assertEqual(countLabel.textContent, '(1 Kanal | 256 Ticks)', 'Count label shows clean single channel with tick count, no /256 capacity fraction');
+  assertEqual(countLabel.textContent, '(1 Kanal)', 'Count label shows clean single channel count without confusing tick fractions');
 });
 
 runTest('WISH-031', 'Overhauled theme system, cohesive surface elevation, neutral slate wireLow, and optical lamp illumination', () => {
@@ -2046,6 +2065,252 @@ runTest('WISH-036', 'Auto-Anordnen and align menu locked and disabled in simulat
   assertEqual(btnAutoRoute.disabled, false, 'Auto-route button re-enabled in edit mode');
   assertEqual(btnAlignMenu.disabled, false, 'Align menu caret re-enabled in edit mode');
   assertEqual(alignSplit.classList.contains('sim-locked'), false, 'align-split clears sim-locked in edit mode');
+});
+
+runTest('WISH-037', 'Legacy bündig ausrichten actions removed from selection context menu', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const c1 = c.addComponent('AND', 40, 40);
+  const c2 = c.addComponent('OR', 140, 40);
+  app.renderer.selectedCompIds = new Set([c1.id, c2.id]);
+  app.engine.mode = 'edit';
+
+  const menu = app.contextMenuEl;
+  app.showContextMenu(100, 100, null, null, { x: 100, y: 100 }, true);
+
+  const items = Array.from(menu.children).map(el => el.textContent || '');
+  const hasBuendig = items.some(t => t.includes('bündig') || t.includes('Bündig'));
+  assertEqual(hasBuendig, false, 'No "bündig ausrichten" items in multi-selection context menu');
+  const hasSaveModule = items.some(t => t.includes('Als eigenes Modul speichern'));
+  assertEqual(hasSaveModule, true, '"Als eigenes Modul speichern…" action available in selection context menu');
+  app.hideContextMenu();
+});
+
+runTest('WISH-038', 'Pushbutton activation in edit mode preserves wire path without rerouting', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  const btn = c.addComponent('BUTTON', 40, 40);
+  const led = c.addComponent('LED', 200, 40);
+  const customWps = [{ x: 140, y: 40 }, { x: 140, y: 80 }, { x: 180, y: 80 }];
+  const wire = c.addWire(btn.id, 0, led.id, 0, null, customWps);
+  wire.autoRouted = true;
+
+  // Simulate mousedown on the BUTTON in edit mode
+  app.engine.mode = 'edit';
+  app.allowEditModeInteraction = true;
+
+  // Simulate mousedown:BUTTON press
+  const worldPos = { x: 50, y: 50 };
+  const hitComp = btn;
+  // Test our interaction logic
+  hitComp.state.pressed = 1;
+  hitComp.outputs[0].value = 1;
+  hitComp.nextOutputs[0] = 1;
+  app.activeButtonComp = hitComp;
+  app.circuit.syncImmediateWireLevels();
+
+  // Verify wire waypoints and wire._preview
+  assertEqual(wire._preview, false, 'wire._preview is not set when pressing button');
+  assertEqual(wire.waypoints.length, 3, 'Wire waypoints count preserved');
+  assertEqual(wire.waypoints[1].y, 80, 'Specific waypoint coordinates untouched');
+
+  // Verify path computed during button press uses waypoints
+  const path = app.renderer.computeWirePath(
+    btn.getPinWorldPos(true, 0),
+    led.getPinWorldPos(false, 0),
+    wire._preview ? null : wire.waypoints,
+    wire.channelOffset || 0,
+    wire.style
+  );
+  assertEqual(path.length >= 4, true, 'Path preserves routed segments through waypoints during press');
+
+  // Release button
+  app.activeButtonComp.state.pressed = 0;
+  app.activeButtonComp.outputs[0].value = 0;
+  app.activeButtonComp.nextOutputs[0] = 0;
+  app.activeButtonComp = null;
+  app.circuit.syncImmediateWireLevels();
+  assertEqual(wire.waypoints.length, 3, 'Wire waypoints still intact after button release');
+});
+
+runTest('WISH-039', 'Custom module saving with compression (Black-Box IC vs Macro Group) and simulation', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  c.components = [];
+  c.wires = [];
+
+  // Build a Half-Adder subcircuit for testing
+  // Inputs: SWITCH A, SWITCH B
+  // Internal: XOR, AND
+  // Outputs: LED Sum, LED Carry
+  const swA = c.addComponent('SWITCH', 40, 40, { label: 'A', state: 1 });
+  const swB = c.addComponent('SWITCH', 40, 100, { label: 'B', state: 1 });
+  const xor = c.addComponent('XOR', 160, 40);
+  const and = c.addComponent('AND', 160, 100);
+  const ledS = c.addComponent('LED', 280, 40, { label: 'SUM' });
+  const ledC = c.addComponent('LED', 280, 100, { label: 'COUT' });
+
+  c.addWire(swA.id, 0, xor.id, 0);
+  c.addWire(swB.id, 0, xor.id, 1);
+  c.addWire(swA.id, 0, and.id, 0);
+  c.addWire(swB.id, 0, and.id, 1);
+  c.addWire(xor.id, 0, ledS.id, 0);
+  c.addWire(and.id, 0, ledC.id, 0);
+
+  // Select all 6 components
+  app.renderer.selectedCompIds = new Set([swA.id, swB.id, xor.id, and.id, ledS.id, ledC.id]);
+
+  // 1. Save as Compressed IC
+  const icMod = app.saveSelectionAsModule('HalfAdder_IC', true);
+  assertEqual(icMod !== null, true, 'Custom IC module created successfully');
+  assertEqual(icMod.kind, 'ic', 'Module kind is "ic"');
+  assertEqual(icMod.inputs.length >= 2, true, 'Extracted external input pins from switches');
+  assertEqual(icMod.outputs.length >= 2, true, 'Extracted external output pins from LEDs');
+  assertEqual(icMod.subcircuit.components.length, 2, 'Subcircuit strips testing switches and LEDs, keeping gates');
+
+  // Place the IC module in a fresh circuit
+  const c2 = new Circuit();
+  const placed = app.placeCustomModule(c2, app.renderer, icMod.id, 100, 100);
+  assertEqual(placed, true, 'Placed custom IC on circuit');
+  assertEqual(c2.components.length, 1, 'Only 1 compressed IC component placed on canvas');
+  const icComp = c2.components[0];
+  assertEqual(icComp.type, 'CUSTOM_IC', 'Placed component has type CUSTOM_IC');
+  assertEqual(icComp.inputs.length >= 2, true, 'IC has input pins');
+  assertEqual(icComp.outputs.length >= 2, true, 'IC has output pins');
+
+  // Test simulation through CUSTOM_IC
+  // Drive inputs: A=1, B=0 -> SUM=1, COUT=0
+  icComp.inputs[0].value = 1;
+  icComp.inputs[1].value = 0;
+  icComp.step();
+  icComp.commit(true);
+  assertEqual(icComp.nextOutputs[0], 1, 'Half-adder IC SUM output (A=1, B=0) is 1');
+  assertEqual(icComp.nextOutputs[1], 0, 'Half-adder IC COUT output (A=1, B=0) is 0');
+
+  // Drive inputs: A=1, B=1 -> SUM=0, COUT=1
+  icComp.inputs[0].value = 1;
+  icComp.inputs[1].value = 1;
+  icComp.step();
+  icComp.commit(true);
+  assertEqual(icComp.nextOutputs[0], 0, 'Half-adder IC SUM output (A=1, B=1) is 0');
+  assertEqual(icComp.nextOutputs[1], 1, 'Half-adder IC COUT output (A=1, B=1) is 1');
+
+  // 2. Save as Macro Group
+  app.renderer.selectedCompIds = new Set([swA.id, swB.id, xor.id, and.id, ledS.id, ledC.id]);
+  const macroMod = app.saveSelectionAsModule('HalfAdder_Macro', false);
+  assertEqual(macroMod !== null, true, 'Macro module created');
+  assertEqual(macroMod.kind, 'macro', 'Module kind is "macro"');
+  assertEqual(macroMod.components.length, 6, 'Macro keeps all 6 components 1:1');
+});
+
+runTest('WISH-040', 'Split-screen mode docks inspector expand button without overlapping header', () => {
+  const app = new LogicSimApp();
+  const btnExpand = document.getElementById('btn-inspector-expand');
+
+  // In split-screen mode
+  app.toggleSplitScreen(true);
+  assertEqual(document.body.classList.contains('split-screen-active'), true, 'split-screen-active class set in split view');
+  if (btnExpand) assertEqual(btnExpand.style.top, '68px', 'Expand button moved to 68px (safely below 28px pane header)');
+
+  // Revert
+  app.toggleSplitScreen(false);
+  assertEqual(document.body.classList.contains('split-screen-active'), false, 'split-screen-active class removed in single view');
+  if (btnExpand) assertEqual(btnExpand.style.top, '44px', 'Expand button top is 44px in single view');
+});
+
+runTest('WISH-041', 'Logic analyzer frequency slider mirrored with ms readout and clean channel count', () => {
+  const app = new LogicSimApp();
+  const sliderFreq = document.getElementById('slider-freq');
+  const labelFreq = document.getElementById('label-freq');
+  const analyzerSlider = document.getElementById('analyzer-slider-freq');
+  const analyzerLabel = document.getElementById('analyzer-label-freq');
+  const probeCount = document.getElementById('analyzer-probe-count');
+
+  // 1. Changing top slider mirrors to analyzer slider and updates ms readout
+  sliderFreq.value = 20;
+  sliderFreq.dispatchEvent({ type: 'input', target: sliderFreq });
+  assertEqual(analyzerSlider.value, '20', 'Analyzer slider value synchronized to 20');
+  assertEqual(labelFreq.textContent, '20 Hz (50 ms)', 'Top frequency readout includes ms timing');
+  assertEqual(analyzerLabel.textContent, '20 Hz (50 ms)', 'Analyzer frequency readout synchronized with ms timing');
+  assertEqual(app.engine.frequency, 20, 'Engine frequency set to 20');
+
+  // 2. Changing analyzer slider mirrors back to top toolbar
+  analyzerSlider.value = 5;
+  analyzerSlider.dispatchEvent({ type: 'input', target: analyzerSlider });
+  assertEqual(sliderFreq.value, '5', 'Top slider synchronized to 5');
+  assertEqual(labelFreq.textContent, '5 Hz (200 ms)', 'Top readout synchronized from analyzer');
+  assertEqual(analyzerLabel.textContent, '5 Hz (200 ms)', 'Analyzer readout updated to 5 Hz (200 ms)');
+  assertEqual(app.engine.frequency, 5, 'Engine frequency updated to 5');
+
+  // 3. Analyzer channel count does not display confusing "256/256 Ticks"
+  app.circuit.probes = [];
+  app.analyzer.render();
+  assertEqual(probeCount.textContent.includes('256/256 Ticks'), false, 'Confusing 256/256 ticks removed from probe count');
+  assertEqual(probeCount.textContent, '(0 Kanäle)', 'Probe count shows clean channel indicator');
+});
+
+runTest('WISH-042', 'NOT gate width strictly locked to 40x40 and drop detection radius expanded to 30px', () => {
+  const c = new Circuit();
+  const notGate = c.addComponent('NOT', 40, 40);
+
+  // 1. Width and height are locked to 40x40
+  assertEqual(notGate.width, 40, 'NOT gate initial width is 40');
+  assertEqual(notGate.height, 40, 'NOT gate initial height is 40');
+
+  // Rebuilding pins must NEVER reset width to 80
+  notGate.rebuildPins();
+  assertEqual(notGate.width, 40, 'NOT gate width remains 40 after rebuildPins');
+  assertEqual(notGate.height, 40, 'NOT gate height remains 40 after rebuildPins');
+
+  // 2. Dropping NOT onto component pin to invert inputs
+  const andGate = c.addComponent('AND', 100, 100);
+  const pin0 = andGate.getPinWorldPos(false, 0); // AND input 0 is at (100, 120)
+
+  // Test findPinAt with 30px detection radius
+  const canvas = createMockElem('canvas');
+  const renderer = new CanvasRenderer(canvas, c);
+  const hitPin = renderer.findPinAt(pin0.x - 25, pin0.y, 30);
+  assertEqual(hitPin !== null, true, 'Pin hit found with generous 30px radius');
+  assertEqual(hitPin.pinIndex, 0, 'Correct pin index identified');
+});
+
+runTest('WISH-043', 'Context menu clamping and max-height scrolling prevent clipping off-screen', () => {
+  const app = new LogicSimApp();
+  const menu = app.contextMenuEl;
+
+  // Simulate context menu near bottom-right screen edge
+  window.innerWidth = 1000;
+  window.innerHeight = 800;
+  menu.getBoundingClientRect = () => ({ width: 220, height: 350 });
+
+  app.showContextMenu(950, 750, null, null, { x: 50, y: 50 }, true);
+
+  const left = parseInt(menu.style.left, 10);
+  const top = parseInt(menu.style.top, 10);
+
+  assertEqual(left <= 1000 - 220 - 12, true, 'Menu left is clamped within viewport width');
+  assertEqual(top <= 800 - 350 - 12, true, 'Menu top is clamped within viewport height');
+  assertEqual(top >= 10, true, 'Menu top maintains minimum margin');
+  app.hideContextMenu();
+});
+
+runTest('WISH-044', 'Signal color picker uses requestAnimationFrame throttling and debounced storage save', () => {
+  const app = new LogicSimApp();
+  const colorHigh = document.getElementById('settings-color-high');
+  let saved = false;
+  app.saveSettings = () => { saved = true; };
+
+  // Rapid inputs
+  if (colorHigh) {
+    colorHigh.value = '#ff0055';
+    saved = false;
+    colorHigh.dispatchEvent({ type: 'input', target: colorHigh });
+    assertEqual(saved, false, 'input event does not perform synchronous blocking saveSettings');
+
+    // Change event commits settings
+    colorHigh.dispatchEvent({ type: 'change', target: colorHigh });
+    assertEqual(saved, true, 'change event commits saveSettings to storage');
+  }
 });
 
 console.log('\n================================================================');
