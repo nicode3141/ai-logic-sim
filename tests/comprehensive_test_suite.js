@@ -2344,6 +2344,17 @@ runTest('WISH-046', 'Remove duplicate frequency and zoom readouts from timing di
   assertEqual(/id="label-time-zoom"[^>]*display:\s*none/.test(require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8')), true, 'Zoom readout next to slider is hidden');
 });
 
+runTest('WISH-047', 'Camera auto-pans while dragging selected modules near the canvas edge', () => {
+  const app = new LogicSimApp();
+  assertEqual(typeof app.startDragAutoPan, 'function', 'startDragAutoPan is available');
+  const html = require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
+  assertEqual(html.includes('this.startDragAutoPan()') && html.includes('__autoPan'), true, 'mousemove drag triggers auto-pan loop');
+  app.engine.mode = 'edit';
+  app.isDraggingGroup = false; app.draggingComp = null;
+  app.startDragAutoPan();
+  assertEqual(Boolean(app._autoPanActive), false, 'No auto-pan loop when nothing is dragged');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
