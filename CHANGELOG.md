@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.4-alpha] - 2026-11-12
+- Bauteil-Palette im Simulationsmodus wieder abgedunkelt (55 %) und gesperrt (Änderung aus 1.1.3 zurückgenommen).
+
 ## [1.1.3-alpha] - 2026-11-12
 - Bauteil-Palette ist im Simulationsmodus bearbeitbar (Drag & Drop, Doppelklick, Löschen).
 - Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt (nur noch Slider).

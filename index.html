@@ -804,8 +804,7 @@
     }
 
     #sidebar.sim-locked {
-      /* Palette remains fully active, crisp, and interactive in simulation mode */
-      opacity: 1;
+      opacity: 0.55;
     }
 
     .panel-header {
@@ -17012,7 +17011,7 @@
         btnSim.className = 'mode-btn' + (isSim ? ' active-sim' : '');
 
         const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.remove('sim-locked');
+        sidebar.classList.toggle('sim-locked', isSim);
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -17446,11 +17445,16 @@
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
           item.addEventListener('dragstart', (e) => {
+            if (this.engine.mode === 'sim') {
+              e.preventDefault();
+              return;
+            }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
 
           item.addEventListener('dblclick', () => {
+            if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
             if (type.startsWith('MODULE:')) {
               const rect = this.gridCanvas.getBoundingClientRect();
@@ -17458,7 +17462,6 @@
               const tab = this.getActiveTab();
               if (tab) this.pushHistory(tab);
               if (this.placeCustomModule(this.circuit, this.renderer, type.slice(7), center.x, center.y)) {
-                if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
                 this.renderer.render();
                 this.refreshAll();
               }
@@ -17520,11 +17523,13 @@
       attachPaletteDrop(canvas, getTargetTab, getRenderer) {
         if (!canvas) return;
         canvas.addEventListener('dragover', (e) => {
+          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
         });
 
         canvas.addEventListener('drop', (e) => {
+          if (this.engine.mode === 'sim') return;
           e.preventDefault();
           const type = e.dataTransfer.getData('text/plain');
           if (!type) return;
@@ -21383,17 +21388,18 @@
           item.appendChild(delBtn);
 
           item.addEventListener('dragstart', (e) => {
+            if (this.engine.mode === 'sim') { e.preventDefault(); return; }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
           });
           item.addEventListener('dblclick', (e) => {
             if (e.target.closest('.palette-module-del')) return;
+            if (this.engine.mode === 'sim') return;
             const rect = this.gridCanvas.getBoundingClientRect();
             const center = this.renderer.screenToWorld(rect.width / 2, rect.height / 2);
             const tab = this.getActiveTab();
             if (tab) this.pushHistory(tab);
             if (this.placeCustomModule(this.circuit, this.renderer, mod.id, center.x, center.y)) {
-              if (this.engine.mode === 'sim') this.circuit.syncImmediateWireLevels();
               this.renderer.render();
               this.refreshAll();
             }
