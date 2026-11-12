@@ -56,3 +56,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 >
 > [FAIL] [WISH-017] Complete English language support and phrase dictionary parity: Translation for "Interaktion & Bedienung:" must not be identical to German source: got "Interaktion & Bedienung:": Expected true, got false
 > Error: Process completed with exit code 1.
+
+---
+
+## 2026-11-12 — Create AGENTS.md
+
+- **Author:** nicode
+- **Branch:** `docs/agents-md`
+- **Related:** Repository documentation
+- **Prompt:**
+
+> write an AGENTS.MD file covering up everything you know and think about this project
