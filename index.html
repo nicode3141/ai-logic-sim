@@ -18013,8 +18013,10 @@
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
           this.lastMouseWorldPos = { x: world.x, y: world.y };
+          this.lastDragClient = { x: e.clientX, y: e.clientY };
           if (e.target === canvas) this.updateStatusCoords(world);
           this.updateStatusHint();
+          if (!e.__autoPan) this.startDragAutoPan();
 
           if (this.isPanning) {
             let nextPanX = this.panOrigin.x + (e.clientX - this.panStartScreen.x);
@@ -21486,6 +21488,36 @@
           }
         }
         this.updateStatusHint();
+      }
+
+      startDragAutoPan() {
+        if (this._autoPanActive) return;
+        if (!(this.isDraggingGroup || this.draggingComp) || this.engine.mode !== 'edit') return;
+        if (typeof requestAnimationFrame !== 'function' || typeof MouseEvent === 'undefined') return;
+        this._autoPanActive = true;
+        const step = () => {
+          const dragging = (this.isDraggingGroup || this.draggingComp) && this.engine.mode === 'edit';
+          const canvas = this.renderer && this.renderer.canvas;
+          if (!dragging || !canvas || !this.lastDragClient) { this._autoPanActive = false; return; }
+          const rect = canvas.getBoundingClientRect();
+          const EDGE = 48, MAX = 18;
+          const p = this.lastDragClient;
+          const speed = (d) => d < EDGE ? Math.min(MAX, Math.ceil((EDGE - Math.max(0, d)) / EDGE * MAX)) : 0;
+          let vx = 0, vy = 0;
+          vx += speed(p.x - rect.left); vx -= speed(rect.right - p.x);
+          vy += speed(p.y - rect.top); vy -= speed(rect.bottom - p.y);
+          if (vx !== 0 || vy !== 0) {
+            const z = this.renderer.zoom;
+            const w = rect.width, h = rect.height;
+            this.renderer.panX = Math.max(80 - 5000 * z, Math.min(w - 80 + 5000 * z, this.renderer.panX + vx));
+            this.renderer.panY = Math.max(80 - 5000 * z, Math.min(h - 80 + 5000 * z, this.renderer.panY + vy));
+            const ev = new MouseEvent('mousemove', { clientX: p.x, clientY: p.y, bubbles: true });
+            ev.__autoPan = true;
+            window.dispatchEvent(ev);
+          }
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
       }
 
       updateStatusHint() {

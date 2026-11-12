@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.5-alpha] - 2026-11-12
+- Kamera folgt beim Verschieben ausgewählter Module: am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit.
+
 ## [1.1.4-alpha] - 2026-11-12
 - Bauteil-Palette im Simulationsmodus wieder abgedunkelt (55 %) und gesperrt (Änderung aus 1.1.3 zurückgenommen).
 
