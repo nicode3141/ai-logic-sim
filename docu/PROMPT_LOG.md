@@ -42,3 +42,17 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+
+---
+
+## 2026-11-12 — Fix WISH-017 CI failure
+
+- **Author:** nicode
+- **Branch:** `fix/wish-017-language-state`
+- **Related:** WISH-017
+- **Prompt (CI log excerpt):**
+
+> fix the tests etc
+>
+> [FAIL] [WISH-017] Complete English language support and phrase dictionary parity: Translation for "Interaktion & Bedienung:" must not be identical to German source: got "Interaktion & Bedienung:": Expected true, got false
+> Error: Process completed with exit code 1.
