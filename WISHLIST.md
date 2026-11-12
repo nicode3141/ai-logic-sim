@@ -10,7 +10,7 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 - **`main`**: **Stable releases only**. No experimental or WIP code is merged directly here. Releases are tagged (`v1.0.0`, `v1.1.0`, etc.).
 - **`beta`**: **Pre-release & Staging**. Stabilized features from `alpha` are validated here before promoting to `main`.
 - **`alpha`**: **Active Development & Integration**. The primary branch for integrating completed wishes and ongoing fixes.
-- **`feat/<name>`**: Dedicated short-lived feature/fix branches for specific wishlist items. Branch off `alpha`, tested against the test suite, and merged back into `alpha` (no git worktrees used).
+- **`feat/<name>`**: Dedicated short-lived feature/fix branches for specific wishlist items. Branch off `alpha`, tested against the test suite, and squash-merged into `alpha` (no merge commits, no git worktrees); the branch is deleted after merging.
 
 ---
 
@@ -62,6 +62,9 @@ Whenever new wishes are added, they are documented here, tracked with dedicated 
 | **WISH-042** | NOT-Gatter 40x40 Größen-Arretierung & 30px Pin-Fangbereich | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Breiten-Rücksprung von 40px auf 80px in `rebuildPins()` dauerhaft behoben; Fangradius beim Fallenlassen von NOT/Negator auf Gatterpins zur Signalinvertierung auf 30px erweitert. |
 | **WISH-043** | Kontextmenü-Scrolling (`max-height`) & Viewport-Clamping | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | `max-height: calc(100vh - 24px)` mit vertikalem Scrollen und Viewport-Bounding-Box-Clamping für Kontextmenüs gegen Abschneiden am Bildschirmrand. |
 | **WISH-044** | Performante Signalfarb-Auswahl (rAF-Throttling & debounced Storage) | `feat/alpha-wishlist-batch-37-44` | 🟢 **Completed** | Farbauswahl für HIGH- und LOW-Signale per `requestAnimationFrame` flüssig gedrosselt, `saveSettings()` erst beim `change`-Event. |
+| **WISH-045** | Bauteil-Palette im Simulationsmodus abgedunkelt & gesperrt | `fix/palette-sim-lock` | 🟢 **Completed** | 55 % Deckkraft, Drag & Drop/Doppelklick gesperrt. |
+| **WISH-046** | Doppelte Takt-/Zoom-Anzeige im Impulsdiagramm entfernt | `feat/palette-sim-edit-and-slider-dedup` | 🟢 **Completed** | Nur noch Slider; Leeres-Arbeitsfläche-Popup entfernt. |
+| **WISH-047** | Kamera folgt beim Verschieben ausgewählter Module | `feat/drag-autopan` | 🟢 **Completed** | Auto-Scroll am Rand der Arbeitsfläche. |
 
 ---
 

@@ -8,16 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [1.1.5-alpha] - 2026-11-12
-- Kamera folgt beim Verschieben ausgewählter Module: am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit.
+### Added
+- **Feature:** Die Kamera folgt beim Verschieben ausgewÃ¤hlter Module â€“ am Rand der ArbeitsflÃ¤che scrollt die Ansicht automatisch mit (WISH-047).
 
 ## [1.1.4-alpha] - 2026-11-12
-- Bauteil-Palette im Simulationsmodus wieder abgedunkelt (55 %) und gesperrt (Änderung aus 1.1.3 zurückgenommen).
+### Fixed
+- **Fix:** Bauteil-Palette ist im Simulationsmodus wieder abgedunkelt (55 %) und gesperrt (WISH-045, Ã„nderung aus 1.1.3 zurÃ¼ckgenommen).
 
 ## [1.1.3-alpha] - 2026-11-12
-- Bauteil-Palette ist im Simulationsmodus bearbeitbar (Drag & Drop, Doppelklick, Löschen).
-- Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt (nur noch Slider).
-- Leeres-Arbeitsfläche-Popup entfernt.
-
+### Changed
+- **Feature:** Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt, nur noch die Slider (WISH-046).
+### Removed
+- **Fix:** StÃ¶rendes â€žArbeitsflÃ¤che ist leerâ€œ-Popup entfernt.
 ## [1.1.2-alpha] - 2026-11-12
 
 ### ðŸš€ Alpha Batch Release (WISH-037 through WISH-044) & Team Collaboration Setup
