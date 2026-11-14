@@ -82,3 +82,17 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 > gibt es einen weg die merges zu verstecken und außerdem löschst du die alten branches nicht. Außerdem passe die contribution.md file nochmal so an das auch ein changelog aufgeschrieben wird mit fix und feature ähnlich wie bei der wishlist und schreibe auch rein das man diese wishlist bzw. offene requests noch fixed
 > kannst du bitte alpha in dev mergen
 > Wir haben jetzt nochmal die contribution, agents und changelogs angepasst. Bitte befolge jetzt genau so wie es dort steht und arbeite mit pull requests!!!!
+
+---
+
+## 2026-11-14 — Projekt-Workflow-Regel (`/learn`), Kompakt-Auto-Layout & Theme-/Toast-Farbbalance
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-049, WISH-050
+- **Prompt:**
+
+> gibt es eine möglichkeit bei gemini sachen als artifacts reinzuladen bzw. memory zu enablen von früheren gesprächen bzw. weißt du jetzt was du das letzte mal gemacht hast und das du dich an alle .mds halten sollst?
+> /learn
+> manchmal ist das anordnen noch nicht so gut und beim zweiten bild so soll es bei kompakt aussehen !
+> das toast und manche farben sind nicht ganz richtig gebalanced auf das theme. Pushe die changes in den fabian branch

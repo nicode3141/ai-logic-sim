@@ -82,10 +82,24 @@ feat/*, fix/*, chore/*, docs/* ──► PR / merge ──► dev ──► PR /
 | **WISH-046** | Bauteil-Palette im Simulationsmodus abgedunkelt & gesperrt | `fix/palette-sim-lock` | 🟢 **Completed** | 55 % Deckkraft; Drag & Drop, Doppelklick und Löschen in der Simulation gesperrt. |
 | **WISH-047** | Doppelte Takt-/Zoom-Anzeige im Impulsdiagramm entfernt, Leeres-Arbeitsfläche-Popup entfernt | `feat/palette-sim-edit-and-slider-dedup` | 🟢 **Completed** | Nur noch Slider ohne zusätzliche Hz-/ms-/px-pro-Tick-Texte. |
 | **WISH-048** | Kamera folgt beim Verschieben ausgewählter Module | `feat/drag-autopan` | 🟢 **Completed** | Auto-Scroll am Rand der Arbeitsfläche beim Ziehen von Modulen. |
+| **WISH-049** | Auto-Anordnen im „Kompakt“-Modus (40px Pitch, gerade Eingänge) & sauberes Leitungs-Rerouting beim Bauteil-Verschieben | `fabian` | 🟢 **Completed** | „Kompakt“-Abstand (`rowGap: 0, labelPad: 0, minChannel: 60, subGap: 40`) stapelt 40px-Bauteile bündig im 40px-Raster; zweiseitig beschränkte Block-Nachoptimierung in `AutoLayoutEngine.layoutSubCircuit` richtet Eingangsblöcke (`Takt (CLK)`) exakt horizontal auf Ziel-Pins aus; `rerouteWiresAround` nutzt `routeWires` + `deconflictWireChannels` statt `tidyWireCorners` gegen vertikale Überschwinger an horizontalen Pins; Live-Update im `#align-popover`. |
+| **WISH-050** | Theme- & Toast-Farbbalance (`#sim-toast`, `--accent-green`-Trennung, `moduleValue`-Kontrast & helle Chrome-Elemente) | `fabian` | 🟢 **Completed** | Themenspezifisches `#sim-toast`-Styling für `java_swing`, `light_cad`, `blueprint`, `pitch_black` und `modern`; `setHighSignalColor` überschreibt nicht mehr global `--accent-green` auf `:root`; neuer `moduleValue`-Token (`#b45309` in `java_swing`, `#0f172a` in `light_cad`) für hohen Innenwert-Kontrast in Zählern/Decodern/Schieberegistern/Flip-Flops; Bereinigung hartkodierter dunkler Hintergründe (`#zoom-controls`, `.pane-header`, `#btn-inspector-expand`) und verwaister CSS-Zeilen. |
 
 ---
 
 ## 📝 Change Log & Completed Wishes
+
+- **WISH-049 & WISH-050 (Kompakt-Auto-Layout, Bauteil-Move-Rerouting & Theme-/Toast-Farbbalance)**:
+  - **WISH-049 (Auto-Anordnen „Kompakt“-Modus & Leitungs-Rerouting beim Verschieben)**:
+    - `getLayoutOptions()` liefert für `compact` `{ rowGap: 0, labelPad: 0, minChannel: 60, subGap: 40 }`, sodass Ausgangs-LEDs (z. B. beim `4-Bit-Binärzähler`) exakt im 40px-Raster bündig untereinander angeordnet werden.
+    - `AutoLayoutEngine.layoutSubCircuit()` ergänzt eine zweiseitig beschränkte (`[lo, hi]`) Block-Nachoptimierung sowie angepasste Quell-Gewichtung (`0.5`), sodass freie Eingangsblöcke (`Takt (CLK)`) ohne Verschiebung benachbarter Blöcke exakt gerade in den Ziel-Pin laufen (Steigerung des Layout-Beauty-Scores von 77 auf 85/100).
+    - `rerouteWiresAround()` verlegt betroffene Leitungen beim Verschieben von Bauteilen über `routeWires(targets)` und `deconflictWireChannels()` neu statt nur kollineare Ecken zu glätten (`tidyWireCorners`), wodurch vertikale Haken an horizontalen Eingangspins (`Carry (CO)`) vermieden werden.
+    - Umschalten von `Abstand` oder `Eingänge` im `#align-popover` führt im Edit-Modus sofort `autoLayoutCircuit()` aus.
+  - **WISH-050 (Theme- & Toast-Farbbalance über alle 5 Themes)**:
+    - `#sim-toast` themengerecht ausbalanciert (`java_swing`: klassisches `#ffffe1` Info-Banner mit `0px` Radius, `#000080` Akzentkante und hartem 2px-Schatten; `light_cad`, `blueprint`, `pitch_black` und `modern` jeweils mit abgestimmten Kontrasten).
+    - `setHighSignalColor()` setzt auf `document.documentElement.style` nur noch `--wire-high` und überschreibt nicht mehr global `--accent-green`, sodass `.freq-val` (`10 Hz (100 ms)`), `#analyzer-playhead-info`, `.status-quality` und Slider-Thumbs in hellen Themes (`java_swing`, `light_cad`) ihren lesbaren Theme-Kontrast behalten.
+    - `getThemePalette()` um `moduleValue` erweitert (`#b45309` in `java_swing`, `#0f172a` in `light_cad`, `#ffffff` in `blueprint`), verwendet für Innenwerte in `BCD_DEC`, `COUNTER`, `SHIFT_REG` und Flip-Flops/Latches.
+    - Hartkodierte dunkle Chrome-Hintergründe (`#zoom-controls`, `#zoom-controls-right`, `#btn-inspector-expand`, `.pane-header`), `.btn.btn-accent` in `java_swing`/`light_cad`, Range-Slider-Thumbs sowie ein verwaister CSS-Block nach `.freq-val` bereinigt.
 
 - **WISH-045 (Branching-Modell-Migration auf `main` + `dev` & Prompt-Log)**:
   - `dev` als einzigen langfristigen Integrations-/Entwicklungsbranch aus dem bisherigen `alpha`-Stand erstellt.

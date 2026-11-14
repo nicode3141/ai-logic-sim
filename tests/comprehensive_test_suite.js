@@ -2361,6 +2361,75 @@ runTest('WISH-047', 'Camera auto-pans while dragging selected modules near the c
   assertEqual(Boolean(app._autoPanActive), false, 'No auto-pan loop when nothing is dragged');
 });
 
+runTest('WISH-049', 'Compact Auto-Layout 40px LED pitch, straight counter inputs & obstacle-aware move rerouting', () => {
+  const app = new LogicSimApp();
+  app.layoutSpacing = 'compact';
+  const opts = app.getLayoutOptions();
+  assertEqual(opts.rowGap, 0, 'Compact rowGap is 0');
+  assertEqual(opts.labelPad, 0, 'Compact labelPad is 0');
+  assertEqual(opts.minChannel, 60, 'Compact minChannel is 60');
+  assertEqual(opts.subGap, 40, 'Compact subGap is 40');
+
+  app.layoutAnimation = false;
+  app.smartWires = true;
+  app.loadScenario('binary_counter_4bit');
+  app.autoLayoutCircuit();
+
+  const ledIds = ['bc_l0', 'bc_l1', 'bc_l2', 'bc_l3', 'bc_lco'];
+  const ledYs = ledIds.map(id => app.circuit.getComponent(id).y);
+  for (let i = 0; i < ledYs.length - 1; i++) {
+    assertEqual(ledYs[i + 1] - ledYs[i], 40, `Compact LED vertical pitch ${ledIds[i]} -> ${ledIds[i + 1]} is 40px`);
+  }
+
+  for (const wid of ['bcw1', 'bcw2', 'bcw3']) {
+    const w = app.circuit.getWire(wid);
+    const pts = app.renderer.getWirePolyline(w);
+    assertEqual(pts[0].y, pts[pts.length - 1].y, `Counter input wire ${wid} is straight horizontal`);
+  }
+
+  const lco = app.circuit.getComponent('bc_lco');
+  lco.y += 40;
+  app.rerouteWiresAround(['bc_lco']);
+  const w8 = app.circuit.getWire('bcw8');
+  const w8Pts = app.renderer.getWirePolyline(w8);
+  assertEqual(w8Pts.length >= 2, true, 'Moved Carry wire has valid polyline');
+  assertEqual(w8Pts[w8Pts.length - 2].y, w8Pts[w8Pts.length - 1].y, 'Moved Carry wire enters LED pin horizontally without vertical hook');
+});
+
+runTest('WISH-050', 'Theme & Toast color balance, --accent-green preservation, and moduleValue contrast', () => {
+  const app = new LogicSimApp();
+  const prevDocElem = document.documentElement;
+  const setCalls = [];
+  document.documentElement = {
+    style: { setProperty: (k, v) => setCalls.push([k, v]) }
+  };
+  try {
+    app.setHighSignalColor('#ffb300');
+  } finally {
+    if (prevDocElem === undefined) delete document.documentElement;
+    else document.documentElement = prevDocElem;
+  }
+
+  assertEqual(setCalls.some(([k, v]) => k === '--wire-high' && v === '#ffb300'), true, 'setHighSignalColor sets --wire-high');
+  assertEqual(setCalls.some(([k]) => k === '--accent-green'), false, 'setHighSignalColor does not overwrite --accent-green on :root');
+
+  const palettes = {};
+  for (const theme of ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad']) {
+    app.renderer.appTheme = theme;
+    palettes[theme] = app.renderer.getThemePalette();
+    assertEqual(Boolean(palettes[theme].moduleValue), true, `Theme ${theme} defines moduleValue`);
+  }
+  assertEqual(palettes.java_swing.moduleValue, '#b45309', 'java_swing moduleValue uses high-contrast amber-brown');
+  assertEqual(palettes.light_cad.moduleValue, '#0f172a', 'light_cad moduleValue uses high-contrast slate');
+
+  const currentHtml = fs.readFileSync(htmlPath, 'utf8');
+  assertEqual(currentHtml.includes('[data-theme="java_swing"] #sim-toast'), true, 'java_swing #sim-toast rule exists');
+  assertEqual(currentHtml.includes('[data-theme="light_cad"] #sim-toast'), true, 'light_cad #sim-toast rule exists');
+  assertEqual(currentHtml.includes('[data-theme="blueprint"] #sim-toast'), true, 'blueprint #sim-toast rule exists');
+  assertEqual(currentHtml.includes('[data-theme="pitch_black"] #sim-toast'), true, 'pitch_black #sim-toast rule exists');
+  assertEqual(/\.freq-val\s*\{[^}]*\}\s*color:\s*var\(--accent-green\)/.test(currentHtml), false, 'No stray orphaned CSS properties after .freq-val');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

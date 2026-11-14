@@ -637,10 +637,6 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--accent-green);
-      min-width: 38px;
-      text-align: right;
-    }
-      color: var(--accent-green);
       min-width: 42px;
       text-align: right;
     }
@@ -672,14 +668,14 @@
       background: var(--accent-green);
       cursor: pointer;
       border: 2px solid var(--bg-deep);
-      box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
       margin-top: -5px;
       transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
     input[type="range"]:active::-webkit-slider-thumb {
       transform: scale(1.2);
-      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
     }
 
     input[type="range"]::-moz-range-track {
@@ -696,12 +692,55 @@
       background: var(--accent-green);
       cursor: pointer;
       border: 2px solid var(--bg-deep);
-      box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
     }
 
     input[type="range"]:active::-moz-range-thumb {
       transform: scale(1.2);
-      box-shadow: 0 0 10px rgba(0, 230, 118, 0.8);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="java_swing"] input[type="range"]::-webkit-slider-runnable-track {
+      background: #808080;
+      border-radius: 0;
+      border: 1px solid #404040;
+    }
+
+    [data-theme="java_swing"] input[type="range"]::-webkit-slider-thumb {
+      border-radius: 0;
+      width: 11px;
+      height: 16px;
+      background: #ece9d8;
+      border: 1px solid #404040;
+      box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080;
+      margin-top: -6px;
+    }
+
+    [data-theme="java_swing"] input[type="range"]::-moz-range-track {
+      background: #808080;
+      border-radius: 0;
+      border: 1px solid #404040;
+    }
+
+    [data-theme="java_swing"] input[type="range"]::-moz-range-thumb {
+      border-radius: 0;
+      width: 11px;
+      height: 16px;
+      background: #ece9d8;
+      border: 1px solid #404040;
+      box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080;
+    }
+
+    [data-theme="light_cad"] input[type="range"]::-webkit-slider-thumb {
+      background: var(--accent-blue);
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+    }
+
+    [data-theme="light_cad"] input[type="range"]::-moz-range-thumb {
+      background: var(--accent-blue);
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
     }
 
     select.select-input {
@@ -929,7 +968,8 @@
       right: 12px;
       display: flex;
       gap: 4px;
-      background: rgba(18, 22, 28, 0.9);
+      background: var(--bg-panel);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
       padding: 4px;
       border-radius: var(--control-radius);
       border: 1px solid var(--border-bright);
@@ -2471,7 +2511,7 @@
     .pane-header {
       height: 28px;
       min-height: 28px;
-      background: #11151c;
+      background: var(--bg-surface);
       border-bottom: 1px solid var(--border-dim);
       display: flex;
       align-items: center;
@@ -2577,6 +2617,31 @@
     .align-split .btn-caret[aria-expanded="true"] {
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
       color: #061014;
+    }
+
+    [data-theme="java_swing"] .btn.btn-accent {
+      background: #dee7f2 !important;
+      border-color: #4a6984 !important;
+      color: #000080 !important;
+      box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #9eb0c2 !important;
+    }
+    [data-theme="java_swing"] .btn.btn-accent:hover:not(:disabled),
+    [data-theme="java_swing"] .align-split .btn-caret[aria-expanded="true"] {
+      background: #cddceb !important;
+      color: #000080 !important;
+    }
+    [data-theme="light_cad"] .btn.btn-accent {
+      background: rgba(2, 132, 199, 0.12);
+      border-color: rgba(2, 132, 199, 0.45);
+      color: #0369a1;
+      box-shadow: none;
+    }
+    [data-theme="light_cad"] .btn.btn-accent:hover:not(:disabled),
+    [data-theme="light_cad"] .align-split .btn-caret[aria-expanded="true"] {
+      background: rgba(2, 132, 199, 0.2);
+      border-color: #0284c7;
+      color: #075985;
+      box-shadow: none;
     }
 
     .align-split.sim-locked {
@@ -3570,17 +3635,51 @@
       bottom: 78px;
       transform: translateX(-50%);
       max-width: min(680px, 92vw);
-      padding: 9px 16px;
+      padding: 8px 16px;
       border-radius: 8px;
       background: var(--bg-elevated);
-      border: 1px solid var(--accent-blue);
+      border: 1px solid var(--border-bright);
+      border-left: 3px solid var(--accent-blue);
       color: var(--text-main);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       font-size: 12.5px;
       font-weight: 600;
       z-index: 999999;
       pointer-events: none;
       transition: opacity 0.25s ease;
+    }
+    [data-theme="java_swing"] #sim-toast {
+      border-radius: 0px;
+      background: #ffffe1;
+      border: 1px solid #808080;
+      border-left: 3px solid #000080;
+      color: #000000;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.25);
+      font-weight: 600;
+    }
+    [data-theme="light_cad"] #sim-toast {
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid var(--accent-blue);
+      color: #0f172a;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+    }
+    [data-theme="blueprint"] #sim-toast {
+      border-radius: 4px;
+      background: #0c2340;
+      border: 1px solid #60a5fa;
+      border-left: 3px solid #38bdf8;
+      color: #f0f9ff;
+      box-shadow: 0 8px 24px rgba(2, 12, 27, 0.65);
+    }
+    [data-theme="pitch_black"] #sim-toast {
+      border-radius: 6px;
+      background: #0a0a0f;
+      border: 1px solid #2e2e3e;
+      border-left: 3px solid var(--accent-blue);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
     }
 
     /* --- Theme-proof chrome: menu bar, tabs and menus follow the active theme -------- */
@@ -4334,7 +4433,7 @@
             </div>
             <canvas id="grid-canvas-right"></canvas>
 
-            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: rgba(18, 22, 28, 0.85); padding: 4px; border-radius: 6px; border: 1px solid var(--border-dim); backdrop-filter: blur(8px);">
+            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: var(--bg-panel); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); padding: 4px; border-radius: 6px; border: 1px solid var(--border-bright);">
               <button class="zoom-btn" id="btn-zoom-out-right" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
               <button class="zoom-btn" id="btn-zoom-reset-right" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
               <button class="zoom-btn" id="btn-zoom-in-right" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -4342,7 +4441,7 @@
           </div>
         </div>
 
-        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 44px; z-index: 15; display: none; background: rgba(18, 22, 28, 0.9); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
+        <button id="btn-inspector-expand" class="btn" style="position: absolute; right: 12px; top: 44px; z-index: 15; display: none; background: var(--bg-panel); border: 1px solid var(--border-bright);" title="Inspector wieder einblenden">
           <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
           <span>Eigenschaften</span>
         </button>
@@ -8400,7 +8499,7 @@
           }
           if (wOut === 0 || hi <= gLayer[g]) continue;
           let wIn = 0;
-          for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.3 : 1;
+          for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.5 : 1;
           if (wOut > wIn) gLayer[g] = hi;
         }
         for (let i = 0; i < n; i++) {
@@ -8784,6 +8883,22 @@
           if (bestCost === 0) break;
         }
         order.forEach((b, i) => { b.pos = bestPos[i]; });
+        for (let pass = 0; pass < 4; pass++) {
+          for (let i = 0; i < order.length; i++) {
+            const b = order[i];
+            let lo = -Infinity, hi = Infinity;
+            for (const c of b.above) if (c.b.pos + c.sep > lo) lo = c.b.pos + c.sep;
+            for (const cc of b.below) if (cc.b.pos - cc.sep < hi) hi = cc.b.pos - cc.sep;
+            if (lo <= hi) b.pos = snapG(choose(b, lo, hi));
+          }
+          for (let i = order.length - 1; i >= 0; i--) {
+            const b = order[i];
+            let lo = -Infinity, hi = Infinity;
+            for (const c of b.above) if (c.b.pos + c.sep > lo) lo = c.b.pos + c.sep;
+            for (const cc of b.below) if (cc.b.pos - cc.sep < hi) hi = cc.b.pos - cc.sep;
+            if (lo <= hi) b.pos = snapG(choose(b, lo, hi));
+          }
+        }
 
         let minTop = Infinity, maxBottom = -Infinity;
         for (const layer of layers) for (const it of layer) {
@@ -10457,6 +10572,7 @@
               moduleTitle: '#d4d4d8',
               moduleText: '#f4f4f5',
               moduleSub: '#a1a1aa',
+              moduleValue: this.highSignalColor || '#00ff66',
               displayWellFill: '#000000',
               displayWellStroke: '#27272a',
               segOff: '#18181b',
@@ -10486,6 +10602,7 @@
               moduleTitle: '#000080',
               moduleText: '#000000',
               moduleSub: '#333333',
+              moduleValue: '#b45309',
               displayWellFill: '#000000',
               displayWellStroke: '#808080',
               segOff: '#222222',
@@ -10515,6 +10632,7 @@
               moduleTitle: '#7dd3fc',
               moduleText: '#e0f2fe',
               moduleSub: '#60a5fa',
+              moduleValue: '#ffffff',
               displayWellFill: '#030b14',
               displayWellStroke: '#173b66',
               segOff: '#0b203a',
@@ -10544,6 +10662,7 @@
               moduleTitle: '#0f172a',
               moduleText: '#0f172a',
               moduleSub: '#475569',
+              moduleValue: '#0f172a',
               displayWellFill: '#0f172a',
               displayWellStroke: '#334155',
               segOff: '#1e293b',
@@ -10574,6 +10693,7 @@
               moduleTitle: '#94a3b8',
               moduleText: '#f1f5f9',
               moduleSub: '#64748b',
+              moduleValue: this.highSignalColor || '#00e676',
               displayWellFill: '#090d14',
               displayWellStroke: '#1e293b',
               segOff: '#151c28',
@@ -12600,7 +12720,7 @@
             ctx.textAlign = 'center';
             ctx.fillText('BCD/7S', cx, cy - 9);
 
-            ctx.fillStyle = highColor;
+            ctx.fillStyle = pal.moduleValue || highColor;
             ctx.font = '700 13px monospace';
             ctx.fillText(`${val} (${hexChar})`, cx, cy + 9);
 
@@ -12626,7 +12746,7 @@
             ctx.textAlign = 'center';
             ctx.fillText(modeStr, cx, cy - 10);
 
-            ctx.fillStyle = highColor;
+            ctx.fillStyle = pal.moduleValue || highColor;
             ctx.font = '700 14px monospace';
             ctx.fillText(`${cnt}`, cx, cy + 6);
 
@@ -12652,7 +12772,7 @@
             ctx.textAlign = 'center';
             ctx.fillText('SIPO 4B', cx, cy - 7);
 
-            ctx.fillStyle = highColor;
+            ctx.fillStyle = pal.moduleValue || highColor;
             ctx.font = '700 11px monospace';
             ctx.fillText(bitStr, cx, cy + 6);
 
@@ -12688,7 +12808,7 @@
             ctx.textAlign = 'center';
             ctx.fillText(ffName, cx, cy - 7);
 
-            ctx.fillStyle = q === 1 ? highColor : pal.textMuted;
+            ctx.fillStyle = q === 1 ? (pal.moduleValue || highColor) : pal.textMuted;
             ctx.font = '700 13px monospace';
             ctx.fillText(`Q=${q}`, cx, cy + 8);
 
@@ -20005,7 +20125,7 @@
 
       getLayoutOptions() {
         switch (this.layoutSpacing) {
-          case 'compact': return { rowGap: 20, minChannel: 60 };
+          case 'compact': return { rowGap: 0, labelPad: 0, minChannel: 60, subGap: 40 };
           case 'wide': return { rowGap: 40, minChannel: 120 };
           default: return { rowGap: 20, minChannel: 80 };
         }
@@ -20083,7 +20203,8 @@
           }
         }
         if (targets.length === 0) return 0;
-        this.tidyWireCorners(targets);
+        this.routeWires(targets);
+        this.deconflictWireChannels();
         return targets.length;
       }
 
@@ -20533,6 +20654,9 @@
             this.layoutSpacing = btn.getAttribute('data-spacing');
             this.updateAlignMenuState();
             this.saveSettings();
+            if (this.engine.mode !== 'sim' && this.circuit.components.length > 0) {
+              this.autoLayoutCircuit();
+            }
           });
         });
         pop.querySelectorAll('[data-inputs]').forEach(btn => {
@@ -20540,6 +20664,9 @@
             this.layoutInputs = btn.getAttribute('data-inputs');
             this.updateAlignMenuState();
             this.saveSettings();
+            if (this.engine.mode !== 'sim' && this.circuit.components.length > 0) {
+              this.autoLayoutCircuit();
+            }
           });
         });
         const chkAnim = document.getElementById('chk-layout-animation');
@@ -22678,7 +22805,6 @@
         if (this.rendererRight) this.rendererRight.highSignalGlow = glow;
 
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
-          document.documentElement.style.setProperty('--accent-green', color);
           document.documentElement.style.setProperty('--wire-high', color);
         }
 
