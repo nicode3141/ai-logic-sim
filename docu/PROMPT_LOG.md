@@ -107,3 +107,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > mache das wenigstens noch ein gap ist. Zudem will ich das man die inputs und output beschriftung sämtlicher module ändern kann und wenn ich bei der bauteil selection auf vorschau gehe und zurück buggt das rum. MAche zudem die vorschau der module schärfer kontrastreicher und größer!
+
+---
+
+## 2026-11-14 — Taster-Stabilität beim Klicken/Halten & Live-Auswahlrechteck
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-053, WISH-054
+- **Prompt:**
+
+> wenn ich den taster aktiviere verschiebt sich die schaltung. Adde zudem das module schon während der bewegung des selectionsvierecks selected werden

@@ -17364,6 +17364,38 @@
         this.updateStatusBar();
       }
 
+      updateSelectionFromBox(box, additive = false, forceInspector = false) {
+        if (!box) return;
+        const minX = Math.min(box.startX, box.currX);
+        const maxX = Math.max(box.startX, box.currX);
+        const minY = Math.min(box.startY, box.currY);
+        const maxY = Math.max(box.startY, box.currY);
+        const nextComps = new Set(additive && this.boxBaseCompIds ? this.boxBaseCompIds : []);
+        const nextWires = new Set(additive && this.boxBaseWireIds ? this.boxBaseWireIds : []);
+        if (maxX - minX > 4 || maxY - minY > 4) {
+          for (const comp of this.circuit.components) {
+            const cx2 = comp.x + comp.width;
+            const cy2 = comp.y + comp.height;
+            if (comp.x < maxX && cx2 > minX && comp.y < maxY && cy2 > minY) {
+              nextComps.add(comp.id);
+            }
+          }
+          for (const wire of this.circuit.wires) {
+            const pts = this.renderer.getWirePolyline(wire);
+            if (this.renderer.isWireIntersectingBox(pts, minX, minY, maxX, maxY)) {
+              nextWires.add(wire.id);
+            }
+          }
+        }
+        const selKey = `${Array.from(nextComps).join(',')}|${Array.from(nextWires).join(',')}`;
+        if (forceInspector || selKey !== this._lastBoxSelKey) {
+          this._lastBoxSelKey = selKey;
+          this.selectMulti(nextComps, nextWires);
+        } else {
+          this.renderer.render();
+        }
+      }
+
       showToast(message) {
         let toast = document.getElementById('sim-toast');
         if (!toast || !toast.style) {
@@ -17382,9 +17414,10 @@
         }, 3200);
       }
 
-      startGroupDrag(world) {
+      startGroupDrag(world, e = null) {
         this.isDraggingGroup = true;
-        this.beginDragPreview(Array.from(this.renderer.selectedCompIds));
+        this.groupDragMoved = false;
+        this.groupDragStartClient = (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) ? { x: e.clientX, y: e.clientY } : null;
         this.groupDragStartWorld = { x: world.x, y: world.y };
         this.groupStartPositions = new Map();
         for (const cid of this.renderer.selectedCompIds) {
@@ -18184,7 +18217,7 @@
 
             const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
             if (this.renderer.selectedCompIds.has(hitComp.id) && totalSel > 1) {
-              this.startGroupDrag(world);
+              this.startGroupDrag(world, e);
               canvas.style.cursor = 'move';
               return;
             }
@@ -18195,8 +18228,14 @@
               x: world.x - hitComp.x,
               y: world.y - hitComp.y
             };
-            this.compMouseDownPos = { compId: hitComp.id, origX: hitComp.x, origY: hitComp.y };
-            this.beginDragPreview([hitComp.id]);
+            this.compMouseDownPos = {
+              compId: hitComp.id,
+              origX: hitComp.x,
+              origY: hitComp.y,
+              startClientX: e.clientX,
+              startClientY: e.clientY,
+              hasMoved: false
+            };
             if (this.allowEditModeInteraction && hitComp.type === 'BUTTON') {
               hitComp.state.pressed = 1;
               hitComp.outputs[0].value = 1;
@@ -18205,7 +18244,7 @@
               this.circuit.syncImmediateWireLevels();
               this.refreshAll();
             }
-            canvas.style.cursor = 'move';
+            canvas.style.cursor = (this.allowEditModeInteraction && (hitComp.type === 'BUTTON' || hitComp.type === 'SWITCH')) ? 'pointer' : 'move';
             return;
           }
 
@@ -18224,7 +18263,7 @@
 
             const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
             if (this.renderer.selectedWireIds.has(hitWire.id) && totalSel > 1) {
-              this.startGroupDrag(world);
+              this.startGroupDrag(world, e);
               canvas.style.cursor = 'move';
               return;
             }
@@ -18236,6 +18275,9 @@
           if (!e.shiftKey && !e.ctrlKey) {
             this.selectItem(null, null);
           }
+          this.boxBaseCompIds = (e.shiftKey || e.ctrlKey) ? new Set(this.renderer.selectedCompIds) : new Set();
+          this.boxBaseWireIds = (e.shiftKey || e.ctrlKey) ? new Set(this.renderer.selectedWireIds) : new Set();
+          this._lastBoxSelKey = `${Array.from(this.boxBaseCompIds).join(',')}|${Array.from(this.boxBaseWireIds).join(',')}`;
           this.isSelectingBox = true;
           this.renderer.selectionBox = {
             startX: world.x,
@@ -18278,15 +18320,25 @@
           if (this.isSelectingBox && this.renderer.selectionBox) {
             this.renderer.selectionBox.currX = world.x;
             this.renderer.selectionBox.currY = world.y;
-            this.renderer.render();
+            this.updateSelectionFromBox(this.renderer.selectionBox, Boolean(e.shiftKey || e.ctrlKey), false);
             return;
           }
 
           if (this.isDraggingGroup && this.groupStartPositions) {
+            if (!this.groupDragMoved && this.groupDragStartClient &&
+                Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+              const screenDist = Math.hypot(e.clientX - this.groupDragStartClient.x, e.clientY - this.groupDragStartClient.y);
+              if (screenDist < 6) return;
+            }
             const dx = world.x - this.groupDragStartWorld.x;
             const dy = world.y - this.groupDragStartWorld.y;
             const snapDx = Math.round(dx / GRID_SIZE) * GRID_SIZE;
             const snapDy = Math.round(dy / GRID_SIZE) * GRID_SIZE;
+            if (!this.groupDragMoved) {
+              if (snapDx === 0 && snapDy === 0) return;
+              this.groupDragMoved = true;
+              this.beginDragPreview(Array.from(this.renderer.selectedCompIds));
+            }
 
             for (const [cid, pos] of this.groupStartPositions.entries()) {
               const comp = this.circuit.getComponent(cid);
@@ -18484,10 +18536,33 @@
           }
 
           if (this.draggingComp && this.engine.mode === 'edit') {
+            if (this.compMouseDownPos && !this.compMouseDownPos.hasMoved) {
+              const minDragPx = (this.allowEditModeInteraction && this.draggingComp.type === 'BUTTON') ? 16 : 6;
+              if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY) &&
+                  Number.isFinite(this.compMouseDownPos.startClientX) && Number.isFinite(this.compMouseDownPos.startClientY)) {
+                const screenDist = Math.hypot(e.clientX - this.compMouseDownPos.startClientX, e.clientY - this.compMouseDownPos.startClientY);
+                if (screenDist < minDragPx) return;
+              }
+            }
             const rawX = world.x - this.dragOffsetWorld.x;
             const rawY = world.y - this.dragOffsetWorld.y;
-            this.draggingComp.x = Math.max(-5000, Math.min(5000 - (this.draggingComp.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
-            this.draggingComp.y = Math.max(-5000, Math.min(5000 - (this.draggingComp.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
+            const nextX = Math.max(-5000, Math.min(5000 - (this.draggingComp.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
+            const nextY = Math.max(-5000, Math.min(5000 - (this.draggingComp.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
+            if (this.compMouseDownPos && !this.compMouseDownPos.hasMoved) {
+              if (nextX === this.compMouseDownPos.origX && nextY === this.compMouseDownPos.origY) return;
+              this.compMouseDownPos.hasMoved = true;
+              if (this.activeButtonComp === this.draggingComp) {
+                this.activeButtonComp.state.pressed = 0;
+                this.activeButtonComp.outputs[0].value = 0;
+                this.activeButtonComp.nextOutputs[0] = 0;
+                this.activeButtonComp = null;
+                this.circuit.syncImmediateWireLevels();
+              }
+              this.beginDragPreview([this.draggingComp.id]);
+              canvas.style.cursor = 'move';
+            }
+            this.draggingComp.x = nextX;
+            this.draggingComp.y = nextY;
             this.inspector.render(this.draggingComp.id, null);
             this.renderer.render();
             return;
@@ -18662,42 +18737,18 @@
             const box = this.renderer.selectionBox;
             this.renderer.selectionBox = null;
             if (box) {
-              const minX = Math.min(box.startX, box.currX);
-              const maxX = Math.max(box.startX, box.currX);
-              const minY = Math.min(box.startY, box.currY);
-              const maxY = Math.max(box.startY, box.currY);
-              if (maxX - minX > 4 || maxY - minY > 4) {
-                const compHits = [];
-                for (const comp of this.circuit.components) {
-                  const cx2 = comp.x + comp.width;
-                  const cy2 = comp.y + comp.height;
-                  if (comp.x < maxX && cx2 > minX && comp.y < maxY && cy2 > minY) {
-                    compHits.push(comp.id);
-                  }
-                }
-                const wireHits = [];
-                for (const wire of this.circuit.wires) {
-                  const pts = this.renderer.getWirePolyline(wire);
-                  if (this.renderer.isWireIntersectingBox(pts, minX, minY, maxX, maxY)) {
-                    wireHits.push(wire.id);
-                  }
-                }
-                if (e.shiftKey || e.ctrlKey) {
-                  const combinedComps = new Set(this.renderer.selectedCompIds);
-                  compHits.forEach(id => combinedComps.add(id));
-                  const combinedWires = new Set(this.renderer.selectedWireIds);
-                  wireHits.forEach(id => combinedWires.add(id));
-                  this.selectMulti(combinedComps, combinedWires);
-                } else {
-                  this.selectMulti(compHits, wireHits);
-                }
-              }
+              this.updateSelectionFromBox(box, Boolean(e.shiftKey || e.ctrlKey), true);
             }
+            this.boxBaseCompIds = null;
+            this.boxBaseWireIds = null;
+            this._lastBoxSelKey = '';
             this.renderer.render();
           }
 
           if (this.isDraggingGroup) {
             this.isDraggingGroup = false;
+            this.groupDragMoved = false;
+            this.groupDragStartClient = null;
             let groupMoved = false;
             const groupIds = [];
             if (this.groupStartPositions) {
@@ -18901,7 +18952,14 @@
             this.rendererRight.selectedWireId = null;
             draggingCompRight = hitComp;
             dragOffsetWorldRight = { x: world.x - hitComp.x, y: world.y - hitComp.y };
-            compMouseDownPosRight = { compId: hitComp.id, origX: hitComp.x, origY: hitComp.y };
+            compMouseDownPosRight = {
+              compId: hitComp.id,
+              origX: hitComp.x,
+              origY: hitComp.y,
+              startClientX: e.clientX,
+              startClientY: e.clientY,
+              hasMoved: false
+            };
             if (this.allowEditModeInteraction && hitComp.type === 'BUTTON') {
               hitComp.state.pressed = 1;
               hitComp.outputs[0].value = 1;
@@ -18909,7 +18967,7 @@
               activeButtonCompRight = hitComp;
               rTab.circuit.syncImmediateWireLevels();
             }
-            canvas.style.cursor = 'move';
+            canvas.style.cursor = (this.allowEditModeInteraction && (hitComp.type === 'BUTTON' || hitComp.type === 'SWITCH')) ? 'pointer' : 'move';
             this.rendererRight.render();
             return;
           }
@@ -18942,10 +19000,33 @@
           }
 
           if (draggingCompRight) {
+            if (compMouseDownPosRight && !compMouseDownPosRight.hasMoved) {
+              const minDragPx = (this.allowEditModeInteraction && draggingCompRight.type === 'BUTTON') ? 16 : 6;
+              if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY) &&
+                  Number.isFinite(compMouseDownPosRight.startClientX) && Number.isFinite(compMouseDownPosRight.startClientY)) {
+                const screenDist = Math.hypot(e.clientX - compMouseDownPosRight.startClientX, e.clientY - compMouseDownPosRight.startClientY);
+                if (screenDist < minDragPx) return;
+              }
+            }
             const rawX = world.x - dragOffsetWorldRight.x;
             const rawY = world.y - dragOffsetWorldRight.y;
-            draggingCompRight.x = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
-            draggingCompRight.y = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+            const nextX = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
+            const nextY = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+            if (compMouseDownPosRight && !compMouseDownPosRight.hasMoved) {
+              if (nextX === compMouseDownPosRight.origX && nextY === compMouseDownPosRight.origY) return;
+              compMouseDownPosRight.hasMoved = true;
+              if (activeButtonCompRight === draggingCompRight) {
+                activeButtonCompRight.state.pressed = 0;
+                activeButtonCompRight.outputs[0].value = 0;
+                activeButtonCompRight.nextOutputs[0] = 0;
+                const rTab = this.getRightTab();
+                if (rTab) rTab.circuit.syncImmediateWireLevels();
+                activeButtonCompRight = null;
+              }
+              canvas.style.cursor = 'move';
+            }
+            draggingCompRight.x = nextX;
+            draggingCompRight.y = nextY;
             this.rendererRight.render();
           }
         });
@@ -21757,13 +21838,20 @@
         this.updateStatusHint();
       }
 
+      isActivelyDraggingComponent() {
+        if (this.engine.mode !== 'edit' || this.activeButtonComp) return false;
+        const groupActive = Boolean(this.isDraggingGroup && this.groupDragMoved);
+        const compActive = Boolean(this.draggingComp && (!this.compMouseDownPos || this.compMouseDownPos.hasMoved));
+        return groupActive || compActive;
+      }
+
       startDragAutoPan() {
         if (this._autoPanActive) return;
-        if (!(this.isDraggingGroup || this.draggingComp) || this.engine.mode !== 'edit') return;
+        if (!this.isActivelyDraggingComponent()) return;
         if (typeof requestAnimationFrame !== 'function' || typeof MouseEvent === 'undefined') return;
         this._autoPanActive = true;
         const step = () => {
-          const dragging = (this.isDraggingGroup || this.draggingComp) && this.engine.mode === 'edit';
+          const dragging = this.isActivelyDraggingComponent();
           const canvas = this.renderer && this.renderer.canvas;
           if (!dragging || !canvas || !this.lastDragClient) { this._autoPanActive = false; return; }
           const rect = canvas.getBoundingClientRect();

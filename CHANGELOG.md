@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### ✨ Added
+- **Feature:** Auswahlrechteck (`selectionBox`) selektiert Module und Leitungen bereits live während der Mausbewegung statt erst beim Loslassen (WISH-054).
 - **Feature:** Editierbare Ein- und Ausgangs-Pin-Beschriftungen (`Pin-Beschriftungen`) im Inspector für sämtliche Modultypen inkl. Synchronisation für eigene ICs und englischer I18N-Übersetzung (WISH-051).
 - **Feature:** Persistente Projekt-Workflow-Regel (`.agents/rules/project-workflow.md`) für Kontext-Check, Dokumentation (`WISHLIST.md`, `CHANGELOG.md`, `docu/PROMPT_LOG.md`), Tests und Git/PR-Konventionen hinzugefügt.
 - **Feature:** Die Kamera folgt beim Verschieben ausgewählter Module - am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit (WISH-048).
 
 ### 🔧 Changed
+- **Fix:** Halten und Aktivieren eines Tasters (`BUTTON`, z. B. `Reset (RST)`) am Rand des Arbeitsbereichs löst kein Auto-Pan, kein `wire._preview` und kein ungewolltes Mitziehen der Schaltung mehr aus (WISH-053).
 - **Fix:** Doppelte Pin-Label-Zeichnung bei komprimierten Custom-ICs (`CUSTOM_IC`, z. B. `SSW`/`LLEEDD`) behoben und Breite sauber am 20px-Grid ausgerichtet (WISH-051).
 - **Fix:** Umschalten in der Bauteil-Palette zwischen „Vorschau“ und „Beschriftung“ zerschießt das Layout nicht mehr (`.palette-preview-canvas` standardmäßig `display: none`); Modul-Vorschauen sind jetzt größer (`76px`/`96px`), schärfer (`renderDpr >= 2`) und kontrastreicher und aktualisieren sich bei Theme-, Norm- und Farbumschaltung (WISH-052).
 - **Fix:** „Kompakt“-Modus beim Auto-Anordnen behält jetzt mindestens 1 Grid-Zelle (`20px`) vertikalen Abstand (`labelPad: 20`), sodass gestapelte Eingänge/LEDs sich nicht berühren und Bauteilnamen lesbar bleiben; plus hindernisbewusstes Leitungs-Rerouting beim Bauteil-Verschieben (WISH-049).

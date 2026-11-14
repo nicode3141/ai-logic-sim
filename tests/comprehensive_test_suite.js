@@ -2591,6 +2591,178 @@ runTest('WISH-052', 'Palette Vorschau <-> Beschriftung toggle fix and larger, sh
   assertEqual(Boolean(app.renderer._hideTopLabelInPreview), false, '_hideTopLabelInPreview is reset to false after thumbnail draw');
 });
 
+runTest('WISH-053', 'Pressing BUTTON near canvas edge does not trigger wire preview, auto-pan, or shift circuit/component', () => {
+  const prevWinAdd = window.addEventListener;
+  const canvasEl = document.getElementById('grid-canvas');
+  const prevCanvasListeners = {};
+  if (canvasEl && canvasEl.listeners) {
+    for (const k of Object.keys(canvasEl.listeners)) prevCanvasListeners[k] = canvasEl.listeners[k].slice();
+  }
+  const winListeners = {};
+  window.addEventListener = (type, fn) => {
+    if (!winListeners[type]) winListeners[type] = [];
+    winListeners[type].push(fn);
+    return prevWinAdd(type, fn);
+  };
+  let app;
+  try {
+    app = new LogicSimApp();
+  } finally {
+    window.addEventListener = prevWinAdd;
+  }
+
+  const prevRectFn = app.gridCanvas.getBoundingClientRect;
+  const prevCreateTextNode = document.createTextNode;
+  if (typeof document.createTextNode !== 'function') {
+    document.createTextNode = (t) => ({ nodeType: 3, textContent: String(t) });
+  }
+  try {
+    app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600 });
+    app.engine.mode = 'edit';
+    app.allowEditModeInteraction = true;
+    app.smartWires = true;
+    app.renderer.panX = 0;
+    app.renderer.panY = 0;
+    app.renderer.zoom = 1;
+
+    const btn = app.circuit.addComponent('BUTTON', 100, 560);
+    const led = app.circuit.addComponent('LED', 300, 540);
+    const wire = app.circuit.addWire(btn.id, 0, led.id, 0);
+    wire.autoRouted = true;
+    wire.waypoints = [{ x: 220, y: 580 }, { x: 220, y: 560 }];
+
+    const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+    const lastMd = mdHandlers[mdHandlers.length - 1];
+    const mm = (ev) => (winListeners.mousemove || []).forEach(fn => fn(ev));
+    const mu = (ev) => (winListeners.mouseup || []).forEach(fn => fn(ev));
+
+    // 1. Press BUTTON near bottom edge (< 48px from 600px bottom)
+    lastMd({ button: 0, clientX: 140, clientY: 580, shiftKey: false, ctrlKey: false, preventDefault: () => {} });
+    assertEqual(btn.state.pressed, 1, 'BUTTON activates pressed = 1 on mousedown');
+    assertEqual(app.activeButtonComp, btn, 'activeButtonComp tracks held BUTTON');
+    assertEqual(wire._preview, false, 'Wire _preview is NOT set when pressing BUTTON');
+    assertEqual(app.isActivelyDraggingComponent(), false, 'Pressing BUTTON is not treated as active drag');
+
+    // 2. Small mouse jitter while holding BUTTON near bottom edge must NOT auto-pan or move BUTTON
+    mm({ clientX: 144, clientY: 589, target: app.gridCanvas });
+    app.startDragAutoPan();
+    assertEqual(Boolean(app._autoPanActive), false, 'Auto-pan stays inactive while holding BUTTON');
+    assertEqual(app.renderer.panX, 0, 'Canvas panX unchanged while pressing BUTTON');
+    assertEqual(app.renderer.panY, 0, 'Canvas panY unchanged while pressing BUTTON');
+    assertEqual(btn.x, 100, 'BUTTON x coordinate unchanged on press jitter');
+    assertEqual(btn.y, 560, 'BUTTON y coordinate unchanged on press jitter');
+
+    // 3. Releasing BUTTON keeps waypoints and position intact
+    mu({ clientX: 144, clientY: 589, shiftKey: false, ctrlKey: false });
+    assertEqual(btn.state.pressed, 0, 'BUTTON resets pressed = 0 on mouseup');
+    assertEqual(btn.x, 100, 'BUTTON x remains at 100 after release');
+    assertEqual(btn.y, 560, 'BUTTON y remains at 560 after release');
+    assertEqual(wire.waypoints.length, 2, 'Connected wire waypoints remain intact after BUTTON press');
+
+    // 4. Intentional drag beyond 16px threshold moves BUTTON cleanly and releases pressed state
+    lastMd({ button: 0, clientX: 140, clientY: 580, shiftKey: false, ctrlKey: false, preventDefault: () => {} });
+    mm({ clientX: 140, clientY: 520, target: app.gridCanvas });
+    assertEqual(app.isActivelyDraggingComponent(), true, 'Intentional > 16px drag promotes to active component drag');
+    assertEqual(btn.state.pressed, 0, 'BUTTON releases pressed state once intentional drag begins');
+    assertEqual(btn.y, 500, 'BUTTON moves to grid-snapped target y=500 on intentional drag');
+    mu({ clientX: 140, clientY: 520, shiftKey: false, ctrlKey: false });
+  } finally {
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+    app.gridCanvas.getBoundingClientRect = prevRectFn;
+    if (canvasEl && canvasEl.listeners) {
+      for (const k of Object.keys(canvasEl.listeners)) {
+        if (prevCanvasListeners[k]) canvasEl.listeners[k] = prevCanvasListeners[k];
+      }
+    }
+  }
+});
+
+runTest('WISH-054', 'Selection rectangle selects and unselects modules and wires live during mousemove', () => {
+  const prevWinAdd = window.addEventListener;
+  const canvasEl = document.getElementById('grid-canvas');
+  const prevCanvasListeners = {};
+  if (canvasEl && canvasEl.listeners) {
+    for (const k of Object.keys(canvasEl.listeners)) prevCanvasListeners[k] = canvasEl.listeners[k].slice();
+  }
+  const winListeners = {};
+  window.addEventListener = (type, fn) => {
+    if (!winListeners[type]) winListeners[type] = [];
+    winListeners[type].push(fn);
+    return prevWinAdd(type, fn);
+  };
+  let app;
+  try {
+    app = new LogicSimApp();
+  } finally {
+    window.addEventListener = prevWinAdd;
+  }
+
+  const prevRectFn = app.gridCanvas.getBoundingClientRect;
+  const prevCreateTextNode = document.createTextNode;
+  if (typeof document.createTextNode !== 'function') {
+    document.createTextNode = (t) => ({ nodeType: 3, textContent: String(t) });
+  }
+  try {
+    app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600 });
+    app.engine.mode = 'edit';
+    app.renderer.panX = 0;
+    app.renderer.panY = 0;
+    app.renderer.zoom = 1;
+
+    const c1 = app.circuit.addComponent('AND', 100, 100);
+    const c2 = app.circuit.addComponent('OR', 300, 100);
+    const wire = app.circuit.addWire(c1.id, 0, c2.id, 0);
+
+    const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+    const lastMd = mdHandlers[mdHandlers.length - 1];
+    const mm = (ev) => (winListeners.mousemove || []).forEach(fn => fn(ev));
+    const mu = (ev) => (winListeners.mouseup || []).forEach(fn => fn(ev));
+
+    // Start marquee selection in empty space
+    lastMd({ button: 0, clientX: 50, clientY: 50, shiftKey: false, ctrlKey: false, preventDefault: () => {} });
+    assertEqual(app.isSelectingBox, true, 'Selection box starts on empty canvas mousedown');
+    assertEqual(app.renderer.selectedCompIds.size, 0, 'Initial selection is empty');
+
+    // Drag over c1 and wire (BEFORE mouseup)
+    mm({ clientX: 200, clientY: 200, target: app.gridCanvas, shiftKey: false, ctrlKey: false });
+    assertEqual(app.renderer.selectedCompIds.has(c1.id), true, 'c1 is selected live during mousemove');
+    assertEqual(app.renderer.selectedCompIds.has(c2.id), false, 'c2 outside box is not yet selected');
+    assertEqual(app.renderer.selectedWireIds.has(wire.id), true, 'Intersecting wire is selected live during mousemove');
+
+    // Expand over c2 as well (BEFORE mouseup)
+    mm({ clientX: 400, clientY: 220, target: app.gridCanvas, shiftKey: false, ctrlKey: false });
+    assertEqual(app.renderer.selectedCompIds.has(c1.id) && app.renderer.selectedCompIds.has(c2.id), true, 'Both c1 and c2 are selected live as box expands');
+
+    // Shrink box off c2 (BEFORE mouseup)
+    mm({ clientX: 190, clientY: 200, target: app.gridCanvas, shiftKey: false, ctrlKey: false });
+    assertEqual(app.renderer.selectedCompIds.has(c1.id), true, 'c1 stays selected as box stays over c1');
+    assertEqual(app.renderer.selectedCompIds.has(c2.id), false, 'c2 unselects live when box shrinks off c2');
+
+    // Release mouseup
+    mu({ clientX: 190, clientY: 200, shiftKey: false, ctrlKey: false });
+    assertEqual(app.isSelectingBox, false, 'Selection box finishes on mouseup');
+    assertEqual(app.renderer.selectedCompIds.has(c1.id), true, 'Final selection keeps c1 after mouseup');
+    assertEqual(app.renderer.selectedCompIds.has(c2.id), false, 'Final selection excludes c2 after mouseup');
+
+    // Shift-additive live marquee preserves existing selection (c2) while adding c1
+    app.selectMulti([c2.id], []);
+    lastMd({ button: 0, clientX: 50, clientY: 50, shiftKey: true, ctrlKey: false, preventDefault: () => {} });
+    mm({ clientX: 190, clientY: 200, target: app.gridCanvas, shiftKey: true, ctrlKey: false });
+    assertEqual(app.renderer.selectedCompIds.has(c1.id) && app.renderer.selectedCompIds.has(c2.id), true, 'Shift+marquee keeps base c2 and selects c1 live during mousemove');
+    mu({ clientX: 190, clientY: 200, shiftKey: true, ctrlKey: false });
+  } finally {
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+    app.gridCanvas.getBoundingClientRect = prevRectFn;
+    if (canvasEl && canvasEl.listeners) {
+      for (const k of Object.keys(canvasEl.listeners)) {
+        if (prevCanvasListeners[k]) canvasEl.listeners[k] = prevCanvasListeners[k];
+      }
+    }
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
