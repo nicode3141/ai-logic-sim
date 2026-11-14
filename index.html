@@ -3816,11 +3816,14 @@
     #sidebar.palette-preview .palette-item {
       flex-direction: column;
       align-items: stretch;
-      gap: 5px;
+      gap: 6px;
       height: auto;
+      padding: 6px;
     }
     #sidebar.palette-preview .palette-name {
       text-align: center;
+      font-weight: 600;
+      color: var(--text-main);
     }
     .palette-module-del {
       position: absolute;
@@ -3845,12 +3848,19 @@
       padding: 4px 2px;
     }
     .palette-preview-canvas {
-      display: block;
+      display: none;
       width: 100%;
-      height: 62px;
+      height: 76px;
       border-radius: var(--control-radius);
-      background: var(--bg-deep);
-      border: 1px solid var(--border-dim);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-bright);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+    }
+    #sidebar.palette-preview .palette-preview-canvas {
+      display: block;
+    }
+    #sidebar.palette-preview .palette-grid.single-col .palette-preview-canvas {
+      height: 96px;
     }
   </style>
 </head>
@@ -5549,7 +5559,8 @@
       'Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).': 'Nesting too deep (100 levels max).',
       'Maximale Auswertungstiefe überschritten (max. 150 Ebenen).': 'Evaluation too deep (150 levels max).',
       'keine Kreuzungen': 'no crossings', 'linksbündig': 'left', 'rechtsbündig': 'right', 'horizontal zentriert': 'centered horizontally',
-      'oben bündig': 'top', 'unten bündig': 'bottom', 'vertikal zentriert': 'centered vertically'
+      'oben bündig': 'top', 'unten bündig': 'bottom', 'vertikal zentriert': 'centered vertically',
+      'Pin-Beschriftungen': 'Pin labels'
     };
     Object.assign(I18N_PHRASES_EN, {
       // --- scenarios: titles ---
@@ -5729,6 +5740,8 @@
       [/^(\d+) manuell$/, (m) => `${m[1]} manual`],
       [/^Gültige Formel \((\d+) Gleichung(?:en)?\)$/, (m) => `Valid formula (${I18N_PLURAL(m[1], 'equation', 'equations')})`],
       [/^(\d+) Kanäle$/, (m) => I18N_PLURAL(m[1], 'channel', 'channels')],
+      [/^Eingang (\d+) \((.+)\)$/, (m) => `Input ${m[1]} (${m[2]})`],
+      [/^Ausgang (\d+) \((.+)\)$/, (m) => `Output ${m[1]} (${m[2]})`],
       // "Text (Strg+Z)" → translated text + translated key names
       [/^(.+) \(((?:Strg|Umschalt|Alt|Entf|Leertaste|Delete|Tab|[A-Z?]|F\d)(?:\+[^()]+)?)\)$/, (m, tr) => `${tr(m[1])} (${I18N_KEYS_EN(m[2])})`],
       [/^(?:Strg|Umschalt|Entf|Leertaste)(?:\+.+)?$/, (m) => I18N_KEYS_EN(m[0])],
@@ -6653,6 +6666,12 @@
         if (customParams.invertedOutput !== undefined) {
           this.params.invertedOutput = Boolean(customParams.invertedOutput);
         }
+        if (Array.isArray(customParams.inputLabels)) {
+          this.params.inputLabels = customParams.inputLabels.map(v => (v == null ? '' : String(v)));
+        }
+        if (Array.isArray(customParams.outputLabels)) {
+          this.params.outputLabels = customParams.outputLabels.map(v => (v == null ? '' : String(v)));
+        }
       }
 
       rebuildPins() {
@@ -6899,12 +6918,34 @@
             outNames = outs.map((name, i) => (typeof name === 'string' ? name : (name?.name || `OUT${i}`)));
             const maxCount = Math.max(inNames.length, outNames.length, 1);
             this.height = Math.max(40, maxCount * 20 + 20);
-            const maxLabelLen = Math.max(...inNames.concat(outNames).map(s => String(s).length), (this.params?.label || 'IC').length, 2);
-            this.width = Math.max(80, Math.min(220, maxLabelLen * 8 + 48));
             inOffsets = inNames.map((_, i) => 20 + i * 20);
             outOffsets = outNames.map((_, i) => 20 + i * 20);
             break;
           }
+        }
+
+        const defaultInNames = [...inNames];
+        const defaultOutNames = [...outNames];
+
+        if (Array.isArray(this.params?.inputLabels)) {
+          inNames = inNames.map((defName, i) => {
+            const custom = this.params.inputLabels[i];
+            return (typeof custom === 'string' && custom.trim() !== '') ? custom.trim() : defName;
+          });
+        }
+        if (Array.isArray(this.params?.outputLabels)) {
+          outNames = outNames.map((defName, i) => {
+            const custom = this.params.outputLabels[i];
+            return (typeof custom === 'string' && custom.trim() !== '') ? custom.trim() : defName;
+          });
+        }
+
+        if (this.type === 'CUSTOM_IC') {
+          const maxInLen = Math.max(0, ...inNames.map(s => String(s).length));
+          const maxOutLen = Math.max(0, ...outNames.map(s => String(s).length));
+          const centerLen = String(this.params?.label || 'IC').length;
+          const rawW = (maxInLen + maxOutLen) * 6 + centerLen * 7 + 44;
+          this.width = Math.max(80, Math.min(260, Math.ceil(rawW / GRID_SIZE) * GRID_SIZE));
         }
 
         const prevInVals = this.inputs.map(p => p.value);
@@ -6912,6 +6953,7 @@
 
         this.inputs = inNames.map((name, idx) => ({
           name,
+          defaultName: defaultInNames[idx],
           index: idx,
           relX: (GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? -GATE_PIN_STUB : 0,
           relY: inOffsets[idx] !== undefined ? inOffsets[idx] : this.computePinRelY(idx, inNames.length),
@@ -6920,6 +6962,7 @@
 
         this.outputs = outNames.map((name, idx) => ({
           name,
+          defaultName: defaultOutNames[idx],
           index: idx,
           relX: this.width + ((GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? GATE_PIN_STUB : 0),
           relY: outOffsets[idx] !== undefined ? outOffsets[idx] : this.computePinRelY(idx, outNames.length),
@@ -11937,7 +11980,7 @@
         }
 
         const pal = this.getThemePalette();
-        if (type !== 'PROBE') {
+        if (type !== 'PROBE' && !this._hideTopLabelInPreview) {
           ctx.fillStyle = pal.textLabel;
           ctx.font = '600 10.5px Inter, sans-serif';
           ctx.textAlign = 'center';
@@ -12860,25 +12903,6 @@
             ctx.fillStyle = isSel ? (this.accentColor || '#00b0ff') : (pal.textLabel || '#f8fafc');
             ctx.textAlign = 'center';
             ctx.fillText(comp.params?.label || 'IC', cx, cy + 4);
-
-            // Pin labels
-            ctx.font = '600 8.5px monospace';
-            const ins = comp.params?.inputs || [];
-            for (let i = 0; i < ins.length; i++) {
-              const pName = typeof ins[i] === 'string' ? ins[i] : (ins[i]?.name || `IN${i}`);
-              const py = y + 20 + i * 20;
-              ctx.textAlign = 'left';
-              ctx.fillStyle = pal.textMuted || '#94a3b8';
-              ctx.fillText(pName, x + 6, py + 3);
-            }
-            const outs = comp.params?.outputs || [];
-            for (let j = 0; j < outs.length; j++) {
-              const pName = typeof outs[j] === 'string' ? outs[j] : (outs[j]?.name || `OUT${j}`);
-              const py = y + 20 + j * 20;
-              ctx.textAlign = 'right';
-              ctx.fillStyle = pal.textMuted || '#94a3b8';
-              ctx.fillText(pName, x + width - 6, py + 3);
-            }
             break;
           }
         }
@@ -12914,7 +12938,7 @@
             ctx.stroke();
           }
 
-          if (pin.name === 'CLK') {
+          if (pin.name === 'CLK' || pin.defaultName === 'CLK') {
             ctx.strokeStyle = pal.leadLine;
             ctx.lineWidth = 1.2;
             ctx.beginPath();
@@ -12925,12 +12949,18 @@
             ctx.stroke();
           }
 
-          if (!isGateComp && pin.name) {
-            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type)) {
+          const hasCustomInLabel = pin.defaultName !== undefined && pin.name !== pin.defaultName;
+          const drawDefaultInLabel = !isGateComp && !['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type);
+          if (pin.name && (drawDefaultInLabel || hasCustomInLabel)) {
+            ctx.fillStyle = pal.textLabel;
+            ctx.font = '600 9px monospace';
+            ctx.textAlign = 'left';
+            if (isGateComp) {
+              ctx.fillText(pin.name, comp.x + 6, py + 3);
+            } else if (comp.type === 'LED' || comp.type === 'PROBE') {
+              ctx.fillText(pin.name, px + 6, py - 7);
+            } else {
               const textOffsetX = isInv ? 17 : 9;
-              ctx.fillStyle = pal.textLabel;
-              ctx.font = '600 9px monospace';
-              ctx.textAlign = 'left';
               ctx.fillText(pin.name, px + textOffsetX, py + 3);
             }
           }
@@ -12951,7 +12981,7 @@
           }
 
           const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
-          const isNegatedQ = isFF && pin.name === '!Q';
+          const isNegatedQ = isFF && (pin.name === '!Q' || pin.defaultName === '!Q');
           const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
 
           if (!isGateComp && isInv) {
@@ -12964,13 +12994,19 @@
             ctx.stroke();
           }
 
-          if (!isGateComp && pin.name) {
-            if (!['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type)) {
+          const hasCustomOutLabel = pin.defaultName !== undefined && pin.name !== pin.defaultName;
+          const drawDefaultOutLabel = !isGateComp && !['SWITCH', 'BUTTON', 'CLOCK', 'CONST', 'LED', 'PROBE'].includes(comp.type);
+          if (pin.name && (drawDefaultOutLabel || hasCustomOutLabel)) {
+            ctx.fillStyle = pal.textLabel;
+            ctx.font = '600 9px monospace';
+            ctx.textAlign = 'right';
+            const displayName = (isNegatedQ && pin.name === '!Q') ? 'Q̅' : pin.name;
+            if (isGateComp) {
+              ctx.fillText(displayName, comp.x + comp.width - 6, py + 3);
+            } else if (['SWITCH', 'BUTTON', 'CLOCK', 'CONST'].includes(comp.type)) {
+              ctx.fillText(displayName, px - 6, py - 7);
+            } else {
               const textOffsetX = isInv ? 17 : 9;
-              ctx.fillStyle = pal.textLabel;
-              ctx.font = '600 9px monospace';
-              ctx.textAlign = 'right';
-              const displayName = isNegatedQ ? 'Q̅' : pin.name;
               ctx.fillText(displayName, px - textOffsetX, py + 3);
             }
           }
@@ -14746,6 +14782,88 @@
             this.container.appendChild(group);
             break;
           }
+        }
+
+        if (comp.inputs.length > 0 || comp.outputs.length > 0) {
+          const pinSection = document.createElement('div');
+          pinSection.className = 'prop-section';
+          pinSection.style.marginTop = '10px';
+          pinSection.style.paddingTop = '8px';
+          pinSection.style.borderTop = '1px solid var(--border-dim)';
+
+          const pinHdr = document.createElement('div');
+          pinHdr.className = 'prop-label';
+          pinHdr.style.marginBottom = '6px';
+          pinHdr.textContent = 'Pin-Beschriftungen';
+          pinSection.appendChild(pinHdr);
+
+          const prevContainer = this.container;
+          this.container = pinSection;
+
+          const syncCustomIcModule = (isOut, pinIdx, nextVal) => {
+            if (comp.type !== 'CUSTOM_IC') return;
+            const arrKey = isOut ? 'outputs' : 'inputs';
+            const list = comp.params[arrKey];
+            if (Array.isArray(list) && pinIdx < list.length) {
+              if (typeof list[pinIdx] === 'string') list[pinIdx] = nextVal;
+              else if (list[pinIdx] && typeof list[pinIdx] === 'object') list[pinIdx] = { ...list[pinIdx], name: nextVal };
+            }
+            const appRef = typeof window !== 'undefined' ? window.app : null;
+            if (appRef && comp.params.moduleId && typeof appRef.getCustomModules === 'function' && typeof appRef.storeCustomModules === 'function') {
+              const mods = appRef.getCustomModules();
+              const modIdx = mods.findIndex(m => m.id === comp.params.moduleId);
+              if (modIdx !== -1 && mods[modIdx]) {
+                const modArr = mods[modIdx][arrKey];
+                if (Array.isArray(modArr) && pinIdx < modArr.length) {
+                  if (typeof modArr[pinIdx] === 'string') modArr[pinIdx] = nextVal;
+                  else if (modArr[pinIdx] && typeof modArr[pinIdx] === 'object') modArr[pinIdx].name = nextVal;
+                  appRef.storeCustomModules(mods);
+                  if (appRef.paletteView === 'preview' && typeof appRef.renderPalettePreviews === 'function') {
+                    appRef.renderPalettePreviews();
+                  }
+                }
+              }
+            }
+          };
+
+          for (let i = 0; i < comp.inputs.length; i++) {
+            const pin = comp.inputs[i];
+            const defName = pin.defaultName || pin.name || `IN${i}`;
+            const curCustom = Array.isArray(comp.params.inputLabels) ? (comp.params.inputLabels[i] ?? '') : '';
+            const displayVal = curCustom !== '' ? curCustom : (comp.type === 'CUSTOM_IC' ? defName : '');
+            this.addTextControl(`Eingang ${i + 1} (${defName})`, displayVal, isSim, (val) => {
+              if (!Array.isArray(comp.params.inputLabels)) comp.params.inputLabels = [];
+              const cleaned = val.trim();
+              comp.params.inputLabels[i] = cleaned;
+              syncCustomIcModule(false, i, cleaned || defName);
+              comp.rebuildPins();
+              this.onChange(false);
+            });
+            const lastInp = pinSection.lastElementChild && typeof pinSection.lastElementChild.querySelector === 'function'
+              ? pinSection.lastElementChild.querySelector('input') : null;
+            if (lastInp) lastInp.placeholder = defName;
+          }
+
+          for (let j = 0; j < comp.outputs.length; j++) {
+            const pin = comp.outputs[j];
+            const defName = pin.defaultName || pin.name || `OUT${j}`;
+            const curCustom = Array.isArray(comp.params.outputLabels) ? (comp.params.outputLabels[j] ?? '') : '';
+            const displayVal = curCustom !== '' ? curCustom : (comp.type === 'CUSTOM_IC' ? defName : '');
+            this.addTextControl(`Ausgang ${j + 1} (${defName})`, displayVal, isSim, (val) => {
+              if (!Array.isArray(comp.params.outputLabels)) comp.params.outputLabels = [];
+              const cleaned = val.trim();
+              comp.params.outputLabels[j] = cleaned;
+              syncCustomIcModule(true, j, cleaned || defName);
+              comp.rebuildPins();
+              this.onChange(false);
+            });
+            const lastInp = pinSection.lastElementChild && typeof pinSection.lastElementChild.querySelector === 'function'
+              ? pinSection.lastElementChild.querySelector('input') : null;
+            if (lastInp) lastInp.placeholder = defName;
+          }
+
+          this.container = prevContainer;
+          this.container.appendChild(pinSection);
         }
 
         const delBtn = document.createElement('button');
@@ -17075,6 +17193,7 @@
           this.rendererRight.symbolStandard = norm;
           this.rendererRight.render();
         }
+        if (this.paletteView === 'preview') this.renderPalettePreviews();
       }
 
       updatePaletteIcons(norm) {
@@ -20125,7 +20244,7 @@
 
       getLayoutOptions() {
         switch (this.layoutSpacing) {
-          case 'compact': return { rowGap: 0, labelPad: 0, minChannel: 60, subGap: 40 };
+          case 'compact': return { rowGap: 0, labelPad: 20, minChannel: 60, subGap: 40 };
           case 'wide': return { rowGap: 40, minChannel: 120 };
           default: return { rowGap: 20, minChannel: 80 };
         }
@@ -21160,31 +21279,37 @@
       }
 
       drawPaletteThumbnail(canvas, type, dpr) {
-        const cssW = Math.max(60, canvas.clientWidth || 96);
-        const cssH = canvas.clientHeight || 62;
-        canvas.width = Math.round(cssW * dpr);
-        canvas.height = Math.round(cssH * dpr);
+        const isSingleCol = typeof canvas.closest === 'function' && Boolean(canvas.closest('.palette-grid.single-col'));
+        const cssW = Math.max(60, canvas.clientWidth || (isSingleCol ? 190 : 94));
+        const cssH = canvas.clientHeight || (isSingleCol ? 96 : 76);
+        const renderDpr = Math.max(2, Math.min((dpr || 1) * 1.5, 4));
+        canvas.width = Math.round(cssW * renderDpr);
+        canvas.height = Math.round(cssH * renderDpr);
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         const parts = this.buildPaletteThumbParts(type);
         if (!parts || parts.comps.length === 0) return;
         const b = this.getComponentsBounds(parts.comps);
-        // labels sit above the bodies: leave room for them at the top
-        const top = b.minY - 14;
+        const singleComp = parts.comps.length === 1;
+        // Multiple components (groups) keep top labels visible; single entries rely on .palette-name below
+        const top = singleComp ? (b.minY - 4) : (b.minY - 14);
         const bw = Math.max(1, b.maxX - b.minX);
         const bh = Math.max(1, b.maxY - top);
-        const pad = 8;
-        const scale = Math.min((cssW - pad * 2) / bw, (cssH - pad * 2) / bh, 1.4);
+        const pad = 5;
+        const scale = Math.min((cssW - pad * 2) / bw, (cssH - pad * 2) / bh, 1.85);
         const ox = cssW / 2 - (b.minX + bw / 2) * scale;
         const oy = cssH / 2 - (top + bh / 2) * scale;
-        ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        if (typeof ctx.clearRect === 'function') ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.setTransform(renderDpr * scale, 0, 0, renderDpr * scale, renderDpr * ox, renderDpr * oy);
+        this.renderer._hideTopLabelInPreview = singleComp;
         try {
           // wires of a module first, so the gates sit on top of them
           if (parts.links.length > 0) {
             const pal = this.renderer.getThemePalette();
             ctx.save();
-            ctx.strokeStyle = pal.wireLow;
-            ctx.lineWidth = 1.5 / scale;
+            ctx.strokeStyle = pal.textLabel || pal.wireLow;
+            ctx.lineWidth = Math.max(1.8, 2.0 / Math.max(0.45, scale));
             ctx.lineJoin = 'round';
             for (const link of parts.links) {
               const pts = this.renderer.computeWirePath(link.p1, link.p2, link.wp, 0);
@@ -21197,6 +21322,8 @@
           for (const comp of parts.comps) this.renderer.drawSingleComponent(ctx, comp);
         } catch (err) {
           console.warn('Palette preview failed for', type, err);
+        } finally {
+          this.renderer._hideTopLabelInPreview = false;
         }
         ctx.setTransform(1, 0, 0, 1, 0, 0);
       }
@@ -21471,7 +21598,10 @@
           const title = document.createElement('div');
           title.className = 'category-title';
           title.textContent = 'Eigene Module';
-          title.addEventListener('click', () => cat.classList.toggle('collapsed'));
+          title.addEventListener('click', () => {
+            cat.classList.toggle('collapsed');
+            if (!cat.classList.contains('collapsed') && this.paletteView === 'preview') this.renderPalettePreviews();
+          });
           const grid = document.createElement('div');
           grid.className = 'palette-grid single-col';
           grid.id = 'palette-modules-grid';
@@ -21553,6 +21683,7 @@
         const apply = () => {
           const q = (input && typeof input.value === 'string' ? input.value : '').trim().toLowerCase();
           let any = false;
+          let revealed = false;
           document.querySelectorAll('#sidebar .palette-category').forEach(cat => {
             let visible = 0;
             cat.querySelectorAll('.palette-item').forEach(item => {
@@ -21562,9 +21693,13 @@
               if (match) visible++;
             });
             cat.classList.toggle('is-hidden', visible === 0);
-            if (q && visible > 0) cat.classList.remove('collapsed');
+            if (q && visible > 0) {
+              if (cat.classList.contains('collapsed')) revealed = true;
+              cat.classList.remove('collapsed');
+            }
             if (visible > 0) any = true;
           });
+          if (revealed && this.paletteView === 'preview') this.renderPalettePreviews();
           const empty = document.getElementById('palette-empty');
           if (empty) empty.style.display = any ? 'none' : 'block';
           if (clear) clear.style.display = q ? 'block' : 'none';
@@ -21577,7 +21712,12 @@
         }
         if (clear) clear.addEventListener('click', () => { if (input) { input.value = ''; apply(); if (typeof input.focus === 'function') input.focus(); } });
         document.querySelectorAll('#sidebar .palette-category .category-title').forEach(title => {
-          title.addEventListener('click', () => { if (title.parentElement) title.parentElement.classList.toggle('collapsed'); });
+          title.addEventListener('click', () => {
+            const cat = title.parentElement;
+            if (!cat) return;
+            cat.classList.toggle('collapsed');
+            if (!cat.classList.contains('collapsed') && this.paletteView === 'preview') this.renderPalettePreviews();
+          });
         });
       }
 
@@ -22813,6 +22953,7 @@
           if (this.renderer) this.renderer.render();
           if (this.rendererRight) this.rendererRight.render();
           if (this.analyzer) this.analyzer.render();
+          if (this.paletteView === 'preview') this.renderPalettePreviews();
         }
       }
 
@@ -22835,6 +22976,7 @@
           if (this.renderer) this.renderer.render();
           if (this.rendererRight) this.rendererRight.render();
           if (this.analyzer) this.analyzer.render();
+          if (this.paletteView === 'preview') this.renderPalettePreviews();
         }
       }
 
@@ -22962,7 +23104,6 @@
         const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
         if (!themeKeys.includes(theme)) theme = 'modern';
         this.appTheme = theme;
-        if (this.paletteView === 'preview') this.renderPalettePreviews();
         if (typeof document !== 'undefined' && document.documentElement && document.documentElement.setAttribute) {
           document.documentElement.setAttribute('data-theme', theme);
         }
@@ -22987,6 +23128,7 @@
           this.analyzer.appTheme = theme;
           this.analyzer.render();
         }
+        if (this.paletteView === 'preview') this.renderPalettePreviews();
 
         this.saveSettings();
       }

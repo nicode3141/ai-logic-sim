@@ -2361,12 +2361,12 @@ runTest('WISH-047', 'Camera auto-pans while dragging selected modules near the c
   assertEqual(Boolean(app._autoPanActive), false, 'No auto-pan loop when nothing is dragged');
 });
 
-runTest('WISH-049', 'Compact Auto-Layout 40px LED pitch, straight counter inputs & obstacle-aware move rerouting', () => {
+runTest('WISH-049', 'Compact Auto-Layout 20px (1-grid-cell) minimum gap, straight center counter input & obstacle-aware move rerouting', () => {
   const app = new LogicSimApp();
   app.layoutSpacing = 'compact';
   const opts = app.getLayoutOptions();
   assertEqual(opts.rowGap, 0, 'Compact rowGap is 0');
-  assertEqual(opts.labelPad, 0, 'Compact labelPad is 0');
+  assertEqual(opts.labelPad, 20, 'Compact labelPad is 20 (1 grid cell minimum gap)');
   assertEqual(opts.minChannel, 60, 'Compact minChannel is 60');
   assertEqual(opts.subGap, 40, 'Compact subGap is 40');
 
@@ -2375,17 +2375,21 @@ runTest('WISH-049', 'Compact Auto-Layout 40px LED pitch, straight counter inputs
   app.loadScenario('binary_counter_4bit');
   app.autoLayoutCircuit();
 
+  const srcIds = ['bc_clk', 'bc_en', 'bc_rst'];
+  const srcYs = srcIds.map(id => app.circuit.getComponent(id).y);
+  for (let i = 0; i < srcYs.length - 1; i++) {
+    assertEqual(srcYs[i + 1] - srcYs[i], 60, `Compact source vertical pitch ${srcIds[i]} -> ${srcIds[i + 1]} is 60px (40px box + 20px gap)`);
+  }
+
   const ledIds = ['bc_l0', 'bc_l1', 'bc_l2', 'bc_l3', 'bc_lco'];
   const ledYs = ledIds.map(id => app.circuit.getComponent(id).y);
   for (let i = 0; i < ledYs.length - 1; i++) {
-    assertEqual(ledYs[i + 1] - ledYs[i], 40, `Compact LED vertical pitch ${ledIds[i]} -> ${ledIds[i + 1]} is 40px`);
+    assertEqual(ledYs[i + 1] - ledYs[i], 60, `Compact LED vertical pitch ${ledIds[i]} -> ${ledIds[i + 1]} is 60px (40px LED + 20px gap)`);
   }
 
-  for (const wid of ['bcw1', 'bcw2', 'bcw3']) {
-    const w = app.circuit.getWire(wid);
-    const pts = app.renderer.getWirePolyline(w);
-    assertEqual(pts[0].y, pts[pts.length - 1].y, `Counter input wire ${wid} is straight horizontal`);
-  }
+  const wEn = app.circuit.getWire('bcw2');
+  const wEnPts = app.renderer.getWirePolyline(wEn);
+  assertEqual(wEnPts[0].y, wEnPts[wEnPts.length - 1].y, 'Middle counter input wire bcw2 (EN) is straight horizontal');
 
   const lco = app.circuit.getComponent('bc_lco');
   lco.y += 40;
@@ -2428,6 +2432,163 @@ runTest('WISH-050', 'Theme & Toast color balance, --accent-green preservation, a
   assertEqual(currentHtml.includes('[data-theme="blueprint"] #sim-toast'), true, 'blueprint #sim-toast rule exists');
   assertEqual(currentHtml.includes('[data-theme="pitch_black"] #sim-toast'), true, 'pitch_black #sim-toast rule exists');
   assertEqual(/\.freq-val\s*\{[^}]*\}\s*color:\s*var\(--accent-green\)/.test(currentHtml), false, 'No stray orphaned CSS properties after .freq-val');
+});
+
+runTest('WISH-051', 'Editable input/output pin labels for all modules and single-pass CUSTOM_IC pin rendering', () => {
+  const c = new Circuit();
+  const andGate = c.addComponent('AND', 40, 40, { inputLabels: ['A', 'B'], outputLabels: ['Z'] });
+  assertEqual(andGate.inputs[0].name, 'A', 'Gate input 0 accepts custom label');
+  assertEqual(andGate.inputs[0].defaultName, 'X1', 'Gate input 0 preserves defaultName');
+  assertEqual(andGate.outputs[0].name, 'Z', 'Gate output 0 accepts custom label');
+  assertEqual(andGate.outputs[0].defaultName, 'Y', 'Gate output 0 preserves defaultName');
+
+  const sw = c.addComponent('SWITCH', 40, 160, { outputLabels: ['START'] });
+  const led = c.addComponent('LED', 180, 160, { inputLabels: ['READY'] });
+  assertEqual(sw.outputs[0].name, 'START', 'SWITCH output accepts custom label');
+  assertEqual(led.inputs[0].name, 'READY', 'LED input accepts custom label');
+
+  const dff = c.addComponent('D_FF', 40, 260, { inputLabels: ['DATA', 'TAKT'], outputLabels: ['STATE', 'INV'] });
+  assertEqual(dff.inputs[1].defaultName, 'CLK', 'D_FF keeps defaultName CLK for clock wedge check');
+  assertEqual(dff.inputs[1].name, 'TAKT', 'D_FF CLK pin accepts custom label');
+  assertEqual(dff.outputs[1].defaultName, '!Q', 'D_FF keeps defaultName !Q for negation bubble');
+  assertEqual(dff.outputs[1].name, 'INV', 'D_FF !Q pin accepts custom label');
+
+  const ic = c.addComponent('CUSTOM_IC', 260, 40, {
+    label: 'Modul 1',
+    inputs: [{ name: 'SW', targets: [] }, { name: 'SW', targets: [] }],
+    outputs: [{ name: 'LED', sourceCompIdx: 0, sourcePin: 0 }, { name: 'LED', sourceCompIdx: 0, sourcePin: 0 }]
+  });
+  assertEqual(ic.width % 20, 0, 'CUSTOM_IC width snaps to GRID_SIZE (20px)');
+
+  const canvas = createMockElem('c');
+  const renderer = new CanvasRenderer(canvas, c);
+  const drawnTexts = [];
+  let lineToCalls = 0;
+  const origFillText = mockCtx.fillText;
+  const origLineTo = mockCtx.lineTo;
+  mockCtx.fillText = (txt) => drawnTexts.push(String(txt));
+  mockCtx.lineTo = () => { lineToCalls++; };
+  try {
+    renderer.drawSingleComponent(mockCtx, ic);
+    assertEqual(drawnTexts.filter(t => t === 'SW').length, 2, 'CUSTOM_IC with 2 SW inputs draws SW exactly twice (no duplicate SSWW overlap)');
+    assertEqual(drawnTexts.filter(t => t === 'LED').length, 2, 'CUSTOM_IC with 2 LED outputs draws LED exactly twice (no duplicate LLEEDD overlap)');
+
+    drawnTexts.length = 0;
+    renderer.drawComponentPins(mockCtx, andGate);
+    assertEqual(drawnTexts.includes('A') && drawnTexts.includes('B') && drawnTexts.includes('Z'), true, 'Renamed gate pins are drawn on gate body');
+
+    drawnTexts.length = 0;
+    renderer.drawComponentPins(mockCtx, sw);
+    renderer.drawComponentPins(mockCtx, led);
+    assertEqual(drawnTexts.includes('START'), true, 'Renamed SWITCH output label is drawn');
+    assertEqual(drawnTexts.includes('READY'), true, 'Renamed LED input label is drawn');
+
+    drawnTexts.length = 0;
+    lineToCalls = 0;
+    renderer.drawComponentPins(mockCtx, dff);
+    assertEqual(lineToCalls >= 2, true, 'D_FF still draws clock wedge when CLK is renamed');
+    assertEqual(drawnTexts.includes('INV'), true, 'Renamed !Q displays custom label instead of hardcoded Q̅');
+  } finally {
+    mockCtx.fillText = origFillText;
+    mockCtx.lineTo = origLineTo;
+  }
+
+  // Inspector UI creates editable "Pin-Beschriftungen" inputs and English I18N translates them
+  const app = new LogicSimApp();
+  const c2 = app.circuit;
+  const testMux = c2.addComponent('MUX', 40, 40);
+  const inspContainer = createMockElem('insp-pin-test');
+  const origContainer = app.inspector.container;
+  const origOnChange = app.inspector.onChange;
+  let onChangeCalls = 0;
+  app.inspector.container = inspContainer;
+  app.inspector.onChange = (...args) => { onChangeCalls++; return origOnChange(...args); };
+  try {
+    app.inspector.render(testMux.id, null);
+
+    const allNodes = [];
+    const collect = (node) => {
+      allNodes.push(node);
+      if (Array.isArray(node.children)) node.children.forEach(collect);
+    };
+    collect(inspContainer);
+    assertEqual(allNodes.some(n => n.textContent === 'Pin-Beschriftungen'), true, 'Inspector renders Pin-Beschriftungen section');
+    const propInputs = allNodes.filter(n => n.className === 'prop-input');
+    assertEqual(propInputs.length >= 4, true, 'Inspector renders editable text inputs for MUX 3 inputs + 1 output (plus any component fields)');
+    const muxIn0Input = allNodes.find(n => n.className === 'prop-group' && n.children && n.children[0] && n.children[0].textContent === 'Eingang 1 (D0)')?.children[1];
+    assertEqual(Boolean(muxIn0Input), true, 'Eingang 1 (D0) input found in Inspector');
+    muxIn0Input.value = 'IN_A';
+    muxIn0Input.dispatchEvent({ type: 'input', target: muxIn0Input });
+    assertEqual(testMux.inputs[0].name, 'IN_A', 'Typing into Inspector pin input updates MUX pin name live');
+    assertEqual(onChangeCalls >= 1, true, 'Editing pin label triggers Inspector onChange');
+  } finally {
+    app.inspector.container = origContainer;
+    app.inspector.onChange = origOnChange;
+  }
+
+  const prevLang = I18N.currentLang;
+  I18N.currentLang = 'en';
+  try {
+    assertEqual(I18N.phrase('Pin-Beschriftungen'), 'Pin labels', 'I18N translates Pin-Beschriftungen');
+    assertEqual(I18N.phrase('Eingang 1 (X1)'), 'Input 1 (X1)', 'I18N translates Eingang pin label pattern');
+    assertEqual(I18N.phrase('Ausgang 1 (Y)'), 'Output 1 (Y)', 'I18N translates Ausgang pin label pattern');
+  } finally {
+    I18N.currentLang = prevLang;
+  }
+});
+
+runTest('WISH-052', 'Palette Vorschau <-> Beschriftung toggle fix and larger, sharper, higher-contrast previews', () => {
+  const currentHtml = fs.readFileSync(htmlPath, 'utf8');
+  const defaultPreviewMatch = currentHtml.match(/\.palette-preview-canvas\s*\{([^}]*)\}/);
+  assertEqual(Boolean(defaultPreviewMatch), true, '.palette-preview-canvas CSS block present');
+  assertEqual(/display\s*:\s*none\s*;/.test(defaultPreviewMatch[1]), true, '.palette-preview-canvas defaults to display: none so Beschriftung mode is not broken');
+  assertEqual(/height\s*:\s*76px\s*;/.test(defaultPreviewMatch[1]), true, '.palette-preview-canvas uses enlarged 76px height');
+  assertEqual(/#sidebar\.palette-preview\s+\.palette-preview-canvas\s*\{[^}]*display\s*:\s*block\s*;/.test(currentHtml), true, '#sidebar.palette-preview .palette-preview-canvas shows preview canvas');
+  assertEqual(/#sidebar\.palette-preview\s+\.palette-grid\.single-col\s+\.palette-preview-canvas\s*\{[^}]*height\s*:\s*96px\s*;/.test(currentHtml), true, 'Single-col module previews use 96px height');
+
+  const app = new LogicSimApp();
+  const prevPaletteView = app.paletteView;
+  let renderPreviewCalls = 0;
+  const origRenderPreviews = app.renderPalettePreviews.bind(app);
+  let themeDuringPreview = null;
+  app.renderPalettePreviews = () => {
+    renderPreviewCalls++;
+    themeDuringPreview = app.renderer.appTheme;
+  };
+  try {
+    app.paletteView = 'preview';
+    app.setAppTheme('light_cad');
+    assertEqual(renderPreviewCalls >= 1, true, 'setAppTheme refreshes palette previews when active');
+    assertEqual(themeDuringPreview, 'light_cad', 'setAppTheme updates renderer.appTheme BEFORE rendering palette previews');
+
+    const prevCalls = renderPreviewCalls;
+    app.setSymbolStandard('ANSI');
+    assertEqual(renderPreviewCalls > prevCalls, true, 'setSymbolStandard refreshes palette previews');
+  } finally {
+    app.renderPalettePreviews = origRenderPreviews;
+    app.paletteView = prevPaletteView;
+  }
+
+  // Test drawPaletteThumbnail supersampling & single-component label suppression
+  const drawnThumbTexts = [];
+  const thumbCtx = Object.assign(Object.create(mockCtx), {
+    clearRect: () => {},
+    setTransform: () => {},
+    fillText: (txt) => drawnThumbTexts.push(String(txt))
+  });
+  const thumbCanvas = {
+    clientWidth: 100,
+    clientHeight: 76,
+    width: 0,
+    height: 0,
+    closest: () => null,
+    getContext: () => thumbCtx
+  };
+  app.drawPaletteThumbnail(thumbCanvas, 'AND', 1);
+  assertEqual(thumbCanvas.width >= 200, true, 'drawPaletteThumbnail supersamples backing buffer (>= 2x on 1x DPR)');
+  assertEqual(thumbCanvas.height >= 152, true, 'drawPaletteThumbnail supersamples height cleanly');
+  assertEqual(drawnThumbTexts.includes('AND'), false, 'Single-component thumbnail omits redundant top label above gate body');
+  assertEqual(Boolean(app.renderer._hideTopLabelInPreview), false, '_hideTopLabelInPreview is reset to false after thumbnail draw');
 });
 
 console.log('\n================================================================');

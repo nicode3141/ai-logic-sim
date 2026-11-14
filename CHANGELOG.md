@@ -10,11 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### ✨ Added
+- **Feature:** Editierbare Ein- und Ausgangs-Pin-Beschriftungen (`Pin-Beschriftungen`) im Inspector für sämtliche Modultypen inkl. Synchronisation für eigene ICs und englischer I18N-Übersetzung (WISH-051).
 - **Feature:** Persistente Projekt-Workflow-Regel (`.agents/rules/project-workflow.md`) für Kontext-Check, Dokumentation (`WISHLIST.md`, `CHANGELOG.md`, `docu/PROMPT_LOG.md`), Tests und Git/PR-Konventionen hinzugefügt.
 - **Feature:** Die Kamera folgt beim Verschieben ausgewählter Module - am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit (WISH-048).
 
 ### 🔧 Changed
-- **Fix:** Auto-Anordnen im „Kompakt“-Modus (bündiges 40px-Raster, gerade Eingangsleitungen beim 4-Bit-Binärzähler, Live-Update im Popover) sowie hindernisbewusstes Leitungs-Rerouting beim Verschieben von Bauteilen ohne vertikale Pin-Überschwinger (WISH-049).
+- **Fix:** Doppelte Pin-Label-Zeichnung bei komprimierten Custom-ICs (`CUSTOM_IC`, z. B. `SSW`/`LLEEDD`) behoben und Breite sauber am 20px-Grid ausgerichtet (WISH-051).
+- **Fix:** Umschalten in der Bauteil-Palette zwischen „Vorschau“ und „Beschriftung“ zerschießt das Layout nicht mehr (`.palette-preview-canvas` standardmäßig `display: none`); Modul-Vorschauen sind jetzt größer (`76px`/`96px`), schärfer (`renderDpr >= 2`) und kontrastreicher und aktualisieren sich bei Theme-, Norm- und Farbumschaltung (WISH-052).
+- **Fix:** „Kompakt“-Modus beim Auto-Anordnen behält jetzt mindestens 1 Grid-Zelle (`20px`) vertikalen Abstand (`labelPad: 20`), sodass gestapelte Eingänge/LEDs sich nicht berühren und Bauteilnamen lesbar bleiben; plus hindernisbewusstes Leitungs-Rerouting beim Bauteil-Verschieben (WISH-049).
 - **Fix:** Theme- und Toast-Farbbalance (`#sim-toast`, `.btn-accent`, Slider, `.pane-header`, `#zoom-controls`), Erhalt von `--accent-green` bei Signalfarb-Wechsel sowie kontrastreicher `moduleValue`-Token für Modul-Innenwerte in hellen Themes (`java_swing`, `light_cad`) (WISH-050).
 - **Feature:** Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt, nur noch die Slider (WISH-047).
 - **Fix:** Bauteil-Palette ist im Simulationsmodus abgedunkelt (55 %) und gesperrt (WISH-046).

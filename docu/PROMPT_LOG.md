@@ -96,3 +96,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 > /learn
 > manchmal ist das anordnen noch nicht so gut und beim zweiten bild so soll es bei kompakt aussehen !
 > das toast und manche farben sind nicht ganz richtig gebalanced auf das theme. Pushe die changes in den fabian branch
+
+---
+
+## 2026-11-14 — Kompakt-Mindestabstand (1 Grid-Zelle), editierbare Pin-Beschriftungen & Modul-Vorschau-Fixes
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-049, WISH-051, WISH-052
+- **Prompt:**
+
+> mache das wenigstens noch ein gap ist. Zudem will ich das man die inputs und output beschriftung sämtlicher module ändern kann und wenn ich bei der bauteil selection auf vorschau gehe und zurück buggt das rum. MAche zudem die vorschau der module schärfer kontrastreicher und größer!
