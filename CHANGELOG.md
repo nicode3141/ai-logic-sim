@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Feature:** Die Kamera folgt beim Verschieben ausgewählter Module - am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit (WISH-048).
 
 ### 🔧 Changed
+- **Fix:** Ausgangs-Invertierung (`invertedOutput`) bei Flip-Flops (`T_FF`, `D_FF`, `JK_FF`, `SR_FF`, `D_LATCH`), Zählern (`COUNTER`) und Schieberegistern (`SHIFT_REG`) wird jetzt sowohl in `compute()` als auch beim Zeichnen der `○`-Blase (ohne Doppel-Markierung auf `Q̅`) korrekt ausgewertet; `NOT`-Gatter besitzen wieder 20px-Eingangs- und Ausgangsstäbe (`GATE_PIN_STUB`); und `LED`s rasten beim Verschieben (`endDragPreview`) sowie beim Ablegen einer Leitung auf dem Bauteilkörper zuverlässig am Eingangspin ein (WISH-056).
 - **Fix:** Halten und Aktivieren eines Tasters (`BUTTON`, z. B. `Reset (RST)`) am Rand des Arbeitsbereichs löst kein Auto-Pan, kein `wire._preview` und kein ungewolltes Mitziehen der Schaltung mehr aus (WISH-053).
 - **Fix:** Doppelte Pin-Label-Zeichnung bei komprimierten Custom-ICs (`CUSTOM_IC`, z. B. `SSW`/`LLEEDD`) behoben und Breite sauber am 20px-Grid ausgerichtet (WISH-051).
 - **Fix:** Umschalten in der Bauteil-Palette zwischen „Vorschau“ und „Beschriftung“ zerschießt das Layout nicht mehr (`.palette-preview-canvas` standardmäßig `display: none`); Modul-Vorschauen sind jetzt größer (`76px`/`96px`), schärfer (`renderDpr >= 2`) und kontrastreicher und aktualisieren sich bei Theme-, Norm- und Farbumschaltung (WISH-052).

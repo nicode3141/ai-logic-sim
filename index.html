@@ -7019,7 +7019,7 @@
           name,
           defaultName: defaultInNames[idx],
           index: idx,
-          relX: (GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? -GATE_PIN_STUB : 0,
+          relX: GATE_DELAY_TYPES[this.type] ? -GATE_PIN_STUB : 0,
           relY: inOffsets[idx] !== undefined ? inOffsets[idx] : this.computePinRelY(idx, inNames.length),
           value: prevInVals[idx] ?? 0
         }));
@@ -7028,7 +7028,7 @@
           name,
           defaultName: defaultOutNames[idx],
           index: idx,
-          relX: this.width + ((GATE_DELAY_TYPES[this.type] && this.type !== 'NOT') ? GATE_PIN_STUB : 0),
+          relX: this.width + (GATE_DELAY_TYPES[this.type] ? GATE_PIN_STUB : 0),
           relY: outOffsets[idx] !== undefined ? outOffsets[idx] : this.computePinRelY(idx, outNames.length),
           value: prevOutVals[idx] ?? 0
         }));
@@ -7374,6 +7374,9 @@
             this.nextOutputs[2] = (nextCount >> 2) & 1;
             this.nextOutputs[3] = (nextCount >> 3) & 1;
             this.nextOutputs[4] = (rst === 0 && en === 1 && nextCount === modulus - 1) ? 1 : 0;
+            if (this.params.invertedOutput) {
+              for (let i = 0; i < 5; i++) this.nextOutputs[i] = this.nextOutputs[i] ? 0 : 1;
+            }
             break;
           }
           case 'SHIFT_REG': {
@@ -7399,6 +7402,9 @@
             for (let i = 0; i < 4; i++) {
               this.nextOutputs[i] = nextBits[i];
             }
+            if (this.params.invertedOutput) {
+              for (let i = 0; i < 4; i++) this.nextOutputs[i] = this.nextOutputs[i] ? 0 : 1;
+            }
             break;
           }
           case 'SR_FF': {
@@ -7419,7 +7425,7 @@
               }
             }
             this.state.nextQ = nextQ;
-            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextQ ? 0 : 1) : nextQ;
             this.nextOutputs[1] = (s === 1 && r === 1 && isEdge) ? 0 : (nextQ === 1 ? 0 : 1);
             break;
           }
@@ -7431,7 +7437,7 @@
             this.state.nextLastClk = clk;
             const nextQ = isEdge ? d : (this.state.q ?? 0);
             this.state.nextQ = nextQ;
-            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextQ ? 0 : 1) : nextQ;
             this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
             break;
           }
@@ -7453,7 +7459,7 @@
               }
             }
             this.state.nextQ = nextQ;
-            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextQ ? 0 : 1) : nextQ;
             this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
             break;
           }
@@ -7468,7 +7474,7 @@
               nextQ = nextQ === 1 ? 0 : 1; // Frequency Divider / Toggle
             }
             this.state.nextQ = nextQ;
-            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextQ ? 0 : 1) : nextQ;
             this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
             break;
           }
@@ -7477,7 +7483,7 @@
             const en = this.getEffectiveInputValue(1);
             const nextQ = en === 1 ? d : (this.state.q ?? 0);
             this.state.nextQ = nextQ;
-            this.nextOutputs[0] = nextQ;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextQ ? 0 : 1) : nextQ;
             this.nextOutputs[1] = nextQ === 1 ? 0 : 1;
             break;
           }
@@ -12312,8 +12318,8 @@
         }
 
         // 3. Output Inversion Bubble & Lead Line
-        const outPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
-        const inPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const outPinStub = GATE_PIN_STUB;
+        const inPinStub = GATE_PIN_STUB;
         const outPinX = x + width + outPinStub;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
@@ -12467,8 +12473,8 @@
         ctx.fillText(sym, cx, cy + 5);
 
         // Output Bubble & Lead Line
-        const outPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
-        const inPinStub = (type === 'NOT') ? 0 : GATE_PIN_STUB;
+        const outPinStub = GATE_PIN_STUB;
+        const inPinStub = GATE_PIN_STUB;
         const outPinX = x + width + outPinStub;
         const isOutHigh = comp.outputs[0]?.value === 1;
 
@@ -13098,7 +13104,7 @@
 
           const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
           const isNegatedQ = isFF && (pin.name === '!Q' || pin.defaultName === '!Q');
-          const isInv = Boolean(comp.params.invertedOutput) || isNegatedQ;
+          const isInv = isFF ? (isNegatedQ || (i === 0 && Boolean(comp.params.invertedOutput))) : Boolean(comp.params.invertedOutput);
 
           if (!isGateComp && isInv) {
             ctx.beginPath();
@@ -14675,6 +14681,8 @@
               isSim,
               (checked) => {
                 comp.params.invertedOutput = checked;
+                comp.compute();
+                comp.commit(true);
                 this.circuit.syncImmediateWireLevels();
                 this.onChange(false);
               }
@@ -18108,6 +18116,8 @@
               if (comp) {
                 if (pinHit.isOutput) {
                   comp.params.invertedOutput = !comp.params.invertedOutput;
+                  comp.compute();
+                  comp.commit(true);
                   this.showToast(`○ Ausgang ${pinHit.name || 'Y'} von ${comp.params.label || comp.type} ${comp.params.invertedOutput ? 'negiert (○)' : 'normal'}`);
                 } else {
                   if (!Array.isArray(comp.params.invertedInputs)) {
@@ -19019,8 +19029,15 @@
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
             const world = this.renderer.screenToWorld(sx, sy);
-            const targetPin = this.renderer.findPinAt(world.x, world.y, 14);
+            let targetPin = this.renderer.findPinAt(world.x, world.y, 16);
             const drag = this.renderer.activeWireDrag;
+            if (!targetPin) {
+              const hitComp = this.renderer.findComponentAt(world.x, world.y);
+              if (hitComp && hitComp.id !== drag.compId && hitComp.inputs.length === 1 && hitComp.outputs.length === 0) {
+                const pos = hitComp.getPinWorldPos(false, 0);
+                targetPin = { compId: hitComp.id, isOutput: false, pinIndex: 0, x: pos.x, y: pos.y };
+              }
+            }
 
             if (targetPin && (!drag.compId || (targetPin.compId !== drag.compId || targetPin.pinIndex !== drag.pinIndex))) {
               this.finishActiveWireAtPoint({ x: targetPin.x, y: targetPin.y }, null, targetPin);
@@ -22300,7 +22317,15 @@
       endDragPreview(compIds, moved) {
         for (const w of (this._previewWires || [])) w._preview = false;
         this._previewWires = [];
-        if (moved) this.rerouteWiresAround(compIds);
+        if (moved) {
+          this.rerouteWiresAround(compIds);
+          if (Array.isArray(compIds)) {
+            for (const id of compIds) {
+              const comp = this.circuit.getComponent(id);
+              if (comp) this.snapOpenWiresToComponent(comp);
+            }
+          }
+        }
       }
 
       initModalEvents() {

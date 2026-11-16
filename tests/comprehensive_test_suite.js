@@ -1837,10 +1837,10 @@ runTest('WISH-032', 'Compact 40x40 NOT gate dimensions, pin geometry and grid al
   assertEqual(notGate.width, 40, 'NOT gate width is compact 40px (down from 80px)');
   assertEqual(notGate.height, 40, 'NOT gate height is 40px');
 
-  // 2. Pins are strictly aligned to the 20px grid
-  assertEqual(notGate.inputs[0].relX, 0, 'NOT input pin relX is 0');
+  // 2. Pins are strictly aligned to the 20px grid (including 20px input/output stubs)
+  assertEqual(notGate.inputs[0].relX, -20, 'NOT input pin relX is -20 (with 20px input stub)');
   assertEqual(notGate.inputs[0].relY, 20, 'NOT input pin relY is 20 (on 20px grid)');
-  assertEqual(notGate.outputs[0].relX, 40, 'NOT output pin relX is 40 (on 20px grid)');
+  assertEqual(notGate.outputs[0].relX, 60, 'NOT output pin relX is 60 (40px body + 20px output stub)');
   assertEqual(notGate.outputs[0].relY, 20, 'NOT output pin relY is 20 (on 20px grid)');
 
   // 3. Grid-aligned inlining into wires
@@ -2881,6 +2881,37 @@ runTest('WISH-055', 'Selection delay control, Hz-based ms readout, and edit-mode
     if (prevCreateTextNode === undefined) delete document.createTextNode;
     else document.createTextNode = prevCreateTextNode;
   }
+});
+
+runTest('WISH-056', 'Sequential invertedOutput, NOT input/output stubs, and LED snap on move/wire drop', () => {
+  // 1. T_FF / D_FF / COUNTER / SHIFT_REG output inversion
+  const c = new Circuit();
+  const tff = c.addComponent('T_FF', 100, 100, { invertedOutput: true });
+  tff.compute();
+  tff.commit(true);
+  assertEqual(tff.state.q, 0, 'T_FF internal Q starts at 0');
+  assertEqual(tff.outputs[0].value, 1, 'T_FF Q output is inverted to 1 when invertedOutput=true');
+  assertEqual(tff.outputs[1].value, 1, 'T_FF !Q output remains 1 when Q=0');
+
+  const cnt = c.addComponent('COUNTER', 260, 100, { invertedOutput: true });
+  cnt.compute();
+  cnt.commit(true);
+  assertEqual(cnt.outputs[0].value, 1, 'COUNTER Q0 is inverted to 1 at count=0 when invertedOutput=true');
+
+  // 2. NOT gate has 20px input/output stubs on 20px grid
+  const notGate = c.addComponent('NOT', 100, 220);
+  assertEqual(notGate.inputs[0].relX, -20, 'NOT gate has -20px input lead stub');
+  assertEqual(notGate.outputs[0].relX, 60, 'NOT gate has +20px output lead stub beyond 40px body');
+
+  // 3. Moving an LED onto an open wire end via endDragPreview snaps and connects it
+  const app = new LogicSimApp();
+  const sw = app.circuit.addComponent('SWITCH', 40, 100, { initialValue: 1 });
+  const openWire = app.circuit.addWire(sw.id, 0, null, null, null, null, { toPoint: { x: 200, y: 120 } });
+  const led = app.circuit.addComponent('LED', 200, 100);
+  app.endDragPreview([led.id], true);
+  assertEqual(openWire.toCompId, led.id, 'Moving LED onto open wire end snaps wire to LED');
+  assertEqual(openWire.toPin, 0, 'Snapped wire targets LED input pin 0');
+  assertEqual(led.inputs[0].value, 1, 'Snapped LED receives HIGH signal from switch');
 });
 
 console.log('\n================================================================');

@@ -131,3 +131,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 > mache das man die globale verzögerung von bauteilen bei der selektion einstellen kann und das man die verzögerung auch schon beim edit modus merkt. rechne bei der verzögerung einfach schon mit den momentanen hz wert
 > entferne den global anwenden button und mache es lieber bei dem module drag and drop
 > kannst du bitte das modulspezifisch machen
+
+---
+
+## 2026-11-16 — Ausgangs-Invertierung bei sequenziellen Modulen, NOT-Anschlussstäbe & LED-Einrasten
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-056
+- **Prompt:**
+
+> teilweise sind die invertierung von ausgängen von modulen immernoch fehlerhaft und so bauelemente wie not haben immernoch keine eingangs und ausgangstäbe und leds werden teilweise immernoch nicht richtig drangesteckt
