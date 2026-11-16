@@ -3286,6 +3286,70 @@ runTest('WISH-062', 'Waypoint handles match visible corners and segment drag doe
   }
 });
 
+runTest('WISH-063', 'CLOCK supports independent HIGH-phase and LOW-phase tick counts with Inspector controls and JSON persistence', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const prevLang = I18N.currentLang;
+  try {
+    const app = new LogicSimApp();
+    app.engine.setMode('edit');
+    app.engine.setFrequency(10);
+
+    // 1. Asymmetric duty cycle: highTicks = 3, lowTicks = 1
+    const clk = app.circuit.addComponent('CLOCK', 80, 100, { highTicks: 3, lowTicks: 1 });
+    assertEqual(clk.params.highTicks, 3, 'CLOCK stores highTicks = 3');
+    assertEqual(clk.params.lowTicks, 1, 'CLOCK stores lowTicks = 1');
+
+    const seq = [];
+    for (let i = 0; i < 8; i++) {
+      app.circuit.step();
+      seq.push(clk.outputs[0].value);
+    }
+    assertEqual(JSON.stringify(seq), JSON.stringify([1, 1, 1, 0, 1, 1, 1, 0]), 'CLOCK produces exact 3-tick HIGH / 1-tick LOW duty cycle');
+
+    // 2. Legacy halfPeriod fallback
+    const clkSym = app.circuit.addComponent('CLOCK', 80, 200, { halfPeriod: 2 });
+    assertEqual(clkSym.params.highTicks, 2, 'Legacy halfPeriod initializes highTicks = 2');
+    assertEqual(clkSym.params.lowTicks, 2, 'Legacy halfPeriod initializes lowTicks = 2');
+
+    // 3. Inspector renders HIGH-Phase and LOW-Phase sliders with ms readouts
+    app.selectItem(clk.id, null);
+    const findElements = (node, pred, acc = []) => {
+      if (!node || typeof node !== 'object') return acc;
+      if (pred(node)) acc.push(node);
+      if (Array.isArray(node.children)) {
+        for (const ch of node.children) findElements(ch, pred, acc);
+      }
+      return acc;
+    };
+    const sliders = findElements(app.inspector.container, el => el.type === 'range');
+    assertEqual(sliders.length, 2, 'CLOCK inspector renders 2 sliders (HIGH-Phase and LOW-Phase)');
+    sliders[0].value = '4';
+    (sliders[0].listeners.input || []).forEach(fn => fn({ target: sliders[0] }));
+    sliders[1].value = '2';
+    (sliders[1].listeners.input || []).forEach(fn => fn({ target: sliders[1] }));
+    assertEqual(clk.params.highTicks, 4, 'HIGH-Phase slider updates clk.params.highTicks');
+    assertEqual(clk.params.lowTicks, 2, 'LOW-Phase slider updates clk.params.lowTicks');
+
+    // 4. JSON roundtrip & I18N check
+    const rt = new Circuit();
+    rt.fromJSON(app.circuit.toJSON());
+    const rtClk = rt.getComponent(clk.id);
+    assertEqual(rtClk.params.highTicks, 4, 'JSON roundtrip preserves highTicks = 4');
+    assertEqual(rtClk.params.lowTicks, 2, 'JSON roundtrip preserves lowTicks = 2');
+
+    I18N.currentLang = 'en';
+    assertEqual(I18N.phrase('HIGH-Phase (Ticks)'), 'HIGH phase (ticks)', 'English translation for HIGH-Phase (Ticks)');
+    assertEqual(I18N.phrase('LOW-Phase (Ticks)'), 'LOW phase (ticks)', 'English translation for LOW-Phase (Ticks)');
+  } finally {
+    I18N.currentLang = prevLang;
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

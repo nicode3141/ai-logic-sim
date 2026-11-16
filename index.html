@@ -5567,7 +5567,7 @@
       'Strg': 'Ctrl', 'Umschalt': 'Shift', 'Entf': 'Del', 'Leertaste': 'Space',
       // --- inspector ---
       'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
-      '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
+      '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:', 'HIGH-Phase (Ticks)': 'HIGH phase (ticks)', 'LOW-Phase (Ticks)': 'LOW phase (ticks)',
       'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay', 'Alle (Global)': 'All (Global)', 'Puffer (BUFFER)': 'Buffer (BUFFER)', 'Sofort (0 ms)': 'Instant (0 ms)',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
       'XOR bei mehr als 2 Eingängen': 'XOR with more than 2 inputs', 'Exklusiv: genau ein Eingang 1': 'Exclusive: exactly one input is 1',
@@ -6055,12 +6055,16 @@
       return Number.isFinite(n) ? Math.max(GATE_DELAY_MIN, Math.min(GATE_DELAY_MAX, n)) : fallback;
     }
 
-    function formatDelayWithHz(ticks, hz = 10) {
-      const t = parseGateDelay(ticks, 1);
+    function formatTicksWithHz(ticks, hz = 10) {
+      const t = Math.max(0, parseInt(ticks, 10) || 0);
       if (t === 0) return 'Sofort (0 ms)';
       const f = Math.max(1, Math.min(60, parseInt(hz, 10) || 10));
       const ms = Math.round((t * 1000) / f);
       return `${t} ${t === 1 ? 'Tick' : 'Ticks'} (${ms} ms)`;
+    }
+
+    function formatDelayWithHz(ticks, hz = 10) {
+      return formatTicksWithHz(parseGateDelay(ticks, 1), hz);
     }
 
     const LED_COLORS = {
@@ -6586,9 +6590,14 @@
             break;
           case 'CLOCK': {
             const rawHalf = parseInt(customParams.halfPeriod ?? 5, 10);
+            const hp = Number.isFinite(rawHalf) ? Math.max(1, Math.min(50, rawHalf)) : 5;
+            const rawHigh = parseInt(customParams.highTicks ?? hp, 10);
+            const rawLow = parseInt(customParams.lowTicks ?? hp, 10);
             this.params = {
               label: customParams.label ?? 'CLK',
-              halfPeriod: Number.isFinite(rawHalf) ? Math.max(1, Math.min(50, rawHalf)) : 5
+              halfPeriod: hp,
+              highTicks: Number.isFinite(rawHigh) ? Math.max(1, Math.min(50, rawHigh)) : hp,
+              lowTicks: Number.isFinite(rawLow) ? Math.max(1, Math.min(50, rawLow)) : hp
             };
             break;
           }
@@ -7175,14 +7184,17 @@
           case 'CLOCK': {
             let nextCnt = this.state.counter + 1;
             let nextVal = this.state.value;
-            const halfP = Number.isFinite(this.params.halfPeriod) ? Math.max(1, this.params.halfPeriod) : 5;
-            if (nextCnt >= halfP) {
+            const fallbackHp = Number.isFinite(this.params.halfPeriod) ? Math.max(1, Math.min(50, this.params.halfPeriod)) : 5;
+            const highT = Number.isFinite(this.params.highTicks) ? Math.max(1, Math.min(50, this.params.highTicks)) : fallbackHp;
+            const lowT = Number.isFinite(this.params.lowTicks) ? Math.max(1, Math.min(50, this.params.lowTicks)) : fallbackHp;
+            const limit = nextVal === 1 ? highT : lowT;
+            if (nextCnt >= limit) {
               nextCnt = 0;
               nextVal = nextVal === 1 ? 0 : 1;
             }
             this.state.nextCounter = nextCnt;
             this.state.nextValue = nextVal;
-            this.nextOutputs[0] = nextVal;
+            this.nextOutputs[0] = this.params.invertedOutput ? (nextVal ? 0 : 1) : nextVal;
             break;
           }
           case 'NOT': {
@@ -12792,7 +12804,11 @@
             ctx.fillStyle = pal.moduleSub;
             ctx.font = '600 9.5px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(`T½=${comp.params.halfPeriod}`, cx - 6, y + height - 6);
+            const fallbackHp = Number.isFinite(comp.params.halfPeriod) ? comp.params.halfPeriod : 5;
+            const highT = Number.isFinite(comp.params.highTicks) ? comp.params.highTicks : fallbackHp;
+            const lowT = Number.isFinite(comp.params.lowTicks) ? comp.params.lowTicks : fallbackHp;
+            const clkText = (highT === lowT) ? `T½=${highT}` : `H:${highT} L:${lowT}`;
+            ctx.fillText(clkText, cx - 4, y + height - 6);
             break;
           }
 
@@ -14738,17 +14754,38 @@
           }
 
           case 'CLOCK': {
+            const fallbackHp = Number.isFinite(comp.params.halfPeriod) ? comp.params.halfPeriod : 5;
+            const curHigh = Number.isFinite(comp.params.highTicks) ? comp.params.highTicks : fallbackHp;
+            const curLow = Number.isFinite(comp.params.lowTicks) ? comp.params.lowTicks : fallbackHp;
             this.addRangeControl(
-              'Halbperiode (Ticks)',
-              comp.params.halfPeriod,
+              'HIGH-Phase (Ticks)',
+              curHigh,
               1,
               50,
               'Ticks',
               isSim,
               (val) => {
-                comp.params.halfPeriod = parseInt(val, 10);
+                const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1));
+                comp.params.highTicks = parsed;
+                comp.params.halfPeriod = Math.round((parsed + (Number.isFinite(comp.params.lowTicks) ? comp.params.lowTicks : fallbackHp)) / 2);
                 this.onChange(false);
-              }
+              },
+              (val) => formatTicksWithHz(val, this.engine.frequency || 10)
+            );
+            this.addRangeControl(
+              'LOW-Phase (Ticks)',
+              curLow,
+              1,
+              50,
+              'Ticks',
+              isSim,
+              (val) => {
+                const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1));
+                comp.params.lowTicks = parsed;
+                comp.params.halfPeriod = Math.round(((Number.isFinite(comp.params.highTicks) ? comp.params.highTicks : fallbackHp) + parsed) / 2);
+                this.onChange(false);
+              },
+              (val) => formatTicksWithHz(val, this.engine.frequency || 10)
             );
             break;
           }
@@ -20341,12 +20378,16 @@
 
             const row = document.createElement('div');
             row.className = 'ctx-sub-row';
+            const curHigh = Number.isFinite(comp.params.highTicks) ? comp.params.highTicks : comp.params.halfPeriod;
+            const curLow = Number.isFinite(comp.params.lowTicks) ? comp.params.lowTicks : comp.params.halfPeriod;
             [1, 2, 5, 10, 20].forEach(hp => {
               const chip = document.createElement('span');
-              chip.className = 'ctx-chip' + (comp.params.halfPeriod === hp ? ' active' : '');
+              chip.className = 'ctx-chip' + (curHigh === hp && curLow === hp ? ' active' : '');
               chip.textContent = `${hp}T`;
               chip.addEventListener('click', () => {
                 comp.params.halfPeriod = hp;
+                comp.params.highTicks = hp;
+                comp.params.lowTicks = hp;
                 this.inspector.render(comp.id, null);
                 this.refreshAll();
                 this.hideContextMenu();

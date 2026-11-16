@@ -223,3 +223,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > das draggen des ghost modules laggt komplett und ist überhaupt nicht flüssig
+
+---
+
+## 2026-11-16 — Taktgenerator: HIGH- und LOW-Phase getrennt einstellbar
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-063
+- **Prompt:**
+
+> füge hinzu das man beim taktgenerator die ticks der high und low phase einstellen kann
