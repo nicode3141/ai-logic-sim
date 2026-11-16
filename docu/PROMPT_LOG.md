@@ -200,3 +200,15 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 > entferne das man die din normen beim rechts klicken auf die arbeitsfläche ist
 > Füge hinzu das wenn man schräge verbindungen zulässt das bei anordnung auch schräge verbindungnen verwendet werden
 > beim hovern wird immernoch der beige button auch mitbewegt
+
+---
+
+## 2026-11-16 — Schräge Leitungen gezielt bei Optimalfällen (RS-Flip-Flops) & Eckpunkt-Handle-Fix
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-061, WISH-062
+- **Prompt:**
+
+> ich will nicht wenn schräge verbindungen aktiviert sind das nur schräge verbindungen verwendet werden sondern z.b. wenn sie optimal sind z.b. bei rs-flip flops
+> die eckpunkte buggen immernoch rum

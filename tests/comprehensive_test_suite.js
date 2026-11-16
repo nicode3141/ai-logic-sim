@@ -3186,24 +3186,89 @@ runTest('WISH-061', 'Remove symbol-norm switcher from workspace context menu and
   assertEqual(menuTexts.includes('DIN 40700'), false, 'Workspace context menu does not include DIN 40700 chip');
   app.hideContextMenu();
 
-  // 2. Auto-arrange uses diagonal connections when allowDiagonalWires is enabled
+  // 2. Normal forward wires stay orthogonal; optimal cases like RS flip-flop feedback use diagonal when allowDiagonalWires=true
   app.layoutAnimation = false;
-  const sw1 = app.circuit.addComponent('SWITCH', 40, 60, {});
-  const sw2 = app.circuit.addComponent('SWITCH', 40, 200, {});
-  const andGate = app.circuit.addComponent('AND', 220, 120, { numInputs: 2 });
-  const w1 = app.circuit.addWire(sw1.id, 0, andGate.id, 0);
-  const w2 = app.circuit.addWire(sw2.id, 0, andGate.id, 1);
+  const btnS = app.circuit.addComponent('BUTTON', 40, 60, {});
+  const btnR = app.circuit.addComponent('BUTTON', 40, 200, {});
+  const nand1 = app.circuit.addComponent('NAND', 200, 60, { numInputs: 2 });
+  const nand2 = app.circuit.addComponent('NAND', 200, 180, { numInputs: 2 });
+  const wS = app.circuit.addWire(btnS.id, 0, nand1.id, 0);
+  const wR = app.circuit.addWire(btnR.id, 0, nand2.id, 1);
+  const wFb1 = app.circuit.addWire(nand2.id, 0, nand1.id, 1);
+  const wFb2 = app.circuit.addWire(nand1.id, 0, nand2.id, 0);
 
   app.setAllowDiagonalWires(true);
   app.autoLayoutCircuit();
-  const hasDiagonal = [w1, w2].some(w => w.style === 'diagonal' && app.renderer.getWirePolyline(w).length === 2);
-  assertEqual(hasDiagonal, true, 'Auto-layout uses diagonal 2-point connections when allowDiagonalWires=true');
+  assertEqual(wS.style, 'orthogonal', 'Normal forward wire wS stays orthogonal even when allowDiagonalWires=true');
+  assertEqual(wFb1.style, 'diagonal', 'RS flip-flop feedback wFb1 uses diagonal connection when optimal');
+  assertEqual(wFb2.style, 'diagonal', 'RS flip-flop feedback wFb2 uses diagonal connection when optimal');
 
   // 3. Disabling allowDiagonalWires makes auto-layout route purely orthogonally
   app.setAllowDiagonalWires(false);
   app.autoLayoutCircuit();
-  assertEqual(w1.style, 'orthogonal', 'Wire w1 becomes orthogonal on auto-layout when allowDiagonalWires=false');
-  assertEqual(w2.style, 'orthogonal', 'Wire w2 becomes orthogonal on auto-layout when allowDiagonalWires=false');
+  assertEqual(wFb1.style, 'orthogonal', 'Feedback wire wFb1 becomes orthogonal on auto-layout when allowDiagonalWires=false');
+  assertEqual(wFb2.style, 'orthogonal', 'Feedback wire wFb2 becomes orthogonal on auto-layout when allowDiagonalWires=false');
+});
+
+runTest('WISH-062', 'Waypoint handles match visible corners and segment drag does not spawn phantom waypoints', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const app = new LogicSimApp();
+  app.engine.setMode('edit');
+  const prevRectFn = app.gridCanvas.getBoundingClientRect;
+  app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
+
+  try {
+    const sw = app.circuit.addComponent('SWITCH', 40, 100, {});
+    const led = app.circuit.addComponent('LED', 280, 40, {});
+    const w = app.circuit.addWire(sw.id, 0, led.id, 0);
+    // Inject a stale collinear waypoint on the vertical segment (180, 100) -> (180, 60)
+    w.waypoints = [{ x: 180, y: 120 }, { x: 180, y: 100 }, { x: 180, y: 60 }];
+    app.selectItem(null, w.id);
+
+    // 1. drawWires only draws handles at actual visible corners (pts.slice(1, -1)) — NOT at collinear (180, 100)
+    const drawnCircles = [];
+    const spyCtx = Object.assign({}, mockCtx, {
+      arc: (x, y, r) => drawnCircles.push({ x, y, r })
+    });
+    app.renderer.drawWires(spyCtx);
+    const hasPhantomMid = drawnCircles.some(c => Math.abs(c.x - 180) < 1 && Math.abs(c.y - 100) < 1 && c.r === 4);
+    assertEqual(hasPhantomMid, false, 'No phantom waypoint circle drawn on collinear mid-segment point');
+
+    // 2. ensureWireWaypoints(w, true) synchronizes stale waypoints to actual corners
+    app.ensureWireWaypoints(w, true);
+    assertEqual(w.waypoints.length, 2, 'Force-synced waypoints match the 2 actual visible corners');
+
+    // 3. Repeated mousemove while dragging last segment does not push unbounded waypoints
+    app.renderer.panX = 0;
+    app.renderer.panY = 0;
+    app.renderer.zoom = 1;
+    const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+    const mmHandlers = (typeof window.listeners === 'object' && window.listeners.mousemove) ? window.listeners.mousemove : [];
+    // Click on last horizontal segment (180, 60) -> (280, 60) at (220, 60)
+    mdHandlers.forEach(fn => fn({ button: 0, clientX: 220, clientY: 60, preventDefault: () => {} }));
+    assertEqual(Boolean(app.draggingSegment), true, 'Segment drag starts on last horizontal segment');
+    const prevIdx = app.draggingSegment.segmentIndex;
+    // Simulate dragging segment via mousemove directly on app.draggingSegment logic if window listener isn't captured
+    for (let step = 0; step < 5; step++) {
+      const ev = { clientX: 220, clientY: 80 + step * 20 };
+      if (mmHandlers.length > 0) mmHandlers.forEach(fn => fn(ev));
+    }
+    assertEqual(w.waypoints.length <= 4, true, 'Segment drag adds at most 2 end-jog waypoints instead of pushing infinitely');
+    app.draggingSegment = null;
+    app.cleanWireWaypoints(w);
+
+    // 4. removeWaypointFromWire cleans collinear remnants
+    w.waypoints = [{ x: 180, y: 120 }, { x: 180, y: 100 }, { x: 180, y: 60 }];
+    app.removeWaypointFromWire(w, 1);
+    assertEqual(w.waypoints.length, 2, 'removeWaypointFromWire leaves clean 2-corner waypoints');
+  } finally {
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+    app.gridCanvas.getBoundingClientRect = prevRectFn;
+  }
 });
 
 console.log('\n================================================================');

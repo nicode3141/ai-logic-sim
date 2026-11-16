@@ -11952,9 +11952,13 @@
           ctx.stroke();
 
           if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
-            if (w.waypoints && w.waypoints.length > 0) {
-              for (let i = 0; i < w.waypoints.length; i++) {
-                const wp = w.waypoints[i];
+            const isDraggingThisWp = this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id;
+            const handlePts = (isDraggingThisWp && w.waypoints && w.waypoints.length > 0)
+              ? w.waypoints
+              : (pts.length > 2 ? pts.slice(1, -1) : []);
+            if (handlePts.length > 0) {
+              for (let i = 0; i < handlePts.length; i++) {
+                const wp = handlePts[i];
                 const isHoveredWp = this.hoveredWaypoint &&
                                     this.hoveredWaypoint.wire.id === w.id &&
                                     this.hoveredWaypoint.waypointIndex === i;
@@ -17188,11 +17192,11 @@
         return Boolean(wire);
       }
 
-      ensureWireWaypoints(wire) {
+      ensureWireWaypoints(wire, forceSync = false) {
         if (!wire) return;
         wire.autoRouted = false; // from now on the user shapes this wire by hand
-        if (!wire.waypoints || wire.waypoints.length === 0) {
-          const pts = this.renderer.getWirePolyline(wire);
+        const pts = this.renderer.getWirePolyline(wire);
+        if (forceSync || !wire.waypoints || wire.waypoints.length === 0 || wire.waypoints.length !== Math.max(0, pts.length - 2)) {
           if (pts.length > 2) {
             wire.waypoints = pts.slice(1, -1).map(p => ({
               x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
@@ -17290,6 +17294,17 @@
         if (!wire || !wire.waypoints) return;
         if (index >= 0 && index < wire.waypoints.length) {
           wire.waypoints.splice(index, 1);
+          if (wire.waypoints.length > 0) {
+            const pts = this.renderer.getWirePolyline(wire);
+            if (pts.length >= 2) {
+              const raw = [pts[0], ...wire.waypoints, pts[pts.length - 1]];
+              const simplified = this.renderer.simplifyCollinear(raw);
+              wire.waypoints = simplified.slice(1, -1).map(p => ({
+                x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
+                y: Math.round(p.y / GRID_SIZE) * GRID_SIZE
+              }));
+            }
+          }
           if (this.renderer.selectedWireId === wire.id && this.inspector) {
             this.inspector.render(null, wire.id);
           }
@@ -18833,7 +18848,7 @@
           if (this.engine.mode === 'edit' && this.renderer.selectedWireId) {
             const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
             if (hitWp && hitWp.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitWp.wire);
+              this.ensureWireWaypoints(hitWp.wire, true);
               this.draggingWaypoint = { wire: hitWp.wire, index: hitWp.waypointIndex, startX: hitWp.x, startY: hitWp.y };
               this.renderer.activeWaypointDrag = { wire: hitWp.wire, index: hitWp.waypointIndex };
               canvas.style.cursor = 'crosshair';
@@ -18843,9 +18858,11 @@
 
             const hitMid = this.renderer.findMidpointHandleAt(world.x, world.y, 8);
             if (hitMid && hitMid.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitMid.wire);
-              hitMid.wire.waypoints.splice(hitMid.segmentIndex, 0, { x: hitMid.x, y: hitMid.y });
-              this.draggingWaypoint = { wire: hitMid.wire, index: hitMid.segmentIndex, startX: hitMid.x, startY: hitMid.y };
+              this.ensureWireWaypoints(hitMid.wire, true);
+              const mx = Math.round(hitMid.x / GRID_SIZE) * GRID_SIZE;
+              const my = Math.round(hitMid.y / GRID_SIZE) * GRID_SIZE;
+              hitMid.wire.waypoints.splice(hitMid.segmentIndex, 0, { x: mx, y: my });
+              this.draggingWaypoint = { wire: hitMid.wire, index: hitMid.segmentIndex, startX: mx, startY: my };
               this.renderer.activeWaypointDrag = { wire: hitMid.wire, index: hitMid.segmentIndex };
               this.renderer.render();
               if (this.inspector) this.inspector.render(null, hitMid.wire.id);
@@ -18855,7 +18872,7 @@
 
             const hitSeg = this.renderer.findWireSegmentAt(world.x, world.y, 6);
             if (hitSeg && hitSeg.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitSeg.wire);
+              this.ensureWireWaypoints(hitSeg.wire, true);
               const segPts = this.renderer.getWirePolyline(hitSeg.wire);
               this.draggingSegment = {
                 wire: hitSeg.wire,
@@ -19139,13 +19156,15 @@
                   dragSeg.segmentIndex = 2;
                 }
               } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
-                const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                const prevN = wire.waypoints.length;
+                const lastWp = wire.waypoints[prevN - 1];
                 const s2 = lastWp.x < p2.x ? -1 : 1;
                 lastWp.y = ny;
                 wire.waypoints.push(
                   { x: p2.x + s2 * 20, y: ny },
                   { x: p2.x + s2 * 20, y: p2.y }
                 );
+                dragSeg.segmentIndex = prevN;
               } else {
                 const wp1 = wire.waypoints[dragSeg.segmentIndex - 1];
                 const wp2 = wire.waypoints[dragSeg.segmentIndex];
@@ -19175,13 +19194,15 @@
                   dragSeg.segmentIndex = 2;
                 }
               } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
-                const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                const prevN = wire.waypoints.length;
+                const lastWp = wire.waypoints[prevN - 1];
                 const s2 = lastWp.y < p2.y ? -1 : 1;
                 lastWp.x = nx;
                 wire.waypoints.push(
                   { x: nx, y: p2.y + s2 * 20 },
                   { x: p2.x, y: p2.y + s2 * 20 }
                 );
+                dragSeg.segmentIndex = prevN;
               } else {
                 const wp1 = wire.waypoints[dragSeg.segmentIndex - 1];
                 const wp2 = wire.waypoints[dragSeg.segmentIndex];
@@ -19504,7 +19525,7 @@
 
           const hitWp = this.renderer.findWaypointAt(world.x, world.y, 10);
           if (hitWp) {
-            this.ensureWireWaypoints(hitWp.wire);
+            this.ensureWireWaypoints(hitWp.wire, true);
             this.removeWaypointFromWire(hitWp.wire, hitWp.waypointIndex);
             this.selectItem(null, hitWp.wire.id);
             this.refreshAll();
@@ -21038,6 +21059,19 @@
             return t0 <= t1;
           };
           const comps = circuit.components || [];
+          const pathClear = (pts, skipA, skipB) => {
+            for (let s = 0; s < pts.length - 1; s++) {
+              const a = pts[s], b = pts[s + 1];
+              for (let i = 0; i < comps.length; i++) {
+                const c = comps[i];
+                const pad = (c.id === skipA || c.id === skipB) ? -2 : 4;
+                if (segIntersectsRect(a, b, c.x - pad, c.y - pad, c.x + c.width + pad, c.y + c.height + pad)) {
+                  return false;
+                }
+              }
+            }
+            return true;
+          };
           for (const w of circuit.wires) {
             if (ids && !ids.has(w.id)) continue;
             const fc = circuit.getComponent(w.fromCompId);
@@ -21045,21 +21079,38 @@
             if (!fc || !tc) continue;
             const p1 = fc.getPinWorldPos(true, w.fromPin);
             const p2 = tc.getPinWorldPos(false, w.toPin);
-            if (!p1 || !p2 || p1.y === p2.y || p1.x >= p2.x) continue;
-            if (p1.x < fc.x + fc.width || p2.x > tc.x) continue;
-            let blocked = false;
-            for (let i = 0; i < comps.length; i++) {
-              const c = comps[i];
-              if (c.id === fc.id || c.id === tc.id) continue;
-              if (segIntersectsRect(p1, p2, c.x - 6, c.y - 6, c.x + c.width + 6, c.y + c.height + 6)) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
+            if (!p1 || !p2 || p1.y === p2.y) continue;
+
+            const isBackward = p1.x >= p2.x;
+            const orthoCorners = (w.waypoints && w.waypoints.length) ? w.waypoints.length : 0;
+            const orthoFailed = routes && routes.get(w.id) === null;
+
+            // Use diagonal only when optimal: feedback/cross-coupled wires (e.g. RS flip-flops)
+            // or complex orthogonal detours (>= 3 bends / failed orthogonal route).
+            if (!isBackward && !orthoFailed && orthoCorners < 3) continue;
+
+            if (pathClear([p1, p2], fc.id, tc.id)) {
               w.style = 'diagonal';
               w.waypoints = [];
               w.channelOffset = 0;
+              continue;
+            }
+
+            // RS flip-flop / stacked feedback cross: route cleanly through vertical gap between fc and tc
+            if (isBackward) {
+              const fcBottom = fc.y + fc.height;
+              const tcBottom = tc.y + tc.height;
+              let gapPts = null;
+              if (fcBottom < tc.y) {
+                gapPts = [{ x: p1.x, y: fcBottom }, { x: p2.x, y: tc.y }];
+              } else if (tcBottom < fc.y) {
+                gapPts = [{ x: p1.x, y: fc.y }, { x: p2.x, y: tcBottom }];
+              }
+              if (gapPts && pathClear([p1, gapPts[0], gapPts[1], p2], fc.id, tc.id)) {
+                w.style = 'diagonal';
+                w.waypoints = gapPts;
+                w.channelOffset = 0;
+              }
             }
           }
         }
