@@ -164,3 +164,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > kannst du es hinzufügen wenn man ein modul vom drag in drop in den arbeitsspace schiebt das beim cursor das module verschoben wird
+
+---
+
+## 2026-11-16 — Positionierung der Eingangs-/Ausgangsinvertierung am Modulrand
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-059
+- **Prompt:**
+
+> fixe das die eingangsinvertiertung richtig beim modul geplaced ist

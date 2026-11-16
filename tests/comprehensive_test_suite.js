@@ -3063,6 +3063,32 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
   }
 });
 
+runTest('WISH-059', 'Non-gate module input and output inversion bubbles render cleanly outside module border without overlapping pin circle', () => {
+  const c = new Circuit();
+  const sipo = c.addComponent('SHIFT_REG', 200, 100, { invertedInputs: [true, false, false] });
+  const tff = c.addComponent('T_FF', 400, 100, { invertedOutput: false });
+  const engine = new SimulationEngine(c, new RingBuffer(10), () => {});
+  const renderer = new CanvasRenderer(createMockElem('grid-canvas'), c, engine);
+
+  const arcCalls = [];
+  const spyCtx = Object.assign({}, mockCtx, {
+    arc: (x, y, r) => arcCalls.push({ x, y, r })
+  });
+
+  renderer.drawComponentPins(spyCtx, sipo);
+  const dinY = sipo.y + sipo.inputs[0].relY;
+  const dinArcs = arcCalls.filter(a => Math.abs(a.y - dinY) < 1 && a.x <= sipo.x + 10);
+  assertEqual(dinArcs.length, 1, 'Inverted DIN input draws exactly 1 circle (no overlapping pin circle)');
+  assertEqual(dinArcs[0].x < sipo.x, true, 'Inverted DIN bubble is placed outside the left module wall');
+
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, tff);
+  const negQY = tff.y + tff.outputs[1].relY;
+  const negQArcs = arcCalls.filter(a => Math.abs(a.y - negQY) < 1 && a.x >= tff.x + tff.width - 10);
+  assertEqual(negQArcs.length, 1, 'Negated !Q output draws exactly 1 circle (no overlapping pin circle)');
+  assertEqual(negQArcs[0].x > tff.x + tff.width, true, 'Negated !Q bubble is placed outside the right module wall');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

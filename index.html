@@ -13142,6 +13142,8 @@
         const isGateComp = this.isGate(comp.type);
         const pal = this.getThemePalette();
 
+        const rBubble = 3.2;
+
         for (let i = 0; i < comp.inputs.length; i++) {
           const pin = comp.inputs[i];
           const px = comp.x + pin.relX;
@@ -13151,20 +13153,20 @@
             this.hoveredPin.compId === comp.id &&
             !this.hoveredPin.isOutput &&
             this.hoveredPin.pinIndex === i;
+          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
-          if (!isGateComp || isHovered) {
+          if ((!isGateComp && !isInv) || isHovered) {
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
-          const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
-
           if (!isGateComp && isInv) {
+            const bx = px - rBubble - 1;
             ctx.beginPath();
-            ctx.arc(px + 4.5, py, 3.2, 0, Math.PI * 2);
+            ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
             ctx.fillStyle = pal.bg || '#ffffff';
             ctx.fill();
-            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.leadLine || '#808080'));
-            ctx.lineWidth = 1.3;
+            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.gateStroke || pal.leadLine || '#808080'));
+            ctx.lineWidth = pin.value === 1 ? 2 : 1.5;
             ctx.stroke();
           }
 
@@ -13172,10 +13174,9 @@
             ctx.strokeStyle = pal.leadLine;
             ctx.lineWidth = 1.2;
             ctx.beginPath();
-            const clkOffset = isInv ? 9 : 1;
-            ctx.moveTo(comp.x + clkOffset, py - 4);
-            ctx.lineTo(comp.x + clkOffset + 5, py);
-            ctx.lineTo(comp.x + clkOffset, py + 4);
+            ctx.moveTo(comp.x + 1, py - 4);
+            ctx.lineTo(comp.x + 6, py);
+            ctx.lineTo(comp.x + 1, py + 4);
             ctx.stroke();
           }
 
@@ -13190,8 +13191,7 @@
             } else if (comp.type === 'LED' || comp.type === 'PROBE') {
               ctx.fillText(pin.name, px + 6, py - 7);
             } else {
-              const textOffsetX = isInv ? 17 : 9;
-              ctx.fillText(pin.name, px + textOffsetX, py + 3);
+              ctx.fillText(pin.name, px + 9, py + 3);
             }
           }
         }
@@ -13206,21 +13206,22 @@
             this.hoveredPin.isOutput &&
             this.hoveredPin.pinIndex === i;
 
-          if (!isGateComp || isHovered) {
-            this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
-          }
-
           const isFF = ['SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH'].includes(comp.type);
           const isNegatedQ = isFF && (pin.name === '!Q' || pin.defaultName === '!Q');
           const isInv = isFF ? (isNegatedQ || (i === 0 && Boolean(comp.params.invertedOutput))) : Boolean(comp.params.invertedOutput);
 
+          if ((!isGateComp && !isInv) || isHovered) {
+            this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
+          }
+
           if (!isGateComp && isInv) {
+            const bx = px + rBubble + 1;
             ctx.beginPath();
-            ctx.arc(px - 4.5, py, 3.2, 0, Math.PI * 2);
+            ctx.arc(bx, py, rBubble, 0, Math.PI * 2);
             ctx.fillStyle = pal.bg || '#ffffff';
             ctx.fill();
-            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.leadLine || '#808080'));
-            ctx.lineWidth = 1.3;
+            ctx.strokeStyle = isHovered ? '#00b0ff' : (pin.value === 1 ? (this.highSignalColor || '#00ff66') : (pal.gateStroke || pal.leadLine || '#808080'));
+            ctx.lineWidth = pin.value === 1 ? 2 : 1.5;
             ctx.stroke();
           }
 
@@ -13236,8 +13237,7 @@
             } else if (['SWITCH', 'BUTTON', 'CLOCK', 'CONST'].includes(comp.type)) {
               ctx.fillText(displayName, px - 6, py - 7);
             } else {
-              const textOffsetX = isInv ? 17 : 9;
-              ctx.fillText(displayName, px - textOffsetX, py + 3);
+              ctx.fillText(displayName, px - 9, py + 3);
             }
           }
         }
