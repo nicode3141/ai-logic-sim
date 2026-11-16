@@ -2914,6 +2914,71 @@ runTest('WISH-056', 'Sequential invertedOutput, NOT input/output stubs, and LED 
   assertEqual(led.inputs[0].value, 1, 'Snapped LED receives HIGH signal from switch');
 });
 
+runTest('WISH-057', 'Zero-delay (Sofort / 0 ms) propagation in edit/sim mode and JSON persistence', () => {
+  const prevLang = I18N.currentLang;
+  try {
+    const app = new LogicSimApp();
+    app.engine.setMode('edit');
+
+    const sw = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 0 });
+    const andGate = app.circuit.addComponent('AND', 160, 80, { numInputs: 2, delay: 0 });
+    const notGate = app.circuit.addComponent('NOT', 280, 80, { delay: 0 });
+    const led = app.circuit.addComponent('LED', 400, 80, {});
+    app.circuit.addWire(sw.id, 0, andGate.id, 0);
+    app.circuit.addWire(sw.id, 0, andGate.id, 1);
+    app.circuit.addWire(andGate.id, 0, notGate.id, 0);
+    app.circuit.addWire(notGate.id, 0, led.id, 0);
+    app.circuit.syncImmediateWireLevels();
+
+    assertEqual(andGate.getEffectiveDelay(), 0, 'AND gate accepts 0 tick delay');
+    assertEqual(notGate.getEffectiveDelay(), 0, 'NOT gate accepts 0 tick delay');
+
+    // Palette slider accepts 0 and formats as 'Sofort (0 ms)'
+    const paletteTypeSel = document.getElementById('palette-delay-type');
+    const paletteSlider = document.getElementById('palette-global-delay-slider');
+    const paletteVal = document.getElementById('palette-global-delay-val');
+    paletteTypeSel.value = '__GLOBAL__';
+    paletteSlider.value = '0';
+    (paletteSlider.listeners.input || []).forEach(fn => fn({ target: paletteSlider }));
+    assertEqual(app.globalGateDelay, 0, 'Palette slider sets globalGateDelay to 0');
+    assertEqual(app.circuit.globalGateDelay, 0, 'Circuit globalGateDelay is 0');
+    assertEqual(paletteVal.textContent, 'Sofort (0 ms)', 'Zero delay readout displays Sofort (0 ms)');
+
+    I18N.currentLang = 'en';
+    assertEqual(I18N.phrase('Sofort (0 ms)'), 'Instant (0 ms)', 'English translation for Sofort (0 ms)');
+    I18N.currentLang = 'de';
+
+    // Edit-mode propagation settles 0-delay chain immediately without waiting ticks
+    sw.state.value = 1;
+    sw.outputs[0].value = 1;
+    sw.nextOutputs[0] = 1;
+    app.triggerEditPropagation(app.circuit);
+    app.stopEditPropagation();
+    assertEqual(andGate.outputs[0].value, 1, '0-delay AND gate settles immediately in edit mode');
+    assertEqual(notGate.outputs[0].value, 0, '0-delay NOT gate settles immediately in edit mode');
+    assertEqual(led.inputs[0].value, 0, 'LED receives updated level immediately in edit mode');
+
+    // Simulation mode single step propagates entire 0-delay chain in same tick
+    app.engine.setMode('sim');
+    sw.state.value = 0;
+    sw.outputs[0].value = 0;
+    sw.nextOutputs[0] = 0;
+    app.circuit.step();
+    assertEqual(andGate.outputs[0].value, 0, '0-delay AND gate propagates in single sim tick');
+    assertEqual(notGate.outputs[0].value, 1, '0-delay NOT gate propagates in same sim tick');
+    assertEqual(led.inputs[0].value, 1, 'LED receives updated level in same sim tick');
+
+    // JSON roundtrip preserves 0 delay (not reset to 1)
+    app.setModuleGateDelay('AND', 0, false);
+    const rt = new Circuit();
+    rt.fromJSON(app.circuit.toJSON());
+    assertEqual(rt.globalGateDelay, 0, 'JSON roundtrip preserves globalGateDelay = 0');
+    assertEqual(rt.moduleGateDelays.AND, 0, 'JSON roundtrip preserves moduleGateDelays.AND = 0');
+  } finally {
+    I18N.currentLang = prevLang;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

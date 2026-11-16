@@ -142,3 +142,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > teilweise sind die invertierung von ausgängen von modulen immernoch fehlerhaft und so bauelemente wie not haben immernoch keine eingangs und ausgangstäbe und leds werden teilweise immernoch nicht richtig drangesteckt
+
+---
+
+## 2026-11-16 — Sofort-Verzögerung (0 ms)
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-057
+- **Prompt:**
+
+> füge noch hinzu das man sofort einstellen kann also 0 ms verzögerung

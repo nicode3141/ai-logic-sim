@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### ✨ Added
+- **Feature:** Gatterverzögerung lässt sich jetzt bis auf `0` (`Sofort (0 ms)` / `Instant (0 ms)`) herunterregeln — global, modulspezifisch in der Palette sowie im Inspector für Einzel- und Mehrfachauswahlen; `0 ms`-Gatter propagieren Signale sowohl im Edit-Modus als auch im Simulationsmodus sofort ohne Tick-Wartezeit (WISH-057).
 - **Feature:** Verzögerung (Gatterlaufzeit) lässt sich direkt bei Mehrfachauswahlen (`InspectorUI.renderMulti`) für alle selektierten Gatter gemeinsam einstellen sowie in der Bauteil-Palette (`#palette-delay-type` + `#palette-global-delay-slider`) sowohl global als auch modulspezifisch pro Gattertyp (`moduleGateDelays`) direkt beim Drag & Drop steuern; zudem werden Gatterverzögerungen im Edit-Modus zeitgesteuert mit der aktuellen Taktfrequenz (Hz) propagiert (`Circuit.stepCombinational()`, `triggerEditPropagation`) und in Palette, Inspector & Einstellungen direkt in Millisekunden umgerechnet (`X Ticks (Y ms)`) (WISH-055).
 - **Feature:** Auswahlrechteck (`selectionBox`) selektiert Module und Leitungen bereits live während der Mausbewegung statt erst beim Loslassen (WISH-054).
 - **Feature:** Editierbare Ein- und Ausgangs-Pin-Beschriftungen (`Pin-Beschriftungen`) im Inspector für sämtliche Modultypen inkl. Synchronisation für eigene ICs und englischer I18N-Übersetzung (WISH-051).
