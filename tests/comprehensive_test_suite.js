@@ -3082,10 +3082,11 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
     app.startPaletteDrag(fakeEvent, 'LED');
     assertEqual(Boolean(app._paletteGhostOverlayEl), true, 'Floating ghost overlay canvas is created on dragstart');
 
-    // Dragging over other GUI elements (non-canvas target) shows floating ghost overlay at cursor
+    // Dragging over other GUI elements (non-canvas target) shows floating ghost overlay at cursor via translate3d
     const winDragover = (winListeners.dragover || []);
     winDragover.forEach(fn => fn({ target: createMockElem('sidebar'), clientX: 120, clientY: 220, preventDefault: () => {} }));
     assertEqual(app._paletteGhostOverlayEl.style.display, 'block', 'Floating ghost overlay is visible when dragging over non-canvas GUI');
+    assertEqual(String(app._paletteGhostOverlayEl.style.transform || '').includes('translate3d('), true, 'Floating ghost overlay positions with GPU translate3d');
 
     // Entering gridCanvas hides floating overlay and switches to grid-snapped canvas ghost
     dragoverHandlers.forEach(fn => fn({ clientX: screenX, clientY: screenY, dataTransfer: fakeEvent.dataTransfer, preventDefault: () => {} }));
@@ -3095,6 +3096,20 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
     assertEqual(app.renderer.paletteDragGhost, null, 'dragleave clears paletteDragGhost');
     app.clearPaletteDragGhost();
     assertEqual(app._paletteGhostOverlayEl.style.display, 'none', 'clearPaletteDragGhost hides floating overlay');
+
+    // Smooth mouse-drag (mousedown -> mousemove -> mouseup) places component without native HTML5 DnD lag
+    const mockItem = createMockElem('mock-or-item');
+    mockItem.dataset = { type: 'OR' };
+    app.bindPaletteItemDrag(mockItem);
+    (mockItem.listeners.mousedown || []).forEach(fn => fn({ button: 0, clientX: 20, clientY: 20, target: mockItem, preventDefault: () => {} }));
+    assertEqual(Boolean(app._mousePaletteDrag && !app._mousePaletteDrag.started), true, 'mousedown arms mouse palette drag');
+    (winListeners.mousemove || []).forEach(fn => fn({ clientX: screenX, clientY: screenY }));
+    assertEqual(Boolean(app._mousePaletteDrag && app._mousePaletteDrag.started), true, 'mousemove past 5px starts smooth palette drag');
+    const prevOrCount = app.circuit.components.filter(c => c.type === 'OR').length;
+    (winListeners.mouseup || []).forEach(fn => fn({ clientX: screenX, clientY: screenY }));
+    const nextOrCount = app.circuit.components.filter(c => c.type === 'OR').length;
+    assertEqual(nextOrCount, prevOrCount + 1, 'mouseup over canvas drops OR component cleanly');
+    assertEqual(app._paletteDragType, null, 'mouseup clears active palette drag');
   } finally {
     window.addEventListener = prevWinAdd;
     if (prevCreateTextNode === undefined) delete document.createTextNode;

@@ -18094,6 +18094,7 @@
         el.style.position = 'fixed';
         el.style.left = '0px';
         el.style.top = '0px';
+        el.style.willChange = 'transform';
         el.style.pointerEvents = 'none';
         el.style.zIndex = '99999';
         el.style.display = 'none';
@@ -18207,9 +18208,10 @@
         const el = this._paletteGhostOverlayEl;
         if (!el || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
         const sz = this._paletteOverlaySize || { w: 80, h: 80 };
-        el.style.left = `${Math.round(clientX - sz.w / 2)}px`;
-        el.style.top = `${Math.round(clientY - sz.h / 2)}px`;
-        el.style.display = 'block';
+        const tx = Math.round(clientX - sz.w / 2);
+        const ty = Math.round(clientY - sz.h / 2);
+        el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+        if (el.style.display !== 'block') el.style.display = 'block';
       }
 
       startPaletteDrag(e, type) {
@@ -18242,35 +18244,142 @@
         }
       }
 
+      _getPaletteCanvasTargetAt(clientX, clientY) {
+        const checkCanvas = (canvas, getTab, getRenderer) => {
+          if (!canvas || typeof canvas.getBoundingClientRect !== 'function') return null;
+          const r = canvas.getBoundingClientRect();
+          const right = r.right !== undefined ? r.right : (r.left + r.width);
+          const bottom = r.bottom !== undefined ? r.bottom : (r.top + r.height);
+          if (r.width > 0 && r.height > 0 && clientX >= r.left && clientX <= right && clientY >= r.top && clientY <= bottom) {
+            return { canvas, rect: r, tab: getTab(), renderer: getRenderer() };
+          }
+          return null;
+        };
+        const left = checkCanvas(this.gridCanvas, () => this.getActiveTab(), () => this.renderer);
+        if (left) return left;
+        if (this.splitScreenMode && this.gridCanvasRight) {
+          return checkCanvas(this.gridCanvasRight, () => this.getRightTab(), () => this.rendererRight);
+        }
+        return null;
+      }
+
+      _schedulePaletteDragFrame(clientX, clientY) {
+        this._pendingPaletteDragCoords = { clientX, clientY };
+        if (this._paletteDragRafId) return;
+        const runFrame = () => {
+          this._paletteDragRafId = null;
+          const coords = this._pendingPaletteDragCoords;
+          const type = this._paletteDragType;
+          if (!coords || !type || (this.engine && this.engine.mode === 'sim')) return;
+          const target = this._getPaletteCanvasTargetAt(coords.clientX, coords.clientY);
+          if (target && target.tab && target.renderer) {
+            if (this._paletteGhostOverlayEl) this._paletteGhostOverlayEl.style.display = 'none';
+            const otherRend = (target.renderer === this.renderer) ? this.rendererRight : this.renderer;
+            if (otherRend && otherRend.paletteDragGhost) {
+              otherRend.paletteDragGhost = null;
+              otherRend._lastPaletteGhostKey = null;
+              otherRend.render();
+            }
+            const worldPos = target.renderer.screenToWorld(coords.clientX - target.rect.left, coords.clientY - target.rect.top);
+            if (this.updatePaletteDragGhost(target.renderer, target.tab, type, worldPos)) {
+              target.renderer.render();
+            }
+          } else {
+            if (this.renderer && this.renderer.paletteDragGhost) {
+              this.renderer.paletteDragGhost = null;
+              this.renderer._lastPaletteGhostKey = null;
+              this.renderer.render();
+            }
+            if (this.rendererRight && this.rendererRight.paletteDragGhost) {
+              this.rendererRight.paletteDragGhost = null;
+              this.rendererRight._lastPaletteGhostKey = null;
+              this.rendererRight.render();
+            }
+            this.positionPaletteOverlayGhost(coords.clientX, coords.clientY);
+          }
+        };
+        if (typeof requestAnimationFrame === 'function') {
+          this._paletteDragRafId = requestAnimationFrame(runFrame);
+        } else {
+          runFrame();
+        }
+      }
+
+      bindPaletteItemDrag(item) {
+        if (!item) return;
+        item.addEventListener('mousedown', (e) => {
+          if (e.target && typeof e.target.closest === 'function' && e.target.closest('.palette-module-del')) return;
+          const type = item.dataset && item.dataset.type;
+          if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
+            const sel = document.getElementById('palette-delay-type');
+            if (sel) {
+              sel.value = type;
+              if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
+            }
+          }
+          if (e.button !== 0 || (this.engine && this.engine.mode === 'sim')) return;
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (type) {
+            this._mousePaletteDrag = {
+              type,
+              startX: e.clientX,
+              startY: e.clientY,
+              clientX: e.clientX,
+              clientY: e.clientY,
+              started: false
+            };
+          }
+        });
+        item.addEventListener('dragstart', (e) => {
+          if (this.engine.mode === 'sim') {
+            e.preventDefault();
+            return;
+          }
+          this.startPaletteDrag(e, item.dataset.type);
+        });
+        item.addEventListener('dragend', () => this.clearPaletteDragGhost());
+      }
+
       clearPaletteDragGhost() {
         this._paletteDragType = null;
         this._paletteGhostCache = null;
+        this._mousePaletteDrag = null;
+        this._pendingPaletteDragCoords = null;
+        if (this._paletteDragRafId && typeof cancelAnimationFrame === 'function') {
+          cancelAnimationFrame(this._paletteDragRafId);
+        }
+        this._paletteDragRafId = null;
         if (this._paletteGhostOverlayEl) {
           this._paletteGhostOverlayEl.style.display = 'none';
         }
         const hadLeft = Boolean(this.renderer && this.renderer.paletteDragGhost);
         const hadRight = Boolean(this.rendererRight && this.rendererRight.paletteDragGhost);
-        if (this.renderer) this.renderer.paletteDragGhost = null;
-        if (this.rendererRight) this.rendererRight.paletteDragGhost = null;
+        if (this.renderer) { this.renderer.paletteDragGhost = null; this.renderer._lastPaletteGhostKey = null; }
+        if (this.rendererRight) { this.rendererRight.paletteDragGhost = null; this.rendererRight._lastPaletteGhostKey = null; }
         if (hadLeft && this.renderer) this.renderer.render();
         if (hadRight && this.rendererRight) this.rendererRight.render();
       }
 
       updatePaletteDragGhost(renderer, tab, type, worldPos) {
-        if (!renderer || !tab || !type || !worldPos) return;
+        if (!renderer || !tab || !type || !worldPos) return false;
         if (type === 'PROBE') {
           const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 25);
+          const rx = Math.round(worldPos.x);
+          const ry = Math.round(worldPos.y);
+          const key = `PROBE:${rx},${ry}:${hitWire ? 1 : 0}`;
+          const changed = renderer._lastPaletteGhostKey !== key;
+          renderer._lastPaletteGhostKey = key;
           renderer.paletteDragGhost = {
             type: 'PROBE',
             x: worldPos.x,
             y: worldPos.y,
             snapHint: hitWire ? { x: worldPos.x, y: worldPos.y } : null
           };
-          return;
+          return changed;
         }
         if (type.startsWith('MODULE:')) {
           const mod = this.findCustomModule(type.slice(7));
-          if (!mod) return;
+          if (!mod) return false;
           if (mod.kind === 'ic') {
             const gx = Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
             const gy = Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
@@ -18288,28 +18397,49 @@
             const comp = this._paletteGhostCache.comp;
             comp.x = Math.round((gx - comp.width / 2) / GRID_SIZE) * GRID_SIZE;
             comp.y = Math.round((gy - comp.height / 2) / GRID_SIZE) * GRID_SIZE;
+            const key = `${type}:${comp.x},${comp.y}`;
+            const changed = renderer._lastPaletteGhostKey !== key;
+            renderer._lastPaletteGhostKey = key;
             renderer.paletteDragGhost = { type, comp };
-            return;
+            return changed;
           }
-          const parts = this.buildPaletteThumbParts(type);
-          if (!parts) return;
-          const b = this.getComponentsBounds(parts.comps);
+          if (!this._paletteGhostCache || this._paletteGhostCache.type !== type) {
+            const parts = this.buildPaletteThumbParts(type);
+            if (!parts) return false;
+            const b = this.getComponentsBounds(parts.comps);
+            for (const c of parts.comps) {
+              c._baseX = c.x;
+              c._baseY = c.y;
+              c.circuit = tab.circuit;
+            }
+            for (const link of parts.links) {
+              link._baseP1 = { x: link.p1.x, y: link.p1.y };
+              link._baseP2 = { x: link.p2.x, y: link.p2.y };
+              link._baseWp = Array.isArray(link.wp) ? link.wp.map(p => ({ x: p.x, y: p.y })) : null;
+            }
+            this._paletteGhostCache = { type, parts, b };
+          }
+          const { parts, b } = this._paletteGhostCache;
           const ox = Math.round((worldPos.x - (b.minX + b.maxX) / 2) / GRID_SIZE) * GRID_SIZE;
           const oy = Math.round((worldPos.y - (b.minY + b.maxY) / 2) / GRID_SIZE) * GRID_SIZE;
-          for (const c of parts.comps) {
-            c.x += ox;
-            c.y += oy;
-            c.circuit = tab.circuit;
-          }
-          for (const link of parts.links) {
-            link.p1 = { x: link.p1.x + ox, y: link.p1.y + oy };
-            link.p2 = { x: link.p2.x + ox, y: link.p2.y + oy };
-            if (Array.isArray(link.wp)) {
-              link.wp = link.wp.map(p => ({ x: p.x + ox, y: p.y + oy }));
+          const key = `${type}:${ox},${oy}`;
+          const changed = renderer._lastPaletteGhostKey !== key;
+          if (changed) {
+            renderer._lastPaletteGhostKey = key;
+            for (const c of parts.comps) {
+              c.x = c._baseX + ox;
+              c.y = c._baseY + oy;
+            }
+            for (const link of parts.links) {
+              link.p1 = { x: link._baseP1.x + ox, y: link._baseP1.y + oy };
+              link.p2 = { x: link._baseP2.x + ox, y: link._baseP2.y + oy };
+              if (link._baseWp) {
+                link.wp = link._baseWp.map(p => ({ x: p.x + ox, y: p.y + oy }));
+              }
             }
           }
           renderer.paletteDragGhost = { type, comps: parts.comps, links: parts.links };
-          return;
+          return changed;
         }
         const actualType = (type === 'NEGATOR') ? 'NOT' : type;
         if (!this._paletteGhostCache || this._paletteGhostCache.type !== actualType) {
@@ -18325,7 +18455,11 @@
           const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 24);
           if (pinHit) snapHint = { x: pinHit.x, y: pinHit.y };
         }
+        const key = `${actualType}:${comp.x},${comp.y}:${snapHint ? `${snapHint.x},${snapHint.y}` : ''}`;
+        const changed = renderer._lastPaletteGhostKey !== key;
+        renderer._lastPaletteGhostKey = key;
         renderer.paletteDragGhost = { type: actualType, comp, snapHint };
+        return changed;
       }
 
       initPaletteEvents() {
@@ -18336,6 +18470,37 @@
         }
         if (!this._paletteDragEndBound && typeof window !== 'undefined') {
           this._paletteDragEndBound = true;
+          window.addEventListener('mousemove', (e) => {
+            const md = this._mousePaletteDrag;
+            if (!md) return;
+            if (this.engine && this.engine.mode === 'sim') {
+              this.clearPaletteDragGhost();
+              return;
+            }
+            md.clientX = e.clientX;
+            md.clientY = e.clientY;
+            if (!md.started) {
+              if (Math.hypot(e.clientX - md.startX, e.clientY - md.startY) < 5) return;
+              md.started = true;
+              this.startPaletteDrag({ clientX: e.clientX, clientY: e.clientY }, md.type);
+            }
+            this._schedulePaletteDragFrame(e.clientX, e.clientY);
+          });
+          window.addEventListener('mouseup', (e) => {
+            const md = this._mousePaletteDrag;
+            if (!md) return;
+            this._mousePaletteDrag = null;
+            if (!md.started) return;
+            const target = this._getPaletteCanvasTargetAt(e.clientX, e.clientY);
+            const dragType = md.type;
+            this.clearPaletteDragGhost();
+            if (target && target.tab && target.renderer && (!this.engine || this.engine.mode !== 'sim')) {
+              this.dropPaletteTypeAt(target.canvas, () => target.tab, () => target.renderer, dragType, e.clientX, e.clientY);
+            }
+          });
+          window.addEventListener('blur', () => {
+            if (this._mousePaletteDrag || this._paletteDragType) this.clearPaletteDragGhost();
+          });
           window.addEventListener('dragover', (e) => {
             if (!this._paletteDragType || (this.engine && this.engine.mode === 'sim')) return;
             const target = e.target;
@@ -18346,10 +18511,12 @@
               if (typeof e.preventDefault === 'function') e.preventDefault();
               if (this.renderer && this.renderer.paletteDragGhost) {
                 this.renderer.paletteDragGhost = null;
+                this.renderer._lastPaletteGhostKey = null;
                 this.renderer.render();
               }
               if (this.rendererRight && this.rendererRight.paletteDragGhost) {
                 this.rendererRight.paletteDragGhost = null;
+                this.rendererRight._lastPaletteGhostKey = null;
                 this.rendererRight.render();
               }
               this.positionPaletteOverlayGhost(e.clientX, e.clientY);
@@ -18364,24 +18531,7 @@
         }
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
-          item.addEventListener('mousedown', () => {
-            const type = item.dataset && item.dataset.type;
-            if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
-              const sel = document.getElementById('palette-delay-type');
-              if (sel) {
-                sel.value = type;
-                if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
-              }
-            }
-          });
-          item.addEventListener('dragstart', (e) => {
-            if (this.engine.mode === 'sim') {
-              e.preventDefault();
-              return;
-            }
-            this.startPaletteDrag(e, item.dataset.type);
-          });
-          item.addEventListener('dragend', () => this.clearPaletteDragGhost());
+          this.bindPaletteItemDrag(item);
 
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
@@ -18463,8 +18613,9 @@
           if (tab && renderer && type) {
             const rect = canvas.getBoundingClientRect();
             const worldPos = renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
-            this.updatePaletteDragGhost(renderer, tab, type, worldPos);
-            renderer.render();
+            if (this.updatePaletteDragGhost(renderer, tab, type, worldPos)) {
+              renderer.render();
+            }
           }
         });
 
@@ -18472,6 +18623,7 @@
           const renderer = getRenderer();
           if (renderer && renderer.paletteDragGhost) {
             renderer.paletteDragGhost = null;
+            renderer._lastPaletteGhostKey = null;
             renderer.render();
           }
         });
@@ -18482,16 +18634,20 @@
           const type = (e.dataTransfer && typeof e.dataTransfer.getData === 'function' ? e.dataTransfer.getData('text/plain') : '') || this._paletteDragType;
           this.clearPaletteDragGhost();
           if (!type) return;
+          this.dropPaletteTypeAt(canvas, getTargetTab, getRenderer, type, e.clientX, e.clientY);
+        });
+      }
 
+      dropPaletteTypeAt(canvas, getTargetTab, getRenderer, type, clientX, clientY) {
           const tab = getTargetTab();
           const renderer = getRenderer();
-          if (!tab || !renderer) return;
+          if (!tab || !renderer || !type) return;
 
           this.pushHistory(tab);
 
           const rect = canvas.getBoundingClientRect();
-          const screenX = e.clientX - rect.left;
-          const screenY = e.clientY - rect.top;
+          const screenX = clientX - rect.left;
+          const screenY = clientY - rect.top;
           const worldPos = renderer.screenToWorld(screenX, screenY);
 
           if (type === 'PROBE') {
@@ -18629,7 +18785,6 @@
           }
           this.commitHistory(tab);
           this.refreshAll();
-        });
       }
 
       snapOpenWiresToComponent(comp, snapRadius = 24) {
@@ -22481,11 +22636,7 @@
           item.appendChild(nameDiv);
           item.appendChild(delBtn);
 
-          item.addEventListener('dragstart', (e) => {
-            if (this.engine.mode === 'sim') { e.preventDefault(); return; }
-            this.startPaletteDrag(e, item.dataset.type);
-          });
-          item.addEventListener('dragend', () => this.clearPaletteDragGhost());
+          this.bindPaletteItemDrag(item);
           item.addEventListener('dblclick', (e) => {
             if (e.target.closest('.palette-module-del')) return;
             if (this.engine.mode === 'sim') return;

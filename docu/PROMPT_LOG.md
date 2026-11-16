@@ -212,3 +212,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 
 > ich will nicht wenn schräge verbindungen aktiviert sind das nur schräge verbindungen verwendet werden sondern z.b. wenn sie optimal sind z.b. bei rs-flip flops
 > die eckpunkte buggen immernoch rum
+
+---
+
+## 2026-11-16 — Flüssiges 60/144fps Palette-Dragging ohne HTML5-DnD-Lag
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-058
+- **Prompt:**
+
+> das draggen des ghost modules laggt komplett und ist überhaupt nicht flüssig
