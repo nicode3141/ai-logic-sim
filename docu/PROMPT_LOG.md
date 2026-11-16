@@ -267,3 +267,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > wenn ich das not gate den eingang nochmal invertiere dann wird das kleiner
+
+---
+
+## 2026-11-16 — Fix: Globale Verzögerung `0` gilt durchgängig ohne Rest-Delay
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-066
+- **Prompt:**
+
+> ich hab obwohl ich die verzögerung auf 0 gesetzt hab trotzdme delay

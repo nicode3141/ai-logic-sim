@@ -8422,25 +8422,36 @@
         }
       }
 
-      settleZeroDelayGates() {
+      settleZeroDelayGates(combinationalOnly = false) {
         const comps = this.components;
         const isComb = { AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, BCD_DEC: 1, FULL_ADDER: 1, MUX: 1, DECODER: 1, CONST: 1 };
-        const zeroComps = [];
+        const isSeq = { JK_FF: 1, D_FF: 1, T_FF: 1, SR_FF: 1, D_LATCH: 1, COUNTER: 1, SHIFT_REG: 1, CUSTOM_IC: 1 };
+        const isGlobalZero = this.globalGateDelay === 0;
+        const settleComps = [];
         for (let i = 0; i < comps.length; i++) {
           const c = comps[i];
-          if (isComb[c.type] && GATE_DELAY_TYPES[c.type] && c.getEffectiveDelay() === 0) {
-            zeroComps.push(c);
+          if (GATE_DELAY_TYPES[c.type]) {
+            if (c.getEffectiveDelay() === 0) settleComps.push(c);
+          } else if (isGlobalZero) {
+            if (isComb[c.type] || (!combinationalOnly && isSeq[c.type])) {
+              settleComps.push(c);
+            }
           }
         }
-        if (zeroComps.length === 0) return false;
+        if (settleComps.length === 0) return false;
 
         let anyChanged = false;
-        const maxPasses = Math.max(4, Math.min(32, zeroComps.length + 2));
+        const maxPasses = Math.max(4, Math.min(32, settleComps.length + 2));
         for (let pass = 0; pass < maxPasses; pass++) {
+          for (let i = 0; i < settleComps.length; i++) {
+            settleComps[i].compute();
+          }
           let changed = false;
-          for (let i = 0; i < zeroComps.length; i++) {
-            const c = zeroComps[i];
-            c.compute();
+          for (let i = 0; i < settleComps.length; i++) {
+            const c = settleComps[i];
+            const prevLastClk = c.state?.lastClk;
+            const prevPrevClk = c.state?.prevClk;
+            const prevQ = c.state?.q;
             for (let o = 0; o < c.outputs.length; o++) {
               if (c.nextOutputs[o] !== c.outputs[o].value) {
                 changed = true;
@@ -8449,6 +8460,10 @@
               }
             }
             c.commit(true);
+            if (!changed && c.state && (c.state.lastClk !== prevLastClk || c.state.prevClk !== prevPrevClk || c.state.q !== prevQ)) {
+              changed = true;
+              anyChanged = true;
+            }
           }
           this.updateWireLevelsFromDrivers();
           if (!changed) break;
@@ -8473,8 +8488,8 @@
         }
 
         this.updateWireLevelsFromDrivers();
-        if (hasZeroDelay) {
-          this.settleZeroDelayGates();
+        if (hasZeroDelay || this.globalGateDelay === 0) {
+          this.settleZeroDelayGates(false);
         }
       }
 
@@ -8520,7 +8535,7 @@
         }
 
         this.updateWireLevelsFromDrivers();
-        if (hasZeroDelay && this.settleZeroDelayGates()) {
+        if ((hasZeroDelay || this.globalGateDelay === 0) && this.settleZeroDelayGates(true)) {
           hasPending = true;
         }
         return hasPending;
@@ -18067,12 +18082,12 @@
         if (!circuit) return;
         if (this.engine && this.engine.mode === 'sim') {
           circuit.updateWireLevelsFromDrivers();
-          if (typeof circuit.settleZeroDelayGates === 'function') circuit.settleZeroDelayGates();
+          if (typeof circuit.settleZeroDelayGates === 'function') circuit.settleZeroDelayGates(false);
           return;
         }
         circuit.updateWireLevelsFromDrivers();
         if (typeof circuit.settleZeroDelayGates === 'function') {
-          circuit.settleZeroDelayGates();
+          circuit.settleZeroDelayGates(true);
         }
         this.stopEditPropagation();
 
@@ -18231,6 +18246,12 @@
         this.engine.pause();
         this.engine.tickCount = 0;
         this.circuit.fromJSON(preset, this.ringBuffer);
+        if (preset.globalGateDelay === undefined) {
+          this.circuit.globalGateDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
+        }
+        if (!preset.moduleGateDelays) {
+          this.circuit.moduleGateDelays = { ...(this.moduleGateDelays || {}) };
+        }
         this.selectItem(null, null);
         const hasCustomWaypoints = preset.wires && preset.wires.some(w => (w.waypoints && w.waypoints.length > 0) || w.channelOffset !== undefined);
         if (!hasCustomWaypoints) {
@@ -22553,6 +22574,12 @@
         this.renderer.activeWireDrag = null;
         this.checkpointHistory();
         this.circuit.fromJSON(json, this.ringBuffer);
+        if (json.globalGateDelay === undefined) {
+          this.circuit.globalGateDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
+        }
+        if (!json.moduleGateDelays) {
+          this.circuit.moduleGateDelays = { ...(this.moduleGateDelays || {}) };
+        }
         this.selectItem(null, null);
 
         const tab = this.getActiveTab();

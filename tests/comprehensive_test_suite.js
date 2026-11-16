@@ -3514,6 +3514,90 @@ runTest('WISH-065', 'Inverting gate inputs preserves full gate body size across 
   assertEqual(notDouble.nextOutputs[0], 0, 'NOT with inverted input evaluates 0 -> 0');
 });
 
+runTest('WISH-066', 'Global delay 0 settles async ripple counters, combinational blocks, and synchronous FFs without tick lag, and persists across loadScenario', () => {
+  const app = new LogicSimApp();
+  app.setGlobalGateDelay(0, true);
+
+  // 1. Loading a scenario preserves globalGateDelay = 0 instead of resetting to 1
+  app.loadScenario('jk_counter', { silent: true });
+  assertEqual(app.circuit.globalGateDelay, 0, 'loadScenario preserves globalGateDelay = 0');
+
+  // 2. Ripple counter (CLK -> JK0 -> JK1 -> JK2) with global delay 0 settles all cascading stages on the same tick
+  app.engine.setMode('sim');
+  const getJkOutputs = () => ['jk_clk', 'jk_ff0', 'jk_ff1', 'jk_ff2'].map(id => app.circuit.getComponent(id).outputs[0].value);
+  // halfPeriod = 2: ticks 1,2 CLK=1; ticks 3,4 CLK=0 (falling edge on tick 3!)
+  // Actually let's check CLK sequence cleanly: step until CLK drops 1 -> 0
+  let fellTick = null;
+  for (let t = 1; t <= 12; t++) {
+    const prevClk = app.circuit.getComponent('jk_clk').outputs[0].value;
+    app.circuit.step();
+    const curClk = app.circuit.getComponent('jk_clk').outputs[0].value;
+    if (prevClk === 1 && curClk === 0) {
+      fellTick = t;
+      const [, q0, q1, q2] = getJkOutputs();
+      if (t <= 4) {
+        // First falling clock edge: Q0 flips 0 -> 1 immediately on the SAME tick!
+        assertEqual(q0, 1, 'First JK-FF toggles on exact same tick as falling CLK when globalGateDelay = 0');
+        assertEqual(q1, 0, 'Second JK-FF stays 0 on rising edge of Q0');
+        assertEqual(q2, 0, 'Third JK-FF stays 0');
+      } else {
+        // Second falling clock edge: Q0 falls 1 -> 0 AND triggers Q1 0 -> 1 on the exact SAME tick!
+        assertEqual(q0, 0, 'First JK-FF falls 1 -> 0 on second CLK edge');
+        assertEqual(q1, 1, 'Second JK-FF ripples 0 -> 1 on the SAME tick (0 tick lag!)');
+        assertEqual(q2, 0, 'Third JK-FF stays 0 on rising Q1');
+        break;
+      }
+    }
+  }
+  assertEqual(fellTick !== null, true, 'Observed falling clock edges in jk_counter');
+
+  // 3. Combinational blocks (BCD_DEC) settle in 0 ticks when globalGateDelay = 0
+  const cComb = new Circuit();
+  cComb.globalGateDelay = 0;
+  const sw = cComb.addComponent('SWITCH', 40, 80, { initialValue: 1 });
+  const dec = cComb.addComponent('BCD_DEC', 180, 80, {});
+  cComb.addWire(sw.id, 0, dec.id, 0);
+  cComb.step();
+  // Digit 1 => b (pin 1) = 1, c (pin 2) = 1, a (pin 0) = 0
+  assertEqual(dec.outputs[0].value, 0, 'BCD_DEC segment a settles immediately to 0 for input 1');
+  assertEqual(dec.outputs[1].value, 1, 'BCD_DEC segment b settles immediately to 1 for input 1');
+
+  // 4. Synchronous D-FF shift chain has NO hold-time race when globalGateDelay = 0
+  const cSync = new Circuit();
+  cSync.globalGateDelay = 0;
+  const clk = cSync.addComponent('CLOCK', 40, 80, { highTicks: 1, lowTicks: 1 });
+  const dIn = cSync.addComponent('SWITCH', 40, 160, { initialValue: 1 });
+  const dff1 = cSync.addComponent('D_FF', 180, 80, { trigger: 'rising' });
+  const dff2 = cSync.addComponent('D_FF', 340, 80, { trigger: 'rising' });
+  cSync.addWire(dIn.id, 0, dff1.id, 0);
+  cSync.addWire(clk.id, 0, dff1.id, 1);
+  cSync.addWire(dff1.id, 0, dff2.id, 0);
+  cSync.addWire(clk.id, 0, dff2.id, 1);
+  cSync.syncImmediateWireLevels();
+  cSync.step(); // CLK rises 0 -> 1: dff1 captures 1, dff2 captures old dff1 (0)
+  assertEqual(dff1.outputs[0].value, 1, 'Sync DFF1 captures dIn=1 on first rising clock');
+  assertEqual(dff2.outputs[0].value, 0, 'Sync DFF2 keeps prior Q=0 (no hold-time race in 0-delay mode)');
+  cSync.step(); // CLK falls 1 -> 0
+  cSync.step(); // CLK rises 0 -> 1: dff2 captures dff1 (1)
+  assertEqual(dff2.outputs[0].value, 1, 'Sync DFF2 shifts captured 1 cleanly on next rising clock');
+
+  // 5. Default globalGateDelay = 1 preserves unit-delay ripple behavior
+  const cUnit = new Circuit();
+  assertEqual(cUnit.globalGateDelay, 1, 'Default globalGateDelay stays 1');
+  const uClk = cUnit.addComponent('SWITCH', 40, 80, { initialValue: 0 });
+  const uDec = cUnit.addComponent('BCD_DEC', 180, 80, {});
+  cUnit.addWire(uClk.id, 0, uDec.id, 0);
+  cUnit.syncImmediateWireLevels();
+  uClk.state.value = 1;
+  uClk.outputs[0].value = 1;
+  uClk.nextOutputs[0] = 1;
+  cUnit.step(); // tick 1 propagates switch -> dec input; dec computes on tick 2 (digit 0 has a=1)
+  assertEqual(uDec.outputs[0].value, 1, 'With globalGateDelay=1, BCD_DEC takes 1 extra tick before updating segment a');
+  cUnit.step(); // tick 2 commits new digit 1 -> a=0, b=1
+  assertEqual(uDec.outputs[0].value, 0, 'BCD_DEC updates segment a=0 for digit 1 on tick 2');
+  assertEqual(uDec.outputs[1].value, 1, 'BCD_DEC b=1 for digit 1');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
