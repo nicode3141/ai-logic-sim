@@ -118,3 +118,15 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > wenn ich den taster aktiviere verschiebt sich die schaltung. Adde zudem das module schon während der bewegung des selectionsvierecks selected werden
+
+---
+
+## 2026-11-16 — Verzögerung in Mehrfachauswahl, Edit-Modus-Propagation & Hz-basierte Zeitanzeige
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-055
+- **Prompt:**
+
+> mache das man die globale verzögerung von bauteilen bei der selektion einstellen kann und das man die verzögerung auch schon beim edit modus merkt. rechne bei der verzögerung einfach schon mit den momentanen hz wert
+> entferne den global anwenden button und mache es lieber bei dem module drag and drop

@@ -3803,6 +3803,28 @@
     .palette-view-btn + .palette-view-btn {
       border-left: 1px solid var(--border-bright);
     }
+    .palette-delay-bar {
+      padding: 8px 12px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .palette-delay-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .palette-delay-val {
+      font-family: var(--font-mono);
+      color: var(--accent-green);
+      font-size: 10.5px;
+    }
+    .palette-delay-bar input[type="range"] {
+      width: 100%;
+      margin: 0;
+    }
     .palette-view-btn:hover {
       color: var(--text-main);
     }
@@ -4215,6 +4237,13 @@
             <button type="button" class="palette-view-btn active" data-palette-view="labels" aria-pressed="true" title="Bauteile mit Beschriftung anzeigen">Beschriftung</button>
             <button type="button" class="palette-view-btn" data-palette-view="preview" aria-pressed="false" title="Bauteile als gezeichnete Vorschau anzeigen">Vorschau</button>
           </div>
+        </div>
+        <div class="palette-delay-bar" title="Globale Gatterverzögerung für platzierte Bauteile">
+          <div class="palette-delay-header">
+            <span>Globale Verzögerung</span>
+            <span class="palette-delay-val" id="palette-global-delay-val">1 Tick (100 ms)</span>
+          </div>
+          <input type="range" id="palette-global-delay-slider" min="1" max="20" value="1" />
         </div>
         <div class="palette-search">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
@@ -5509,7 +5538,7 @@
       // --- inspector ---
       'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
       '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
-      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay',
+      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
       'XOR bei mehr als 2 Eingängen': 'XOR with more than 2 inputs', 'Exklusiv: genau ein Eingang 1': 'Exclusive: exactly one input is 1',
       'Parität: ungerade Anzahl 1': 'Parity: odd number of ones', 'Leuchtfarbe': 'Color', 'Leuchtfarbe:': 'Color:',
@@ -5748,6 +5777,8 @@
       // language-neutral texts: identifiers, numbers with units, coordinates, formulas
       [/^[A-Z0-9_\->→:·'\/+ .,()&|!^=<>≥½○⊕∧∨¬↔≡*~-]+$/, (m) => m[0]],
       [/^-?[\d.,]+ ?(?:Hz|px|px\/T|Ticks?|Pins?|T|%)$/, (m) => m[0]],
+      [/^(\d+) Ticks? \((\d+ ms)\)$/, (m) => `${m[1]} ${m[1] === '1' ? 'tick' : 'ticks'} (${m[2]})`],
+      [/^Global verwenden \((.+)\)$/, (m, tr) => `Use global (${tr(m[1])})`],
       [/^[XY][:=] ?-?\d+.*$/, (m) => m[0]],
       [/[∧∨¬⊕]|^\(.*·.*\)$/, (m) => m.input],
       // comma separated list of known names
@@ -5986,6 +6017,13 @@
 
     const GATE_DELAY_TYPES = { NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1 };
     const GATE_DELAY_MAX = 20;
+
+    function formatDelayWithHz(ticks, hz = 10) {
+      const t = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(ticks, 10) || 1));
+      const f = Math.max(1, Math.min(60, parseInt(hz, 10) || 10));
+      const ms = Math.round((t * 1000) / f);
+      return `${t} ${t === 1 ? 'Tick' : 'Ticks'} (${ms} ms)`;
+    }
 
     const LED_COLORS = {
       green:  { on: '#00ff66', glow: 'rgba(0, 255, 102, 0.75)', off: '#0d1a12', border: '#00cc44', label: 'Grün' },
@@ -8209,6 +8247,47 @@
         }
 
         this.updateWireLevelsFromDrivers();
+      }
+
+      /**
+       * Advances combinational components by 1 tick respecting gate delays,
+       * used for edit-mode propagation at the configured Hz rate.
+       * Returns true if any gate still has a pending delay or changed output.
+       */
+      stepCombinational() {
+        const comps = this.components;
+        const isComb = { AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, BCD_DEC: 1, FULL_ADDER: 1, MUX: 1, DECODER: 1, CONST: 1 };
+
+        const prevOutputs = new Array(comps.length);
+        for (let i = 0; i < comps.length; i++) {
+          const c = comps[i];
+          if (isComb[c.type]) {
+            prevOutputs[i] = c.outputs.map(o => o.value);
+            c.compute();
+          }
+        }
+
+        let hasPending = false;
+        for (let i = 0; i < comps.length; i++) {
+          const c = comps[i];
+          if (!isComb[c.type]) continue;
+          c.commit(false);
+          if (c.state.delayTimer > 0 || c.state.pendingOutput !== null) {
+            hasPending = true;
+          }
+          const prev = prevOutputs[i];
+          if (prev) {
+            for (let o = 0; o < c.outputs.length; o++) {
+              if (c.outputs[o].value !== prev[o]) {
+                hasPending = true;
+                break;
+              }
+            }
+          }
+        }
+
+        this.updateWireLevelsFromDrivers();
+        return hasPending;
       }
     }
 
@@ -14464,7 +14543,7 @@
             comp.state.pendingOutput = null;
             comp.state.delayLine = null;
             this.onChange(false);
-          });
+          }, (val) => formatDelayWithHz(val, this.engine.frequency || 10));
         }
 
         switch (comp.type) {
@@ -14485,6 +14564,8 @@
                 comp.nextOutputs[0] = bit;
                 if (isSim) {
                   this.circuit.updateWireLevelsFromDrivers();
+                } else if (typeof window !== 'undefined' && window.logicSimApp && typeof window.logicSimApp.triggerEditPropagation === 'function') {
+                  window.logicSimApp.triggerEditPropagation(this.circuit);
                 } else {
                   this.circuit.syncImmediateWireLevels();
                 }
@@ -14904,6 +14985,22 @@
         `;
         this.container.appendChild(info);
 
+        const delayComps = comps.filter(c => GATE_DELAY_TYPES[c.type]);
+        if (delayComps.length > 0) {
+          const firstEff = typeof delayComps[0].getEffectiveDelay === 'function' ? delayComps[0].getEffectiveDelay() : (delayComps[0].params.delay || 1);
+
+          this.addRangeControl('Verzögerung (Auswahl)', firstEff, 1, GATE_DELAY_MAX, 'Ticks', isSim, (val) => {
+            const d = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(val, 10) || 1));
+            for (const c of delayComps) {
+              c.params.delay = d;
+              c.state.delayTimer = 0;
+              c.state.pendingOutput = null;
+              c.state.delayLine = null;
+            }
+            this.onChange(false);
+          }, (val) => formatDelayWithHz(val, this.engine.frequency || 10));
+        }
+
         const hint = document.createElement('div');
         hint.style.fontSize = '11px';
         hint.style.color = 'var(--text-muted)';
@@ -14982,7 +15079,8 @@
         this.container.appendChild(group);
       }
 
-      addRangeControl(label, currentVal, min, max, unit, disabled, onChange) {
+      addRangeControl(label, currentVal, min, max, unit, disabled, onChange, formatValue = null) {
+        const formatText = (val) => (typeof formatValue === 'function' ? formatValue(val) : `${val} ${unit}`);
         const group = document.createElement('div');
         group.className = 'prop-group';
         const lbl = document.createElement('label');
@@ -14992,7 +15090,7 @@
         const valSpan = document.createElement('span');
         valSpan.style.fontFamily = 'var(--font-mono)';
         valSpan.style.color = 'var(--accent-green)';
-        valSpan.textContent = `${currentVal} ${unit}`;
+        valSpan.textContent = formatText(currentVal);
         lbl.appendChild(nameSpan);
         lbl.appendChild(valSpan);
 
@@ -15004,11 +15102,11 @@
         slider.disabled = disabled;
         slider.style.marginTop = '4px';
         slider.addEventListener('input', (e) => {
-          valSpan.textContent = `${e.target.value} ${unit}`;
+          valSpan.textContent = formatText(e.target.value);
           onChange(e.target.value);
         });
         attachSliderHoldRepeat(slider, (val) => {
-          valSpan.textContent = `${val} ${unit}`;
+          valSpan.textContent = formatText(val);
           onChange(val);
         });
 
@@ -16920,7 +17018,7 @@
 
         if (wire) {
           this.finishNewWire(wire, waypoints);
-          this.circuit.syncImmediateWireLevels();
+          this.triggerEditPropagation(this.circuit);
           this.mergeOpenWireTermini(16);
         }
         this.renderer.activeWireDrag = null;
@@ -17364,6 +17462,94 @@
         this.updateStatusBar();
       }
 
+      refreshInspector() {
+        if (!this.inspector || !this.renderer) return;
+        if (this.renderer.selectedProbeId) {
+          this.inspector.render(null, null, this.renderer.selectedProbeId);
+          return;
+        }
+        const totalComps = this.renderer.selectedCompIds ? this.renderer.selectedCompIds.size : 0;
+        const totalWires = this.renderer.selectedWireIds ? this.renderer.selectedWireIds.size : 0;
+        if (totalComps === 1 && totalWires === 0) {
+          const firstId = Array.from(this.renderer.selectedCompIds)[0];
+          this.inspector.render(firstId, null);
+        } else if (totalComps === 0 && totalWires === 1) {
+          const firstWireId = Array.from(this.renderer.selectedWireIds)[0];
+          this.inspector.render(null, firstWireId);
+        } else if (totalComps > 0 || totalWires > 0) {
+          this.inspector.renderMulti(this.renderer.selectedCompIds, this.renderer.selectedWireIds);
+        } else {
+          this.inspector.render(null, null);
+        }
+      }
+
+      stopEditPropagation() {
+        if (this._editPropRafId) {
+          if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(this._editPropRafId);
+          this._editPropRafId = null;
+        }
+        this._editPropCircuit = null;
+      }
+
+      triggerEditPropagation(circuit = this.circuit) {
+        if (!circuit) return;
+        if (this.engine && this.engine.mode === 'sim') {
+          circuit.updateWireLevelsFromDrivers();
+          return;
+        }
+        circuit.updateWireLevelsFromDrivers();
+        this.stopEditPropagation();
+
+        if (typeof requestAnimationFrame !== 'function') {
+          circuit.syncImmediateWireLevels();
+          return;
+        }
+
+        this._editPropCircuit = circuit;
+        let lastTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        let accumulator = 0;
+        let stepCount = 0;
+        const maxSteps = 200;
+
+        const tickLoop = (now) => {
+          if (!this._editPropCircuit || this._editPropCircuit !== circuit || (this.engine && this.engine.mode !== 'edit')) {
+            this.stopEditPropagation();
+            return;
+          }
+          const tNow = typeof now === 'number' ? now : ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+          const dt = Math.min(250, Math.max(0, tNow - lastTime));
+          lastTime = tNow;
+          accumulator += dt;
+
+          const hz = (this.engine && this.engine.frequency) ? this.engine.frequency : 10;
+          const interval = 1000 / Math.max(1, Math.min(60, hz));
+          let ticksThisFrame = 0;
+          let keepGoing = true;
+
+          while (accumulator >= interval && ticksThisFrame < 5 && stepCount < maxSteps) {
+            keepGoing = circuit.stepCombinational();
+            accumulator -= interval;
+            ticksThisFrame++;
+            stepCount++;
+            if (!keepGoing) break;
+          }
+          if (accumulator > interval * 2) accumulator = interval;
+
+          if (ticksThisFrame > 0) {
+            if (this.renderer) this.renderer.render();
+            if (this.rendererRight) this.rendererRight.render();
+          }
+
+          if (!keepGoing || stepCount >= maxSteps) {
+            this.stopEditPropagation();
+            return;
+          }
+          this._editPropRafId = requestAnimationFrame(tickLoop);
+        };
+
+        this._editPropRafId = requestAnimationFrame(tickLoop);
+      }
+
       updateSelectionFromBox(box, additive = false, forceInspector = false) {
         if (!box) return;
         const minX = Math.min(box.startX, box.currX);
@@ -17621,6 +17807,12 @@
           if (analyzerSpeedBadge) analyzerSpeedBadge.textContent = fullText;
 
           this.engine.setFrequency(val);
+          const delayFormatted = formatDelayWithHz(this.globalGateDelay || 1, val);
+          const settingsDelayVal = document.getElementById('settings-global-delay-val');
+          if (settingsDelayVal) settingsDelayVal.textContent = delayFormatted;
+          const paletteDelayVal = document.getElementById('palette-global-delay-val');
+          if (paletteDelayVal) paletteDelayVal.textContent = delayFormatted;
+          this.refreshInspector();
         };
         if (sliderFreq) {
           sliderFreq.addEventListener('input', (e) => handleFreqChange(e.target.value, 'top'));
@@ -18241,7 +18433,7 @@
               hitComp.outputs[0].value = 1;
               hitComp.nextOutputs[0] = 1;
               this.activeButtonComp = hitComp;
-              this.circuit.syncImmediateWireLevels();
+              this.triggerEditPropagation(this.circuit);
               this.refreshAll();
             }
             canvas.style.cursor = (this.allowEditModeInteraction && (hitComp.type === 'BUTTON' || hitComp.type === 'SWITCH')) ? 'pointer' : 'move';
@@ -18727,7 +18919,7 @@
             if (this.engine.mode === 'sim') {
               this.circuit.updateWireLevelsFromDrivers();
             } else {
-              this.circuit.syncImmediateWireLevels();
+              this.triggerEditPropagation(this.circuit);
             }
             this.refreshAll();
           }
@@ -18790,7 +18982,7 @@
                   comp.state.value = comp.state.value === 1 ? 0 : 1;
                   comp.outputs[0].value = comp.state.value;
                   comp.nextOutputs[0] = comp.state.value;
-                  this.circuit.syncImmediateWireLevels();
+                  this.triggerEditPropagation(this.circuit);
                   this.inspector.render(comp.id, null);
                   this.refreshAll();
                 }
@@ -18965,7 +19157,7 @@
               hitComp.outputs[0].value = 1;
               hitComp.nextOutputs[0] = 1;
               activeButtonCompRight = hitComp;
-              rTab.circuit.syncImmediateWireLevels();
+              this.triggerEditPropagation(rTab.circuit);
             }
             canvas.style.cursor = (this.allowEditModeInteraction && (hitComp.type === 'BUTTON' || hitComp.type === 'SWITCH')) ? 'pointer' : 'move';
             this.rendererRight.render();
@@ -19045,7 +19237,7 @@
               if (this.engine.mode === 'sim') {
                 rTab.circuit.updateWireLevelsFromDrivers();
               } else {
-                rTab.circuit.syncImmediateWireLevels();
+                this.triggerEditPropagation(rTab.circuit);
               }
             }
             activeButtonCompRight = null;
@@ -19057,8 +19249,10 @@
               if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
               }
             } else if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
-              draggingCompRight.params.state = draggingCompRight.params.state === 1 ? 0 : 1;
-              if (rTab) rTab.circuit.syncImmediateWireLevels();
+              draggingCompRight.state.value = draggingCompRight.state.value === 1 ? 0 : 1;
+              draggingCompRight.outputs[0].value = draggingCompRight.state.value;
+              draggingCompRight.nextOutputs[0] = draggingCompRight.state.value;
+              if (rTab) this.triggerEditPropagation(rTab.circuit);
             }
             draggingCompRight = null;
             compMouseDownPosRight = null;
@@ -22495,7 +22689,7 @@
         const sliderGlobalDelay = document.getElementById('settings-global-delay-slider');
         if (sliderGlobalDelay) sliderGlobalDelay.value = String(this.globalGateDelay || 1);
         const valGlobalDelay = document.getElementById('settings-global-delay-val');
-        if (valGlobalDelay) valGlobalDelay.textContent = `${this.globalGateDelay || 1} Tick${(this.globalGateDelay || 1) > 1 ? 's' : ''}`;
+        if (valGlobalDelay) valGlobalDelay.textContent = formatDelayWithHz(this.globalGateDelay || 1, this.engine ? this.engine.frequency : 10);
 
         this.updateSettingsColorUi();
         settingsModal.style.display = 'flex';
@@ -22909,15 +23103,22 @@
 
         const delaySlider = document.getElementById('settings-global-delay-slider');
         const delayVal = document.getElementById('settings-global-delay-val');
+        const paletteDelaySlider = document.getElementById('palette-global-delay-slider');
+        const updateGlobalDelayFromSlider = (val) => {
+          const intVal = parseInt(val, 10) || 1;
+          this.setGlobalGateDelay(intVal, true);
+          this.saveSettings();
+        };
         if (delaySlider && delayVal) {
-          const updateDelay = (val) => {
-            const intVal = parseInt(val, 10) || 1;
-            this.setGlobalGateDelay(intVal, true);
-            this.saveSettings();
-          };
-          delaySlider.addEventListener('input', (e) => updateDelay(e.target.value));
+          delaySlider.addEventListener('input', (e) => updateGlobalDelayFromSlider(e.target.value));
           if (typeof attachSliderHoldRepeat === 'function') {
-            attachSliderHoldRepeat(delaySlider, (val) => updateDelay(val));
+            attachSliderHoldRepeat(delaySlider, (val) => updateGlobalDelayFromSlider(val));
+          }
+        }
+        if (paletteDelaySlider) {
+          paletteDelaySlider.addEventListener('input', (e) => updateGlobalDelayFromSlider(e.target.value));
+          if (typeof attachSliderHoldRepeat === 'function') {
+            attachSliderHoldRepeat(paletteDelaySlider, (val) => updateGlobalDelayFromSlider(val));
           }
         }
 
@@ -23300,10 +23501,15 @@
           }
         }
         if (typeof document !== 'undefined') {
+          const formatted = formatDelayWithHz(d, this.engine ? this.engine.frequency : 10);
           const slider = document.getElementById('settings-global-delay-slider');
           if (slider) slider.value = String(d);
           const valEl = document.getElementById('settings-global-delay-val');
-          if (valEl) valEl.textContent = `${d} Tick${d > 1 ? 's' : ''}`;
+          if (valEl) valEl.textContent = formatted;
+          const paletteSlider = document.getElementById('palette-global-delay-slider');
+          if (paletteSlider) paletteSlider.value = String(d);
+          const paletteValEl = document.getElementById('palette-global-delay-val');
+          if (paletteValEl) paletteValEl.textContent = formatted;
         }
         if (this.renderer) this.renderer.render();
         if (this.rendererRight) this.rendererRight.render();

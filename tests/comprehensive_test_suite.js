@@ -2763,6 +2763,107 @@ runTest('WISH-054', 'Selection rectangle selects and unselects modules and wires
   }
 });
 
+runTest('WISH-055', 'Selection delay control, Hz-based ms readout, and edit-mode delayed propagation', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const prevLang = I18N.currentLang;
+  try {
+    const app = new LogicSimApp();
+    app.engine.setMode('edit');
+    app.engine.setFrequency(10);
+
+    const sw = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 0 });
+    const andGate = app.circuit.addComponent('AND', 160, 80, { numInputs: 2 });
+    const notGate = app.circuit.addComponent('NOT', 280, 80, {});
+    const led = app.circuit.addComponent('LED', 400, 80, {});
+    app.circuit.addWire(sw.id, 0, andGate.id, 0);
+    app.circuit.addWire(sw.id, 0, andGate.id, 1);
+    app.circuit.addWire(andGate.id, 0, notGate.id, 0);
+    app.circuit.addWire(notGate.id, 0, led.id, 0);
+    app.circuit.syncImmediateWireLevels();
+
+    // 1. Multi-selection delay control with Hz-based ms readout
+    app.selectMulti([andGate.id, notGate.id, led.id], []);
+
+    const findElements = (node, pred, acc = []) => {
+      if (!node || typeof node !== 'object') return acc;
+      if (pred(node)) acc.push(node);
+      if (Array.isArray(node.children)) {
+        for (const ch of node.children) findElements(ch, pred, acc);
+      }
+      return acc;
+    };
+
+    const sliders = findElements(app.inspector.container, el => el.type === 'range');
+    assertEqual(sliders.length >= 1, true, 'Multi-selection renders delay range slider when delay-capable gates are selected');
+
+    const delayLabels = findElements(app.inspector.container, el => Array.isArray(el.children) && el.children.length === 0 && typeof el.textContent === 'string' && el.textContent.includes('Tick'));
+    assertEqual(delayLabels.some(s => s.textContent === '1 Tick (100 ms)'), true, 'Delay readout shows 1 Tick (100 ms) at 10 Hz');
+
+    // Change selection delay to 4 ticks
+    const delaySlider = sliders[0];
+    delaySlider.value = '4';
+    (delaySlider.listeners.input || []).forEach(fn => fn({ target: delaySlider }));
+
+    assertEqual(andGate.params.delay, 4, 'Multi-selection delay slider updates AND gate delay to 4');
+    assertEqual(notGate.params.delay, 4, 'Multi-selection delay slider updates NOT gate delay to 4');
+    assertEqual(led.params.delay, undefined, 'Non-delay LED component is not given a delay param');
+    assertEqual(delayLabels.some(s => s.textContent === '4 Ticks (400 ms)'), true, 'Delay readout updates to 4 Ticks (400 ms) at 10 Hz');
+
+    // Change frequency to 20 Hz -> readout updates to 200 ms
+    app.engine.setFrequency(20);
+    app.refreshInspector();
+    const delayLabels20Hz = findElements(app.inspector.container, el => Array.isArray(el.children) && el.children.length === 0 && typeof el.textContent === 'string' && el.textContent.includes('Tick'));
+    assertEqual(delayLabels20Hz.some(s => s.textContent === '4 Ticks (200 ms)'), true, 'Delay readout recalculates with 20 Hz to 4 Ticks (200 ms)');
+
+    // Palette global delay slider updates globalGateDelay & readout with current Hz
+    const paletteSlider = document.getElementById('palette-global-delay-slider');
+    const paletteVal = document.getElementById('palette-global-delay-val');
+    assertEqual(Boolean(paletteSlider && paletteVal), true, 'Palette global delay slider and readout exist');
+    paletteSlider.value = '5';
+    (paletteSlider.listeners.input || []).forEach(fn => fn({ target: paletteSlider }));
+    assertEqual(app.globalGateDelay, 5, 'Palette global delay slider updates app.globalGateDelay to 5');
+    assertEqual(app.circuit.globalGateDelay, 5, 'Palette global delay slider updates circuit.globalGateDelay to 5');
+    assertEqual(paletteVal.textContent, '5 Ticks (250 ms)', 'Palette global delay readout computes ms with 20 Hz');
+
+    // English i18n formatting for delay with ms
+    I18N.currentLang = 'en';
+    assertEqual(I18N.phrase('4 Ticks (200 ms)'), '4 ticks (200 ms)', 'English translation formats 4 ticks (200 ms)');
+    I18N.currentLang = 'de';
+
+    // 2. Edit-mode delayed combinational propagation
+    andGate.params.delay = 3;
+    notGate.params.delay = 1;
+    sw.state.value = 1;
+    sw.outputs[0].value = 1;
+    sw.nextOutputs[0] = 1;
+    app.circuit.updateWireLevelsFromDrivers();
+
+    // Immediately after switch toggle, AND gate output has not changed yet
+    assertEqual(andGate.outputs[0].value, 0, 'AND gate output stays 0 immediately after switch toggle in edit mode');
+    assertEqual(app.circuit.stepCombinational(), true, 'Tick 1: AND gate starts 3-tick delay countdown');
+    assertEqual(andGate.outputs[0].value, 0, 'Tick 1: AND gate output still 0');
+    assertEqual(app.circuit.stepCombinational(), true, 'Tick 2: AND gate delay countdown continues');
+    assertEqual(andGate.outputs[0].value, 0, 'Tick 2: AND gate output still 0');
+    assertEqual(app.circuit.stepCombinational(), true, 'Tick 3: AND gate commits output 1');
+    assertEqual(andGate.outputs[0].value, 1, 'Tick 3: AND gate output becomes 1');
+    app.circuit.stepCombinational();
+    assertEqual(notGate.outputs[0].value, 0, 'Tick 4: NOT gate propagates output 0');
+    assertEqual(led.inputs[0].value, 0, 'Tick 4: LED receives updated level');
+
+    // triggerEditPropagation + stopEditPropagation cleans up cleanly
+    app.triggerEditPropagation(app.circuit);
+    app.stopEditPropagation();
+    assertEqual(app._editPropRafId, null, 'stopEditPropagation clears pending rAF timer');
+  } finally {
+    I18N.currentLang = prevLang;
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
