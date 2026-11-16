@@ -3833,14 +3833,99 @@
       margin: 0;
     }
     .palette-delay-select {
+      display: none;
+    }
+    .palette-delay-dropdown {
+      position: relative;
       width: 100%;
+    }
+    .palette-delay-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 7px;
       font-size: 11px;
-      padding: 3px 6px;
       border-radius: var(--control-radius);
       border: 1px solid var(--border-bright);
       background: var(--bg-elevated);
-      color: var(--text-primary);
+      color: var(--text-main);
+      cursor: pointer;
       font-family: inherit;
+      text-align: left;
+    }
+    .palette-delay-trigger-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .palette-delay-opt-val {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-align: right;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .palette-delay-opt-val.is-custom {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+    .palette-delay-caret {
+      font-size: 10px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .palette-delay-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 2px);
+      z-index: 900;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--control-radius);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      max-height: 260px;
+      overflow-y: auto;
+      padding: 2px 0;
+    }
+    .palette-delay-opt {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    .palette-delay-opt:hover,
+    .palette-delay-opt.active {
+      background: var(--accent-blue);
+      color: #ffffff;
+    }
+    .palette-delay-opt:hover .palette-delay-opt-val,
+    .palette-delay-opt.active .palette-delay-opt-val {
+      color: #ffffff;
+    }
+    [data-theme="java_swing"] .palette-delay-trigger {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #808080;
+    }
+    [data-theme="java_swing"] .palette-delay-menu {
+      background: #ece9d8;
+      border: 1px solid #404040;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+    }
+    [data-theme="java_swing"] .palette-delay-opt:hover,
+    [data-theme="java_swing"] .palette-delay-opt.active {
+      background: #0a246a;
+      color: #ffffff;
     }
     .palette-view-btn:hover {
       color: var(--text-main);
@@ -4261,18 +4346,26 @@
             <span class="palette-delay-val" id="palette-global-delay-val">1 Tick (100 ms)</span>
           </div>
           <select id="palette-delay-type" class="palette-delay-select" aria-label="Modultyp für Verzögerung">
-            <option value="__GLOBAL__" data-base-label="Alle (Global)">Alle (Global) — 1 Tick (100 ms)</option>
-            <option value="AND" data-base-label="AND-Gatter">AND-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="OR" data-base-label="OR-Gatter">OR-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="NOT" data-base-label="NOT-Gatter">NOT-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="NAND" data-base-label="NAND-Gatter">NAND-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="NOR" data-base-label="NOR-Gatter">NOR-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="XOR" data-base-label="XOR-Gatter">XOR-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="XNOR" data-base-label="XNOR-Gatter">XNOR-Gatter — 1 Tick (100 ms) (Global)</option>
-            <option value="BUFFER" data-base-label="Puffer (BUFFER)">Puffer (BUFFER) — 1 Tick (100 ms) (Global)</option>
-            <option value="TRI_STATE" data-base-label="Tri-State">Tri-State — 1 Tick (100 ms) (Global)</option>
-            <option value="MAJORITY" data-base-label="Mehrheitsgatter">Mehrheitsgatter — 1 Tick (100 ms) (Global)</option>
+            <option value="__GLOBAL__" data-base-label="Alle (Global)">Alle (Global)</option>
+            <option value="AND" data-base-label="AND-Gatter">AND-Gatter</option>
+            <option value="OR" data-base-label="OR-Gatter">OR-Gatter</option>
+            <option value="NOT" data-base-label="NOT-Gatter">NOT-Gatter</option>
+            <option value="NAND" data-base-label="NAND-Gatter">NAND-Gatter</option>
+            <option value="NOR" data-base-label="NOR-Gatter">NOR-Gatter</option>
+            <option value="XOR" data-base-label="XOR-Gatter">XOR-Gatter</option>
+            <option value="XNOR" data-base-label="XNOR-Gatter">XNOR-Gatter</option>
+            <option value="BUFFER" data-base-label="Puffer (BUFFER)">Puffer (BUFFER)</option>
+            <option value="TRI_STATE" data-base-label="Tri-State">Tri-State</option>
+            <option value="MAJORITY" data-base-label="Mehrheitsgatter">Mehrheitsgatter</option>
           </select>
+          <div id="palette-delay-dropdown" class="palette-delay-dropdown">
+            <button type="button" id="palette-delay-trigger" class="palette-delay-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span id="palette-delay-trigger-label" class="palette-delay-trigger-label">Alle (Global)</span>
+              <span id="palette-delay-trigger-val" class="palette-delay-opt-val">100 ms</span>
+              <span class="palette-delay-caret">▾</span>
+            </button>
+            <div id="palette-delay-menu" class="palette-delay-menu" role="listbox" style="display: none;"></div>
+          </div>
           <input type="range" id="palette-global-delay-slider" min="0" max="20" value="1" />
         </div>
         <div class="palette-search">
@@ -23890,6 +23983,29 @@
         if (paletteDelayType) {
           paletteDelayType.addEventListener('change', () => this.syncPaletteDelayUi());
         }
+        const paletteDelayTrigger = document.getElementById('palette-delay-trigger');
+        const paletteDelayMenu = document.getElementById('palette-delay-menu');
+        const paletteDelayDropdown = document.getElementById('palette-delay-dropdown');
+        if (paletteDelayTrigger && paletteDelayMenu) {
+          paletteDelayTrigger.addEventListener('click', (e) => {
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            const isOpen = paletteDelayMenu.style.display !== 'none';
+            paletteDelayMenu.style.display = isOpen ? 'none' : 'block';
+            if (typeof paletteDelayTrigger.setAttribute === 'function') {
+              paletteDelayTrigger.setAttribute('aria-expanded', String(!isOpen));
+            }
+          });
+          if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+            document.addEventListener('click', (e) => {
+              if (!paletteDelayDropdown || (typeof paletteDelayDropdown.contains === 'function' && !paletteDelayDropdown.contains(e.target))) {
+                paletteDelayMenu.style.display = 'none';
+                if (typeof paletteDelayTrigger.setAttribute === 'function') {
+                  paletteDelayTrigger.setAttribute('aria-expanded', 'false');
+                }
+              }
+            });
+          }
+        }
         if (paletteDelaySlider) {
           paletteDelaySlider.addEventListener('input', (e) => updatePaletteDelayFromSlider(e.target.value));
           if (typeof attachSliderHoldRepeat === 'function') {
@@ -24324,8 +24440,13 @@
         const paletteTypeEl = document.getElementById('palette-delay-type');
         const paletteSlider = document.getElementById('palette-global-delay-slider');
         const paletteValEl = document.getElementById('palette-global-delay-val');
-        const hz = this.engine ? this.engine.frequency : 10;
+        const paletteMenu = document.getElementById('palette-delay-menu');
+        const triggerLabel = document.getElementById('palette-delay-trigger-label');
+        const triggerVal = document.getElementById('palette-delay-trigger-val');
+        const triggerBtn = document.getElementById('palette-delay-trigger');
+        const hz = Math.max(1, Math.min(60, parseInt(this.engine ? this.engine.frequency : 10, 10) || 10));
         const globalDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
+        const formatMsOnly = (ticks) => `${Math.round((Math.max(0, ticks) * 1000) / hz)} ms`;
         const getModDelay = (type) => {
           if (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[type])) {
             return this.circuit.moduleGateDelays[type];
@@ -24336,6 +24457,13 @@
           return null;
         };
 
+        const selectedType = (paletteTypeEl && paletteTypeEl.value) ? paletteTypeEl.value : '__GLOBAL__';
+        if (paletteMenu) paletteMenu.innerHTML = '';
+
+        let activeLabel = I18N.phrase('Alle (Global)');
+        let activeMs = formatMsOnly(globalDelay);
+        let activeIsCustom = false;
+
         if (paletteTypeEl) {
           const opts = paletteTypeEl.options || paletteTypeEl.children || [];
           for (let i = 0; i < opts.length; i++) {
@@ -24344,18 +24472,53 @@
             const base = (typeof opt.getAttribute === 'function' ? opt.getAttribute('data-base-label') : opt['data-base-label'])
               || (opt.textContent ? opt.textContent.split(' — ')[0] : opt.value);
             const trBase = I18N.phrase(base);
-            if (opt.value === '__GLOBAL__') {
-              opt.textContent = `${trBase} — ${I18N.phrase(formatDelayWithHz(globalDelay, hz))}`;
-            } else if (GATE_DELAY_TYPES[opt.value]) {
-              const md = getModDelay(opt.value);
-              const eff = md !== null ? md : globalDelay;
-              const timeStr = I18N.phrase(formatDelayWithHz(eff, hz));
-              opt.textContent = md !== null ? `${trBase} — ${timeStr}` : `${trBase} — ${timeStr} (Global)`;
+            const isGlobal = opt.value === '__GLOBAL__';
+            const md = isGlobal ? null : getModDelay(opt.value);
+            const eff = md !== null ? md : globalDelay;
+            const msText = formatMsOnly(eff);
+            const isCustom = !isGlobal && md !== null;
+            opt.textContent = `${trBase} (${msText})`;
+
+            if (opt.value === selectedType) {
+              activeLabel = trBase;
+              activeMs = msText;
+              activeIsCustom = isCustom;
+            }
+
+            if (paletteMenu) {
+              const row = document.createElement('div');
+              row.className = 'palette-delay-opt' + (opt.value === selectedType ? ' active' : '');
+              if (typeof row.setAttribute === 'function') {
+                row.setAttribute('role', 'option');
+                row.setAttribute('data-value', opt.value);
+              }
+              const leftSpan = document.createElement('span');
+              leftSpan.textContent = trBase;
+              const rightSpan = document.createElement('span');
+              rightSpan.className = 'palette-delay-opt-val' + (isCustom ? ' is-custom' : '');
+              rightSpan.textContent = msText;
+              row.appendChild(leftSpan);
+              row.appendChild(rightSpan);
+              row.addEventListener('click', (e) => {
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+                paletteTypeEl.value = opt.value;
+                paletteMenu.style.display = 'none';
+                if (triggerBtn && typeof triggerBtn.setAttribute === 'function') {
+                  triggerBtn.setAttribute('aria-expanded', 'false');
+                }
+                this.syncPaletteDelayUi();
+              });
+              paletteMenu.appendChild(row);
             }
           }
         }
 
-        const selectedType = (paletteTypeEl && paletteTypeEl.value) ? paletteTypeEl.value : '__GLOBAL__';
+        if (triggerLabel) triggerLabel.textContent = activeLabel;
+        if (triggerVal) {
+          triggerVal.textContent = activeMs;
+          if (triggerVal.classList) triggerVal.classList.toggle('is-custom', activeIsCustom);
+        }
+
         let effective = globalDelay;
         if (selectedType !== '__GLOBAL__' && GATE_DELAY_TYPES[selectedType]) {
           const modDelay = getModDelay(selectedType);

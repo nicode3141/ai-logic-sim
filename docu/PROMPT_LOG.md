@@ -234,3 +234,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > füge hinzu das man beim taktgenerator die ticks der high und low phase einstellen kann
+
+---
+
+## 2026-11-16 — Kompakte rechtsbündige Verzögerungsanzeige im Palette-Dropdown
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-060
+- **Prompt:**
+
+> mache das einfach nur die verzögerungszahl da steht unzwar rechtsbündig

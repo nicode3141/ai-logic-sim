@@ -3152,7 +3152,7 @@ runTest('WISH-060', 'Java Swing slider track alignment CSS and palette delay dro
   assertEqual(swingTrackMatch[1].includes('border: none'), true, 'java_swing range track uses border: none to avoid left-edge thumb offset');
   assertEqual(swingTrackMatch[1].includes('height: 4px'), true, 'java_swing range track keeps 4px height matching margin-top: -6px on 16px thumb');
 
-  // 2. Dropdown options show saved delay and time in ms
+  // 2. Dropdown options show concise right-aligned ms values only
   const app = new LogicSimApp();
   const sel = document.getElementById('palette-delay-type');
   const optGlobal = createMockElem('opt-global');
@@ -3171,14 +3171,18 @@ runTest('WISH-060', 'Java Swing slider track alignment CSS and palette delay dro
   app.setGlobalGateDelay(0, false);
   app.setModuleGateDelay('AND', 3, false);
 
-  assertEqual(optGlobal.textContent, 'Alle (Global) — Sofort (0 ms)', 'Global dropdown option displays Sofort (0 ms)');
-  assertEqual(optAnd.textContent, 'AND-Gatter — 3 Ticks (300 ms)', 'Module-specific dropdown option displays 3 Ticks (300 ms)');
-  assertEqual(optOr.textContent, 'OR-Gatter — Sofort (0 ms) (Global)', 'Inherited dropdown option displays global time + (Global)');
+  const menu = document.getElementById('palette-delay-menu');
+  assertEqual(menu.children.length, 3, 'Custom palette delay dropdown renders 3 rows');
+  assertEqual(menu.children[0].children[0].textContent, 'Alle (Global)', 'Row 0 left label is Alle (Global)');
+  assertEqual(menu.children[0].children[1].textContent, '0 ms', 'Row 0 right-aligned value is 0 ms');
+  assertEqual(menu.children[1].children[0].textContent, 'AND-Gatter', 'Row 1 left label is AND-Gatter');
+  assertEqual(menu.children[1].children[1].textContent, '300 ms', 'Row 1 right-aligned value is 300 ms');
+  assertEqual(menu.children[2].children[1].textContent, '0 ms', 'Row 2 inherited right-aligned value is 0 ms');
 
   // Changing frequency recalculates dropdown times
   app.engine.setFrequency(20);
   app.syncPaletteDelayUi();
-  assertEqual(optAnd.textContent, 'AND-Gatter — 3 Ticks (150 ms)', 'Dropdown option time updates to 150 ms at 20 Hz');
+  assertEqual(menu.children[1].children[1].textContent, '150 ms', 'Dropdown option right-aligned time updates to 150 ms at 20 Hz');
 });
 
 runTest('WISH-061', 'Remove symbol-norm switcher from workspace context menu and use diagonal wires in auto-arrange when allowed', () => {
