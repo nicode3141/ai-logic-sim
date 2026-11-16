@@ -153,3 +153,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > füge noch hinzu das man sofort einstellen kann also 0 ms verzögerung
+
+---
+
+## 2026-11-16 — Live-Bauteilvorschau am Cursor beim Palette-Drag & Drop
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-058
+- **Prompt:**
+
+> kannst du es hinzufügen wenn man ein modul vom drag in drop in den arbeitsspace schiebt das beim cursor das module verschoben wird

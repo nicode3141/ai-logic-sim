@@ -2979,6 +2979,90 @@ runTest('WISH-057', 'Zero-delay (Sofort / 0 ms) propagation in edit/sim mode and
   }
 });
 
+runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and clears on drop/dragend', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const app = new LogicSimApp();
+  app.engine.setMode('edit');
+
+  const dtStore = {};
+  const fakeEvent = {
+    dataTransfer: {
+      setData: (k, v) => { dtStore[k] = v; },
+      getData: (k) => dtStore[k] || '',
+      effectAllowed: ''
+    },
+    preventDefault: () => {}
+  };
+
+  app.startPaletteDrag(fakeEvent, 'AND');
+  assertEqual(app._paletteDragType, 'AND', 'startPaletteDrag records dragged module type');
+  assertEqual(dtStore['text/plain'], 'AND', 'dataTransfer stores module type');
+
+  const prevRectFn = app.gridCanvas.getBoundingClientRect;
+  app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
+  try {
+    const dragoverHandlers = app.gridCanvas.listeners.dragover || [];
+    const dropHandlers = app.gridCanvas.listeners.drop || [];
+    const dragleaveHandlers = app.gridCanvas.listeners.dragleave || [];
+    assertEqual(dragoverHandlers.length >= 1 && dropHandlers.length >= 1, true, 'Palette dragover and drop listeners are attached');
+
+    const screenX = app.renderer.panX + 200 * app.renderer.zoom;
+    const screenY = app.renderer.panY + 140 * app.renderer.zoom;
+    dragoverHandlers.forEach(fn => fn({
+      clientX: screenX,
+      clientY: screenY,
+      dataTransfer: fakeEvent.dataTransfer,
+      preventDefault: () => {}
+    }));
+
+    assertEqual(Boolean(app.renderer.paletteDragGhost && app.renderer.paletteDragGhost.comp), true, 'dragover sets live component ghost on renderer');
+    assertEqual(app.renderer.paletteDragGhost.comp.type, 'AND', 'Ghost component matches dragged module type');
+    assertEqual(app.renderer.paletteDragGhost.comp.x, 160, 'Ghost component X is centered & grid-snapped around cursor (200 - 40)');
+    assertEqual(app.renderer.paletteDragGhost.comp.y, 100, 'Ghost component Y is centered & grid-snapped around cursor (140 - 40)');
+
+    // Move cursor -> ghost moves with cursor
+    const screenX2 = app.renderer.panX + 300 * app.renderer.zoom;
+    const screenY2 = app.renderer.panY + 220 * app.renderer.zoom;
+    dragoverHandlers.forEach(fn => fn({
+      clientX: screenX2,
+      clientY: screenY2,
+      dataTransfer: fakeEvent.dataTransfer,
+      preventDefault: () => {}
+    }));
+    assertEqual(app.renderer.paletteDragGhost.comp.x, 260, 'Ghost moves with cursor on dragover');
+    assertEqual(app.renderer.paletteDragGhost.comp.y, 180, 'Ghost Y moves with cursor on dragover');
+
+    // Drop places component at centered ghost position and clears ghost
+    dropHandlers.forEach(fn => fn({
+      clientX: screenX2,
+      clientY: screenY2,
+      dataTransfer: fakeEvent.dataTransfer,
+      preventDefault: () => {}
+    }));
+    assertEqual(app.renderer.paletteDragGhost, null, 'drop clears paletteDragGhost');
+    assertEqual(app._paletteDragType, null, 'drop clears _paletteDragType');
+    const placed = app.circuit.components.find(c => c.type === 'AND');
+    assertEqual(Boolean(placed), true, 'drop creates AND component');
+    assertEqual(placed.x, 260, 'Placed component X matches centered cursor ghost');
+    assertEqual(placed.y, 180, 'Placed component Y matches centered cursor ghost');
+
+    // dragleave also clears ghost
+    app.startPaletteDrag(fakeEvent, 'LED');
+    dragoverHandlers.forEach(fn => fn({ clientX: screenX, clientY: screenY, dataTransfer: fakeEvent.dataTransfer, preventDefault: () => {} }));
+    assertEqual(Boolean(app.renderer.paletteDragGhost), true, 'LED ghost appears during dragover');
+    dragleaveHandlers.forEach(fn => fn());
+    assertEqual(app.renderer.paletteDragGhost, null, 'dragleave clears paletteDragGhost');
+    app.clearPaletteDragGhost();
+  } finally {
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+    app.gridCanvas.getBoundingClientRect = prevRectFn;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

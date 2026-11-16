@@ -11654,6 +11654,7 @@
         this.drawComponents(ctx);
         this.drawProbes(ctx);
         this.drawSelectionBox(ctx);
+        this.drawPaletteDragGhost(ctx);
 
         ctx.restore();
         ctx.restore();
@@ -11674,6 +11675,56 @@
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 4]);
         ctx.strokeRect(x, y, w, h);
+        ctx.restore();
+      }
+
+      drawPaletteDragGhost(ctx) {
+        const ghost = this.paletteDragGhost;
+        if (!ghost) return;
+        ctx.save();
+        ctx.globalAlpha = 0.72;
+        if (ghost.comp) {
+          this.drawSingleComponent(ctx, ghost.comp);
+        } else if (Array.isArray(ghost.comps)) {
+          if (Array.isArray(ghost.links)) {
+            const pal = this.getThemePalette();
+            ctx.save();
+            ctx.strokeStyle = pal.wireLow || '#64748b';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (const link of ghost.links) {
+              ctx.beginPath();
+              ctx.moveTo(link.p1.x, link.p1.y);
+              if (Array.isArray(link.wp)) {
+                for (const pt of link.wp) ctx.lineTo(pt.x, pt.y);
+              }
+              ctx.lineTo(link.p2.x, link.p2.y);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+          for (const c of ghost.comps) {
+            this.drawSingleComponent(ctx, c);
+          }
+        } else if (ghost.type === 'PROBE') {
+          ctx.beginPath();
+          ctx.arc(ghost.x, ghost.y, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#00b0ff';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        if (ghost.snapHint) {
+          ctx.globalAlpha = 0.95;
+          ctx.beginPath();
+          ctx.arc(ghost.snapHint.x, ghost.snapHint.y, 10, 0, Math.PI * 2);
+          ctx.strokeStyle = '#00b0ff';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([3, 3]);
+          ctx.stroke();
+        }
         ctx.restore();
       }
 
@@ -18013,7 +18064,119 @@
         this.updateStatusBar();
       }
 
+      startPaletteDrag(e, type) {
+        this._paletteDragType = type;
+        this._paletteGhostCache = null;
+        if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
+          const sel = document.getElementById('palette-delay-type');
+          if (sel) {
+            sel.value = type;
+            if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
+          }
+        }
+        if (e && e.dataTransfer) {
+          e.dataTransfer.setData('text/plain', type);
+          e.dataTransfer.effectAllowed = 'copy';
+          if (typeof e.dataTransfer.setDragImage === 'function' && typeof document !== 'undefined') {
+            if (!this._blankDragImg) {
+              const c = document.createElement('canvas');
+              c.width = 1;
+              c.height = 1;
+              this._blankDragImg = c;
+            }
+            try { e.dataTransfer.setDragImage(this._blankDragImg, 0, 0); } catch (_) {}
+          }
+        }
+      }
+
+      clearPaletteDragGhost() {
+        this._paletteDragType = null;
+        this._paletteGhostCache = null;
+        const hadLeft = Boolean(this.renderer && this.renderer.paletteDragGhost);
+        const hadRight = Boolean(this.rendererRight && this.rendererRight.paletteDragGhost);
+        if (this.renderer) this.renderer.paletteDragGhost = null;
+        if (this.rendererRight) this.rendererRight.paletteDragGhost = null;
+        if (hadLeft && this.renderer) this.renderer.render();
+        if (hadRight && this.rendererRight) this.rendererRight.render();
+      }
+
+      updatePaletteDragGhost(renderer, tab, type, worldPos) {
+        if (!renderer || !tab || !type || !worldPos) return;
+        if (type === 'PROBE') {
+          const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 25);
+          renderer.paletteDragGhost = {
+            type: 'PROBE',
+            x: worldPos.x,
+            y: worldPos.y,
+            snapHint: hitWire ? { x: worldPos.x, y: worldPos.y } : null
+          };
+          return;
+        }
+        if (type.startsWith('MODULE:')) {
+          const mod = this.findCustomModule(type.slice(7));
+          if (!mod) return;
+          if (mod.kind === 'ic') {
+            const gx = Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
+            const gy = Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
+            if (!this._paletteGhostCache || this._paletteGhostCache.type !== type) {
+              const comp = new Component('__ghost__', 'CUSTOM_IC', gx, gy, {
+                label: mod.name,
+                moduleId: mod.id,
+                inputs: mod.inputs,
+                outputs: mod.outputs,
+                subcircuit: mod.subcircuit
+              });
+              comp.circuit = tab.circuit;
+              this._paletteGhostCache = { type, comp };
+            }
+            const comp = this._paletteGhostCache.comp;
+            comp.x = Math.round((gx - comp.width / 2) / GRID_SIZE) * GRID_SIZE;
+            comp.y = Math.round((gy - comp.height / 2) / GRID_SIZE) * GRID_SIZE;
+            renderer.paletteDragGhost = { type, comp };
+            return;
+          }
+          const parts = this.buildPaletteThumbParts(type);
+          if (!parts) return;
+          const b = this.getComponentsBounds(parts.comps);
+          const ox = Math.round((worldPos.x - (b.minX + b.maxX) / 2) / GRID_SIZE) * GRID_SIZE;
+          const oy = Math.round((worldPos.y - (b.minY + b.maxY) / 2) / GRID_SIZE) * GRID_SIZE;
+          for (const c of parts.comps) {
+            c.x += ox;
+            c.y += oy;
+            c.circuit = tab.circuit;
+          }
+          for (const link of parts.links) {
+            link.p1 = { x: link.p1.x + ox, y: link.p1.y + oy };
+            link.p2 = { x: link.p2.x + ox, y: link.p2.y + oy };
+            if (Array.isArray(link.wp)) {
+              link.wp = link.wp.map(p => ({ x: p.x + ox, y: p.y + oy }));
+            }
+          }
+          renderer.paletteDragGhost = { type, comps: parts.comps, links: parts.links };
+          return;
+        }
+        const actualType = (type === 'NEGATOR') ? 'NOT' : type;
+        if (!this._paletteGhostCache || this._paletteGhostCache.type !== actualType) {
+          const comp = new Component('__ghost__', actualType, 0, 0, this.getDefaultParamsForNewComponent(actualType));
+          comp.circuit = tab.circuit;
+          this._paletteGhostCache = { type: actualType, comp };
+        }
+        const comp = this._paletteGhostCache.comp;
+        comp.x = Math.round((worldPos.x - comp.width / 2) / GRID_SIZE) * GRID_SIZE;
+        comp.y = Math.round((worldPos.y - comp.height / 2) / GRID_SIZE) * GRID_SIZE;
+        let snapHint = null;
+        if (actualType === 'NOT') {
+          const pinHit = renderer.findPinAt(worldPos.x, worldPos.y, 24);
+          if (pinHit) snapHint = { x: pinHit.x, y: pinHit.y };
+        }
+        renderer.paletteDragGhost = { type: actualType, comp, snapHint };
+      }
+
       initPaletteEvents() {
+        if (!this._paletteDragEndBound && typeof window !== 'undefined') {
+          this._paletteDragEndBound = true;
+          window.addEventListener('dragend', () => this.clearPaletteDragGhost());
+        }
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
           item.addEventListener('mousedown', () => {
@@ -18031,17 +18194,9 @@
               e.preventDefault();
               return;
             }
-            const type = item.dataset && item.dataset.type;
-            if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
-              const sel = document.getElementById('palette-delay-type');
-              if (sel) {
-                sel.value = type;
-                if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
-              }
-            }
-            e.dataTransfer.setData('text/plain', item.dataset.type);
-            e.dataTransfer.effectAllowed = 'copy';
+            this.startPaletteDrag(e, item.dataset.type);
           });
+          item.addEventListener('dragend', () => this.clearPaletteDragGhost());
 
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
@@ -18116,12 +18271,30 @@
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
+          const tab = getTargetTab();
+          const renderer = getRenderer();
+          const type = this._paletteDragType || (e.dataTransfer && typeof e.dataTransfer.getData === 'function' ? e.dataTransfer.getData('text/plain') : '');
+          if (tab && renderer && type) {
+            const rect = canvas.getBoundingClientRect();
+            const worldPos = renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            this.updatePaletteDragGhost(renderer, tab, type, worldPos);
+            renderer.render();
+          }
+        });
+
+        canvas.addEventListener('dragleave', () => {
+          const renderer = getRenderer();
+          if (renderer && renderer.paletteDragGhost) {
+            renderer.paletteDragGhost = null;
+            renderer.render();
+          }
         });
 
         canvas.addEventListener('drop', (e) => {
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
-          const type = e.dataTransfer.getData('text/plain');
+          const type = (e.dataTransfer && typeof e.dataTransfer.getData === 'function' ? e.dataTransfer.getData('text/plain') : '') || this._paletteDragType;
+          this.clearPaletteDragGhost();
           if (!type) return;
 
           const tab = getTargetTab();
@@ -18251,11 +18424,13 @@
           const customParams = this.getDefaultParamsForNewComponent(type);
           const comp = tab.circuit.addComponent(
             type,
-            worldPos.x - 40,
-            worldPos.y - 25,
+            worldPos.x,
+            worldPos.y,
             customParams
           );
           if (comp) {
+            comp.x = Math.round((worldPos.x - comp.width / 2) / GRID_SIZE) * GRID_SIZE;
+            comp.y = Math.round((worldPos.y - comp.height / 2) / GRID_SIZE) * GRID_SIZE;
             const snapped = this.snapOpenWiresToComponent(comp);
             if (snapped > 0) {
               this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
@@ -21975,6 +22150,10 @@
             outputs: mod.outputs,
             subcircuit: mod.subcircuit
           });
+          if (ic) {
+            ic.x = Math.round((gx - ic.width / 2) / GRID_SIZE) * GRID_SIZE;
+            ic.y = Math.round((gy - ic.height / 2) / GRID_SIZE) * GRID_SIZE;
+          }
           renderer.selectedCompIds.clear();
           renderer.selectedCompIds.add(ic.id);
           renderer.selectedWireId = null;
@@ -22062,9 +22241,9 @@
 
           item.addEventListener('dragstart', (e) => {
             if (this.engine.mode === 'sim') { e.preventDefault(); return; }
-            e.dataTransfer.setData('text/plain', item.dataset.type);
-            e.dataTransfer.effectAllowed = 'copy';
+            this.startPaletteDrag(e, item.dataset.type);
           });
+          item.addEventListener('dragend', () => this.clearPaletteDragGhost());
           item.addEventListener('dblclick', (e) => {
             if (e.target.closest('.palette-module-del')) return;
             if (this.engine.mode === 'sim') return;
