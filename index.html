@@ -645,6 +645,9 @@
       -webkit-appearance: none;
       appearance: none;
       height: 18px;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       background: transparent;
       outline: none;
       cursor: pointer;
@@ -701,9 +704,11 @@
     }
 
     [data-theme="java_swing"] input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
       background: #808080;
       border-radius: 0;
-      border: 1px solid #404040;
+      border: none;
+      box-shadow: inset 0 1px 0 #404040, inset 0 -1px 0 #ffffff;
     }
 
     [data-theme="java_swing"] input[type="range"]::-webkit-slider-thumb {
@@ -717,9 +722,11 @@
     }
 
     [data-theme="java_swing"] input[type="range"]::-moz-range-track {
+      height: 4px;
       background: #808080;
       border-radius: 0;
-      border: 1px solid #404040;
+      border: none;
+      box-shadow: inset 0 1px 0 #404040, inset 0 -1px 0 #ffffff;
     }
 
     [data-theme="java_swing"] input[type="range"]::-moz-range-thumb {
@@ -4254,17 +4261,17 @@
             <span class="palette-delay-val" id="palette-global-delay-val">1 Tick (100 ms)</span>
           </div>
           <select id="palette-delay-type" class="palette-delay-select" aria-label="Modultyp für Verzögerung">
-            <option value="__GLOBAL__">Alle (Global)</option>
-            <option value="AND">AND-Gatter</option>
-            <option value="OR">OR-Gatter</option>
-            <option value="NOT">NOT-Gatter</option>
-            <option value="NAND">NAND-Gatter</option>
-            <option value="NOR">NOR-Gatter</option>
-            <option value="XOR">XOR-Gatter</option>
-            <option value="XNOR">XNOR-Gatter</option>
-            <option value="BUFFER">Puffer (BUFFER)</option>
-            <option value="TRI_STATE">Tri-State</option>
-            <option value="MAJORITY">Mehrheitsgatter</option>
+            <option value="__GLOBAL__" data-base-label="Alle (Global)">Alle (Global) — 1 Tick (100 ms)</option>
+            <option value="AND" data-base-label="AND-Gatter">AND-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="OR" data-base-label="OR-Gatter">OR-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="NOT" data-base-label="NOT-Gatter">NOT-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="NAND" data-base-label="NAND-Gatter">NAND-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="NOR" data-base-label="NOR-Gatter">NOR-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="XOR" data-base-label="XOR-Gatter">XOR-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="XNOR" data-base-label="XNOR-Gatter">XNOR-Gatter — 1 Tick (100 ms) (Global)</option>
+            <option value="BUFFER" data-base-label="Puffer (BUFFER)">Puffer (BUFFER) — 1 Tick (100 ms) (Global)</option>
+            <option value="TRI_STATE" data-base-label="Tri-State">Tri-State — 1 Tick (100 ms) (Global)</option>
+            <option value="MAJORITY" data-base-label="Mehrheitsgatter">Mehrheitsgatter — 1 Tick (100 ms) (Global)</option>
           </select>
           <input type="range" id="palette-global-delay-slider" min="0" max="20" value="1" />
         </div>
@@ -5561,7 +5568,7 @@
       // --- inspector ---
       'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
       '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
-      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay', 'Alle (Global)': 'All (Global)', 'Sofort (0 ms)': 'Instant (0 ms)',
+      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay', 'Alle (Global)': 'All (Global)', 'Puffer (BUFFER)': 'Buffer (BUFFER)', 'Sofort (0 ms)': 'Instant (0 ms)',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
       'XOR bei mehr als 2 Eingängen': 'XOR with more than 2 inputs', 'Exklusiv: genau ein Eingang 1': 'Exclusive: exactly one input is 1',
       'Parität: ungerade Anzahl 1': 'Parity: odd number of ones', 'Leuchtfarbe': 'Color', 'Leuchtfarbe:': 'Color:',
@@ -23717,6 +23724,7 @@
           langBtns.forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
           });
+          if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
 
           document.title = I18N.t('app.title');
           I18N.dom.refresh();
@@ -23889,16 +23897,45 @@
         const paletteTypeEl = document.getElementById('palette-delay-type');
         const paletteSlider = document.getElementById('palette-global-delay-slider');
         const paletteValEl = document.getElementById('palette-global-delay-val');
+        const hz = this.engine ? this.engine.frequency : 10;
+        const globalDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
+        const getModDelay = (type) => {
+          if (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[type])) {
+            return this.circuit.moduleGateDelays[type];
+          }
+          if (this.moduleGateDelays && Number.isFinite(this.moduleGateDelays[type])) {
+            return this.moduleGateDelays[type];
+          }
+          return null;
+        };
+
+        if (paletteTypeEl) {
+          const opts = paletteTypeEl.options || paletteTypeEl.children || [];
+          for (let i = 0; i < opts.length; i++) {
+            const opt = opts[i];
+            if (!opt || !opt.value) continue;
+            const base = (typeof opt.getAttribute === 'function' ? opt.getAttribute('data-base-label') : opt['data-base-label'])
+              || (opt.textContent ? opt.textContent.split(' — ')[0] : opt.value);
+            const trBase = I18N.phrase(base);
+            if (opt.value === '__GLOBAL__') {
+              opt.textContent = `${trBase} — ${I18N.phrase(formatDelayWithHz(globalDelay, hz))}`;
+            } else if (GATE_DELAY_TYPES[opt.value]) {
+              const md = getModDelay(opt.value);
+              const eff = md !== null ? md : globalDelay;
+              const timeStr = I18N.phrase(formatDelayWithHz(eff, hz));
+              opt.textContent = md !== null ? `${trBase} — ${timeStr}` : `${trBase} — ${timeStr} (Global)`;
+            }
+          }
+        }
+
         const selectedType = (paletteTypeEl && paletteTypeEl.value) ? paletteTypeEl.value : '__GLOBAL__';
-        let effective = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
+        let effective = globalDelay;
         if (selectedType !== '__GLOBAL__' && GATE_DELAY_TYPES[selectedType]) {
-          const modDelay = (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[selectedType]))
-            ? this.circuit.moduleGateDelays[selectedType]
-            : (this.moduleGateDelays && Number.isFinite(this.moduleGateDelays[selectedType]) ? this.moduleGateDelays[selectedType] : null);
+          const modDelay = getModDelay(selectedType);
           if (modDelay !== null) effective = modDelay;
         }
         if (paletteSlider) paletteSlider.value = String(effective);
-        if (paletteValEl) paletteValEl.textContent = formatDelayWithHz(effective, this.engine ? this.engine.frequency : 10);
+        if (paletteValEl) paletteValEl.textContent = I18N.phrase(formatDelayWithHz(effective, hz));
       }
 
       loadSettings() {

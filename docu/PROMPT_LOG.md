@@ -175,3 +175,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > fixe das die eingangsinvertiertung richtig beim modul geplaced ist
+
+---
+
+## 2026-11-16 — Java-Swing Slider-Offset-Fix & gespeicherte Verzögerung im Dropdown
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-060
+- **Prompt:**
+
+> fixe diesen offset hier und füge beim drop down das man die gespeicherte verzögerung der zeit siehet

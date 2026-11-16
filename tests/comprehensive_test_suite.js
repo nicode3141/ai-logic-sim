@@ -3089,6 +3089,43 @@ runTest('WISH-059', 'Non-gate module input and output inversion bubbles render c
   assertEqual(negQArcs[0].x > tff.x + tff.width, true, 'Negated !Q bubble is placed outside the right module wall');
 });
 
+runTest('WISH-060', 'Java Swing slider track alignment CSS and palette delay dropdown live timing labels', () => {
+  // 1. Static CSS check: java_swing runnable track uses border: none and height: 4px so thumb has no horizontal/vertical offset
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const swingTrackMatch = html.match(/\[data-theme="java_swing"\]\s+input\[type="range"\]::-webkit-slider-runnable-track\s*\{([^}]*)\}/);
+  assertEqual(Boolean(swingTrackMatch), true, 'java_swing range track CSS block exists');
+  assertEqual(swingTrackMatch[1].includes('border: none'), true, 'java_swing range track uses border: none to avoid left-edge thumb offset');
+  assertEqual(swingTrackMatch[1].includes('height: 4px'), true, 'java_swing range track keeps 4px height matching margin-top: -6px on 16px thumb');
+
+  // 2. Dropdown options show saved delay and time in ms
+  const app = new LogicSimApp();
+  const sel = document.getElementById('palette-delay-type');
+  const optGlobal = createMockElem('opt-global');
+  optGlobal.value = '__GLOBAL__';
+  optGlobal['data-base-label'] = 'Alle (Global)';
+  const optAnd = createMockElem('opt-and');
+  optAnd.value = 'AND';
+  optAnd['data-base-label'] = 'AND-Gatter';
+  const optOr = createMockElem('opt-or');
+  optOr.value = 'OR';
+  optOr['data-base-label'] = 'OR-Gatter';
+  sel.options = [optGlobal, optAnd, optOr];
+  sel.value = '__GLOBAL__';
+
+  app.engine.setFrequency(10);
+  app.setGlobalGateDelay(0, false);
+  app.setModuleGateDelay('AND', 3, false);
+
+  assertEqual(optGlobal.textContent, 'Alle (Global) — Sofort (0 ms)', 'Global dropdown option displays Sofort (0 ms)');
+  assertEqual(optAnd.textContent, 'AND-Gatter — 3 Ticks (300 ms)', 'Module-specific dropdown option displays 3 Ticks (300 ms)');
+  assertEqual(optOr.textContent, 'OR-Gatter — Sofort (0 ms) (Global)', 'Inherited dropdown option displays global time + (Global)');
+
+  // Changing frequency recalculates dropdown times
+  app.engine.setFrequency(20);
+  app.syncPaletteDelayUi();
+  assertEqual(optAnd.textContent, 'AND-Gatter — 3 Ticks (150 ms)', 'Dropdown option time updates to 150 ms at 20 Hz');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
