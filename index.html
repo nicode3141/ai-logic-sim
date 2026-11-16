@@ -18071,6 +18071,132 @@
         this.updateStatusBar();
       }
 
+      ensurePaletteGhostOverlay() {
+        if (typeof document === 'undefined') return null;
+        if (this._paletteGhostOverlayEl) return this._paletteGhostOverlayEl;
+        const el = document.createElement('canvas');
+        el.id = 'palette-drag-ghost-overlay';
+        el.style.position = 'fixed';
+        el.style.left = '0px';
+        el.style.top = '0px';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '99999';
+        el.style.display = 'none';
+        el.style.opacity = '0.78';
+        if (document.body && typeof document.body.appendChild === 'function') {
+          document.body.appendChild(el);
+        }
+        this._paletteGhostOverlayEl = el;
+        return el;
+      }
+
+      renderPaletteOverlayGhost(type) {
+        const el = this.ensurePaletteGhostOverlay();
+        if (!el || !type || !this.renderer) return;
+        const dpr = Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 2);
+        const zoom = Math.max(0.5, Math.min(1.5, this.renderer.zoom || 1));
+
+        if (type === 'PROBE') {
+          const cssW = 36;
+          const cssH = 36;
+          el.width = Math.round(cssW * dpr);
+          el.height = Math.round(cssH * dpr);
+          el.style.width = `${cssW}px`;
+          el.style.height = `${cssH}px`;
+          const ctx = el.getContext('2d');
+          if (ctx) {
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, cssW, cssH);
+            ctx.beginPath();
+            ctx.arc(cssW / 2, cssH / 2, 7 * zoom, 0, Math.PI * 2);
+            ctx.fillStyle = '#00b0ff';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+          this._paletteOverlaySize = { w: cssW, h: cssH };
+          return;
+        }
+
+        let comps = [];
+        let links = [];
+        if (type.startsWith('MODULE:')) {
+          const mod = this.findCustomModule(type.slice(7));
+          if (!mod) return;
+          if (mod.kind === 'ic') {
+            const ic = new Component('__overlay__', 'CUSTOM_IC', 0, 0, {
+              label: mod.name,
+              moduleId: mod.id,
+              inputs: mod.inputs,
+              outputs: mod.outputs,
+              subcircuit: mod.subcircuit
+            });
+            ic.circuit = this.circuit;
+            comps = [ic];
+          } else {
+            const parts = this.buildPaletteThumbParts(type);
+            if (!parts) return;
+            comps = parts.comps;
+            links = parts.links;
+            for (const c of comps) c.circuit = this.circuit;
+          }
+        } else {
+          const actualType = (type === 'NEGATOR') ? 'NOT' : type;
+          const c = new Component('__overlay__', actualType, 0, 0, this.getDefaultParamsForNewComponent(actualType));
+          c.circuit = this.circuit;
+          comps = [c];
+        }
+
+        const b = this.getComponentsBounds(comps);
+        const pad = 22;
+        const worldW = Math.max(40, (b.maxX - b.minX) + pad * 2);
+        const worldH = Math.max(40, (b.maxY - b.minY) + pad * 2);
+        const cssW = Math.ceil(worldW * zoom);
+        const cssH = Math.ceil(worldH * zoom);
+        el.width = Math.round(cssW * dpr);
+        el.height = Math.round(cssH * dpr);
+        el.style.width = `${cssW}px`;
+        el.style.height = `${cssH}px`;
+
+        const ctx = el.getContext('2d');
+        if (ctx) {
+          const ox = pad - b.minX;
+          const oy = pad - b.minY;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          if (typeof ctx.clearRect === 'function') ctx.clearRect(0, 0, el.width, el.height);
+          ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, dpr * zoom * ox, dpr * zoom * oy);
+          if (links.length > 0) {
+            const pal = this.renderer.getThemePalette();
+            ctx.save();
+            ctx.strokeStyle = pal.wireLow || '#64748b';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (const link of links) {
+              const pts = this.renderer.computeWirePath(link.p1, link.p2, link.wp, 0);
+              ctx.beginPath();
+              pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+          for (const c of comps) {
+            this.renderer.drawSingleComponent(ctx, c);
+          }
+        }
+        this._paletteOverlaySize = { w: cssW, h: cssH };
+      }
+
+      positionPaletteOverlayGhost(clientX, clientY) {
+        const el = this._paletteGhostOverlayEl;
+        if (!el || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+        const sz = this._paletteOverlaySize || { w: 80, h: 80 };
+        el.style.left = `${Math.round(clientX - sz.w / 2)}px`;
+        el.style.top = `${Math.round(clientY - sz.h / 2)}px`;
+        el.style.display = 'block';
+      }
+
       startPaletteDrag(e, type) {
         this._paletteDragType = type;
         this._paletteGhostCache = null;
@@ -18080,6 +18206,10 @@
             sel.value = type;
             if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
           }
+        }
+        this.renderPaletteOverlayGhost(type);
+        if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY) && (e.clientX !== 0 || e.clientY !== 0)) {
+          this.positionPaletteOverlayGhost(e.clientX, e.clientY);
         }
         if (e && e.dataTransfer) {
           e.dataTransfer.setData('text/plain', type);
@@ -18099,6 +18229,9 @@
       clearPaletteDragGhost() {
         this._paletteDragType = null;
         this._paletteGhostCache = null;
+        if (this._paletteGhostOverlayEl) {
+          this._paletteGhostOverlayEl.style.display = 'none';
+        }
         const hadLeft = Boolean(this.renderer && this.renderer.paletteDragGhost);
         const hadRight = Boolean(this.rendererRight && this.rendererRight.paletteDragGhost);
         if (this.renderer) this.renderer.paletteDragGhost = null;
@@ -18182,6 +18315,30 @@
       initPaletteEvents() {
         if (!this._paletteDragEndBound && typeof window !== 'undefined') {
           this._paletteDragEndBound = true;
+          window.addEventListener('dragover', (e) => {
+            if (!this._paletteDragType || (this.engine && this.engine.mode === 'sim')) return;
+            const target = e.target;
+            const onCanvas = target === this.gridCanvas || target === this.gridCanvasRight;
+            if (onCanvas) {
+              if (this._paletteGhostOverlayEl) this._paletteGhostOverlayEl.style.display = 'none';
+            } else {
+              if (typeof e.preventDefault === 'function') e.preventDefault();
+              if (this.renderer && this.renderer.paletteDragGhost) {
+                this.renderer.paletteDragGhost = null;
+                this.renderer.render();
+              }
+              if (this.rendererRight && this.rendererRight.paletteDragGhost) {
+                this.rendererRight.paletteDragGhost = null;
+                this.rendererRight.render();
+              }
+              this.positionPaletteOverlayGhost(e.clientX, e.clientY);
+            }
+          });
+          window.addEventListener('drop', (e) => {
+            if (this._paletteDragType && e.target !== this.gridCanvas && e.target !== this.gridCanvasRight) {
+              this.clearPaletteDragGhost();
+            }
+          });
           window.addEventListener('dragend', () => this.clearPaletteDragGhost());
         }
         const items = document.querySelectorAll('.palette-item');
@@ -18278,6 +18435,7 @@
           if (this.engine.mode === 'sim') return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
+          if (this._paletteGhostOverlayEl) this._paletteGhostOverlayEl.style.display = 'none';
           const tab = getTargetTab();
           const renderer = getRenderer();
           const type = this._paletteDragType || (e.dataTransfer && typeof e.dataTransfer.getData === 'function' ? e.dataTransfer.getData('text/plain') : '');

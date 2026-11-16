@@ -186,3 +186,4 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > fixe diesen offset hier und füge beim drop down das man die gespeicherte verzögerung der zeit siehet
+> füge das ghost module auch schon ein wenn man über andern guis ist

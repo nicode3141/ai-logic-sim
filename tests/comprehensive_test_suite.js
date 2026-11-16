@@ -2984,6 +2984,13 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
   if (!document.createTextNode) {
     document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
   }
+  const winListeners = {};
+  const prevWinAdd = window.addEventListener;
+  window.addEventListener = (type, fn, opts) => {
+    if (!winListeners[type]) winListeners[type] = [];
+    winListeners[type].push(fn);
+    if (typeof prevWinAdd === 'function') prevWinAdd.call(window, type, fn, opts);
+  };
   const app = new LogicSimApp();
   app.engine.setMode('edit');
 
@@ -3051,12 +3058,23 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
 
     // dragleave also clears ghost
     app.startPaletteDrag(fakeEvent, 'LED');
+    assertEqual(Boolean(app._paletteGhostOverlayEl), true, 'Floating ghost overlay canvas is created on dragstart');
+
+    // Dragging over other GUI elements (non-canvas target) shows floating ghost overlay at cursor
+    const winDragover = (winListeners.dragover || []);
+    winDragover.forEach(fn => fn({ target: createMockElem('sidebar'), clientX: 120, clientY: 220, preventDefault: () => {} }));
+    assertEqual(app._paletteGhostOverlayEl.style.display, 'block', 'Floating ghost overlay is visible when dragging over non-canvas GUI');
+
+    // Entering gridCanvas hides floating overlay and switches to grid-snapped canvas ghost
     dragoverHandlers.forEach(fn => fn({ clientX: screenX, clientY: screenY, dataTransfer: fakeEvent.dataTransfer, preventDefault: () => {} }));
+    assertEqual(app._paletteGhostOverlayEl.style.display, 'none', 'Floating ghost overlay hides when entering workspace canvas');
     assertEqual(Boolean(app.renderer.paletteDragGhost), true, 'LED ghost appears during dragover');
     dragleaveHandlers.forEach(fn => fn());
     assertEqual(app.renderer.paletteDragGhost, null, 'dragleave clears paletteDragGhost');
     app.clearPaletteDragGhost();
+    assertEqual(app._paletteGhostOverlayEl.style.display, 'none', 'clearPaletteDragGhost hides floating overlay');
   } finally {
+    window.addEventListener = prevWinAdd;
     if (prevCreateTextNode === undefined) delete document.createTextNode;
     else document.createTextNode = prevCreateTextNode;
     app.gridCanvas.getBoundingClientRect = prevRectFn;
