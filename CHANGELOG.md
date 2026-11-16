@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### ✨ Added
+- **Feature:** Wenn „Schräge Leitungen erlauben“ aktiv ist, nutzen „Alles anordnen“ (`autoLayoutCircuit`) und „Leitungen neu verlegen“ (`autoRouteAllWires`) bei hindernisfreien Vorwärtsverbindungen mit Höhenversatz automatisch schräge Verbindungen (`style: 'diagonal'`) (WISH-061).
 - **Feature:** Beim Ziehen von Bauteilen, Messpunkten oder eigenen Modulen aus der Palette in den Arbeitsbereich wird das echte Bauteil als Live-Vorschau zentriert im 20px-Raster direkt am Cursor mitgeführt (`startPaletteDrag`, `updatePaletteDragGhost`, `drawPaletteDragGhost`) sowie über ein schwebendes Canvas-Overlay (`#palette-drag-ghost-overlay`) bereits beim Bewegen über andere GUI-Bereiche (Palette, Toolbar, Inspector, Analyzer) angezeigt (WISH-058).
 - **Feature:** Gatterverzögerung lässt sich jetzt bis auf `0` (`Sofort (0 ms)` / `Instant (0 ms)`) herunterregeln — global, modulspezifisch in der Palette sowie im Inspector für Einzel- und Mehrfachauswahlen; `0 ms`-Gatter propagieren Signale sowohl im Edit-Modus als auch im Simulationsmodus sofort ohne Tick-Wartezeit (WISH-057).
 - **Feature:** Verzögerung (Gatterlaufzeit) lässt sich direkt bei Mehrfachauswahlen (`InspectorUI.renderMulti`) für alle selektierten Gatter gemeinsam einstellen sowie in der Bauteil-Palette (`#palette-delay-type` + `#palette-global-delay-slider`) sowohl global als auch modulspezifisch pro Gattertyp (`moduleGateDelays`) direkt beim Drag & Drop steuern; zudem werden Gatterverzögerungen im Edit-Modus zeitgesteuert mit der aktuellen Taktfrequenz (Hz) propagiert (`Circuit.stepCombinational()`, `triggerEditPropagation`) und in Palette, Inspector & Einstellungen direkt in Millisekunden umgerechnet (`X Ticks (Y ms)`) (WISH-055).
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `docu/PROMPT_LOG.md` as the chronological, multi-person prompt log.
 
 ### 🗑️ Removed
+- **Fix:** Abschnitt „Symbol-Norm umschalten“ (`DIN 40700` / `IEC` / `ANSI`) aus dem Rechtsklick-Kontextmenü der Arbeitsfläche entfernt (WISH-061).
 - **Fix:** Störendes "Arbeitsfläche ist leer"-Popup entfernt (WISH-047).
 - Retired the legacy remote branches `alpha`, `beta`, and the merged `feat/alpha-wishlist-batch-37-44`; history is preserved through release and archive tags.
 

@@ -3144,6 +3144,46 @@ runTest('WISH-060', 'Java Swing slider track alignment CSS and palette delay dro
   assertEqual(optAnd.textContent, 'AND-Gatter — 3 Ticks (150 ms)', 'Dropdown option time updates to 150 ms at 20 Hz');
 });
 
+runTest('WISH-061', 'Remove symbol-norm switcher from workspace context menu and use diagonal wires in auto-arrange when allowed', () => {
+  const app = new LogicSimApp();
+  app.engine.setMode('edit');
+
+  // 1. Workspace right-click context menu no longer contains symbol-norm switcher
+  app.showContextMenu(146, 202, null, null, { x: 146, y: 202 });
+  const menuEl = document.getElementById('context-menu');
+  const collectText = (node, acc = []) => {
+    if (!node) return acc;
+    if (typeof node.textContent === 'string' && node.textContent) acc.push(node.textContent);
+    if (Array.isArray(node.children)) {
+      for (const ch of node.children) collectText(ch, acc);
+    }
+    return acc;
+  };
+  const menuTexts = collectText(menuEl).join(' ');
+  assertEqual(menuTexts.includes('Symbol-Norm'), false, 'Workspace context menu does not include Symbol-Norm umschalten');
+  assertEqual(menuTexts.includes('DIN 40700'), false, 'Workspace context menu does not include DIN 40700 chip');
+  app.hideContextMenu();
+
+  // 2. Auto-arrange uses diagonal connections when allowDiagonalWires is enabled
+  app.layoutAnimation = false;
+  const sw1 = app.circuit.addComponent('SWITCH', 40, 60, {});
+  const sw2 = app.circuit.addComponent('SWITCH', 40, 200, {});
+  const andGate = app.circuit.addComponent('AND', 220, 120, { numInputs: 2 });
+  const w1 = app.circuit.addWire(sw1.id, 0, andGate.id, 0);
+  const w2 = app.circuit.addWire(sw2.id, 0, andGate.id, 1);
+
+  app.setAllowDiagonalWires(true);
+  app.autoLayoutCircuit();
+  const hasDiagonal = [w1, w2].some(w => w.style === 'diagonal' && app.renderer.getWirePolyline(w).length === 2);
+  assertEqual(hasDiagonal, true, 'Auto-layout uses diagonal 2-point connections when allowDiagonalWires=true');
+
+  // 3. Disabling allowDiagonalWires makes auto-layout route purely orthogonally
+  app.setAllowDiagonalWires(false);
+  app.autoLayoutCircuit();
+  assertEqual(w1.style, 'orthogonal', 'Wire w1 becomes orthogonal on auto-layout when allowDiagonalWires=false');
+  assertEqual(w2.style, 'orthogonal', 'Wire w2 becomes orthogonal on auto-layout when allowDiagonalWires=false');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

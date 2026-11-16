@@ -17234,7 +17234,7 @@
 
       deconflictWireChannels() {
         if (!this.circuit || !this.circuit.wires) return;
-        const wires = this.circuit.wires.filter(w => !w.waypoints || w.waypoints.length === 0);
+        const wires = this.circuit.wires.filter(w => w.style !== 'diagonal' && (!w.waypoints || w.waypoints.length === 0));
         if (wires.length <= 1) return;
 
         const groups = new Map();
@@ -20442,33 +20442,6 @@
           });
           menu.appendChild(srcRow);
 
-          const div1 = document.createElement('div');
-          div1.className = 'ctx-divider';
-          menu.appendChild(div1);
-
-          const subNorm = document.createElement('div');
-          subNorm.className = 'ctx-sub-label';
-          subNorm.textContent = 'Symbol-Norm umschalten:';
-          menu.appendChild(subNorm);
-
-          const normRow = document.createElement('div');
-          normRow.className = 'ctx-sub-row';
-          [
-            { key: 'DIN_40700', label: 'DIN 40700' },
-            { key: 'DIN_EN_60617', label: 'IEC' },
-            { key: 'ANSI', label: 'ANSI' }
-          ].forEach(n => {
-            const chip = document.createElement('span');
-            chip.className = 'ctx-chip' + (this.renderer.symbolStandard === n.key ? ' active' : '');
-            chip.textContent = n.label;
-            chip.addEventListener('click', () => {
-              this.setSymbolStandard(n.key);
-              this.hideContextMenu();
-            });
-            normRow.appendChild(chip);
-          });
-          menu.appendChild(normRow);
-
           if (this.engine.mode === 'edit') {
             const div2 = document.createElement('div');
             div2.className = 'ctx-divider';
@@ -21008,15 +20981,17 @@
        * Routes wires with the obstacle-aware maze router and stores the result as
        * waypoints. `targetIds` = null re-routes every wire of the active circuit.
        */
-      routeWires(targetIds = null) {
+      routeWires(targetIds = null, options = {}) {
         const circuit = this.circuit;
         const outcome = { routed: 0, fallback: 0 };
         if (!circuit || !circuit.wires || circuit.wires.length === 0) return outcome;
+        const useDiagonal = Boolean(options.allowDiagonal) && this.allowDiagonalWires !== false;
         const ids = targetIds ? new Set(targetIds) : null;
         for (const w of circuit.wires) {
           if (ids && !ids.has(w.id)) continue;
           w.waypoints = [];
           w.channelOffset = 0;
+          w.style = 'orthogonal';
           w.autoRouted = true;
           w._preview = false;
         }
@@ -21026,15 +21001,60 @@
         } catch (err) {
           console.warn('Wire router failed, using direct routes:', err);
         }
-        if (!routes) return outcome;
-        for (const [id, corners] of routes) {
-          const w = circuit.getWire(id);
-          if (!w) continue;
-          if (corners) {
-            w.waypoints = corners.map(p => ({ x: p.x, y: p.y }));
-            outcome.routed++;
-          } else {
-            outcome.fallback++;
+        if (routes) {
+          for (const [id, corners] of routes) {
+            const w = circuit.getWire(id);
+            if (!w) continue;
+            if (corners) {
+              w.waypoints = corners.map(p => ({ x: p.x, y: p.y }));
+              outcome.routed++;
+            } else {
+              outcome.fallback++;
+            }
+          }
+        }
+        if (useDiagonal) {
+          const segIntersectsRect = (p1, p2, rx1, ry1, rx2, ry2) => {
+            let t0 = 0, t1 = 1;
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const checks = [[-dx, p1.x - rx1], [dx, rx2 - p1.x], [-dy, p1.y - ry1], [dy, ry2 - p1.y]];
+            for (let k = 0; k < 4; k++) {
+              const p = checks[k][0], q = checks[k][1];
+              if (Math.abs(p) < 1e-9) {
+                if (q < 0) return false;
+              } else {
+                const r = q / p;
+                if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
+                else { if (r < t0) return false; if (r < t1) t1 = r; }
+              }
+            }
+            return t0 <= t1;
+          };
+          const comps = circuit.components || [];
+          for (const w of circuit.wires) {
+            if (ids && !ids.has(w.id)) continue;
+            const fc = circuit.getComponent(w.fromCompId);
+            const tc = circuit.getComponent(w.toCompId);
+            if (!fc || !tc) continue;
+            const p1 = fc.getPinWorldPos(true, w.fromPin);
+            const p2 = tc.getPinWorldPos(false, w.toPin);
+            if (!p1 || !p2 || p1.y === p2.y || p1.x >= p2.x) continue;
+            if (p1.x < fc.x + fc.width || p2.x > tc.x) continue;
+            let blocked = false;
+            for (let i = 0; i < comps.length; i++) {
+              const c = comps[i];
+              if (c.id === fc.id || c.id === tc.id) continue;
+              if (segIntersectsRect(p1, p2, c.x - 6, c.y - 6, c.x + c.width + 6, c.y + c.height + 6)) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              w.style = 'diagonal';
+              w.waypoints = [];
+              w.channelOffset = 0;
+            }
           }
         }
         return outcome;
@@ -21042,7 +21062,7 @@
 
       /** Menu action "Leitungen neu verlegen": tidy all wires, keep the components where they are. */
       autoRouteAllWires() {
-        const outcome = this.routeWires(null);
+        const outcome = this.routeWires(null, { allowDiagonal: this.allowDiagonalWires !== false });
         this.deconflictWireChannels();
         this.renderer.render();
         if (this.renderer.selectedWireId && this.inspector) {
@@ -21222,7 +21242,7 @@
           targets = circuit.wires.filter(w => s.has(w.fromCompId) || s.has(w.toCompId)).map(w => w.id);
         }
         const tab = this.getActiveTab();
-        const memoKey = JSON.stringify([this.layoutSpacing, this.layoutInputs, scopeIds ? scopeIds.slice().sort() : null]);
+        const memoKey = JSON.stringify([this.layoutSpacing, this.layoutInputs, this.allowDiagonalWires !== false, scopeIds ? scopeIds.slice().sort() : null]);
         if (tab && tab.layoutMemo && tab.layoutMemo.circuit === circuit && tab.layoutMemo.key === memoKey
             && tab.layoutMemo.signature === this.layoutSignature()) {
           this.lastLayoutReport = tab.layoutMemo.report;
@@ -21237,14 +21257,14 @@
         else strategies = movable <= 150 ? ['smart', 'near'] : ['smart'];
 
         const startPos = circuit.components.map(c => ({ c, x: c.x, y: c.y }));
-        const startWires = circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted }));
+        const startWires = circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted, style: w.style }));
         const capture = () => ({
           pos: circuit.components.map(c => ({ c, x: c.x, y: c.y })),
-          wires: circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted }))
+          wires: circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted, style: w.style }))
         });
         const restore = (state) => {
           for (const p of state.pos) { p.c.x = p.x; p.c.y = p.y; }
-          for (const e of state.wires) { e.w.waypoints = e.waypoints; e.w.autoRouted = e.autoRouted; e.w._preview = false; }
+          for (const e of state.wires) { e.w.waypoints = e.waypoints; e.w.autoRouted = e.autoRouted; e.w.style = e.style; e.w._preview = false; }
         };
 
         let best = null;
@@ -21257,7 +21277,7 @@
             const c = circuit.getComponent(id);
             if (c) { c.x = p.x; c.y = p.y; }
           }
-          const routing = this.routeWires(targets);
+          const routing = this.routeWires(targets, { allowDiagonal: this.allowDiagonalWires !== false });
           const metrics = LayoutMetrics.evaluate(circuit, (w) => this.renderer.getWirePolyline(w));
           const score = metrics.overlaps * 1e6 + metrics.wireThroughComponent * 1e5 + (metrics.sharedSegments + metrics.touches + routing.fallback) * 1e4
             + metrics.crossings * 12 + metrics.bends + metrics.length / 400 + i * 3; // later strategies must be clearly better
@@ -21282,7 +21302,7 @@
       layoutSignature() {
         const c = this.circuit;
         return c.components.map(k => `${k.id}:${k.type}:${k.x},${k.y}:${k.width}x${k.height}`).join('|') + '#'
-          + c.wires.map(w => `${w.id}:${w.fromCompId}.${w.fromPin}>${w.toCompId}.${w.toPin}:${w.autoRouted ? 'a' : 'm'}${(w.waypoints || []).map(p => `${p.x},${p.y}`).join(';')}`).join('|');
+          + c.wires.map(w => `${w.id}:${w.fromCompId}.${w.fromPin}>${w.toCompId}.${w.toPin}:${w.style || 'orthogonal'}:${w.autoRouted ? 'a' : 'm'}${(w.waypoints || []).map(p => `${p.x},${p.y}`).join(';')}`).join('|');
       }
 
       describeLayoutReport(report) {

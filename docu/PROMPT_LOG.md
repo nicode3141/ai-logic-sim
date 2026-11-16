@@ -187,3 +187,15 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 
 > fixe diesen offset hier und füge beim drop down das man die gespeicherte verzögerung der zeit siehet
 > füge das ghost module auch schon ein wenn man über andern guis ist
+
+---
+
+## 2026-11-16 — DIN-Normen aus Arbeitsflächen-Kontextmenü entfernen & schräge Leitungen beim Anordnen
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-061
+- **Prompt:**
+
+> entferne das man die din normen beim rechts klicken auf die arbeitsfläche ist
+> Füge hinzu das wenn man schräge verbindungen zulässt das bei anordnung auch schräge verbindungnen verwendet werden
