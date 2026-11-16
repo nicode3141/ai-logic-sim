@@ -3825,6 +3825,16 @@
       width: 100%;
       margin: 0;
     }
+    .palette-delay-select {
+      width: 100%;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: var(--control-radius);
+      border: 1px solid var(--border-bright);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
     .palette-view-btn:hover {
       color: var(--text-main);
     }
@@ -4238,11 +4248,24 @@
             <button type="button" class="palette-view-btn" data-palette-view="preview" aria-pressed="false" title="Bauteile als gezeichnete Vorschau anzeigen">Vorschau</button>
           </div>
         </div>
-        <div class="palette-delay-bar" title="Globale Gatterverzögerung für platzierte Bauteile">
+        <div class="palette-delay-bar" title="Verzögerung global oder modulspezifisch einstellen">
           <div class="palette-delay-header">
-            <span>Globale Verzögerung</span>
+            <span>Verzögerung</span>
             <span class="palette-delay-val" id="palette-global-delay-val">1 Tick (100 ms)</span>
           </div>
+          <select id="palette-delay-type" class="palette-delay-select" aria-label="Modultyp für Verzögerung">
+            <option value="__GLOBAL__">Alle (Global)</option>
+            <option value="AND">AND-Gatter</option>
+            <option value="OR">OR-Gatter</option>
+            <option value="NOT">NOT-Gatter</option>
+            <option value="NAND">NAND-Gatter</option>
+            <option value="NOR">NOR-Gatter</option>
+            <option value="XOR">XOR-Gatter</option>
+            <option value="XNOR">XNOR-Gatter</option>
+            <option value="BUFFER">Puffer (BUFFER)</option>
+            <option value="TRI_STATE">Tri-State</option>
+            <option value="MAJORITY">Mehrheitsgatter</option>
+          </select>
           <input type="range" id="palette-global-delay-slider" min="1" max="20" value="1" />
         </div>
         <div class="palette-search">
@@ -5538,7 +5561,7 @@
       // --- inspector ---
       'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
       '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
-      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay',
+      'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay', 'Alle (Global)': 'All (Global)',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
       'XOR bei mehr als 2 Eingängen': 'XOR with more than 2 inputs', 'Exklusiv: genau ein Eingang 1': 'Exclusive: exactly one input is 1',
       'Parität: ungerade Anzahl 1': 'Parity: odd number of ones', 'Leuchtfarbe': 'Color', 'Leuchtfarbe:': 'Color:',
@@ -6523,6 +6546,9 @@
         if (!GATE_DELAY_TYPES[this.type]) return 1;
         if (this.params.delay !== undefined && this.params.delay !== null && Number.isFinite(this.params.delay)) {
           return Math.max(1, Math.min(GATE_DELAY_MAX, this.params.delay));
+        }
+        if (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[this.type])) {
+          return Math.max(1, Math.min(GATE_DELAY_MAX, this.circuit.moduleGateDelays[this.type]));
         }
         if (this.circuit && Number.isFinite(this.circuit.globalGateDelay)) {
           return Math.max(1, Math.min(GATE_DELAY_MAX, this.circuit.globalGateDelay));
@@ -7593,6 +7619,7 @@
         this.probes = [];
         this.probeMap = new Map();
         this.globalGateDelay = 1;
+        this.moduleGateDelays = {};
         this.nextId = 1;
       }
 
@@ -8010,6 +8037,7 @@
         this.probes = [];
         this.probeMap.clear();
         this.globalGateDelay = this.globalGateDelay || 1;
+        this.moduleGateDelays = this.moduleGateDelays || {};
         this.nextId = 1;
         if (ringBuffer) ringBuffer.clear();
       }
@@ -8098,6 +8126,7 @@
         return {
           version: 1,
           globalGateDelay: this.globalGateDelay || 1,
+          moduleGateDelays: { ...(this.moduleGateDelays || {}) },
           components: this.components.map(c => c.toJSON()),
           wires: this.wires.map(w => w.toJSON()),
           probes: this.probes.map(p => p.toJSON())
@@ -8116,6 +8145,14 @@
           this.globalGateDelay = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(data.globalGateDelay, 10)));
         } else {
           this.globalGateDelay = 1;
+        }
+        this.moduleGateDelays = {};
+        if (data && data.moduleGateDelays && typeof data.moduleGateDelays === 'object') {
+          for (const [k, v] of Object.entries(data.moduleGateDelays)) {
+            if (GATE_DELAY_TYPES[k] && Number.isFinite(Number(v))) {
+              this.moduleGateDelays[k] = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(v, 10)));
+            }
+          }
         }
 
         let maxNum = 1;
@@ -16037,6 +16074,7 @@
         this.renderer.allowDiagonalWires = this.allowDiagonalWires;
         this.rendererRight.allowDiagonalWires = this.allowDiagonalWires;
         this.globalGateDelay = 1;
+        this.moduleGateDelays = {};
         this.showGateDelay = false;
         this.renderer.showGateDelay = this.showGateDelay;
         this.rendererRight.showGateDelay = this.showGateDelay;
@@ -16289,6 +16327,7 @@
         const tabTitle = title || `Schaltung ${this.tabCounter}`;
         const newTab = new TabSession(id, tabTitle);
         newTab.circuit.globalGateDelay = this.globalGateDelay || 1;
+        newTab.circuit.moduleGateDelays = { ...(this.moduleGateDelays || {}) };
         if (circuitData) {
           newTab.circuit.fromJSON(circuitData, newTab.ringBuffer);
         }
@@ -17810,8 +17849,7 @@
           const delayFormatted = formatDelayWithHz(this.globalGateDelay || 1, val);
           const settingsDelayVal = document.getElementById('settings-global-delay-val');
           if (settingsDelayVal) settingsDelayVal.textContent = delayFormatted;
-          const paletteDelayVal = document.getElementById('palette-global-delay-val');
-          if (paletteDelayVal) paletteDelayVal.textContent = delayFormatted;
+          if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
           this.refreshInspector();
         };
         if (sliderFreq) {
@@ -17908,10 +17946,28 @@
       initPaletteEvents() {
         const items = document.querySelectorAll('.palette-item');
         items.forEach((item) => {
+          item.addEventListener('mousedown', () => {
+            const type = item.dataset && item.dataset.type;
+            if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
+              const sel = document.getElementById('palette-delay-type');
+              if (sel) {
+                sel.value = type;
+                if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
+              }
+            }
+          });
           item.addEventListener('dragstart', (e) => {
             if (this.engine.mode === 'sim') {
               e.preventDefault();
               return;
+            }
+            const type = item.dataset && item.dataset.type;
+            if (type && GATE_DELAY_TYPES[type] && typeof document !== 'undefined') {
+              const sel = document.getElementById('palette-delay-type');
+              if (sel) {
+                sel.value = type;
+                if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
+              }
             }
             e.dataTransfer.setData('text/plain', item.dataset.type);
             e.dataTransfer.effectAllowed = 'copy';
@@ -23104,9 +23160,20 @@
         const delaySlider = document.getElementById('settings-global-delay-slider');
         const delayVal = document.getElementById('settings-global-delay-val');
         const paletteDelaySlider = document.getElementById('palette-global-delay-slider');
+        const paletteDelayType = document.getElementById('palette-delay-type');
         const updateGlobalDelayFromSlider = (val) => {
           const intVal = parseInt(val, 10) || 1;
           this.setGlobalGateDelay(intVal, true);
+          this.saveSettings();
+        };
+        const updatePaletteDelayFromSlider = (val) => {
+          const intVal = parseInt(val, 10) || 1;
+          const selectedType = paletteDelayType ? paletteDelayType.value : '__GLOBAL__';
+          if (selectedType && selectedType !== '__GLOBAL__' && GATE_DELAY_TYPES[selectedType]) {
+            this.setModuleGateDelay(selectedType, intVal, true);
+          } else {
+            this.setGlobalGateDelay(intVal, true);
+          }
           this.saveSettings();
         };
         if (delaySlider && delayVal) {
@@ -23115,10 +23182,13 @@
             attachSliderHoldRepeat(delaySlider, (val) => updateGlobalDelayFromSlider(val));
           }
         }
+        if (paletteDelayType) {
+          paletteDelayType.addEventListener('change', () => this.syncPaletteDelayUi());
+        }
         if (paletteDelaySlider) {
-          paletteDelaySlider.addEventListener('input', (e) => updateGlobalDelayFromSlider(e.target.value));
+          paletteDelaySlider.addEventListener('input', (e) => updatePaletteDelayFromSlider(e.target.value));
           if (typeof attachSliderHoldRepeat === 'function') {
-            attachSliderHoldRepeat(paletteDelaySlider, (val) => updateGlobalDelayFromSlider(val));
+            attachSliderHoldRepeat(paletteDelaySlider, (val) => updatePaletteDelayFromSlider(val));
           }
         }
 
@@ -23506,13 +23576,58 @@
           if (slider) slider.value = String(d);
           const valEl = document.getElementById('settings-global-delay-val');
           if (valEl) valEl.textContent = formatted;
-          const paletteSlider = document.getElementById('palette-global-delay-slider');
-          if (paletteSlider) paletteSlider.value = String(d);
-          const paletteValEl = document.getElementById('palette-global-delay-val');
-          if (paletteValEl) paletteValEl.textContent = formatted;
+          this.syncPaletteDelayUi();
         }
         if (this.renderer) this.renderer.render();
         if (this.rendererRight) this.rendererRight.render();
+      }
+
+      setModuleGateDelay(type, delay, updateExisting = true) {
+        if (!GATE_DELAY_TYPES[type]) return;
+        const d = Math.max(1, Math.min(GATE_DELAY_MAX, parseInt(delay, 10) || 1));
+        if (!this.moduleGateDelays) this.moduleGateDelays = {};
+        this.moduleGateDelays[type] = d;
+        if (this.circuit) {
+          if (!this.circuit.moduleGateDelays) this.circuit.moduleGateDelays = {};
+          this.circuit.moduleGateDelays[type] = d;
+          if (updateExisting && Array.isArray(this.circuit.components)) {
+            for (const comp of this.circuit.components) {
+              if (comp.type === type && (comp.params.delay === null || comp.params.delay === undefined)) {
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.delayLine = null;
+              }
+            }
+          }
+        }
+        if (this.tabs) {
+          for (const tab of this.tabs) {
+            if (tab.circuit) {
+              if (!tab.circuit.moduleGateDelays) tab.circuit.moduleGateDelays = {};
+              tab.circuit.moduleGateDelays[type] = d;
+            }
+          }
+        }
+        this.syncPaletteDelayUi();
+        if (this.renderer) this.renderer.render();
+        if (this.rendererRight) this.rendererRight.render();
+      }
+
+      syncPaletteDelayUi() {
+        if (typeof document === 'undefined') return;
+        const paletteTypeEl = document.getElementById('palette-delay-type');
+        const paletteSlider = document.getElementById('palette-global-delay-slider');
+        const paletteValEl = document.getElementById('palette-global-delay-val');
+        const selectedType = (paletteTypeEl && paletteTypeEl.value) ? paletteTypeEl.value : '__GLOBAL__';
+        let effective = this.globalGateDelay || 1;
+        if (selectedType !== '__GLOBAL__' && GATE_DELAY_TYPES[selectedType]) {
+          const modDelay = (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[selectedType]))
+            ? this.circuit.moduleGateDelays[selectedType]
+            : (this.moduleGateDelays && Number.isFinite(this.moduleGateDelays[selectedType]) ? this.moduleGateDelays[selectedType] : null);
+          if (modDelay !== null) effective = modDelay;
+        }
+        if (paletteSlider) paletteSlider.value = String(effective);
+        if (paletteValEl) paletteValEl.textContent = formatDelayWithHz(effective, this.engine ? this.engine.frequency : 10);
       }
 
       loadSettings() {
@@ -23531,6 +23646,13 @@
             if (s.showWireBridges !== undefined) this.setShowWireBridges(Boolean(s.showWireBridges));
             if (s.allowDiagonalWires !== undefined) this.setAllowDiagonalWires(Boolean(s.allowDiagonalWires));
             if (s.globalGateDelay !== undefined) this.setGlobalGateDelay(s.globalGateDelay, false);
+            if (s.moduleGateDelays && typeof s.moduleGateDelays === 'object') {
+              for (const [k, v] of Object.entries(s.moduleGateDelays)) {
+                if (GATE_DELAY_TYPES[k] && Number.isFinite(Number(v))) {
+                  this.setModuleGateDelay(k, v, false);
+                }
+              }
+            }
             if (s.showGateDelay !== undefined) this.setShowGateDelay(Boolean(s.showGateDelay));
             if (s.layoutAnimation !== undefined) this.layoutAnimation = Boolean(s.layoutAnimation);
             if (['compact', 'normal', 'wide'].includes(s.layoutSpacing)) this.layoutSpacing = s.layoutSpacing;
@@ -23588,6 +23710,7 @@
             showWireBridges: this.showWireBridges,
             allowDiagonalWires: this.allowDiagonalWires !== false,
             globalGateDelay: this.globalGateDelay,
+            moduleGateDelays: { ...(this.moduleGateDelays || {}) },
             showGateDelay: this.showGateDelay,
             layoutAnimation: this.layoutAnimation,
             layoutSpacing: this.layoutSpacing,

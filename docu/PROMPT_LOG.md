@@ -130,3 +130,4 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 
 > mache das man die globale verzögerung von bauteilen bei der selektion einstellen kann und das man die verzögerung auch schon beim edit modus merkt. rechne bei der verzögerung einfach schon mit den momentanen hz wert
 > entferne den global anwenden button und mache es lieber bei dem module drag and drop
+> kannst du bitte das modulspezifisch machen

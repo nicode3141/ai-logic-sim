@@ -2818,15 +2818,34 @@ runTest('WISH-055', 'Selection delay control, Hz-based ms readout, and edit-mode
     const delayLabels20Hz = findElements(app.inspector.container, el => Array.isArray(el.children) && el.children.length === 0 && typeof el.textContent === 'string' && el.textContent.includes('Tick'));
     assertEqual(delayLabels20Hz.some(s => s.textContent === '4 Ticks (200 ms)'), true, 'Delay readout recalculates with 20 Hz to 4 Ticks (200 ms)');
 
-    // Palette global delay slider updates globalGateDelay & readout with current Hz
+    // Palette global + module-specific delay slider
+    const paletteTypeSel = document.getElementById('palette-delay-type');
     const paletteSlider = document.getElementById('palette-global-delay-slider');
     const paletteVal = document.getElementById('palette-global-delay-val');
-    assertEqual(Boolean(paletteSlider && paletteVal), true, 'Palette global delay slider and readout exist');
+    assertEqual(Boolean(paletteTypeSel && paletteSlider && paletteVal), true, 'Palette delay type selector, slider and readout exist');
+    paletteTypeSel.value = '__GLOBAL__';
     paletteSlider.value = '5';
     (paletteSlider.listeners.input || []).forEach(fn => fn({ target: paletteSlider }));
     assertEqual(app.globalGateDelay, 5, 'Palette global delay slider updates app.globalGateDelay to 5');
     assertEqual(app.circuit.globalGateDelay, 5, 'Palette global delay slider updates circuit.globalGateDelay to 5');
     assertEqual(paletteVal.textContent, '5 Ticks (250 ms)', 'Palette global delay readout computes ms with 20 Hz');
+
+    // Module-specific delay for AND gates only
+    andGate.params.delay = null;
+    notGate.params.delay = null;
+    paletteTypeSel.value = 'AND';
+    (paletteTypeSel.listeners.change || []).forEach(fn => fn());
+    paletteSlider.value = '7';
+    (paletteSlider.listeners.input || []).forEach(fn => fn({ target: paletteSlider }));
+    assertEqual(app.circuit.moduleGateDelays.AND, 7, 'Module-specific delay sets moduleGateDelays.AND to 7');
+    assertEqual(andGate.getEffectiveDelay(), 7, 'AND gate inherits module-specific delay 7');
+    assertEqual(notGate.getEffectiveDelay(), 5, 'NOT gate keeps global delay 5');
+    assertEqual(paletteVal.textContent, '7 Ticks (350 ms)', 'Palette readout shows 7 Ticks (350 ms) for AND at 20 Hz');
+
+    // Circuit JSON roundtrip preserves moduleGateDelays
+    const roundtripCircuit = new Circuit();
+    roundtripCircuit.fromJSON(app.circuit.toJSON());
+    assertEqual(roundtripCircuit.moduleGateDelays.AND, 7, 'Circuit JSON roundtrip preserves moduleGateDelays.AND');
 
     // English i18n formatting for delay with ms
     I18N.currentLang = 'en';
