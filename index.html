@@ -12480,10 +12480,10 @@
         const { x, y, width, height, type } = comp;
         const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
         const isXorType = type === 'XOR' || type === 'XNOR';
-        const hasInvInput = Boolean(comp.params.invertedInputs && comp.params.invertedInputs.some(Boolean));
         const rBubble = GATE_RENDER_METRICS.bubbleRadius;
         const dBubble = GATE_RENDER_METRICS.bubbleDiameter;
-        const inLeadInset = hasInvInput ? (dBubble + 2) : 0;
+        // Input inversion bubbles sit on the external GATE_PIN_STUB so the gate body keeps full size
+        const inLeadInset = 0;
 
         const gx1 = x + inLeadInset + (isXorType ? (style === 'ANSI' ? 7 : 5) : 0);
         const gx2 = isOutInv ? (x + width - dBubble - 2) : (x + width);
@@ -12681,12 +12681,11 @@
       drawGateIEC(ctx, comp, isSelected) {
         const { x, y, width, height, type } = comp;
         const isOutInv = comp.params.invertedOutput !== undefined ? Boolean(comp.params.invertedOutput) : (type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR');
-        const hasInvInput = Boolean(comp.params.invertedInputs && comp.params.invertedInputs.some(Boolean));
         const cx = x + width / 2;
         const cy = y + (comp.outputs[0]?.relY ?? height / 2);
         const rBubble = GATE_RENDER_METRICS.bubbleRadius;
         const dBubble = GATE_RENDER_METRICS.bubbleDiameter;
-        const inLeadInset = hasInvInput ? (dBubble + 2) : 0;
+        const inLeadInset = 0;
 
         const gx1 = x + inLeadInset;
         const gx2 = isOutInv ? (x + width - dBubble - 2) : (x + width);

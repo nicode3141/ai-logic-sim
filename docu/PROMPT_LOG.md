@@ -256,3 +256,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > mache das ich die kanäle im impulsdiagramm nach oben und unten verschieben kann
+
+---
+
+## 2026-11-16 — Fix: NOT-/Gatter-Größe bleibt bei invertiertem Eingang erhalten
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-065
+- **Prompt:**
+
+> wenn ich das not gate den eingang nochmal invertiere dann wird das kleiner

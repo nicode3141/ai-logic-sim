@@ -3467,6 +3467,53 @@ runTest('WISH-064', 'LogicAnalyzer channels can be reordered up and down via gut
   }
 });
 
+runTest('WISH-065', 'Inverting gate inputs preserves full gate body size across ANSI, DIN, and IEC standards', () => {
+  const c = new Circuit();
+  const canvas = createMockElem('canvas');
+  const rend = new CanvasRenderer(canvas, c);
+
+  const captureDraw = (comp, std) => {
+    const moves = [];
+    const arcs = [];
+    const spyCtx = Object.assign({}, mockCtx, {
+      moveTo: (x, y) => moves.push({ x, y }),
+      lineTo: (x, y) => moves.push({ x, y }),
+      arc: (x, y, r) => arcs.push({ x, y, r }),
+      bezierCurveTo: () => {}
+    });
+    if (std === 'DIN_EN_60617') {
+      rend.drawGateIEC(spyCtx, comp, false);
+    } else {
+      rend.drawGateShape(spyCtx, comp, false, std);
+    }
+    return { moves, arcs };
+  };
+
+  for (const std of ['ANSI', 'DIN_40700', 'DIN_EN_60617']) {
+    const notPlain = c.addComponent('NOT', 100, 100, { invertedInputs: [false] });
+    const notInv = c.addComponent('NOT', 100, 100, { invertedInputs: [true] });
+
+    const rPlain = captureDraw(notPlain, std);
+    const rInv = captureDraw(notInv, std);
+
+    // Gate body left edge and right edge/tip must stay identical (no inward shrinking when input inverted)
+    assertEqual(rInv.moves[0].x, rPlain.moves[0].x, `${std} input-inverted NOT keeps exact same left edge (${rPlain.moves[0].x})`);
+    assertEqual(rInv.moves[1].x, rPlain.moves[1].x, `${std} input-inverted NOT preserves full body width`);
+
+    // Input inversion bubble is placed cleanly on the external pin stub (cx < 100)
+    const inputBubble = rInv.arcs.find(a => a.x < 100 && Math.abs(a.r - 3.6) < 0.1);
+    assertEqual(Boolean(inputBubble), true, `${std} input-inverted NOT draws input bubble on external stub (cx < 100)`);
+    c.clear();
+  }
+
+  // Verify logic: NOT with inverted input behaves as double negation
+  const notDouble = new Component('n1', 'NOT', 0, 0, { invertedInputs: [true] });
+  notDouble.compute([1]);
+  assertEqual(notDouble.nextOutputs[0], 1, 'NOT with inverted input evaluates 1 -> 1');
+  notDouble.compute([0]);
+  assertEqual(notDouble.nextOutputs[0], 0, 'NOT with inverted input evaluates 0 -> 0');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
