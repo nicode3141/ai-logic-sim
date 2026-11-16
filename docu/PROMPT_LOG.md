@@ -245,3 +245,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > mache das einfach nur die verzögerungszahl da steht unzwar rechtsbündig
+
+---
+
+## 2026-11-16 — Kanäle im Impulsdiagramm nach oben und unten verschieben
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-064
+- **Prompt:**
+
+> mache das ich die kanäle im impulsdiagramm nach oben und unten verschieben kann

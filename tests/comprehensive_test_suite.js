@@ -3354,6 +3354,119 @@ runTest('WISH-063', 'CLOCK supports independent HIGH-phase and LOW-phase tick co
   }
 });
 
+runTest('WISH-064', 'LogicAnalyzer channels can be reordered up and down via gutter buttons, drag-and-drop, inspector, and context menu', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const prevLang = I18N.currentLang;
+  try {
+    const app = new LogicSimApp();
+    app.engine.setMode('edit');
+    app.circuit.clear(app.ringBuffer);
+    app.getActiveTab().lastSnapshot = JSON.stringify(app.circuit.toJSON());
+    app.getActiveTab().undoStack = [];
+    app.getActiveTab().redoStack = [];
+    app.refreshAll();
+
+    const sw = app.circuit.addComponent('SWITCH', 40, 80);
+    const not1 = app.circuit.addComponent('NOT', 160, 80);
+    const led = app.circuit.addComponent('LED', 280, 80);
+    const led2 = app.circuit.addComponent('LED', 280, 160);
+    const w1 = app.circuit.addWire(sw.id, 0, not1.id, 0);
+    const w2 = app.circuit.addWire(not1.id, 0, led.id, 0);
+    const w3 = app.circuit.addWire(sw.id, 0, led2.id, 0);
+
+    const p1 = app.circuit.addProbe(w1.id, { id: 'pr_a', name: 'CH1' });
+    const p2 = app.circuit.addProbe(w2.id, { id: 'pr_b', name: 'CH2' });
+    const p3 = app.circuit.addProbe(w3.id, { id: 'pr_c', name: 'CH3' });
+    app.refreshAll();
+
+    const names = () => app.circuit.getProbes().map(p => p.name);
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH1', 'CH2', 'CH3']), 'Initial probe order is CH1, CH2, CH3');
+
+    // 1. Direct Circuit.moveProbe / moveProbeBy
+    assertEqual(app.circuit.moveProbeBy(p1.id, -1), false, 'Top channel cannot move further up');
+    assertEqual(app.circuit.moveProbeBy(p3.id, 1), false, 'Bottom channel cannot move further down');
+    assertEqual(app.circuit.moveProbe(p3.id, 0), true, 'moveProbe moves CH3 to index 0');
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH3', 'CH1', 'CH2']), 'Order updated to CH3, CH1, CH2');
+
+    // 2. Undo restores prior probe order
+    app.refreshAll();
+    app.undo();
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH1', 'CH2', 'CH3']), 'Undo restores CH1, CH2, CH3 order');
+
+    // Record samples after undo so we verify reordering preserves RingBuffer history
+    app.ringBuffer.record(1, new Map([['pr_a', 1], ['pr_b', 0], ['pr_c', 1]]));
+
+    // 3. Gutter up/down button clicks on analyzer canvas
+    app.analyzerCanvas.width = 800;
+    app.analyzerCanvas.height = 200;
+    app.analyzerCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 200 });
+    const { headerH, rowH } = app.analyzer.getRowLayout(3);
+    const row0Btns = app.analyzer.getChannelRowButtons(headerH, rowH);
+    const row1Btns = app.analyzer.getChannelRowButtons(headerH + rowH, rowH);
+    const clickHandlers = app.analyzerCanvas.listeners.click || [];
+
+    // Click Down on row 0 (CH1 -> index 1)
+    clickHandlers.forEach(fn => fn({ clientX: row0Btns.down.x + 8, clientY: row0Btns.down.y + 8 }));
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH2', 'CH1', 'CH3']), 'Clicking gutter down arrow moves CH1 down');
+
+    // Click Up on row 1 (CH1 -> index 0)
+    clickHandlers.forEach(fn => fn({ clientX: row1Btns.up.x + 8, clientY: row1Btns.up.y + 8 }));
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH1', 'CH2', 'CH3']), 'Clicking gutter up arrow moves CH1 back up');
+
+    // 4. Vertical drag-and-drop in gutter moves row 0 (CH1) to row 2
+    const mdHandlers = app.analyzerCanvas.listeners.mousedown || [];
+    const mmHandlers = app.analyzerCanvas.listeners.mousemove || [];
+    const muHandlers = (typeof window.listeners === 'object' && window.listeners.mouseup) ? window.listeners.mouseup : [];
+
+    mdHandlers.forEach(fn => fn({ button: 0, clientX: 40, clientY: headerH + rowH * 0.5 }));
+    mmHandlers.forEach(fn => fn({ clientX: 40, clientY: headerH + rowH * 2.5 }));
+    muHandlers.forEach(fn => fn({ clientX: 40, clientY: headerH + rowH * 2.5 }));
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH2', 'CH3', 'CH1']), 'Vertical gutter drag moves CH1 to bottom');
+
+    // RingBuffer data stays bound to probe ID after reordering
+    assertEqual(app.ringBuffer.getValueAtOffset('pr_a', 0), 1, 'CH1 retains its RingBuffer samples after reorder');
+    assertEqual(app.ringBuffer.getValueAtOffset('pr_b', 0), 0, 'CH2 retains its RingBuffer samples after reorder');
+
+    // 5. Inspector channel order buttons & Context menu items
+    app.selectItem(null, null, p1.id);
+    const findBtns = (node, acc = []) => {
+      if (!node || typeof node !== 'object') return acc;
+      if (node.className === 'btn') acc.push(node);
+      if (Array.isArray(node.children)) node.children.forEach(c => findBtns(c, acc));
+      return acc;
+    };
+    const inspBtns = findBtns(app.inspector.container);
+    const upInspBtn = inspBtns.find(b => (b.textContent || '').includes('Nach oben'));
+    const downInspBtn = inspBtns.find(b => (b.textContent || '').includes('Nach unten'));
+    assertEqual(Boolean(upInspBtn && downInspBtn), true, 'Inspector renders channel order up/down buttons for probe');
+    assertEqual(downInspBtn.disabled, true, 'Down button disabled when probe is already at bottom');
+    (upInspBtn.listeners.click || []).forEach(fn => fn());
+    assertEqual(JSON.stringify(names()), JSON.stringify(['CH2', 'CH1', 'CH3']), 'Inspector up button moves selected probe up');
+
+    app.showProbeContextMenu(100, 100, p1);
+    const ctxItems = (app.contextMenuEl.children || []).filter(el => (el.className || '').includes('ctx-item'));
+    const ctxUp = ctxItems.find(el => (el.innerHTML || '').includes('Nach oben verschieben'));
+    const ctxDown = ctxItems.find(el => (el.innerHTML || '').includes('Nach unten verschieben'));
+    assertEqual(Boolean(ctxUp && ctxDown), true, 'Probe context menu exposes move up / move down items');
+
+    // 6. JSON roundtrip and English localization
+    const rt = new Circuit();
+    rt.fromJSON(app.circuit.toJSON());
+    assertEqual(JSON.stringify(rt.getProbes().map(p => p.name)), JSON.stringify(['CH2', 'CH1', 'CH3']), 'JSON roundtrip preserves custom channel order');
+
+    I18N.currentLang = 'en';
+    assertEqual(I18N.phrase('Nach oben verschieben'), 'Move up', 'English translation for Nach oben verschieben');
+    assertEqual(I18N.phrase('Nach unten verschieben'), 'Move down', 'English translation for Nach unten verschieben');
+  } finally {
+    I18N.currentLang = prevLang;
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

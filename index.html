@@ -1290,6 +1290,11 @@
     .ctx-item.danger:hover {
       background: rgba(255, 82, 82, 0.18);
     }
+    .ctx-item.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+      cursor: default;
+    }
 
     .ctx-divider {
       height: 1px;
@@ -5525,6 +5530,9 @@
       'Bereich in Schleife abspielen (L)': 'Play range in a loop (L)', 'Loop-Bereich aufheben': 'Clear loop range',
       'Zeit-Zoom:': 'Zoom:', 'Aufzeichnung löschen': 'Clear recording', 'Leeren': 'Clear',
       'KANAL': 'CHANNEL', '0, 0 px (Zentrum)': '0, 0 px (center)', '5000, 5000 px (Feldgrenze)': '5000, 5000 px (limit)',
+      'Nach oben verschieben': 'Move up', 'Nach unten verschieben': 'Move down',
+      '▲ Nach oben': '▲ Move up', '▼ Nach unten': '▼ Move down',
+      'Kanal-Reihenfolge:': 'Channel order:',
       // --- status bar ---
       'Doppelklick: zu Koordinate springen': 'Double-click: jump to coordinate', 'EDIT-MODUS': 'EDIT', 'Simulationsschritt': 'Simulation step',
       'Bauteile / Leitungen': 'Parts / wires', 'Bauteile ·': 'parts ·', 'Bauteile': 'parts', 'Leitungen': 'wires',
@@ -7893,6 +7901,22 @@
         if (ringBuffer) {
           ringBuffer.removeChannel(probeId);
         }
+      }
+
+      moveProbe(probeId, targetIndex) {
+        const currentIndex = this.probes.findIndex(p => p.id === probeId);
+        if (currentIndex === -1) return false;
+        const clamped = Math.max(0, Math.min(this.probes.length - 1, Math.trunc(targetIndex)));
+        if (clamped === currentIndex) return false;
+        const [probe] = this.probes.splice(currentIndex, 1);
+        this.probes.splice(clamped, 0, probe);
+        return true;
+      }
+
+      moveProbeBy(probeId, delta) {
+        const currentIndex = this.probes.findIndex(p => p.id === probeId);
+        if (currentIndex === -1) return false;
+        return this.moveProbe(probeId, currentIndex + delta);
       }
 
       getWireToInput(toCompId, toPin) {
@@ -13430,7 +13454,7 @@
         this.scrollRatio = 1.0;
         this.hoverX = null;
         this.hoverY = null;
-        this.gutterWidth = 155;
+        this.gutterWidth = 180;
 
         this.playheadOffset = null;
         this.isScrubbing = false;
@@ -13445,9 +13469,60 @@
         this.isLoopPlaying = false;
         this.loopInterval = null;
         this.activeBracketDrag = null; // 'in' | 'out' | null
+        this.channelDrag = null; // { probeId, startIndex, startY, currentY, active }
+        this._suppressNextClick = false;
         this.simFrequency = 10;
 
         this.setupEvents();
+      }
+
+      getRowLayout(probeCount = null) {
+        const count = probeCount !== null ? probeCount : (this.circuit ? this.circuit.getProbes().length : 0);
+        const headerH = 22;
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        const canvasH = (this.canvas ? this.canvas.height : 200) / dpr;
+        const availH = Math.max(40, canvasH - headerH);
+        const rowH = Math.max(26, Math.min(44, Math.floor(availH / (count || 1))));
+        return { headerH, availH, rowH };
+      }
+
+      getChannelRowButtons(rowTop, rowH) {
+        const btnY = rowTop + (rowH - 16) / 2;
+        return {
+          up: { x: this.gutterWidth - 58, y: btnY, w: 16, h: 16 },
+          down: { x: this.gutterWidth - 40, y: btnY, w: 16, h: 16 },
+          remove: { x: this.gutterWidth - 22, y: btnY, w: 16, h: 16 }
+        };
+      }
+
+      hitTestGutter(mx, my) {
+        if (mx < 0 || mx > this.gutterWidth) return null;
+        const probes = this.circuit.getProbes();
+        if (!probes || probes.length === 0) return null;
+        const { headerH, rowH } = this.getRowLayout(probes.length);
+        if (my < headerH) return null;
+        const pIdx = Math.floor((my - headerH) / rowH);
+        if (pIdx < 0 || pIdx >= probes.length) return null;
+
+        const probe = probes[pIdx];
+        const rowTop = headerH + pIdx * rowH;
+        const btns = this.getChannelRowButtons(rowTop, rowH);
+        const inBox = (b) => mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h;
+
+        if (inBox(btns.remove)) return { pIdx, probe, action: 'remove' };
+        if (inBox(btns.up)) return { pIdx, probe, action: pIdx > 0 ? 'up' : 'disabled' };
+        if (inBox(btns.down)) return { pIdx, probe, action: pIdx < probes.length - 1 ? 'down' : 'disabled' };
+        return { pIdx, probe, action: 'row' };
+      }
+
+      moveProbe(probeId, targetIndex, commit = true) {
+        const moved = this.circuit.moveProbe(probeId, targetIndex);
+        if (!moved) return false;
+        if (this.callbacks?.onMoveProbe) {
+          this.callbacks.onMoveProbe(probeId, targetIndex, { commit });
+        }
+        this.render();
+        return true;
       }
 
       startEdgeAutoScroll(direction) {
@@ -13578,10 +13653,39 @@
           this.render();
         };
 
+        const handleChannelDragMove = (clientY) => {
+          if (!this.channelDrag) return;
+          const rect = this.canvas.getBoundingClientRect();
+          const my = clientY - rect.top;
+          this.channelDrag.currentY = my;
+
+          if (!this.channelDrag.active && Math.abs(my - this.channelDrag.startY) > 5) {
+            this.channelDrag.active = true;
+          }
+          if (!this.channelDrag.active) return;
+
+          const probes = this.circuit.getProbes();
+          if (probes.length > 1) {
+            const { headerH, rowH } = this.getRowLayout(probes.length);
+            const targetIdx = Math.max(0, Math.min(probes.length - 1, Math.floor((my - headerH) / rowH)));
+            const curIdx = probes.findIndex(p => p.id === this.channelDrag.probeId);
+            if (curIdx !== -1 && curIdx !== targetIdx) {
+              this.moveProbe(this.channelDrag.probeId, targetIdx, false);
+            }
+          }
+          this.canvas.style.cursor = 'grabbing';
+          this.render();
+        };
+
         this.canvas.addEventListener('mousemove', (e) => {
           const rect = this.canvas.getBoundingClientRect();
           this.hoverX = e.clientX - rect.left;
           this.hoverY = e.clientY - rect.top;
+
+          if (this.channelDrag) {
+            handleChannelDragMove(e.clientY);
+            return;
+          }
 
           const totalSamples = this.ringBuffer.count;
           const plotW = Math.max(50, (this.canvas.width / (window.devicePixelRatio || 1)) - this.gutterWidth - 12);
@@ -13600,7 +13704,17 @@
           const isNearPlayhead = Math.abs(this.hoverX - phX) <= 8;
 
           if (this.hoverX <= this.gutterWidth) {
-            this.canvas.style.cursor = 'pointer';
+            const hit = this.hitTestGutter(this.hoverX, this.hoverY);
+            const probeCount = this.circuit.getProbes().length;
+            if (hit && (hit.action === 'up' || hit.action === 'down' || hit.action === 'remove')) {
+              this.canvas.style.cursor = 'pointer';
+            } else if (hit && hit.action === 'disabled') {
+              this.canvas.style.cursor = 'default';
+            } else if (hit && hit.action === 'row' && probeCount > 1) {
+              this.canvas.style.cursor = 'grab';
+            } else {
+              this.canvas.style.cursor = 'pointer';
+            }
           } else if (isNearPlayhead) {
             this.canvas.style.cursor = 'ew-resize';
           } else if (this.hoverY <= 22 && this.loopRange) {
@@ -13620,6 +13734,10 @@
         });
 
         window.addEventListener('mousemove', (e) => {
+          if (this.channelDrag) {
+            handleChannelDragMove(e.clientY);
+            return;
+          }
           if ((this.isScrubbing || this.isPanningTimeline || this.activeBracketDrag) && this.ringBuffer.count > 0) {
             handleScrubMove(e.clientX, e.clientY);
           }
@@ -13629,6 +13747,20 @@
           const rect = this.canvas.getBoundingClientRect();
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
+
+          if (e.button === 0 && mx >= 0 && mx <= this.gutterWidth) {
+            const hit = this.hitTestGutter(mx, my);
+            if (hit && hit.action === 'row' && this.circuit.getProbes().length > 1) {
+              this.channelDrag = {
+                probeId: hit.probe.id,
+                startIndex: hit.pIdx,
+                startY: my,
+                currentY: my,
+                active: false
+              };
+            }
+            return;
+          }
 
           if (mx > this.gutterWidth) {
             const totalSamples = this.ringBuffer.count;
@@ -13695,6 +13827,21 @@
         });
 
         window.addEventListener('mouseup', () => {
+          if (this.channelDrag) {
+            const wasActive = this.channelDrag.active;
+            const draggedId = this.channelDrag.probeId;
+            const startIdx = this.channelDrag.startIndex;
+            const finalIdx = this.circuit.getProbes().findIndex(p => p.id === draggedId);
+            this.channelDrag = null;
+            if (wasActive) {
+              this._suppressNextClick = true;
+              if (finalIdx !== -1 && finalIdx !== startIdx && this.callbacks?.onMoveProbeComplete) {
+                this.callbacks.onMoveProbeComplete(draggedId, finalIdx);
+              }
+            }
+            this.canvas.style.cursor = 'default';
+            this.render();
+          }
           if (this.isPanningTimeline && !this.panHasMoved && this.panClickTargetOffset !== undefined) {
             this.setPlayheadOffset(this.panClickTargetOffset);
           }
@@ -13711,7 +13858,7 @@
         });
 
         this.canvas.addEventListener('mouseleave', () => {
-          if (!this.isScrubbing && !this.activeBracketDrag) {
+          if (!this.isScrubbing && !this.activeBracketDrag && !this.channelDrag) {
             this.hoverX = null;
             this.hoverY = null;
             this.canvas.style.cursor = 'default';
@@ -13720,31 +13867,28 @@
         });
 
         this.canvas.addEventListener('click', (e) => {
+          if (this._suppressNextClick) {
+            this._suppressNextClick = false;
+            return;
+          }
           const rect = this.canvas.getBoundingClientRect();
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
 
-          const probes = this.circuit.getProbes();
-          const headerH = 22;
-          const availH = Math.max(40, this.canvas.height / (window.devicePixelRatio || 1) - headerH);
-          const rowH = Math.max(26, Math.min(44, Math.floor(availH / (probes.length || 1))));
+          const hit = this.hitTestGutter(mx, my);
+          if (!hit) return;
 
-          for (let pIdx = 0; pIdx < probes.length; pIdx++) {
-            const probe = probes[pIdx];
-            const rowTop = headerH + pIdx * rowH;
-            const btnX = this.gutterWidth - 22;
-            const btnY = rowTop + (rowH - 16) / 2;
-
-            if (mx >= btnX && mx <= btnX + 16 && my >= btnY && my <= btnY + 16) {
-              if (this.callbacks?.onRemoveProbe) {
-                this.callbacks.onRemoveProbe(probe.id);
-              }
-              return;
-            } else if (mx <= this.gutterWidth && my >= rowTop && my < rowTop + rowH) {
-              if (this.callbacks?.onSelectProbe) {
-                this.callbacks.onSelectProbe(probe.id);
-              }
-              return;
+          if (hit.action === 'remove') {
+            if (this.callbacks?.onRemoveProbe) {
+              this.callbacks.onRemoveProbe(hit.probe.id);
+            }
+          } else if (hit.action === 'up') {
+            this.moveProbe(hit.probe.id, hit.pIdx - 1, true);
+          } else if (hit.action === 'down') {
+            this.moveProbe(hit.probe.id, hit.pIdx + 1, true);
+          } else if (hit.action === 'row') {
+            if (this.callbacks?.onSelectProbe) {
+              this.callbacks.onSelectProbe(hit.probe.id);
             }
           }
         });
@@ -13755,9 +13899,7 @@
           const my = e.clientY - rect.top;
 
           const probes = this.circuit.getProbes();
-          const headerH = 22;
-          const availH = Math.max(40, this.canvas.height / (window.devicePixelRatio || 1) - headerH);
-          const rowH = Math.max(26, Math.min(44, Math.floor(availH / (probes.length || 1))));
+          const { headerH, rowH } = this.getRowLayout(probes.length);
 
           for (let pIdx = 0; pIdx < probes.length; pIdx++) {
             const probe = probes[pIdx];
@@ -14331,15 +14473,26 @@
 
         const hoveredOffset = this.getHoveredOffset();
 
+        const hoverBgColor = isLight ? (this.appTheme === 'java_swing' ? '#0a246a' : '#3b82f6') : '#3b82f6';
+        const btnNormalColor = isLight ? '#475569' : '#94a3b8';
+        const btnDisabledColor = isLight ? '#b8b4a8' : '#334155';
+        const dragTint = isLight ? 'rgba(37, 99, 235, 0.10)' : 'rgba(59, 130, 246, 0.14)';
+
         for (let pIdx = 0; pIdx < probes.length; pIdx++) {
           const probe = probes[pIdx];
           const rowTop = headerH + pIdx * rowH;
           if (rowTop + 8 > height) break;
 
+          const isDraggedRow = Boolean(this.channelDrag?.active && this.channelDrag.probeId === probe.id);
           const highY = rowTop + 6;
           const lowY = rowTop + rowH - 6;
           const color = probe.color || probe.params?.color || '#00e676';
           const probeName = probe.name || probe.params?.name || 'PRB';
+
+          if (isDraggedRow) {
+            ctx.fillStyle = dragTint;
+            ctx.fillRect(this.gutterWidth, rowTop, width - this.gutterWidth, rowH - 1);
+          }
 
           ctx.strokeStyle = rowDivider;
           ctx.beginPath();
@@ -14387,16 +14540,34 @@
 
           ctx.fillStyle = gutterBg;
           ctx.fillRect(0, rowTop, this.gutterWidth, rowH - 1);
+          if (isDraggedRow) {
+            ctx.fillStyle = dragTint;
+            ctx.fillRect(0, rowTop, this.gutterWidth, rowH - 1);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(0, rowTop, 3, rowH - 1);
+          }
+
+          if (probes.length > 1) {
+            const gripCy = rowTop + rowH / 2;
+            ctx.fillStyle = isDraggedRow ? '#3b82f6' : (isLight ? 'rgba(15, 23, 42, 0.32)' : 'rgba(148, 163, 184, 0.38)');
+            for (let gx = 0; gx < 2; gx++) {
+              for (let gy = -1; gy <= 1; gy++) {
+                ctx.beginPath();
+                ctx.arc(6 + gx * 3.5, gripCy + gy * 4, 1.1, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
 
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(12, rowTop + rowH / 2, 4, 0, Math.PI * 2);
+          ctx.arc(19, rowTop + rowH / 2, 4, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = gutterTextColor;
           ctx.font = '600 11px monospace';
           ctx.textAlign = 'left';
-          ctx.fillText(probeName.slice(0, 9), 22, rowTop + rowH / 2 + 4);
+          ctx.fillText(probeName.slice(0, 8), 28, rowTop + rowH / 2 + 4);
 
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
           const currentVal = wire ? wire.level : (probe.inputs ? probe.inputs[0]?.value : 0);
@@ -14408,25 +14579,62 @@
           ctx.fillStyle = displayVal === 1 ? '#00e676' : tickLabelColor;
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'right';
-          ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 28, rowTop + rowH / 2 + 4);
+          ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 63, rowTop + rowH / 2 + 4);
 
-          const btnX = this.gutterWidth - 22;
-          const btnY = rowTop + (rowH - 16) / 2;
-          const isBtnHovered = this.hoverX !== null &&
-                               this.hoverX >= btnX && this.hoverX <= btnX + 16 &&
-                               this.hoverY >= btnY && this.hoverY <= btnY + 16;
+          const btns = this.getChannelRowButtons(rowTop, rowH);
+          const isOverBox = (b) => !this.channelDrag?.active && this.hoverX !== null &&
+            this.hoverX >= b.x && this.hoverX <= b.x + b.w &&
+            this.hoverY >= b.y && this.hoverY <= b.y + b.h;
 
-          if (isBtnHovered) {
-            ctx.fillStyle = '#ff5252';
-            this.roundRect(ctx, btnX, btnY, 16, 16, 3);
+          // Move Up button (▲)
+          const canUp = pIdx > 0;
+          const isUpHover = canUp && isOverBox(btns.up);
+          if (isUpHover) {
+            ctx.fillStyle = hoverBgColor;
+            this.roundRect(ctx, btns.up.x, btns.up.y, btns.up.w, btns.up.h, 3);
             ctx.fill();
             ctx.fillStyle = '#ffffff';
           } else {
-            ctx.fillStyle = '#475569';
+            ctx.fillStyle = canUp ? btnNormalColor : btnDisabledColor;
+          }
+          ctx.beginPath();
+          ctx.moveTo(btns.up.x + 8, btns.up.y + 4.5);
+          ctx.lineTo(btns.up.x + 12.5, btns.up.y + 11.5);
+          ctx.lineTo(btns.up.x + 3.5, btns.up.y + 11.5);
+          ctx.closePath();
+          ctx.fill();
+
+          // Move Down button (▼)
+          const canDown = pIdx < probes.length - 1;
+          const isDownHover = canDown && isOverBox(btns.down);
+          if (isDownHover) {
+            ctx.fillStyle = hoverBgColor;
+            this.roundRect(ctx, btns.down.x, btns.down.y, btns.down.w, btns.down.h, 3);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = canDown ? btnNormalColor : btnDisabledColor;
+          }
+          ctx.beginPath();
+          ctx.moveTo(btns.down.x + 8, btns.down.y + 11.5);
+          ctx.lineTo(btns.down.x + 12.5, btns.down.y + 4.5);
+          ctx.lineTo(btns.down.x + 3.5, btns.down.y + 4.5);
+          ctx.closePath();
+          ctx.fill();
+
+          // Remove button (✕)
+          const isBtnHovered = isOverBox(btns.remove);
+          if (isBtnHovered) {
+            ctx.fillStyle = '#ff5252';
+            this.roundRect(ctx, btns.remove.x, btns.remove.y, btns.remove.w, btns.remove.h, 3);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = btnNormalColor;
           }
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText('✕', btnX + 8, btnY + 12);
+          ctx.fillText('✕', btns.remove.x + 8, btns.remove.y + 12);
         }
 
         ctx.strokeStyle = '#222936';
@@ -14599,6 +14807,48 @@
           }
           colorWrap.appendChild(chipRow);
           this.container.appendChild(colorWrap);
+
+          const probesList = this.circuit.getProbes();
+          const probeIdx = probesList.findIndex(p => p.id === probe.id);
+          const orderWrap = document.createElement('div');
+          orderWrap.className = 'prop-group';
+          const orderLabel = document.createElement('label');
+          orderLabel.textContent = I18N.phrase('Kanal-Reihenfolge:');
+          orderWrap.appendChild(orderLabel);
+
+          const orderRow = document.createElement('div');
+          orderRow.style.display = 'flex';
+          orderRow.style.gap = '6px';
+          orderRow.style.marginTop = '4px';
+
+          const upBtn = document.createElement('button');
+          upBtn.className = 'btn';
+          upBtn.style.flex = '1';
+          upBtn.disabled = probeIdx <= 0;
+          upBtn.textContent = I18N.phrase('▲ Nach oben');
+          upBtn.addEventListener('click', () => {
+            if (this.circuit.moveProbeBy(probe.id, -1)) {
+              this.render(null, null, probe.id);
+              this.onChange(false);
+            }
+          });
+
+          const downBtn = document.createElement('button');
+          downBtn.className = 'btn';
+          downBtn.style.flex = '1';
+          downBtn.disabled = probeIdx === -1 || probeIdx >= probesList.length - 1;
+          downBtn.textContent = I18N.phrase('▼ Nach unten');
+          downBtn.addEventListener('click', () => {
+            if (this.circuit.moveProbeBy(probe.id, 1)) {
+              this.render(null, null, probe.id);
+              this.onChange(false);
+            }
+          });
+
+          orderRow.appendChild(upBtn);
+          orderRow.appendChild(downBtn);
+          orderWrap.appendChild(orderRow);
+          this.container.appendChild(orderWrap);
 
           const delBtn = document.createElement('button');
           delBtn.className = 'btn btn-danger';
@@ -16345,6 +16595,22 @@
               this.circuit.removeProbe(probeId, this.ringBuffer);
               if (this.renderer.selectedProbeId === probeId) {
                 this.selectItem(null, null);
+              }
+              this.refreshAll();
+            },
+            onMoveProbe: (probeId, targetIndex, opts = {}) => {
+              if (opts.commit !== false) {
+                if (this.renderer.selectedProbeId === probeId) {
+                  this.inspector.render(null, null, probeId);
+                }
+                this.refreshAll();
+              } else if (this.renderer.selectedProbeId === probeId) {
+                this.inspector.render(null, null, probeId);
+              }
+            },
+            onMoveProbeComplete: (probeId) => {
+              if (this.renderer.selectedProbeId === probeId) {
+                this.inspector.render(null, null, probeId);
               }
               this.refreshAll();
             },
@@ -20872,6 +21138,37 @@
           this.hideContextMenu();
         });
         menu.appendChild(centerCanvas);
+
+        const probeList = this.circuit.getProbes();
+        const probeIdx = probeList.findIndex(p => p.id === probe.id);
+
+        const moveUpItem = document.createElement('div');
+        moveUpItem.className = 'ctx-item' + (probeIdx <= 0 ? ' disabled' : '');
+        moveUpItem.innerHTML = `<span style="width:13px;text-align:center;">&#9650;</span> <span>${escapeHtml(I18N.phrase('Nach oben verschieben'))}</span>`;
+        moveUpItem.addEventListener('click', () => {
+          if (probeIdx > 0 && this.circuit.moveProbeBy(probe.id, -1)) {
+            if (this.renderer.selectedProbeId === probe.id) {
+              this.inspector.render(null, null, probe.id);
+            }
+            this.refreshAll();
+          }
+          this.hideContextMenu();
+        });
+        menu.appendChild(moveUpItem);
+
+        const moveDownItem = document.createElement('div');
+        moveDownItem.className = 'ctx-item' + (probeIdx === -1 || probeIdx >= probeList.length - 1 ? ' disabled' : '');
+        moveDownItem.innerHTML = `<span style="width:13px;text-align:center;">&#9660;</span> <span>${escapeHtml(I18N.phrase('Nach unten verschieben'))}</span>`;
+        moveDownItem.addEventListener('click', () => {
+          if (probeIdx !== -1 && probeIdx < probeList.length - 1 && this.circuit.moveProbeBy(probe.id, 1)) {
+            if (this.renderer.selectedProbeId === probe.id) {
+              this.inspector.render(null, null, probe.id);
+            }
+            this.refreshAll();
+          }
+          this.hideContextMenu();
+        });
+        menu.appendChild(moveDownItem);
 
         const subLabel = document.createElement('div');
         subLabel.className = 'ctx-sub-label';
