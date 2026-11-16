@@ -3008,6 +3008,28 @@ runTest('WISH-058', 'Live palette drag-and-drop module preview tracks cursor and
   assertEqual(app._paletteDragType, 'AND', 'startPaletteDrag records dragged module type');
   assertEqual(dtStore['text/plain'], 'AND', 'dataTransfer stores module type');
 
+  // Also verify startPaletteDrag passes preloaded 1x1 transparent Image to setDragImage when Image is available
+  const prevImage = global.Image;
+  let dragImgArg = null;
+  global.Image = function MockImage() { this.src = ''; };
+  try {
+    app._blankDragImg = null;
+    app.initPaletteEvents();
+    assertEqual(Boolean(app._blankDragImg && app._blankDragImg.src.startsWith('data:image/gif')), true, 'initPaletteEvents preloads 1x1 transparent GIF Image for setDragImage');
+    app.startPaletteDrag({
+      dataTransfer: {
+        setData: () => {},
+        setDragImage: (img) => { dragImgArg = img; },
+        effectAllowed: ''
+      }
+    }, 'BUTTON');
+    assertEqual(dragImgArg, app._blankDragImg, 'startPaletteDrag passes preloaded transparent Image to setDragImage to suppress browser button ghost');
+    app.clearPaletteDragGhost();
+  } finally {
+    if (prevImage === undefined) delete global.Image;
+    else global.Image = prevImage;
+  }
+
   const prevRectFn = app.gridCanvas.getBoundingClientRect;
   app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
   try {

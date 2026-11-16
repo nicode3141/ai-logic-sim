@@ -199,3 +199,4 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 
 > entferne das man die din normen beim rechts klicken auf die arbeitsfläche ist
 > Füge hinzu das wenn man schräge verbindungen zulässt das bei anordnung auch schräge verbindungnen verwendet werden
+> beim hovern wird immernoch der beige button auch mitbewegt

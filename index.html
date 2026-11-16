@@ -18214,14 +18214,15 @@
         if (e && e.dataTransfer) {
           e.dataTransfer.setData('text/plain', type);
           e.dataTransfer.effectAllowed = 'copy';
-          if (typeof e.dataTransfer.setDragImage === 'function' && typeof document !== 'undefined') {
-            if (!this._blankDragImg) {
-              const c = document.createElement('canvas');
-              c.width = 1;
-              c.height = 1;
-              this._blankDragImg = c;
+          if (typeof e.dataTransfer.setDragImage === 'function') {
+            if (!this._blankDragImg && typeof Image !== 'undefined') {
+              const img = new Image();
+              img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+              this._blankDragImg = img;
             }
-            try { e.dataTransfer.setDragImage(this._blankDragImg, 0, 0); } catch (_) {}
+            if (this._blankDragImg) {
+              try { e.dataTransfer.setDragImage(this._blankDragImg, 0, 0); } catch (_) {}
+            }
           }
         }
       }
@@ -18313,6 +18314,11 @@
       }
 
       initPaletteEvents() {
+        if (!this._blankDragImg && typeof Image !== 'undefined') {
+          const img = new Image();
+          img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+          this._blankDragImg = img;
+        }
         if (!this._paletteDragEndBound && typeof window !== 'undefined') {
           this._paletteDragEndBound = true;
           window.addEventListener('dragover', (e) => {
