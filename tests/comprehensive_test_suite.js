@@ -129,6 +129,7 @@ const document = {
   querySelectorAll: () => [],
   querySelector: () => null,
   createElement: (tag) => createMockElem(tag),
+  createTextNode: (text) => ({ nodeType: 3, textContent: String(text || '') }),
   body: createMockElem('body'),
   activeElement: null
 };
@@ -3596,6 +3597,363 @@ runTest('WISH-066', 'Global delay 0 settles async ripple counters, combinational
   cUnit.step(); // tick 2 commits new digit 1 -> a=0, b=1
   assertEqual(uDec.outputs[0].value, 0, 'BCD_DEC updates segment a=0 for digit 1 on tick 2');
   assertEqual(uDec.outputs[1].value, 1, 'BCD_DEC b=1 for digit 1');
+});
+
+runTest('WISH-067', 'Multi-selection context menu delete button has red background and vertical/horizontal distribute is removed', () => {
+  const app = new LogicSimApp();
+  app.circuit.clear();
+  const c = app.circuit;
+  const c1 = c.addComponent('AND', 40, 40);
+  const c2 = c.addComponent('OR', 140, 40);
+  const c3 = c.addComponent('XOR', 240, 40);
+  app.renderer.selectedCompIds = new Set([c1.id, c2.id, c3.id]);
+  app.engine.mode = 'edit';
+
+  // 1. distributeSelection method and legacy vertical/horizontal distribute UI removed globally
+  assertEqual(typeof app.distributeSelection, 'undefined', 'distributeSelection method removed from LogicSimApp');
+  assertEqual(html.includes('distributeSelection'), false, 'No distributeSelection references remain in index.html');
+  assertEqual(html.includes('Vertikal gleichmäßig verteilen'), false, 'Vertikal gleichmäßig verteilen removed from index.html');
+  assertEqual(html.includes('Horizontal gleichmäßig verteilen'), false, 'Horizontal gleichmäßig verteilen removed from index.html');
+  assertEqual(html.includes('data-distribute'), false, 'No data-distribute attributes or handlers remain in index.html');
+
+  // 2. Multi-selection context menu omits vertical/horizontal distribute and styles delete button with red background
+  const menu = app.contextMenuEl;
+  app.showContextMenu(100, 100, null, null, { x: 100, y: 100 }, true);
+  const items = Array.from(menu.children);
+  const texts = items.map(el => el.textContent || '');
+  assertEqual(texts.some(t => t.includes('Vertikal gleichmäßig') || t.includes('Horizontal gleichmäßig')), false, 'No vertical/horizontal distribute items in multi-selection context menu');
+  assertEqual(texts.some(t => t.includes('Alles anordnen (A)')), true, 'Alles anordnen (A) remains in multi-selection context menu');
+
+  const delItem = items.find(el => (el.textContent || '').includes('Auswahl löschen (Entf)'));
+  assertEqual(Boolean(delItem), true, 'Auswahl löschen (Entf) present in multi-selection context menu');
+  assertEqual(delItem.className.includes('ctx-danger-btn'), true, 'Auswahl löschen (Entf) carries ctx-danger-btn class for red background');
+  app.hideContextMenu();
+
+  // 3. CSS rules provide solid red background across themes for context menu and inspector danger buttons
+  assertEqual(html.includes('.ctx-item.danger.ctx-danger-btn'), true, 'Base .ctx-danger-btn CSS rule present');
+  assertEqual(html.includes('[data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn'), true, 'Java Swing .ctx-danger-btn CSS rule present');
+  assertEqual(html.includes('[data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn'), true, 'Light CAD .ctx-danger-btn CSS rule present');
+  assertEqual(html.includes('[data-theme="java_swing"] .btn.btn-danger'), true, 'Java Swing .btn.btn-danger override ensures red background');
+
+  // 4. Inspector multi-selection delete button retains btn-danger class
+  app.inspector.renderMulti(app.renderer.selectedCompIds, new Set());
+  const inspBtns = [];
+  const collect = (node) => {
+    if (!node || typeof node !== 'object') return;
+    if ((node.className || '').includes('btn-danger')) inspBtns.push(node);
+    if (Array.isArray(node.children)) node.children.forEach(collect);
+  };
+  collect(app.inspector.container);
+  assertEqual(inspBtns.length > 0, true, 'Inspector multi-selection renders btn-danger delete button');
+
+  // 5. Updated help label translates cleanly in English
+  const prevLang = I18N.currentLang;
+  try {
+    I18N.currentLang = 'en';
+    assertEqual(I18N.phrase('Anordnen-Optionen'), 'Layout options', 'English translation for Anordnen-Optionen');
+  } finally {
+    I18N.currentLang = prevLang;
+  }
+});
+
+runTest('WISH-068', 'Inspector wire routing select overflow fixed and probe name text button allows direct inline renaming', () => {
+  // 1. CSS overflow & select containment guards
+  assertEqual(html.includes('.inspector-select {'), true, '.inspector-select CSS rule exists');
+  assertEqual(html.includes('overflow-x: hidden;') && html.includes('#inspector {'), true, '#inspector disables horizontal overflow');
+  assertEqual(html.includes('min-width: 0;') && html.includes('flex: 1 1 110px;'), true, '.inspector-select uses min-width: 0 and flex shrink/wrap containment');
+
+  const app = new LogicSimApp();
+  app.circuit.clear();
+  const c = app.circuit;
+  const sw = c.addComponent('SWITCH', 40, 80);
+  const led = c.addComponent('LED', 200, 80);
+  const w = c.addWire(sw.id, 0, led.id, 0);
+
+  // Wire styleRow uses flex-wrap + gap so Verlegungsart select cannot overflow Inspector
+  app.inspector.render(null, w.id);
+  const findSelects = (node, acc = []) => {
+    if (!node || typeof node !== 'object') return acc;
+    if ((node.className || '').includes('inspector-select')) acc.push(node);
+    if (Array.isArray(node.children)) node.children.forEach(ch => findSelects(ch, acc));
+    return acc;
+  };
+  const selects = findSelects(app.inspector.container);
+  assertEqual(selects.length, 1, 'Wire inspector renders .inspector-select');
+
+  // 2. LogicAnalyzer gutter channel name text button click opens inline rename input and commits directly
+  const p = c.addProbe(w.id, { name: 'CLK_IN' });
+  app.analyzerCanvas.width = 800;
+  app.analyzerCanvas.height = 200;
+  app.analyzerCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 200 });
+  const { headerH, rowH } = app.analyzer.getRowLayout(1);
+  const btns = app.analyzer.getChannelRowButtons(headerH, rowH);
+  assertEqual(Boolean(btns.rename && btns.rename.w > 30), true, 'Gutter row defines clickable rename text button box');
+
+  const hit = app.analyzer.hitTestGutter(btns.rename.x + 8, btns.rename.y + 6);
+  assertEqual(hit && hit.action, 'rename', 'hitTestGutter identifies channel text button as rename action');
+
+  const wrap = createMockElem('analyzer-canvas-wrap');
+  wrap.appendChild(app.analyzerCanvas);
+  app.analyzerCanvas.parentElement = wrap;
+
+  const clickHandlers = app.analyzerCanvas.listeners.click || [];
+  const lastClick = clickHandlers[clickHandlers.length - 1];
+  lastClick({ clientX: btns.rename.x + 8, clientY: btns.rename.y + 6 });
+  const inlineInput = wrap.children.find(ch => (ch.className || '').includes('probe-inline-rename-input'));
+  assertEqual(Boolean(inlineInput), true, 'Clicking probe text button in analyzer opens inline rename input');
+  assertEqual(inlineInput.value, 'CLK_IN', 'Inline rename input pre-fills current probe name');
+
+  inlineInput.value = 'DATA_BUS';
+  inlineInput.dispatchEvent({ type: 'keydown', key: 'Enter', preventDefault: () => {}, stopPropagation: () => {} });
+  assertEqual(p.name, 'DATA_BUS', 'Pressing Enter in inline rename input updates probe name directly');
+
+  // 3. Canvas probe badge rect + dblclick inline rename works on circuit canvas too
+  const badgeRect = app.renderer.getProbeBadgeRect(p);
+  assertEqual(Boolean(badgeRect && badgeRect.w >= 34 && badgeRect.h === 14), true, 'CanvasRenderer computes probe badge rectangle');
+  const badgeHit = app.renderer.findProbeBadgeAt(badgeRect.x + 5, badgeRect.y + 5);
+  assertEqual(Boolean(badgeHit && badgeHit.probe.id === p.id), true, 'findProbeBadgeAt detects click inside probe text badge');
+
+  const paneLeft = createMockElem('canvas-pane-left');
+  paneLeft.appendChild(app.gridCanvas);
+  app.gridCanvas.parentElement = paneLeft;
+  app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
+  const sx = (badgeRect.x + 5) * app.renderer.zoom + app.renderer.panX;
+  const sy = (badgeRect.y + 5) * app.renderer.zoom + app.renderer.panY;
+  const dblHandlers = app.gridCanvas.listeners.dblclick || [];
+  const lastDbl = dblHandlers[dblHandlers.length - 1];
+  lastDbl({ clientX: sx, clientY: sy });
+  const canvasInput = paneLeft.children.find(ch => (ch.className || '').includes('probe-inline-rename-input'));
+  assertEqual(Boolean(canvasInput), true, 'Double-clicking probe badge on canvas opens inline rename input');
+  canvasInput.value = 'SIG_A';
+  canvasInput.dispatchEvent({ type: 'blur' });
+  assertEqual(p.name, 'SIG_A', 'Blurring canvas probe inline input commits new probe name');
+});
+
+runTest('WISH-069', 'High-contrast open wire terminus & midpoint strokes in light themes and centered selection UI controls', () => {
+  const c = new Circuit();
+  const sw = c.addComponent('SWITCH', 40, 80);
+  const w = c.addWire(sw.id, 0, null, 0, null, [{ x: 160, y: 80 }, { x: 160, y: 160 }], { toPoint: { x: 240, y: 160 } });
+  const canvas = createMockElem('c');
+  const rend = new CanvasRenderer(canvas, c, new SimulationEngine(c, new RingBuffer(64)));
+
+  // 1. Light themes (java_swing, light_cad) must NEVER stroke open terminus rings or midpoint borders with invisible #ffffff
+  for (const theme of ['java_swing', 'light_cad']) {
+    rend.appTheme = theme;
+    rend.selectedWireId = w.id;
+    rend.hoveredTerminus = { wire: w, isEnd: true };
+    rend.activeTerminusDrag = { wire: w, isEnd: true };
+    const strokes = [];
+    const spyCtx = Object.assign({}, mockCtx, {
+      stroke: () => strokes.push(spyCtx.strokeStyle),
+      beginPath: () => {},
+      arc: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      fill: () => {}
+    });
+    rend.drawWires(spyCtx);
+    assertEqual(strokes.includes('#ffffff'), false, `${theme} wire handles/open terminus use dark high-contrast stroke instead of #ffffff`);
+    assertEqual(strokes.includes('#0f172a'), true, `${theme} wire handles/open terminus use #0f172a contrast stroke`);
+
+    // Active wire drag also draws dark high-contrast ring at cursor endpoint on light themes
+    const dragStrokes = [];
+    const dragCtx = Object.assign({}, mockCtx, {
+      stroke: () => dragStrokes.push(dragCtx.strokeStyle),
+      beginPath: () => {},
+      arc: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      fill: () => {}
+    });
+    rend.activeWireDrag = { startX: 100, startY: 100, currX: 220, currY: 140, isOutput: true, waypoints: [] };
+    rend.drawActiveWireDrag(dragCtx);
+    assertEqual(dragStrokes.includes('#0f172a'), true, `${theme} activeWireDrag endpoint ring uses #0f172a contrast stroke`);
+    rend.activeWireDrag = null;
+  }
+
+  // 2. Selection windows / buttons / context menus / cards CSS centering checks
+  assertEqual(/\.btn\s*\{[^}]*justify-content:\s*center;/.test(html), true, '.btn centers icon and label horizontally');
+  assertEqual(/#inspector-content\s*>\s*\.btn\s*\{[^}]*width:\s*100%;/.test(html), true, 'Inspector action buttons fill width and center text');
+  assertEqual(/\.ctx-item\.danger\.ctx-danger-btn\s*\{[^}]*justify-content:\s*center;/.test(html), true, 'Context menu red delete button centers content');
+  assertEqual(/\.ctx-chip\s*\{[^}]*justify-content:\s*center;/.test(html), true, 'Context menu chips center content');
+  assertEqual(/\.norm-card\s*\{[^}]*align-items:\s*center;/.test(html) && /\.theme-card\s*\{[^}]*align-items:\s*center;/.test(html), true, 'Settings norm and theme selection cards are centered');
+});
+
+runTest('WISH-070', 'Clicking upstream of a wire fork selects all wires at and downstream of the fork', () => {
+  const app = new LogicSimApp();
+  app.circuit.clear();
+  app.engine.setMode('edit');
+  app.renderer.panX = 0;
+  app.renderer.panY = 0;
+  app.renderer.zoom = 1;
+  app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
+
+  const c = app.circuit;
+  const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+  const lastMd = mdHandlers[mdHandlers.length - 1];
+  const clickAt = (x, y) => lastMd({ button: 0, clientX: x, clientY: y, shiftKey: false, ctrlKey: false, preventDefault: () => {} });
+
+  // 1. Explicit wire-to-wire branching (fromWireId cascade)
+  const sw = c.addComponent('SWITCH', 40, 80); // output pin at (120, 100)
+  const led1 = c.addComponent('LED', 320, 80); // input pin at (320, 100)
+  const led2 = c.addComponent('LED', 320, 180); // input pin at (320, 200)
+  const led3 = c.addComponent('LED', 320, 260); // input pin at (320, 280)
+
+  const wMain = c.addWire(sw.id, 0, led1.id, 0);
+  const wBranch = c.addWire(null, 0, led2.id, 0, null, [{ x: 200, y: 200 }], { fromWireId: wMain.id, fromPoint: { x: 200, y: 100 } });
+  const wSubBranch = c.addWire(null, 0, led3.id, 0, null, [{ x: 200, y: 280 }], { fromWireId: wBranch.id, fromPoint: { x: 200, y: 160 } });
+
+  // Click BEFORE first fork at (150, 100): selects wMain, wBranch, and wSubBranch
+  clickAt(150, 100);
+  assertEqual(app.renderer.selectedWireIds.size, 3, 'Clicking before fork selects all 3 fork wires');
+  assertEqual(app.renderer.selectedWireIds.has(wMain.id) && app.renderer.selectedWireIds.has(wBranch.id) && app.renderer.selectedWireIds.has(wSubBranch.id), true, 'Selected set includes wMain, wBranch, and wSubBranch');
+
+  // Click AFTER first fork on wMain at (260, 100): selects only wMain
+  clickAt(260, 100);
+  assertEqual(app.renderer.selectedWireIds.size, 1, 'Clicking downstream of fork on main branch selects only 1 wire');
+  assertEqual(app.renderer.selectedWireId, wMain.id, 'Selected wire is wMain');
+
+  // Click on wBranch BEFORE its sub-fork at (200, 130): selects wBranch + wSubBranch (not wMain)
+  clickAt(200, 130);
+  assertEqual(app.renderer.selectedWireIds.size, 2, 'Clicking upstream of sub-fork selects wBranch and wSubBranch');
+  assertEqual(app.renderer.selectedWireIds.has(wBranch.id) && app.renderer.selectedWireIds.has(wSubBranch.id), true, 'Selected set contains wBranch and wSubBranch');
+
+  // Click on wBranch AFTER its sub-fork at (260, 200): selects only wBranch
+  clickAt(260, 200);
+  assertEqual(app.renderer.selectedWireIds.size, 1, 'Clicking downstream of sub-fork selects only wBranch');
+  assertEqual(app.renderer.selectedWireId, wBranch.id, 'Selected wire is wBranch');
+
+  // 2. Shared output pin multi-drop trunk fork
+  const sw2 = c.addComponent('SWITCH', 40, 380); // output pin at (120, 400)
+  const led4 = c.addComponent('LED', 280, 340); // input pin at (280, 360)
+  const led5 = c.addComponent('LED', 280, 420); // input pin at (280, 440)
+  const wTop = c.addWire(sw2.id, 0, led4.id, 0, null, [{ x: 200, y: 400 }, { x: 200, y: 360 }]);
+  const wBot = c.addWire(sw2.id, 0, led5.id, 0, null, [{ x: 200, y: 400 }, { x: 200, y: 440 }]);
+
+  // Click on shared trunk BEFORE fork at (160, 400): selects both wTop and wBot
+  clickAt(160, 400);
+  assertEqual(app.renderer.selectedWireIds.size, 2, 'Clicking shared trunk before pin fork selects both wTop and wBot');
+  assertEqual(app.renderer.selectedWireIds.has(wTop.id) && app.renderer.selectedWireIds.has(wBot.id), true, 'Selected set includes wTop and wBot');
+
+  // Click AFTER fork on wTop at (240, 360): selects only wTop
+  clickAt(240, 360);
+  assertEqual(app.renderer.selectedWireIds.size, 1, 'Clicking individual branch after shared-pin fork selects only wTop');
+  assertEqual(app.renderer.selectedWireId, wTop.id, 'Selected wire is wTop');
+});
+
+runTest('WISH-071', 'Wire forks are stored explicitly as fromWireId + fromPoint trees with zero segment overlap', () => {
+  const app = new LogicSimApp();
+  app.allowDiagonalWires = false;
+
+  const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+  const lastMd = mdHandlers[mdHandlers.length - 1];
+  const clickAt = (wx, wy) => {
+    const rect = app.gridCanvas.getBoundingClientRect();
+    const cx = rect.left + wx * app.renderer.zoom + app.renderer.panX;
+    const cy = rect.top + wy * app.renderer.zoom + app.renderer.panY;
+    lastMd({ button: 0, clientX: cx, clientY: cy, shiftKey: false, ctrlKey: false, metaKey: false, preventDefault: () => {} });
+  };
+
+  // 1. Scenario load / Auto-Layout stores multi-drop fanouts (jk_hi) as non-overlapping fork tree
+  app.loadScenario('jk_counter', { silent: true });
+  const hiWires = app.circuit.wires.filter(w => app.circuit.resolveWireRoot(w).compId === 'jk_hi');
+  assertEqual(hiWires.length, 6, 'jk_hi net has 6 wires to J/K inputs');
+  const hiRootWires = hiWires.filter(w => w.fromCompId === 'jk_hi');
+  const hiForkedWires = hiWires.filter(w => !w.fromCompId && w.fromWireId && w.fromPoint);
+  assertEqual(hiRootWires.length, 1, 'jk_hi net has exactly 1 stem wire attached to output pin');
+  assertEqual(hiForkedWires.length, 5, 'Remaining 5 fanout wires are stored as explicit fromWireId + fromPoint forks');
+
+  // Verify zero collinear segment overlap between any pair of wires in jk_hi net
+  const segOverlapPx = (ptsA, ptsB) => {
+    let totalOverlap = 0;
+    for (let i = 0; i + 1 < ptsA.length; i++) {
+      const a1 = ptsA[i], a2 = ptsA[i + 1];
+      const ah = Math.abs(a1.y - a2.y) < 0.5;
+      const av = Math.abs(a1.x - a2.x) < 0.5;
+      if (!ah && !av) continue;
+      for (let j = 0; j + 1 < ptsB.length; j++) {
+        const b1 = ptsB[j], b2 = ptsB[j + 1];
+        if (ah && Math.abs(b1.y - b2.y) < 0.5 && Math.abs(a1.y - b1.y) < 0.5) {
+          const lo = Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
+          const hi = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x));
+          if (hi > lo) totalOverlap += hi - lo;
+        } else if (av && Math.abs(b1.x - b2.x) < 0.5 && Math.abs(a1.x - b1.x) < 0.5) {
+          const lo = Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
+          const hi = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y));
+          if (hi > lo) totalOverlap += hi - lo;
+        }
+      }
+    }
+    return totalOverlap;
+  };
+  let maxNetOverlap = 0;
+  for (let i = 0; i < hiWires.length; i++) {
+    const ptsA = app.renderer.getWirePolyline(hiWires[i]);
+    for (let j = i + 1; j < hiWires.length; j++) {
+      const ptsB = app.renderer.getWirePolyline(hiWires[j]);
+      maxNetOverlap = Math.max(maxNetOverlap, segOverlapPx(ptsA, ptsB));
+    }
+  }
+  assertEqual(maxNetOverlap, 0, 'jk_hi fork tree has zero overlapping collinear wire segments');
+
+  // Verify signal level 1 propagates across all forked branches into every JK flip-flop J and K pin
+  app.circuit.syncImmediateWireLevels();
+  for (const ffId of ['jk_ff0', 'jk_ff1', 'jk_ff2']) {
+    const ff = app.circuit.getComponent(ffId);
+    assertEqual(ff.inputs[0].value, 1, `${ffId}.J receives HIGH through fork tree`);
+    assertEqual(ff.inputs[2].value, 1, `${ffId}.K receives HIGH through fork tree`);
+  }
+
+  // Click on terminal segment before jk_ff1.J (safely outside 10px pin radius) selects ONLY that branch
+  const j1Wire = hiWires.find(w => w.toCompId === 'jk_ff1' && w.toPin === 0);
+  const j1Pts = app.renderer.getWirePolyline(j1Wire);
+  const j1End = j1Pts[j1Pts.length - 1];
+  const j1Prev = j1Pts[j1Pts.length - 2];
+  clickAt(j1Prev.x + (j1End.x - j1Prev.x) * 0.45, j1Prev.y + (j1End.y - j1Prev.y) * 0.45);
+  assertEqual(app.renderer.selectedWireIds.size, 1, 'Clicking terminal segment before J pin selects only 1 wire');
+  assertEqual(app.renderer.selectedWireId, j1Wire.id, 'Selected wire is the terminal J1 branch');
+  assertEqual(Boolean(j1Wire.fromWireId && j1Wire.fromPoint), true, 'Terminal J1 wire starts at a stored fork junction rather than root component');
+
+  // Click on trunk right outside jk_hi output pin (before first fork) selects all 6 wires
+  const rootPts = app.renderer.getWirePolyline(hiRootWires[0]);
+  const rootSegDist = Math.hypot(rootPts[1].x - rootPts[0].x, rootPts[1].y - rootPts[0].y);
+  clickAt(rootPts[0].x + Math.min(20, Math.max(12, rootSegDist * 0.5)), rootPts[0].y);
+  assertEqual(app.renderer.selectedWireIds.size, 6, 'Clicking upstream of first jk_hi fork selects all 6 wires in fork tree');
+
+  // 2. Drawing overlapping manual wires from same output pin collapses into stored fork + removeWire stem promotion
+  const app2 = new LogicSimApp();
+  app2.circuit.clear();
+  const c2 = app2.circuit;
+  const sw = c2.addComponent('SWITCH', 40, 80, { initialValue: 1 }); // out at (120, 100)
+  const led1 = c2.addComponent('LED', 300, 40);  // in at (300, 60)
+  const led2 = c2.addComponent('LED', 300, 140); // in at (300, 160)
+  const wA = c2.addWire(sw.id, 0, led1.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 60 }]);
+  app2.finishNewWire(wA, wA.waypoints);
+  const wB = c2.addWire(sw.id, 0, led2.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 160 }]);
+  app2.finishNewWire(wB, wB.waypoints);
+  const rootCount = [wA, wB].filter(w => w.fromCompId === sw.id && !w.fromWireId).length;
+  const childWire = [wA, wB].find(w => !w.fromCompId && Boolean(w.fromWireId));
+  const stemWire = [wA, wB].find(w => w.fromCompId === sw.id);
+  assertEqual(rootCount, 1, 'Overlapping manual wires collapse to 1 root stem wire');
+  assertEqual(Boolean(childWire && childWire.fromWireId === stemWire.id), true, 'Second wire becomes explicit child branch of stem');
+  assertEqual(childWire.fromPoint.x === 200 && childWire.fromPoint.y === 100, true, 'Child fork stores exact junction (200, 100)');
+  assertEqual(segOverlapPx(app2.renderer.getWirePolyline(stemWire), app2.renderer.getWirePolyline(childWire)), 0, 'Manual overlapping wires share 0 overlapping pixels after normalization');
+
+  // JSON roundtrip preserves fork tree & signal
+  const jsonSnap = c2.toJSON();
+  const roundtrip = new Circuit();
+  roundtrip.fromJSON(jsonSnap);
+  assertEqual(roundtrip.getWire(childWire.id).fromWireId, stemWire.id, 'fromWireId preserved across JSON roundtrip');
+  assertEqual(roundtrip.getWire(childWire.id).fromPoint.x, 200, 'fromPoint preserved across JSON roundtrip');
+  assertEqual(roundtrip.getComponent(led2.id).inputs[0].value, 1, 'LED2 retains HIGH level after fork JSON roundtrip');
+
+  // Removing stem wire promotes child wire to inherit upstream connection
+  roundtrip.removeWire(stemWire.id);
+  const promoted = roundtrip.getWire(childWire.id);
+  assertEqual(promoted.fromCompId, sw.id, 'Deleting stem promotes child branch to inherit source switch');
+  assertEqual(promoted.fromWireId, null, 'Promoted branch clears stale fromWireId');
+  roundtrip.syncImmediateWireLevels();
+  assertEqual(roundtrip.getComponent(promoted.toCompId).inputs[0].value, 1, 'Promoted branch continues driving target LED with HIGH');
 });
 
 console.log('\n================================================================');

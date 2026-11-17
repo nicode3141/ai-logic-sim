@@ -153,6 +153,30 @@
       border-color: #555555 !important;
     }
 
+    [data-theme="java_swing"] .btn.btn-danger {
+      background: #b00000 !important;
+      border-color: #7f0000 !important;
+      color: #ffffff !important;
+      box-shadow: inset 1px 1px #ef5350, inset -1px -1px #6a0000 !important;
+    }
+    [data-theme="java_swing"] .btn.btn-danger:hover:not(:disabled) {
+      background: #8e0000 !important;
+      border-color: #5c0000 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .btn.btn-danger:active:not(:disabled) {
+      background: #7f0000 !important;
+      box-shadow: inset 1px 1px #5c0000, inset -1px -1px #ef5350 !important;
+    }
+
+    [data-theme="java_swing"] .inspector-select,
+    [data-theme="java_swing"] .probe-inline-rename-input {
+      border-radius: 0px !important;
+      border: 1px solid #808080 !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+    }
+
     [data-theme="java_swing"] .sim-deck,
     [data-theme="java_swing"] .mode-switch,
     [data-theme="java_swing"] .freq-control,
@@ -209,6 +233,27 @@
       color: #ffffff !important;
     }
     [data-theme="java_swing"] .ctx-item.danger:hover svg {
+      stroke: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn {
+      background: #b00000 !important;
+      color: #ffffff !important;
+      border: 1px solid #7f0000 !important;
+      border-radius: 0px !important;
+      box-shadow: inset 1px 1px #ef5350, inset -1px -1px #6a0000 !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn *,
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn:hover {
+      background: #8e0000 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn:hover *,
+    [data-theme="java_swing"] .ctx-item.danger.ctx-danger-btn:hover svg {
+      color: #ffffff !important;
       stroke: #ffffff !important;
     }
     [data-theme="java_swing"] .ctx-divider {
@@ -331,6 +376,24 @@
     }
     [data-theme="light_cad"] .ctx-item.danger:hover * {
       color: #dc2626 !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn {
+      background: #dc2626 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn *,
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn:hover {
+      background: #b91c1c !important;
+      color: #ffffff !important;
+    }
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn:hover *,
+    [data-theme="light_cad"] .ctx-item.danger.ctx-danger-btn:hover svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
     }
     [data-theme="light_cad"] .ctx-divider {
       background: #e2e8f0 !important;
@@ -501,10 +564,12 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
       transition: background 0.1s ease, border-color 0.1s ease;
       white-space: nowrap;
       box-sizing: border-box;
+      text-align: center;
     }
 
     .btn:hover:not(:disabled) {
@@ -555,14 +620,14 @@
     }
 
     .btn-danger {
-      background: rgba(239, 68, 68, 0.14);
-      border-color: rgba(239, 68, 68, 0.45);
-      color: var(--accent-red);
+      background: #dc2626;
+      border-color: #b91c1c;
+      color: #ffffff;
     }
 
     .btn-danger:hover:not(:disabled) {
-      background: rgba(239, 68, 68, 0.24);
-      border-color: var(--accent-red);
+      background: #b91c1c;
+      border-color: #991b1b;
     }
 
     /* Simulation Control Deck */
@@ -1015,6 +1080,7 @@
       flex-direction: column;
       z-index: 10;
       overflow-y: auto;
+      overflow-x: hidden;
       position: relative;
       transition: box-shadow 0.3s ease;
     }
@@ -1059,6 +1125,14 @@
       flex-direction: column;
       gap: 14px;
       flex: 1;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #inspector-content > .btn {
+      width: 100%;
+      justify-content: center;
     }
 
     .empty-inspector {
@@ -1074,6 +1148,8 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .prop-label {
@@ -1095,10 +1171,52 @@
       outline: none;
       user-select: text;
       -webkit-user-select: text;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .prop-input:focus {
       border-color: var(--accent-blue);
+    }
+
+    .inspector-select {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      padding: 4px 7px;
+      border-radius: var(--control-radius);
+      font-size: 11.5px;
+      font-family: var(--font-sans);
+      outline: none;
+      cursor: pointer;
+      width: 120px;
+      min-width: 0;
+      max-width: 100%;
+      flex: 1 1 110px;
+      box-sizing: border-box;
+    }
+
+    .inspector-select:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .probe-inline-rename-input {
+      position: absolute;
+      z-index: 40;
+      background: var(--bg-deep);
+      border: 1px solid var(--accent-blue);
+      color: var(--text-main);
+      border-radius: 3px;
+      padding: 0 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      outline: none;
+      box-sizing: border-box;
+      user-select: text;
+      -webkit-user-select: text;
     }
 
     .prop-info-box {
@@ -1112,6 +1230,9 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .color-swatches {
@@ -1237,7 +1358,7 @@
       border-radius: 8px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.12);
       min-width: 200px;
-      max-width: 280px;
+      max-width: 320px;
       padding: 5px 0;
       font-family: var(--font-sans);
       font-size: 12px;
@@ -1252,7 +1373,7 @@
     }
 
     .ctx-header {
-      padding: 7px 12px;
+      padding: 8px 12px;
       font-size: 11px;
       font-weight: 700;
       color: var(--accent-blue);
@@ -1260,17 +1381,41 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
       letter-spacing: 0.3px;
+      line-height: 1.3;
+    }
+
+    .ctx-header > span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ctx-header > span:last-child {
+      white-space: nowrap;
+      text-align: right;
     }
 
     .ctx-item {
       padding: 6px 12px;
+      min-height: 28px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       gap: 8px;
       color: var(--text-main);
       cursor: pointer;
       transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .ctx-item > span:first-child {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
     }
 
     .ctx-item svg, .ctx-header svg {
@@ -1289,6 +1434,25 @@
     }
     .ctx-item.danger:hover {
       background: rgba(255, 82, 82, 0.18);
+    }
+    .ctx-item.danger.ctx-danger-btn {
+      background: #dc2626;
+      color: #ffffff;
+      margin: 6px 8px 3px 8px;
+      padding: 7px 12px;
+      justify-content: center;
+      text-align: center;
+      border-radius: var(--btn-radius);
+      font-weight: 600;
+    }
+    .ctx-item.danger.ctx-danger-btn *,
+    .ctx-item.danger.ctx-danger-btn svg {
+      color: #ffffff;
+      stroke: #ffffff;
+    }
+    .ctx-item.danger.ctx-danger-btn:hover {
+      background: #b91c1c;
+      color: #ffffff;
     }
     .ctx-item.disabled {
       opacity: 0.4;
@@ -1325,10 +1489,17 @@
       color: var(--text-muted);
       border-radius: 4px;
       padding: 2px 8px;
+      min-height: 22px;
+      min-width: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       font-size: 11px;
       cursor: pointer;
       font-family: var(--font-mono);
       transition: all 0.1s ease;
+      box-sizing: border-box;
     }
     .ctx-chip:hover, .ctx-chip.active {
       background: var(--accent-blue-dim);
@@ -1740,6 +1911,14 @@
       transition: background 0.1s ease, color 0.1s ease;
       width: 100%;
     }
+    .app-menu-item > span:first-child,
+    .app-menu-item > svg:first-child {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      flex-shrink: 0;
+    }
     .app-menu-item:hover {
       background: var(--accent-blue-dim);
       color: var(--accent-blue);
@@ -2048,6 +2227,9 @@
       transition: all 0.15s ease;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: center;
+      justify-content: flex-start;
       gap: 4px;
     }
     .norm-card:hover {
@@ -2097,6 +2279,9 @@
       transition: all 0.15s ease;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: center;
+      justify-content: flex-start;
       gap: 4px;
     }
     .theme-card:hover {
@@ -2846,6 +3031,7 @@
 
     .seg-control {
       display: inline-flex;
+      align-self: flex-start;
       padding: 2px;
       background: var(--bg-deep);
       border: 1px solid var(--border-dim);
@@ -2862,6 +3048,10 @@
       font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
     .seg-control button.active {
@@ -5154,7 +5344,7 @@
             <div class="help-row"><span>Auto-Anordnen</span><span><kbd>A</kbd></span></div>
             <div class="help-row"><span>Leitungen neu verlegen</span><span><kbd>L</kbd></span></div>
             <div class="help-row"><span>Auswahl verschieben</span><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> (ein Rasterschritt)</span></div>
-            <div class="help-row"><span>Ausrichten / Verteilen</span><span>Pfeil neben „Auto-Anordnen“</span></div>
+            <div class="help-row"><span>Anordnen-Optionen</span><span>Pfeil neben „Auto-Anordnen“</span></div>
           </div>
           <div class="help-col">
             <div class="help-title">Ansicht</div>
@@ -5658,7 +5848,7 @@
       'Mehrfachauswahl': 'Multi-select', 'Rahmen ziehen oder': 'drag a box or', '+Klick': '+click', 'Kontextmenü': 'Context menu',
       'Rechtsklick auf Bauteil, Leitung oder Fläche': 'right-click a part, a wire or the canvas', 'Anordnen': 'Align',
       'Leitungen neu verlegen': 'Reroute wires', 'Auswahl verschieben': 'Move selection', '(ein Rasterschritt)': '(one grid step)',
-      'Ausrichten / Verteilen': 'Align / distribute', 'Pfeil neben „Auto-Anordnen“': 'arrow next to “Auto-Align”', 'Ansicht': 'View', 'Zoomen': 'Zoom',
+      'Anordnen-Optionen': 'Layout options', 'Pfeil neben „Auto-Anordnen“': 'arrow next to “Auto-Align”', 'Ansicht': 'View', 'Zoomen': 'Zoom',
       'Mausrad,': 'mouse wheel,', 'Verschieben': 'Pan', 'halten + ziehen, oder mittlere Maustaste': 'hold + drag, or middle mouse button',
       'Alles einpassen': 'Fit all', 'Szenarien': 'Scenarios', '(im Simulationsmodus)': '(in simulation mode)', 'Einzelschritt': 'Single step',
       'vor,': 'forward,', 'zurück': 'back', 'Bearbeiten': 'Edit', 'Rückgängig / Wiederholen': 'Undo / redo',
@@ -5693,7 +5883,6 @@
       // --- context menus ---
       'Im Inspector anzeigen': 'Show in inspector', 'Bauteil duplizieren': 'Duplicate part', 'Bauteil löschen': 'Delete part',
       'Links bündig ausrichten': 'Align left', 'Rechts bündig ausrichten': 'Align right', 'Oben bündig ausrichten': 'Align top', 'Unten bündig ausrichten': 'Align bottom',
-      'Vertikal gleichmäßig verteilen': 'Distribute vertically', 'Horizontal gleichmäßig verteilen': 'Distribute horizontally',
       'Auswahl duplizieren': 'Duplicate selection', 'Auswahl löschen': 'Delete selection', '📋 Auswahl duplizieren': '📋 Duplicate selection',
       'Hier abzweigen': 'Branch from here', 'Eckpunkt hier hinzufügen': 'Add bend here', 'Arbeitsfläche': 'Canvas',
       'Gatter einfügen:': 'Insert gate:', 'Quellen & Anzeigen:': 'Inputs & displays:', 'Symbol-Norm umschalten:': 'Symbol standard:',
@@ -5701,7 +5890,7 @@
       'Messpunkt entfernen': 'Remove probe',
       // --- messages ---
       '↶ Rückgängig ausgeführt': '↶ Undone', '↷ Wiederholen ausgeführt': '↷ Redone', 'Wähle mindestens zwei Bauteile aus.': 'Select at least two parts.',
-      'Wähle zum Verteilen mindestens drei Bauteile aus.': 'Select at least three parts to distribute.', 'Split-Screen aktiv': 'Split screen on',
+      'Split-Screen aktiv': 'Split screen on',
       'Einzelansicht aktiv': 'Single view on', '📸 Als PNG exportiert': '📸 Exported as PNG', 'Anordnen geht nur im Edit-Modus (Tab).': 'Aligning only works in edit mode (Tab).',
       'Die Arbeitsfläche ist leer – es gibt nichts anzuordnen.': 'The canvas is empty – nothing to align.', 'Es gibt noch keine Leitungen.': 'There are no wires yet.',
       'Keine Bauteile zum Anordnen vorhanden.': 'No parts to align.', 'Die Datei ist zu groß (maximal 5 MB erlaubt).': 'The file is too large (5 MB max).',
@@ -5880,7 +6069,6 @@
       [/^📂 Schaltung "(.*)" erfolgreich geladen!$/, (m) => `📂 "${m[1]}" loaded`],
       [/^✓ Schaltung erzeugt: (\d+) Ausgang\/Ausgänge$/, (m) => `✓ Circuit built: ${I18N_PLURAL(m[1], 'output', 'outputs')}`],
       [/^(\d+) Bauteile (.*) ausgerichtet$/, (m, tr) => `${m[1]} parts aligned ${tr(m[2])}`],
-      [/^(\d+) Bauteile (horizontal|vertikal) gleichmäßig verteilt$/, (m) => `${m[1]} parts distributed ${m[2] === 'vertikal' ? 'vertically' : 'horizontally'}`],
       [/^○ (Ausgang|Eingang) (.*?) ?von (.*) (negiert \(○\)|normal)$/, (m) => `○ ${m[1] === 'Ausgang' ? 'Output' : 'Input'} ${m[2] ? m[2] + ' ' : ''}of ${m[3]} ${m[4] === 'normal' ? 'normal' : 'negated (○)'}`],
       [/^Viewport auf (X: .*) zentriert$/, (m) => `Centered on ${m[1]}`],
       [/^Eingänge live geschaltet: (.*)$/, (m) => `Inputs set: ${m[1]}`],
@@ -7778,6 +7966,415 @@
         return this.wireMap.get(id) || null;
       }
 
+      /** Follows upstream fromWireId links (cycle-safe) and returns { compId, pin, rootWire }. */
+      resolveWireRoot(wire) {
+        if (!wire) return { compId: '', pin: 0, rootWire: null };
+        let curr = wire;
+        const visited = new Set();
+        while (curr && !curr.fromCompId && curr.fromWireId && !visited.has(curr.id)) {
+          visited.add(curr.id);
+          const parent = this.getWire(curr.fromWireId) || this.wires.find(sw => sw.id === curr.fromWireId);
+          if (!parent) break;
+          curr = parent;
+        }
+        return {
+          compId: curr ? (curr.fromCompId || '') : '',
+          pin: curr ? (curr.fromPin || 0) : 0,
+          rootWire: curr || null
+        };
+      }
+
+      _simplifyOrthoPts(pts) {
+        if (!pts || pts.length <= 2) return (pts || []).map(p => ({ x: p.x, y: p.y }));
+        const res = [{ x: pts[0].x, y: pts[0].y }];
+        for (let i = 1; i < pts.length - 1; i++) {
+          const prev = res[res.length - 1];
+          const curr = pts[i];
+          const next = pts[i + 1];
+          if (Math.abs(curr.x - prev.x) < 0.5 && Math.abs(curr.y - prev.y) < 0.5) continue;
+          const cross = (curr.y - prev.y) * (next.x - curr.x) - (curr.x - prev.x) * (next.y - curr.y);
+          if (Math.abs(cross) > 0.001) res.push({ x: curr.x, y: curr.y });
+        }
+        const last = pts[pts.length - 1];
+        const prev = res[res.length - 1];
+        if (Math.abs(last.x - prev.x) >= 0.5 || Math.abs(last.y - prev.y) >= 0.5) {
+          res.push({ x: last.x, y: last.y });
+        }
+        return res;
+      }
+
+      _projectPointOnPoints(pts, pt) {
+        if (!pts || pts.length < 2 || !pt) return { distSq: Infinity, distAlong: 0, point: pt };
+        let bestDistSq = Infinity;
+        let bestDistAlong = 0;
+        let bestPoint = pts[0];
+        let acc = 0;
+        for (let i = 0; i + 1 < pts.length; i++) {
+          const a = pts[i], b = pts[i + 1];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const lenSq = dx * dx + dy * dy;
+          const len = Math.sqrt(lenSq);
+          const t = lenSq > 0 ? Math.max(0, Math.min(1, ((pt.x - a.x) * dx + (pt.y - a.y) * dy) / lenSq)) : 0;
+          const px = a.x + t * dx, py = a.y + t * dy;
+          const dSq = (pt.x - px) * (pt.x - px) + (pt.y - py) * (pt.y - py);
+          if (dSq < bestDistSq) {
+            bestDistSq = dSq;
+            bestDistAlong = acc + t * len;
+            bestPoint = { x: Math.round(px), y: Math.round(py) };
+          }
+          acc += len;
+        }
+        return { distSq: bestDistSq, distAlong: bestDistAlong, point: bestPoint };
+      }
+
+      _extractPrefixPoints(pts, targetPt) {
+        if (!pts || pts.length === 0) return [];
+        const proj = this._projectPointOnPoints(pts, targetPt);
+        const out = [{ x: pts[0].x, y: pts[0].y }];
+        let acc = 0;
+        for (let i = 0; i + 1 < pts.length; i++) {
+          const a = pts[i], b = pts[i + 1];
+          const seg = Math.hypot(b.x - a.x, b.y - a.y);
+          if (acc + seg >= proj.distAlong - 0.5) {
+            out.push({ x: proj.point.x, y: proj.point.y });
+            break;
+          }
+          out.push({ x: b.x, y: b.y });
+          acc += seg;
+        }
+        return this._simplifyOrthoPts(out);
+      }
+
+      _getFallbackWirePolyline(wire, depth = 0) {
+        if (!wire || depth > 32) return [];
+        let p1 = null, p2 = null;
+        if (wire.fromCompId) {
+          const fc = this.getComponent(wire.fromCompId);
+          if (fc) p1 = fc.getPinWorldPos(true, wire.fromPin);
+        }
+        if (!p1 && wire.fromPoint) p1 = { x: wire.fromPoint.x, y: wire.fromPoint.y };
+        else if (!p1 && wire.fromWireId) {
+          const fw = this.getWire(wire.fromWireId);
+          const fPts = fw ? this._getFallbackWirePolyline(fw, depth + 1) : [];
+          p1 = fPts[0] ? { x: fPts[0].x, y: fPts[0].y } : { x: 0, y: 0 };
+        }
+        if (wire.toCompId) {
+          const tc = this.getComponent(wire.toCompId);
+          if (tc) p2 = tc.getPinWorldPos(false, wire.toPin);
+        }
+        if (!p2 && wire.toPoint) p2 = { x: wire.toPoint.x, y: wire.toPoint.y };
+        else if (!p2 && wire.toWireId) {
+          const tw = this.getWire(wire.toWireId);
+          const tPts = tw ? this._getFallbackWirePolyline(tw, depth + 1) : [];
+          p2 = tPts[tPts.length - 1] ? { x: tPts[tPts.length - 1].x, y: tPts[tPts.length - 1].y } : { x: 0, y: 0 };
+        }
+        if (!p1 || !p2) return [];
+        const pts = [p1];
+        if (wire.waypoints && wire.waypoints.length > 0) {
+          for (const wp of [...wire.waypoints, p2]) {
+            const last = pts[pts.length - 1];
+            if (wire.style !== 'diagonal' && last.x !== wp.x && last.y !== wp.y) {
+              pts.push({ x: wp.x, y: last.y });
+            }
+            pts.push({ x: wp.x, y: wp.y });
+          }
+        } else {
+          if (wire.style !== 'diagonal' && p1.x !== p2.x && p1.y !== p2.y) {
+            const midX = Math.round(((p1.x + p2.x) / 2) / GRID_SIZE) * GRID_SIZE;
+            pts.push({ x: midX, y: p1.y }, { x: midX, y: p2.y });
+          }
+          pts.push(p2);
+        }
+        return this._simplifyOrthoPts(pts);
+      }
+
+      /** Splits overlapping shared-source wire prefixes into stored fork branches (fromWireId + fromPoint). */
+      normalizeForkWires(getPolylineFn = null, targetRootKeys = null) {
+        if (!Array.isArray(this.wires) || this.wires.length < 2) return 0;
+        const getPts = (w) => this._simplifyOrthoPts(
+          typeof getPolylineFn === 'function' ? getPolylineFn(w) : this._getFallbackWirePolyline(w)
+        );
+        const ptEq = (a, b) => a && b && Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5;
+        const segDir = (a, b, idx) => {
+          const dx = b.x - a.x, dy = b.y - a.y;
+          if (Math.abs(dy) < 0.5 && Math.abs(dx) >= 0.5) return dx > 0 ? 'R' : 'L';
+          if (Math.abs(dx) < 0.5 && Math.abs(dy) >= 0.5) return dy > 0 ? 'D' : 'U';
+          return `DIAG:${idx}:${Math.round(dx)}:${Math.round(dy)}`;
+        };
+        const polyLength = (pts) => {
+          let len = 0;
+          for (let i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+          return len;
+        };
+        const pointAtRatio = (pts, ratio) => {
+          const total = polyLength(pts);
+          if (total <= 0 || pts.length === 0) return pts[0] ? { x: pts[0].x, y: pts[0].y } : { x: 0, y: 0 };
+          const target = Math.max(0, Math.min(1, ratio)) * total;
+          let acc = 0;
+          for (let i = 0; i + 1 < pts.length; i++) {
+            const seg = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+            if (acc + seg >= target || i === pts.length - 2) {
+              const t = seg > 0 ? Math.max(0, Math.min(1, (target - acc) / seg)) : 0;
+              return { x: pts[i].x + (pts[i + 1].x - pts[i].x) * t, y: pts[i].y + (pts[i + 1].y - pts[i].y) * t };
+            }
+            acc += seg;
+          }
+          return { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
+        };
+        const ratioAtPoint = (pts, pt) => {
+          const total = polyLength(pts);
+          if (total <= 0) return 0.5;
+          const proj = this._projectPointOnPoints(pts, pt);
+          return Math.max(0.05, Math.min(0.95, proj.distAlong / total));
+        };
+
+        const netGroups = new Map();
+        const wirePtsRaw = new Map();
+        for (let i = 0; i < this.wires.length; i++) {
+          const w = this.wires[i];
+          if (w.style === 'diagonal' || w.toWireId) continue;
+          const root = this.resolveWireRoot(w);
+          if (!root.compId) continue;
+          const key = `${root.compId}\u0000${root.pin}`;
+          if (targetRootKeys && !targetRootKeys.has(key)) continue;
+          const pts = getPts(w);
+          if (!pts || pts.length < 2) continue;
+          wirePtsRaw.set(w.id, pts);
+          let arr = netGroups.get(key);
+          if (!arr) { arr = []; netGroups.set(key, arr); }
+          arr.push({ wire: w, origIndex: i, rootCompId: root.compId, rootPin: root.pin });
+        }
+
+        let changedCount = 0;
+        for (const group of netGroups.values()) {
+          if (group.length < 2) continue;
+          const fc = this.getComponent(group[0].rootCompId);
+          if (!fc) continue;
+          const rootPos = fc.getPinWorldPos(true, group[0].rootPin);
+
+          const fullCache = new Map();
+          const buildFull = (w, depth = 0) => {
+            if (fullCache.has(w.id)) return fullCache.get(w.id);
+            const ownPts = wirePtsRaw.get(w.id);
+            if (!ownPts) return null;
+            if (!w.fromWireId || w.fromCompId || depth > 32) {
+              fullCache.set(w.id, ownPts);
+              return ownPts;
+            }
+            const parent = this.getWire(w.fromWireId);
+            const parentFull = parent ? buildFull(parent, depth + 1) : null;
+            if (!parentFull) return null;
+            const forkPt = ownPts[0];
+            if (this._projectPointOnPoints(parentFull, forkPt).distSq > 16) return null;
+            const prefix = this._extractPrefixPoints(parentFull, forkPt);
+            const combined = this._simplifyOrthoPts([...prefix, ...ownPts.slice(1)]);
+            fullCache.set(w.id, combined);
+            return combined;
+          };
+
+          const items = [];
+          const oldProbePositions = [];
+          const groupWireIds = new Set(group.map(g => g.wire.id));
+          for (const p of (this.probes || [])) {
+            if (!groupWireIds.has(p.wireId)) continue;
+            const oldPts = wirePtsRaw.get(p.wireId);
+            if (oldPts) oldProbePositions.push({ probe: p, pt: pointAtRatio(oldPts, p.offsetRatio) });
+          }
+
+          for (const g of group) {
+            const fullPts = buildFull(g.wire);
+            if (!fullPts || fullPts.length < 2 || !ptEq(fullPts[0], rootPos)) continue;
+            const cum = [0];
+            for (let k = 0; k + 1 < fullPts.length; k++) {
+              cum.push(cum[k] + Math.hypot(fullPts[k + 1].x - fullPts[k].x, fullPts[k + 1].y - fullPts[k].y));
+            }
+            items.push({ wire: g.wire, pts: fullPts, cum, total: cum[cum.length - 1], origIndex: g.origIndex, wasRoot: Boolean(g.wire.fromCompId) });
+          }
+          if (items.length < 2) continue;
+
+          const infoAtDist = (it, d) => {
+            const pts = it.pts, cum = it.cum;
+            if (d >= it.total - 0.5) return { ended: true, pt: pts[pts.length - 1], dir: null, segRemaining: 0 };
+            for (let i = 0; i + 1 < pts.length; i++) {
+              if (d < cum[i + 1] - 0.5) {
+                const segLen = cum[i + 1] - cum[i];
+                const rem = cum[i + 1] - d;
+                const t = segLen > 0 ? Math.max(0, (d - cum[i]) / segLen) : 0;
+                const pt = {
+                  x: Math.round(pts[i].x + (pts[i + 1].x - pts[i].x) * t),
+                  y: Math.round(pts[i].y + (pts[i + 1].y - pts[i].y) * t)
+                };
+                return { ended: false, pt, dir: segDir(pts[i], pts[i + 1], i), segRemaining: rem };
+              }
+            }
+            return { ended: true, pt: pts[pts.length - 1], dir: null, segRemaining: 0 };
+          };
+
+          const suffixFromDist = (it, d, startPt) => {
+            const pts = it.pts, cum = it.cum;
+            const out = [{ x: startPt.x, y: startPt.y }];
+            for (let i = 0; i < pts.length; i++) {
+              if (cum[i] > d + 0.5) out.push({ x: pts[i].x, y: pts[i].y });
+            }
+            return this._simplifyOrthoPts(out);
+          };
+
+          const applyGeometry = (it, distAlong, startPt, parentWire) => {
+            const w = it.wire;
+            const prevFromComp = w.fromCompId;
+            const prevFromWire = w.fromWireId;
+            const prevFp = w.fromPoint ? `${w.fromPoint.x},${w.fromPoint.y}` : '';
+            const suffix = suffixFromDist(it, distAlong, startPt);
+            if (suffix.length < 2) return;
+
+            if (!parentWire) {
+              w.fromCompId = group[0].rootCompId;
+              w.fromPin = group[0].rootPin;
+              w._fromComp = fc;
+              w.fromWireId = null;
+              w.fromPoint = null;
+            } else {
+              w.fromCompId = '';
+              w.fromPin = 0;
+              w._fromComp = null;
+              w.fromWireId = parentWire.id;
+              w.fromPoint = { x: Math.round(startPt.x), y: Math.round(startPt.y) };
+            }
+
+            let corners = suffix.slice(1, -1).map(p => ({ x: p.x, y: p.y }));
+            if (corners.length === 0 && suffix.length === 2) {
+              const pA = suffix[0], pB = suffix[1];
+              const isForwardStraight = Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + 20;
+              if (!isForwardStraight) corners = [{ x: pB.x, y: pB.y }];
+            }
+            w.waypoints = corners;
+
+            const newFp = w.fromPoint ? `${w.fromPoint.x},${w.fromPoint.y}` : '';
+            if (w.fromCompId !== prevFromComp || w.fromWireId !== prevFromWire || newFp !== prevFp) {
+              changedCount++;
+            }
+          };
+
+          const scoreStem = (it, forkDist, dir) => {
+            const after = infoAtDist(it, forkDist);
+            const continuesStraight = !after.ended && after.dir === dir ? 1 : 0;
+            const isStraightWire = it.pts.length === 2 ? 1 : 0;
+            const remLen = Math.max(0, it.total - forkDist);
+            return continuesStraight * 100000 + isStraightWire * 50000 + (it.wasRoot ? 1000 : 0) + remLen * 0.01 - it.origIndex * 0.0001;
+          };
+
+          const decompose = (subItems, originDist, originPt, parentWire, lockedStem = null, depth = 0) => {
+            if (!subItems || subItems.length === 0 || depth > 80) return;
+            if (subItems.length === 1) {
+              if (subItems[0] !== lockedStem) applyGeometry(subItems[0], originDist, originPt, parentWire);
+              return;
+            }
+            const dirBuckets = new Map();
+            for (const it of subItems) {
+              const inf = infoAtDist(it, originDist);
+              if (inf.ended || inf.segRemaining <= 0.5) {
+                if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
+                continue;
+              }
+              let bucket = dirBuckets.get(inf.dir);
+              if (!bucket) { bucket = []; dirBuckets.set(inf.dir, bucket); }
+              bucket.push({ item: it, segRem: inf.segRemaining });
+            }
+
+            for (const [dir, entries] of dirBuckets.entries()) {
+              const bucketItems = entries.map(e => e.item);
+              if (bucketItems.length === 1) {
+                if (bucketItems[0] !== lockedStem) applyGeometry(bucketItems[0], originDist, originPt, parentWire);
+                continue;
+              }
+              if (dir.startsWith('DIAG:')) {
+                for (const it of bucketItems) {
+                  if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
+                }
+                continue;
+              }
+              const dMin = Math.min(...entries.map(e => e.segRem));
+              if (!(dMin > 0.5)) {
+                for (const it of bucketItems) {
+                  if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
+                }
+                continue;
+              }
+
+              const forkDist = originDist + dMin;
+              const jInfo = infoAtDist(bucketItems[0], forkDist);
+              const J = jInfo.pt;
+
+              let stem = (lockedStem && bucketItems.includes(lockedStem)) ? lockedStem : null;
+              if (!stem) {
+                let bestScore = -Infinity;
+                for (const it of bucketItems) {
+                  const s = scoreStem(it, forkDist, dir);
+                  if (s > bestScore) { bestScore = s; stem = it; }
+                }
+                applyGeometry(stem, originDist, originPt, parentWire);
+              }
+
+              const stemAfter = infoAtDist(stem, forkDist);
+              const postBuckets = new Map();
+              for (const it of bucketItems) {
+                if (it === stem) continue;
+                const inf = infoAtDist(it, forkDist);
+                if (inf.ended || inf.segRemaining <= 0.5) {
+                  applyGeometry(it, forkDist, J, stem.wire);
+                  continue;
+                }
+                let arr = postBuckets.get(inf.dir);
+                if (!arr) { arr = []; postBuckets.set(inf.dir, arr); }
+                arr.push(it);
+              }
+
+              for (const [postDir, restGroup] of postBuckets.entries()) {
+                if (!stemAfter.ended && postDir === stemAfter.dir) {
+                  decompose([stem, ...restGroup], forkDist, J, parentWire, stem, depth + 1);
+                } else {
+                  decompose(restGroup, forkDist, J, stem.wire, null, depth + 1);
+                }
+              }
+            }
+          };
+
+          decompose(items, 0, rootPos, null, null, 0);
+
+          if (oldProbePositions.length > 0) {
+            const postPtsMap = new Map();
+            for (const item of items) {
+              const p = getPts(item.wire);
+              if (p && p.length >= 2) postPtsMap.set(item.wire.id, p);
+            }
+            for (const { probe, pt } of oldProbePositions) {
+              let bestWire = null;
+              let bestDistSq = Infinity;
+              const curPts = postPtsMap.get(probe.wireId);
+              if (curPts && this._projectPointOnPoints(curPts, pt).distSq <= 4) {
+                bestWire = this.getWire(probe.wireId);
+              }
+              if (!bestWire) {
+                for (const item of items) {
+                  const pts = postPtsMap.get(item.wire.id);
+                  if (!pts) continue;
+                  const proj = this._projectPointOnPoints(pts, pt);
+                  if (proj.distSq < bestDistSq) {
+                    bestDistSq = proj.distSq;
+                    bestWire = item.wire;
+                  }
+                }
+              }
+              if (bestWire && postPtsMap.has(bestWire.id)) {
+                probe.wireId = bestWire.id;
+                probe.offsetRatio = ratioAtPoint(postPtsMap.get(bestWire.id), pt);
+              }
+            }
+          }
+        }
+        return changedCount;
+      }
+
       getProbe(id) {
         return this.probeMap.get(id) || null;
       }
@@ -7807,7 +8404,7 @@
         this.components.splice(idx, 1);
         this.compMap.delete(compId);
         const removedWires = this.wires.filter(
-          w => w.fromCompId === compId || w.toCompId === compId
+          w => w.fromCompId === compId || w.toCompId === compId || this.resolveWireRoot(w).compId === compId
         );
         for (const w of removedWires) {
           this.removeWire(w.id, ringBuffer);
@@ -7866,6 +8463,50 @@
 
         const wire = this.wireMap.get(wireId) || this.wires.find(w => w.id === wireId);
         if (wire) {
+          // Promote downstream fromWireId branches when deleting an intermediate trunk whose driver still exists
+          const directChildren = this.wires.filter(w => w.fromWireId === wireId && !w.fromCompId);
+          const driverAlive = wire.fromCompId ? Boolean(this.compMap.get(wire.fromCompId)) : Boolean(wire.fromWireId || wire.fromPoint);
+          if (directChildren.length > 0 && driverAlive) {
+            const pPts = this._getFallbackWirePolyline(wire);
+            if (pPts && pPts.length >= 2) {
+              const ranked = directChildren.map(ch => {
+                const cPts = this._getFallbackWirePolyline(ch);
+                const anchor = ch.fromPoint || (cPts[0] ? cPts[0] : pPts[0]);
+                const proj = this._projectPointOnPoints(pPts, anchor);
+                return { ch, cPts, anchor, proj };
+              }).sort((a, b) => b.proj.distAlong - a.proj.distAlong);
+
+              const primary = ranked[0];
+              if (primary.proj.distSq <= 16) {
+                const prefixPts = this._extractPrefixPoints(pPts, primary.proj.point);
+                const primaryEnd = primary.cPts[primary.cPts.length - 1];
+                primary.ch.fromCompId = wire.fromCompId;
+                primary.ch.fromPin = wire.fromPin;
+                primary.ch._fromComp = wire.fromCompId ? (this.compMap.get(wire.fromCompId) || null) : null;
+                primary.ch.fromWireId = wire.fromWireId;
+                primary.ch.fromPoint = (wire.fromWireId || !wire.fromCompId) && wire.fromPoint ? { ...wire.fromPoint } : null;
+
+                const combined = this._simplifyOrthoPts([
+                  ...prefixPts,
+                  ...(primary.ch.waypoints || []),
+                  ...(primaryEnd ? [primaryEnd] : [])
+                ]);
+                let corners = combined.length >= 2 ? combined.slice(1, -1).map(p => ({ x: p.x, y: p.y })) : [];
+                if (corners.length === 0 && combined.length === 2) {
+                  const pA = combined[0], pB = combined[1];
+                  if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + 20)) corners = [{ x: pB.x, y: pB.y }];
+                }
+                primary.ch.waypoints = corners;
+
+                for (let k = 1; k < ranked.length; k++) {
+                  const sib = ranked[k];
+                  sib.ch.fromWireId = primary.ch.id;
+                  if (!sib.ch.fromPoint) sib.ch.fromPoint = { x: sib.proj.point.x, y: sib.proj.point.y };
+                }
+              }
+            }
+          }
+
           const toComp = wire._toComp || this.getComponent(wire.toCompId);
           if (toComp && toComp.inputs[wire.toPin]) {
             toComp.inputs[wire.toPin].value = 0;
@@ -8214,15 +8855,23 @@
             if (w.fromCompId) {
               const src = compMap.get(w.fromCompId);
               w.level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
-            } else if (w.fromWireId) {
-              let srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
-              let hops = 0;
-              while (srcWire && srcWire.fromWireId && !srcWire.fromCompId && hops < 16) {
-                srcWire = this.wireMap.get(srcWire.fromWireId) || this.wires.find(sw => sw.id === srcWire.fromWireId);
-                hops++;
-              }
-              w.level = srcWire ? srcWire.level : 0;
             }
+          }
+          const maxWireHops = Math.min(64, wires.length + 2);
+          for (let pass = 0; pass < maxWireHops; pass++) {
+            let wireChanged = false;
+            for (let i = 0; i < wires.length; i++) {
+              const w = wires[i];
+              if (!w.fromCompId && w.fromWireId) {
+                const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
+                const nextLvl = srcWire ? srcWire.level : 0;
+                if (w.level !== nextLvl) {
+                  w.level = nextLvl;
+                  wireChanged = true;
+                }
+              }
+            }
+            if (!wireChanged) break;
           }
         };
 
@@ -8371,32 +9020,24 @@
         const comps = this.components;
         const wires = this.wires;
 
-        for (let iter = 0; iter < 2; iter++) {
-          for (let i = 0; i < wires.length; i++) {
-            const w = wires[i];
-            if (w.fromCompId) {
-              const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
-              w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
-            } else if (w.fromWireId) {
-              let srcWire = this.wireMap ? this.wireMap.get(w.fromWireId) : this.wires.find(sw => sw.id === w.fromWireId);
-              let hops = 0;
-              while (srcWire && srcWire.fromWireId && !srcWire.fromCompId && hops < 16) {
-                srcWire = this.wireMap ? this.wireMap.get(srcWire.fromWireId) : this.wires.find(sw => sw.id === srcWire.fromWireId);
-                hops++;
-              }
-              w.level = srcWire ? srcWire.level : 0;
-            }
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          if (w.fromCompId) {
+            const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
+            w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
           }
         }
 
-        for (let pass = 0; pass < 4; pass++) {
+        const maxWireHops = Math.min(64, wires.length + 2);
+        for (let pass = 0; pass < maxWireHops; pass++) {
           let wireChanged = false;
           for (let i = 0; i < wires.length; i++) {
             const w = wires[i];
-            if (w.fromWireId) {
+            if (!w.fromCompId && w.fromWireId) {
               const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
-              if (srcWire && w.level !== srcWire.level) {
-                w.level = srcWire.level;
+              const nextLvl = srcWire ? srcWire.level : 0;
+              if (w.level !== nextLvl) {
+                w.level = nextLvl;
                 wireChanged = true;
               }
             }
@@ -8622,13 +9263,14 @@
 
         const edges = [];
         for (const w of (circuit.wires || [])) {
-          const a = nodeById.get(w.fromCompId);
+          const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
+          const a = nodeById.get(root.compId);
           const b = nodeById.get(w.toCompId);
           if (!a || !b || a === b) continue;
-          const outPin = a.comp.outputs && a.comp.outputs[w.fromPin];
+          const outPin = a.comp.outputs && a.comp.outputs[root.pin];
           const inPin = b.comp.inputs && b.comp.inputs[w.toPin];
           if (!outPin || !inPin) continue;
-          const e = { a, b, fromPin: w.fromPin, toPin: w.toPin, fy: snap(outPin.relY), ty: snap(inPin.relY), kind: 'fwd' };
+          const e = { a, b, fromPin: root.pin, toPin: w.toPin, fy: snap(outPin.relY), ty: snap(inPin.relY), kind: 'fwd' };
           edges.push(e);
           a.out.push(e);
           b.in.push(e);
@@ -9348,8 +9990,9 @@
         const todo = [];
         const fixed = [];
         for (const w of (circuit.wires || [])) {
-          const fc = compMap.get(w.fromCompId), tc = compMap.get(w.toCompId);
-          if (!fc || !tc || !fc.outputs[w.fromPin] || !tc.inputs[w.toPin]) continue;
+          const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
+          const fc = compMap.get(root.compId), tc = compMap.get(w.toCompId);
+          if (!fc || !tc || !fc.outputs[root.pin] || !tc.inputs[w.toPin]) continue;
           if (!targetIds || targetIds.has(w.id)) todo.push(w); else fixed.push(w);
         }
         for (const w of todo) result.set(w.id, null);
@@ -9421,11 +10064,12 @@
         const nets = new Map();
         const netList = [];
         const getNet = (w) => {
-          const key = w.fromCompId + '\u0000' + w.fromPin;
+          const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
+          const key = root.compId + '\u0000' + root.pin;
           let net = nets.get(key);
           if (!net) {
-            const fc = compMap.get(w.fromCompId);
-            const p = fc.getPinWorldPos(true, w.fromPin);
+            const fc = compMap.get(root.compId);
+            const p = fc.getPinWorldPos(true, root.pin);
             net = {
               id: netList.length + 1, key, sx: p.x, sy: p.y, src: nodeOf(p.x, p.y),
               wires: [], parent: new Map(), base: null, edges: [], ok: true,
@@ -9447,9 +10091,10 @@
           const pts = fixedPts.get(w.id);
           if (!pts) continue;
           const net = getNet(w);
+          if (net.src >= 0 && !net.parent.has(net.src)) net.parent.set(net.src, -1);
           let prev = nodeOf(pts[0].x, pts[0].y);
           if (prev < 0) continue;
-          if (!net.parent.has(prev)) net.parent.set(prev, -1);
+          if (w.fromCompId && !net.parent.has(prev)) net.parent.set(prev, -1);
           for (let i = 1; i < pts.length && prev >= 0; i++) {
             const target = nodeOf(pts[i].x, pts[i].y);
             if (target < 0) break;
@@ -9458,7 +10103,7 @@
             while (prev !== target && guard++ < W + H) {
               const nx = prev + step;
               setEdge(prev, nx, net.id);
-              if (!net.parent.has(nx)) net.parent.set(nx, prev);
+              if (!net.parent.has(nx) || (nx !== net.src && net.parent.get(nx) === -1)) net.parent.set(nx, prev);
               prev = nx;
             }
           }
@@ -9724,7 +10369,8 @@
           const pts = getPolyline(w);
           if (!pts || pts.length < 2) continue;
           res.wires++;
-          const net = w.fromCompId + '\u0000' + w.fromPin;
+          const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
+          const net = (root.compId ? root.compId : w.fromCompId) + '\u0000' + (root.compId ? root.pin : w.fromPin);
           if (pts.length === 2 && pts[0].y === pts[1].y) res.straightWires++;
           res.bends += Math.max(0, pts.length - 2);
           const hit = new Set();
@@ -11617,8 +12263,10 @@
         return { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
       }
 
-      getProjectedRatioOnPolyline(pts, worldPos) {
-        if (!pts || pts.length < 2) return 0.5;
+      projectPointOnPolyline(pts, worldPos) {
+        if (!pts || pts.length < 2 || !worldPos) {
+          return { ratio: 0.5, distAlong: 0, totalLen: 0, distSq: Infinity };
+        }
         let totalLen = 0;
         const segLens = [];
         for (let i = 0; i < pts.length - 1; i++) {
@@ -11626,7 +12274,11 @@
           segLens.push(len);
           totalLen += len;
         }
-        if (totalLen === 0) return 0.5;
+        if (totalLen === 0) {
+          const dx = worldPos.x - pts[0].x;
+          const dy = worldPos.y - pts[0].y;
+          return { ratio: 0.5, distAlong: 0, totalLen: 0, distSq: dx * dx + dy * dy };
+        }
 
         let bestDistSq = Infinity;
         let bestDistAlong = 0;
@@ -11652,8 +12304,128 @@
           accum += len;
         }
 
-        const ratio = bestDistAlong / totalLen;
-        return Math.max(0.05, Math.min(0.95, ratio));
+        return {
+          ratio: Math.max(0.05, Math.min(0.95, bestDistAlong / totalLen)),
+          distAlong: bestDistAlong,
+          totalLen,
+          distSq: bestDistSq
+        };
+      }
+
+      getProjectedRatioOnPolyline(pts, worldPos) {
+        return this.projectPointOnPolyline(pts, worldPos).ratio;
+      }
+
+      getWireRootKey(wire) {
+        if (!wire || !this.circuit) return '';
+        let curr = wire;
+        const seen = new Set([curr.id]);
+        while (curr.fromWireId && !curr.fromCompId) {
+          const parent = this.circuit.getWire
+            ? this.circuit.getWire(curr.fromWireId)
+            : this.circuit.wires.find(w => w.id === curr.fromWireId);
+          if (!parent || seen.has(parent.id)) break;
+          seen.add(parent.id);
+          curr = parent;
+        }
+        return curr.fromCompId ? `comp:${curr.fromCompId}:${curr.fromPin}` : `wire:${curr.id}`;
+      }
+
+      /**
+       * Returns all wire IDs belonging to a fork when clicking upstream of (or at) a junction.
+       * Clicking downstream of a fork selects only the clicked branch (unless it forks further down).
+       */
+      getForkWireIdsAt(worldX, worldY, hitWire, tolerance = 7) {
+        if (!hitWire || !this.circuit || !Array.isArray(this.circuit.wires)) return [];
+        const wires = this.circuit.wires;
+        const tolSq = tolerance * tolerance;
+        const clickPt = { x: worldX, y: worldY };
+        const polyMap = new Map();
+        const wireById = new Map();
+        for (const w of wires) {
+          wireById.set(w.id, w);
+          const pts = this.getWirePolyline(w);
+          if (pts && pts.length >= 2) polyMap.set(w.id, pts);
+        }
+
+        const rootKey = this.getWireRootKey(hitWire);
+        const selected = new Set();
+        const queue = [];
+
+        const enqueue = (w, minDistAlong) => {
+          if (!w || selected.has(w.id)) return;
+          selected.add(w.id);
+          queue.push({ wire: w, minDistAlong });
+        };
+
+        const hitPts = polyMap.get(hitWire.id);
+        const hitProj = hitPts ? this.projectPointOnPolyline(hitPts, clickPt) : { distAlong: 0 };
+        enqueue(hitWire, hitProj.distAlong);
+
+        // Overlapping same-source trunk wires that pass through the exact clicked point (not perpendicular branches)
+        const overlapDistLimit = Math.max(4, (hitProj.distSq || 0) + 2);
+        for (const w of wires) {
+          if (w.id === hitWire.id) continue;
+          if (this.getWireRootKey(w) !== rootKey) continue;
+          const pts = polyMap.get(w.id);
+          if (!pts) continue;
+          const proj = this.projectPointOnPolyline(pts, clickPt);
+          if (proj.distSq <= overlapDistLimit) {
+            enqueue(w, proj.distAlong);
+          }
+        }
+
+        while (queue.length > 0) {
+          const { wire: cur, minDistAlong } = queue.shift();
+          const curPts = polyMap.get(cur.id);
+          if (!curPts) continue;
+
+          // Explicit wire-to-wire child branches splitting at or downstream of minDistAlong
+          for (const child of wires) {
+            if (selected.has(child.id) || child.fromWireId !== cur.id) continue;
+            const childPts = polyMap.get(child.id);
+            if (!childPts) continue;
+            const bProj = this.projectPointOnPolyline(curPts, childPts[0]);
+            if (bProj.distAlong >= minDistAlong - 6) {
+              enqueue(child, 0);
+            }
+          }
+
+          // Stem wire terminating into a target wire at a junction
+          if (cur.toWireId && !selected.has(cur.toWireId)) {
+            const target = wireById.get(cur.toWireId);
+            const targetPts = target ? polyMap.get(target.id) : null;
+            if (target && targetPts) {
+              const tProj = this.projectPointOnPolyline(targetPts, curPts[curPts.length - 1]);
+              enqueue(target, tProj.distAlong);
+            }
+          }
+
+          // Shared-output-pin sibling wires that fork off a downstream junction on cur
+          if (cur.fromCompId) {
+            const p0 = curPts[0];
+            for (const sib of wires) {
+              if (selected.has(sib.id)) continue;
+              if (sib.fromCompId !== cur.fromCompId || sib.fromPin !== cur.fromPin) continue;
+              const sibPts = polyMap.get(sib.id);
+              if (!sibPts) continue;
+              for (let k = 1; k < curPts.length - 1; k++) {
+                const jp = curPts[k];
+                if (Math.hypot(jp.x - p0.x, jp.y - p0.y) < 4) continue;
+                const jProj = this.projectPointOnPolyline(curPts, jp);
+                if (jProj.distAlong >= minDistAlong - 6 && this.distToWireSq(jp.x, jp.y, sibPts) <= 16) {
+                  const sibClickProj = this.projectPointOnPolyline(sibPts, clickPt);
+                  if (sibClickProj.distSq <= 25 || this.distToWireSq(curPts[1].x, curPts[1].y, sibPts) <= 16) {
+                    enqueue(sib, this.projectPointOnPolyline(sibPts, jp).distAlong);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        return Array.from(selected);
       }
 
       getClosestPointOnPolyline(pts, worldPos) {
@@ -11663,30 +12435,53 @@
         return this.getPointAlongPolyline(pts, ratio) || { x: worldPos.x, y: worldPos.y };
       }
 
+      getProbeBadgeRect(probe) {
+        if (!probe) return null;
+        const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+        if (!wire) return null;
+        const pts = this.getWirePolyline(wire);
+        const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
+        if (!pos) return null;
+        const nameStr = (probe.name || 'PRB').slice(0, 5);
+        const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
+        const badgeH = 14;
+        return {
+          x: Math.round(pos.x - badgeW / 2),
+          y: Math.round(pos.y - 17),
+          w: badgeW,
+          h: badgeH,
+          pos,
+          nameStr,
+          wire
+        };
+      }
+
+      findProbeBadgeAt(worldX, worldY) {
+        const probes = this.circuit.getProbes();
+        for (let i = probes.length - 1; i >= 0; i--) {
+          const probe = probes[i];
+          const rect = this.getProbeBadgeRect(probe);
+          if (!rect) continue;
+          if (worldX >= rect.x && worldX <= rect.x + rect.w && worldY >= rect.y && worldY <= rect.y + rect.h) {
+            return { probe, rect };
+          }
+        }
+        return null;
+      }
+
       findProbeAt(worldX, worldY) {
         const probes = this.circuit.getProbes();
 
         for (let i = probes.length - 1; i >= 0; i--) {
           const probe = probes[i];
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
-          if (!wire) continue;
-          const pts = this.getWirePolyline(wire);
-          const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
-          if (!pos) continue;
-
-          const nameStr = (probe.name || 'PRB').slice(0, 5);
-          const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
-          const badgeH = 14;
-
-          const dx = worldX - pos.x;
-          const dy = worldY - pos.y;
+          const rect = this.getProbeBadgeRect(probe);
+          if (!rect) continue;
+          const dx = worldX - rect.pos.x;
+          const dy = worldY - rect.pos.y;
           if (dx * dx + dy * dy <= 60) {
             return probe;
           }
-
-          const bx = Math.round(pos.x - badgeW / 2);
-          const by = Math.round(pos.y - 17);
-          if (worldX >= bx && worldX <= bx + badgeW && worldY >= by && worldY <= by + badgeH) {
+          if (worldX >= rect.x && worldX <= rect.x + rect.w && worldY >= rect.y && worldY <= rect.y + rect.h) {
             return probe;
           }
         }
@@ -11700,14 +12495,9 @@
         const pal = this.getThemePalette();
 
         for (const probe of probes) {
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
-          if (!wire) continue;
-
-          const pts = this.getWirePolyline(wire);
-          if (pts.length < 2) continue;
-
-          const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
-          if (!pos) continue;
+          const rect = this.getProbeBadgeRect(probe);
+          if (!rect) continue;
+          const { x: bx, y: by, w: badgeW, h: badgeH, pos, nameStr, wire } = rect;
 
           const isSelected = this.selectedProbeId === probe.id;
           const isHovered = this.hoveredProbeId === probe.id;
@@ -11715,12 +12505,6 @@
           const probeColor = probe.color || '#00e676';
 
           ctx.save();
-
-          const nameStr = (probe.name || 'PRB').slice(0, 5);
-          const badgeW = Math.max(34, Math.min(48, 18 + nameStr.length * 5.2));
-          const badgeH = 14;
-          const bx = Math.round(pos.x - badgeW / 2);
-          const by = Math.round(pos.y - 17);
 
           ctx.beginPath();
           ctx.moveTo(pos.x, pos.y);
@@ -12096,6 +12880,9 @@
           ctx.stroke();
 
           if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
+            const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
+            const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
+            const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
             const isDraggingThisWp = this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id;
             const handlePts = (isDraggingThisWp && w.waypoints && w.waypoints.length > 0)
               ? w.waypoints
@@ -12120,8 +12907,8 @@
                 ctx.arc(wp.x, wp.y, isHoveredWp ? 5.5 : 4, 0, Math.PI * 2);
                 ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
                 ctx.fill();
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = isHoveredWp ? '#061014' : '#00b0ff';
+                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = isHoveredWp ? '#061014' : accentBlue;
                 ctx.stroke();
                 ctx.restore();
               }
@@ -12143,10 +12930,10 @@
               ctx.setLineDash([]);
               ctx.beginPath();
               ctx.arc(mx, my, isHoveredMid ? 6 : 3.5, 0, Math.PI * 2);
-              ctx.fillStyle = isHoveredMid ? '#00e676' : 'rgba(0, 176, 255, 0.45)';
+              ctx.fillStyle = isHoveredMid ? '#00e676' : (isLightCanvas ? 'rgba(2, 132, 199, 0.85)' : 'rgba(0, 176, 255, 0.55)');
               ctx.fill();
-              ctx.lineWidth = 1.2;
-              ctx.strokeStyle = isHoveredMid ? '#061014' : '#ffffff';
+              ctx.lineWidth = 1.4;
+              ctx.strokeStyle = isHoveredMid ? '#061014' : contrastStroke;
               ctx.stroke();
 
               if (isHoveredMid) {
@@ -12173,7 +12960,7 @@
                 ctx.stroke();
 
                 ctx.font = '10px monospace';
-                ctx.fillStyle = '#00e676';
+                ctx.fillStyle = isLightCanvas ? '#047857' : '#00e676';
                 ctx.fillText(`${dragWp.x}, ${dragWp.y}`, dragWp.x + 10, dragWp.y - 8);
                 ctx.restore();
               }
@@ -12183,60 +12970,46 @@
           ctx.restore();
         }
 
+        const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
+        const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
+        const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
+
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
+          if (!pts || pts.length === 0) continue;
           const isHigh = w.level === 1;
           const termColor = isHigh ? (this.highSignalColor || '#00ff66') : (this.lowSignalColor || pal.wireLow);
+          const isWireSel = this.selectedWireIds.has(w.id) || this.selectedWireId === w.id;
 
-          if (!w.toCompId && !w.toWireId && w.toPoint && pts.length > 0) {
-            const endPt = pts[pts.length - 1];
-            const isHovered = this.hoveredTerminus && this.hoveredTerminus.wire.id === w.id && this.hoveredTerminus.isEnd;
-            const isDragging = this.activeTerminusDrag && this.activeTerminusDrag.wire.id === w.id && this.activeTerminusDrag.isEnd;
-            const isWireSel = this.selectedWireId === w.id;
-
-            ctx.save();
-            if (isHovered || isDragging || isWireSel) {
-              ctx.beginPath();
-              ctx.arc(endPt.x, endPt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
-              ctx.strokeStyle = isDragging ? '#ffffff' : '#00b0ff';
-              ctx.lineWidth = isDragging ? 2.2 : 1.6;
-              ctx.shadowColor = isDragging ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 176, 255, 0.6)';
-              ctx.shadowBlur = 8;
-              ctx.stroke();
-            }
-
-            ctx.beginPath();
-            ctx.arc(endPt.x, endPt.y, isDragging ? 5.2 : (isHovered ? 4.8 : 4), 0, Math.PI * 2);
-            ctx.fillStyle = isDragging ? '#00b0ff' : termColor;
-            ctx.fill();
-            ctx.lineWidth = 1.4;
-            ctx.strokeStyle = isHovered ? '#ffffff' : '#080b10';
-            ctx.stroke();
-            ctx.restore();
+          const openEndpoints = [];
+          if (!w.toCompId && !w.toWireId && w.toPoint) {
+            openEndpoints.push({ pt: pts[pts.length - 1], isEnd: true });
           }
-          if (!w.fromCompId && !w.fromWireId && w.fromPoint && pts.length > 0) {
-            const startPt = pts[0];
-            const isHovered = this.hoveredTerminus && this.hoveredTerminus.wire.id === w.id && this.hoveredTerminus.isStart;
-            const isDragging = this.activeTerminusDrag && this.activeTerminusDrag.wire.id === w.id && this.activeTerminusDrag.isStart;
-            const isWireSel = this.selectedWireId === w.id;
+          if (!w.fromCompId && !w.fromWireId && w.fromPoint) {
+            openEndpoints.push({ pt: pts[0], isEnd: false });
+          }
+
+          for (const ep of openEndpoints) {
+            const isHovered = this.hoveredTerminus && this.hoveredTerminus.wire.id === w.id && (ep.isEnd ? this.hoveredTerminus.isEnd : this.hoveredTerminus.isStart);
+            const isDragging = this.activeTerminusDrag && this.activeTerminusDrag.wire.id === w.id && (ep.isEnd ? this.activeTerminusDrag.isEnd : this.activeTerminusDrag.isStart);
 
             ctx.save();
             if (isHovered || isDragging || isWireSel) {
               ctx.beginPath();
-              ctx.arc(startPt.x, startPt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
-              ctx.strokeStyle = isDragging ? '#ffffff' : '#00b0ff';
-              ctx.lineWidth = isDragging ? 2.2 : 1.6;
-              ctx.shadowColor = isDragging ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 176, 255, 0.6)';
+              ctx.arc(ep.pt.x, ep.pt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
+              ctx.strokeStyle = isDragging ? contrastStroke : accentBlue;
+              ctx.lineWidth = isDragging ? 2.2 : 1.8;
+              ctx.shadowColor = isDragging ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)') : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
               ctx.shadowBlur = 8;
               ctx.stroke();
             }
 
             ctx.beginPath();
-            ctx.arc(startPt.x, startPt.y, isDragging ? 5.2 : (isHovered ? 4.8 : 4), 0, Math.PI * 2);
-            ctx.fillStyle = isDragging ? '#00b0ff' : termColor;
+            ctx.arc(ep.pt.x, ep.pt.y, isDragging ? 5.2 : (isHovered ? 4.8 : 4), 0, Math.PI * 2);
+            ctx.fillStyle = isDragging ? accentBlue : termColor;
             ctx.fill();
-            ctx.lineWidth = 1.4;
-            ctx.strokeStyle = isHovered ? '#ffffff' : '#080b10';
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = isHovered ? contrastStroke : (isLightCanvas ? '#0f172a' : '#080b10');
             ctx.stroke();
             ctx.restore();
           }
@@ -12292,8 +13065,12 @@
         }
         if (!pts || pts.length < 2) return;
 
+        const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
+        const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
+        const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
+
         ctx.save();
-        ctx.strokeStyle = '#00b0ff';
+        ctx.strokeStyle = accentBlue;
         ctx.lineWidth = 2.5;
         ctx.setLineDash([5, 4]);
         ctx.lineCap = 'round';
@@ -12306,15 +13083,33 @@
         }
         ctx.stroke();
 
+        ctx.setLineDash([]);
         if (drag.waypoints && drag.waypoints.length > 0) {
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#00b0ff';
           for (const wp of drag.waypoints) {
             ctx.beginPath();
             ctx.arc(wp.x, wp.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = accentBlue;
             ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = contrastStroke;
+            ctx.stroke();
           }
         }
+
+        const endPt = isForward ? pts[pts.length - 1] : pts[0];
+        ctx.beginPath();
+        ctx.arc(endPt.x, endPt.y, 7.5, 0, Math.PI * 2);
+        ctx.strokeStyle = contrastStroke;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(endPt.x, endPt.y, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = accentBlue;
+        ctx.fill();
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = contrastStroke;
+        ctx.stroke();
 
         ctx.restore();
       }
@@ -13452,6 +14247,63 @@
       }
     }
 
+    /** Opens an inline text input overlay to rename a probe directly in place. */
+    function openInlineProbeRenameInput(container, box, probe, onCommit) {
+      if (!container || !probe || typeof document.createElement !== 'function') return null;
+      if (typeof container.querySelectorAll === 'function') {
+        container.querySelectorAll('.probe-inline-rename-input').forEach(el => {
+          if (typeof el.remove === 'function') el.remove();
+        });
+      }
+      const prevName = probe.name || 'PRB';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'probe-inline-rename-input';
+      input.value = prevName;
+      input.maxLength = 50;
+      input.style.left = `${Math.max(0, Math.round(box.x))}px`;
+      input.style.top = `${Math.max(0, Math.round(box.y))}px`;
+      input.style.width = `${Math.max(48, Math.round(box.w))}px`;
+      input.style.height = `${Math.max(18, Math.round(box.h))}px`;
+      if (box.fontSize) input.style.fontSize = box.fontSize;
+
+      let finished = false;
+      const cleanup = () => {
+        if (typeof input.remove === 'function') input.remove();
+        else if (container.removeChild) {
+          try { container.removeChild(input); } catch (e) { /* ignore */ }
+        }
+      };
+      const finish = (save) => {
+        if (finished) return;
+        finished = true;
+        const val = save ? (String(input.value || '').trim().slice(0, 50) || 'PRB') : prevName;
+        cleanup();
+        if (save && typeof onCommit === 'function') {
+          onCommit(val);
+        }
+      };
+
+      input.addEventListener('keydown', (ke) => {
+        if (ke && ke.stopPropagation) ke.stopPropagation();
+        if (ke.key === 'Enter') {
+          if (ke.preventDefault) ke.preventDefault();
+          finish(true);
+        } else if (ke.key === 'Escape') {
+          if (ke.preventDefault) ke.preventDefault();
+          finish(false);
+        }
+      });
+      input.addEventListener('blur', () => finish(true));
+      input.addEventListener('mousedown', (me) => { if (me && me.stopPropagation) me.stopPropagation(); });
+      input.addEventListener('click', (ce) => { if (ce && ce.stopPropagation) ce.stopPropagation(); });
+
+      container.appendChild(input);
+      if (typeof input.focus === 'function') input.focus();
+      if (typeof input.select === 'function') input.select();
+      return input;
+    }
+
     /**
      * Logic Analyzer / Timing Diagram Renderer
      */
@@ -13502,7 +14354,10 @@
 
       getChannelRowButtons(rowTop, rowH) {
         const btnY = rowTop + (rowH - 16) / 2;
+        const renameH = Math.max(18, Math.min(22, rowH - 6));
+        const renameY = rowTop + (rowH - renameH) / 2;
         return {
+          rename: { x: 24, y: renameY, w: Math.max(44, this.gutterWidth - 102), h: renameH },
           up: { x: this.gutterWidth - 58, y: btnY, w: 16, h: 16 },
           down: { x: this.gutterWidth - 40, y: btnY, w: 16, h: 16 },
           remove: { x: this.gutterWidth - 22, y: btnY, w: 16, h: 16 }
@@ -13526,7 +14381,21 @@
         if (inBox(btns.remove)) return { pIdx, probe, action: 'remove' };
         if (inBox(btns.up)) return { pIdx, probe, action: pIdx > 0 ? 'up' : 'disabled' };
         if (inBox(btns.down)) return { pIdx, probe, action: pIdx < probes.length - 1 ? 'down' : 'disabled' };
+        if (inBox(btns.rename)) return { pIdx, probe, action: 'rename', box: btns.rename };
         return { pIdx, probe, action: 'row' };
+      }
+
+      startInlineRename(probe, box) {
+        if (!probe || !box) return null;
+        const container = this.canvas ? this.canvas.parentElement : null;
+        return openInlineProbeRenameInput(container, box, probe, (nextName) => {
+          probe.name = nextName;
+          if (this.callbacks?.onRenameProbe) {
+            this.callbacks.onRenameProbe(probe.id, nextName);
+          } else {
+            this.render();
+          }
+        });
       }
 
       moveProbe(probeId, targetIndex, commit = true) {
@@ -13722,6 +14591,8 @@
             const probeCount = this.circuit.getProbes().length;
             if (hit && (hit.action === 'up' || hit.action === 'down' || hit.action === 'remove')) {
               this.canvas.style.cursor = 'pointer';
+            } else if (hit && hit.action === 'rename') {
+              this.canvas.style.cursor = 'text';
             } else if (hit && hit.action === 'disabled') {
               this.canvas.style.cursor = 'default';
             } else if (hit && hit.action === 'row' && probeCount > 1) {
@@ -13764,7 +14635,7 @@
 
           if (e.button === 0 && mx >= 0 && mx <= this.gutterWidth) {
             const hit = this.hitTestGutter(mx, my);
-            if (hit && hit.action === 'row' && this.circuit.getProbes().length > 1) {
+            if (hit && (hit.action === 'row' || hit.action === 'rename') && this.circuit.getProbes().length > 1) {
               this.channelDrag = {
                 probeId: hit.probe.id,
                 startIndex: hit.pIdx,
@@ -13900,6 +14771,11 @@
             this.moveProbe(hit.probe.id, hit.pIdx - 1, true);
           } else if (hit.action === 'down') {
             this.moveProbe(hit.probe.id, hit.pIdx + 1, true);
+          } else if (hit.action === 'rename') {
+            if (this.callbacks?.onSelectProbe) {
+              this.callbacks.onSelectProbe(hit.probe.id);
+            }
+            this.startInlineRename(hit.probe, hit.box);
           } else if (hit.action === 'row') {
             if (this.callbacks?.onSelectProbe) {
               this.callbacks.onSelectProbe(hit.probe.id);
@@ -14578,10 +15454,31 @@
           ctx.arc(19, rowTop + rowH / 2, 4, 0, Math.PI * 2);
           ctx.fill();
 
+          const btns = this.getChannelRowButtons(rowTop, rowH);
+          const isOverBox = (b) => !this.channelDrag?.active && this.hoverX !== null &&
+            this.hoverX >= b.x && this.hoverX <= b.x + b.w &&
+            this.hoverY >= b.y && this.hoverY <= b.y + b.h;
+
+          const isRenameHover = isOverBox(btns.rename);
+          ctx.save();
+          if (isRenameHover) {
+            ctx.fillStyle = isLight ? 'rgba(2, 132, 199, 0.14)' : 'rgba(56, 189, 248, 0.16)';
+            ctx.strokeStyle = isLight ? '#0284c7' : '#38bdf8';
+            ctx.lineWidth = 1;
+            this.roundRect(ctx, btns.rename.x, btns.rename.y, btns.rename.w, btns.rename.h, 3);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)';
+            this.roundRect(ctx, btns.rename.x, btns.rename.y, btns.rename.w, btns.rename.h, 3);
+            ctx.fill();
+          }
+          ctx.restore();
+
           ctx.fillStyle = gutterTextColor;
           ctx.font = '600 11px monospace';
           ctx.textAlign = 'left';
-          ctx.fillText(probeName.slice(0, 8), 28, rowTop + rowH / 2 + 4);
+          ctx.fillText(probeName.slice(0, 9), btns.rename.x + 4, rowTop + rowH / 2 + 4);
 
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
           const currentVal = wire ? wire.level : (probe.inputs ? probe.inputs[0]?.value : 0);
@@ -14594,11 +15491,6 @@
           ctx.font = '700 11px monospace';
           ctx.textAlign = 'right';
           ctx.fillText(displayVal === 1 ? '1' : '0', this.gutterWidth - 63, rowTop + rowH / 2 + 4);
-
-          const btns = this.getChannelRowButtons(rowTop, rowH);
-          const isOverBox = (b) => !this.channelDrag?.active && this.hoverX !== null &&
-            this.hoverX >= b.x && this.hoverX <= b.x + b.w &&
-            this.hoverY >= b.y && this.hoverY <= b.y + b.h;
 
           // Move Up button (▲)
           const canUp = pIdx > 0;
@@ -14775,7 +15667,8 @@
             return;
           }
           const wire = this.circuit.wires.find(w => w.id === probe.wireId);
-          const fromComp = wire ? this.circuit.getComponent(wire.fromCompId) : null;
+          const rootInfo = wire && this.circuit.resolveWireRoot ? this.circuit.resolveWireRoot(wire) : null;
+          const fromComp = wire ? this.circuit.getComponent((rootInfo && rootInfo.compId) || wire.fromCompId) : null;
           const toComp = wire ? this.circuit.getComponent(wire.toCompId) : null;
 
           const info = document.createElement('div');
@@ -14783,7 +15676,7 @@
           info.innerHTML = `
             <div><strong>Typ:</strong> Messpunkt</div>
             <div><strong>ID:</strong> ${escapeHtml(probe.id)}</div>
-            <div><strong>Leitung:</strong> ${escapeHtml(probe.wireId)} (${escapeHtml(fromComp?.params.label || wire?.fromCompId || '?')} &rarr; ${escapeHtml(toComp?.params.label || wire?.toCompId || '?')})</div>
+            <div><strong>Leitung:</strong> ${escapeHtml(probe.wireId)} (${escapeHtml(fromComp?.params.label || (rootInfo && rootInfo.compId) || wire?.fromCompId || '?')} &rarr; ${escapeHtml(toComp?.params.label || wire?.toCompId || '?')})</div>
             <div><strong>Signalpegel:</strong> <span style="color:${(wire && wire.level) ? '#00e676' : '#94a3b8'};font-weight:700;">${wire ? wire.level : 0} (${(wire && wire.level) ? 'HIGH' : 'LOW'})</span></div>
           `;
           this.container.appendChild(info);
@@ -14920,8 +15813,11 @@
           styleRow.style.display = 'flex';
           styleRow.style.alignItems = 'center';
           styleRow.style.justifyContent = 'space-between';
+          styleRow.style.gap = '8px';
+          styleRow.style.flexWrap = 'wrap';
+          styleRow.style.minWidth = '0';
           styleRow.style.marginBottom = '8px';
-          styleRow.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">Verlegungsart:</span>`;
+          styleRow.innerHTML = `<span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">Verlegungsart:</span>`;
           const styleSelect = document.createElement('select');
           styleSelect.className = 'inspector-select';
           styleSelect.style.padding = '3px 6px';
@@ -16645,6 +17541,9 @@
                 }
               }
             },
+            onRenameProbe: (probeId, newName) => {
+              this.renameProbe(probeId, newName);
+            },
             onContextMenu: (clientX, clientY, probe) => {
               this.showProbeContextMenu(clientX, clientY, probe);
             },
@@ -17501,6 +18400,13 @@
           wire.autoRouted = false;
         } else if (this.smartWires) {
           this.routeWires([wire.id]);
+          return;
+        }
+        const root = this.circuit.resolveWireRoot(wire);
+        if (root.compId && wire.style !== 'diagonal') {
+          const keys = new Set([`${root.compId}\u0000${root.pin}`]);
+          this.circuit.normalizeForkWires((w) => this.renderer.getWirePolyline(w), keys);
+          this.circuit.updateWireLevelsFromDrivers();
         }
       }
 
@@ -17733,8 +18639,9 @@
           for (const wid of selectedWireIds) {
             const w = this.circuit.wires.find(wire => wire.id === wid);
             if (w) {
-              selectedCompIds.add(w.fromCompId);
-              selectedCompIds.add(w.toCompId);
+              const root = this.circuit.resolveWireRoot(w);
+              if (root.compId) selectedCompIds.add(root.compId);
+              if (w.toCompId) selectedCompIds.add(w.toCompId);
             }
           }
         }
@@ -17750,9 +18657,11 @@
         const wires = [];
         const addedWireIds = new Set();
         for (const w of this.circuit.wires) {
+          const root = this.circuit.resolveWireRoot(w);
+          const effectiveFrom = w.fromCompId || root.compId;
           if (
-            (selectedCompIds.has(w.fromCompId) && selectedCompIds.has(w.toCompId)) ||
-            (selectedWireIds.has(w.id) && selectedCompIds.has(w.fromCompId) && selectedCompIds.has(w.toCompId))
+            (selectedCompIds.has(effectiveFrom) && selectedCompIds.has(w.toCompId)) ||
+            (selectedWireIds.has(w.id) && selectedCompIds.has(effectiveFrom) && selectedCompIds.has(w.toCompId))
           ) {
             if (!addedWireIds.has(w.id)) {
               addedWireIds.add(w.id);
@@ -17805,18 +18714,46 @@
         }
 
         const newWireIds = [];
-        for (const wData of this.clipboard.wires) {
-          const newFromId = idMap.get(wData.fromCompId);
+        const wireIdMap = new Map();
+        const deferredChildren = [];
+        const createCopiedWire = (wData, allowFork = false) => {
+          const newFromId = wData.fromCompId ? idMap.get(wData.fromCompId) : null;
+          const newFromWireId = (!newFromId && wData.fromWireId) ? wireIdMap.get(wData.fromWireId) : null;
           const newToId = idMap.get(wData.toCompId);
-          if (newFromId && newToId) {
-            const waypoints = (wData.waypoints || []).map(p => ({
-              x: p.x + offsetX,
-              y: p.y + offsetY
-            }));
-            const newWire = this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints);
-            if (newWire) {
-              newWire.channelOffset = wData.channelOffset || 0;
-              newWireIds.push(newWire.id);
+          if (!newToId) return;
+          if (!newFromId && !newFromWireId) {
+            if (allowFork && wData.fromWireId) {
+              // Parent wire wasn't copied: fallback to resolving copied root if possible
+              return;
+            }
+            if (!allowFork && wData.fromWireId) {
+              deferredChildren.push(wData);
+            }
+            return;
+          }
+          const waypoints = (wData.waypoints || []).map(p => ({
+            x: p.x + offsetX,
+            y: p.y + offsetY
+          }));
+          const extra = { style: wData.style };
+          if (newFromWireId) extra.fromWireId = newFromWireId;
+          if (wData.fromPoint) extra.fromPoint = { x: wData.fromPoint.x + offsetX, y: wData.fromPoint.y + offsetY };
+          const newWire = this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints, extra);
+          if (newWire) {
+            newWire.channelOffset = wData.channelOffset || 0;
+            if (wData.auto) newWire.autoRouted = true;
+            wireIdMap.set(wData.id, newWire.id);
+            newWireIds.push(newWire.id);
+          }
+        };
+        for (const wData of this.clipboard.wires) createCopiedWire(wData, false);
+        for (let pass = 0; pass < 8 && deferredChildren.length > 0; pass++) {
+          const pending = deferredChildren.splice(0, deferredChildren.length);
+          for (const wData of pending) {
+            const prevLen = newWireIds.length;
+            createCopiedWire(wData, false);
+            if (newWireIds.length === prevLen && wData.fromWireId && !wireIdMap.has(wData.fromWireId)) {
+              deferredChildren.push(wData);
             }
           }
         }
@@ -18026,9 +18963,43 @@
         this.updateStatusBar();
       }
 
+      renameProbe(probeId, newName) {
+        const probe = this.circuit.getProbe(probeId);
+        if (!probe) return false;
+        const cleaned = String(newName || '').trim().slice(0, 50) || 'PRB';
+        if (probe.name !== cleaned) {
+          this.checkpointHistory();
+          probe.name = cleaned;
+        }
+        if (this.renderer.selectedProbeId === probe.id) {
+          this.inspector.render(null, null, probe.id);
+        }
+        this.refreshAll();
+        return true;
+      }
+
+      startCanvasProbeRename(probe, canvasEl, renderer) {
+        if (!probe || !canvasEl || !renderer) return null;
+        const rect = renderer.getProbeBadgeRect(probe);
+        if (!rect) return null;
+        const container = canvasEl.parentElement;
+        const zoom = renderer.zoom || 1;
+        const box = {
+          x: rect.x * zoom + (renderer.panX || 0) - 4,
+          y: (canvasEl.offsetTop || 0) + rect.y * zoom + (renderer.panY || 0) - 2,
+          w: Math.max(72, rect.w * zoom + 20),
+          h: Math.max(20, rect.h * zoom + 4),
+          fontSize: '11px'
+        };
+        return openInlineProbeRenameInput(container, box, probe, (nextName) => {
+          this.renameProbe(probe.id, nextName);
+        });
+      }
+
       selectMulti(compIds = [], wireIds = []) {
         this.renderer.selectedCompIds = new Set(compIds || []);
         this.renderer.selectedWireIds = new Set(wireIds || []);
+        this.renderer._primaryWireId = null;
         this.renderer.selectedProbeId = null;
 
         const totalComps = this.renderer.selectedCompIds.size;
@@ -18204,13 +19175,18 @@
           }
         }
         this.groupWireStartWaypoints = new Map();
+        this.groupWireStartFromPoints = new Map();
         for (const wire of this.circuit.wires) {
-          const fromSel = this.renderer.selectedCompIds.has(wire.fromCompId);
+          const root = this.circuit.resolveWireRoot(wire);
+          const fromSel = this.renderer.selectedCompIds.has(wire.fromCompId || root.compId);
           const toSel = this.renderer.selectedCompIds.has(wire.toCompId);
           const wireSel = this.renderer.selectedWireIds.has(wire.id);
           if ((fromSel && toSel) || wireSel) {
             if (wire.waypoints && wire.waypoints.length > 0) {
               this.groupWireStartWaypoints.set(wire.id, wire.waypoints.map(p => ({ x: p.x, y: p.y })));
+            }
+            if (wire.fromPoint && !wire.fromCompId) {
+              this.groupWireStartFromPoints.set(wire.id, { x: wire.fromPoint.x, y: wire.fromPoint.y });
             }
           }
         }
@@ -19292,6 +20268,9 @@
 
           const hitProbe = this.renderer.findProbeAt(world.x, world.y);
           if (hitProbe) {
+            const wasSelected = this.renderer.selectedProbeId === hitProbe.id;
+            const inBadge = Boolean(this.renderer.findProbeBadgeAt(world.x, world.y));
+            this._probeClickPending = { probeId: hitProbe.id, wasSelected, inBadge, clientX: e.clientX || 0, clientY: e.clientY || 0 };
             this.selectItem(null, null, hitProbe.id);
             this.highlightInspector();
             if (this.engine.mode === 'edit') {
@@ -19329,7 +20308,12 @@
             }
             const clickedWire = this.renderer.findWireAt(world.x, world.y);
             if (clickedWire) {
-              this.selectItem(null, clickedWire.id);
+              const forkWireIds = this.renderer.getForkWireIdsAt(world.x, world.y, clickedWire);
+              if (forkWireIds.length > 1) {
+                this.selectMulti([], forkWireIds);
+              } else {
+                this.selectItem(null, clickedWire.id);
+              }
               return;
             }
             this.selectItem(null, null);
@@ -19508,25 +20492,30 @@
 
           const hitWire = this.renderer.findWireAt(world.x, world.y);
           if (hitWire) {
+            const forkWireIds = this.renderer.getForkWireIdsAt(world.x, world.y, hitWire);
             if (e.shiftKey || e.ctrlKey) {
               const currentWires = new Set(this.renderer.selectedWireIds);
-              if (currentWires.has(hitWire.id)) {
-                currentWires.delete(hitWire.id);
-              } else {
-                currentWires.add(hitWire.id);
+              const allSelected = forkWireIds.every(id => currentWires.has(id));
+              for (const id of forkWireIds) {
+                if (allSelected) currentWires.delete(id);
+                else currentWires.add(id);
               }
               this.selectMulti(this.renderer.selectedCompIds, currentWires);
               return;
             }
 
             const totalSel = this.renderer.selectedCompIds.size + this.renderer.selectedWireIds.size;
-            if (this.renderer.selectedWireIds.has(hitWire.id) && totalSel > 1) {
+            if (this.renderer.selectedCompIds.size > 0 && this.renderer.selectedWireIds.has(hitWire.id) && totalSel > 1) {
               this.startGroupDrag(world, e);
               canvas.style.cursor = 'move';
               return;
             }
 
-            this.selectItem(null, hitWire.id);
+            if (forkWireIds.length > 1) {
+              this.selectMulti([], forkWireIds);
+            } else {
+              this.selectItem(null, hitWire.id);
+            }
             return;
           }
 
@@ -19613,6 +20602,14 @@
                     x: p.x + snapDx,
                     y: p.y + snapDy
                   }));
+                }
+              }
+            }
+            if (this.groupWireStartFromPoints) {
+              for (const [wid, origFp] of this.groupWireStartFromPoints.entries()) {
+                const wire = this.circuit.wires.find(w => w.id === wid);
+                if (wire && origFp) {
+                  wire.fromPoint = { x: origFp.x + snapDx, y: origFp.y + snapDy };
                 }
               }
             }
@@ -19976,6 +20973,16 @@
             this.refreshAll();
           }
 
+          if (this._probeClickPending) {
+            const info = this._probeClickPending;
+            this._probeClickPending = null;
+            const dist = Math.hypot((e.clientX || 0) - info.clientX, (e.clientY || 0) - info.clientY);
+            if (dist < 4 && info.inBadge && info.wasSelected) {
+              const p = this.circuit.getProbe(info.probeId);
+              if (p) this.startCanvasProbeRename(p, canvas, this.renderer);
+            }
+          }
+
           if (this.isPanning) {
             this.isPanning = false;
             this.gridCanvas.style.cursor = this.spacePressed ? 'grab' : 'default';
@@ -20081,11 +21088,19 @@
         });
 
         canvas.addEventListener('dblclick', (e) => {
-          if (this.engine.mode !== 'edit') return;
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
           const world = this.renderer.screenToWorld(sx, sy);
+
+          const hitProbe = this.renderer.findProbeAt(world.x, world.y);
+          if (hitProbe) {
+            this.selectItem(null, null, hitProbe.id);
+            this.startCanvasProbeRename(hitProbe, canvas, this.renderer);
+            return;
+          }
+
+          if (this.engine.mode !== 'edit') return;
 
           if (this.renderer.activeWireDrag) {
             const snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
@@ -20204,7 +21219,13 @@
             }
             const clickedWire = this.rendererRight.findWireAt(world.x, world.y);
             if (clickedWire) {
-              this.rendererRight.selectedWireId = clickedWire.id;
+              const forkWireIds = this.rendererRight.getForkWireIdsAt(world.x, world.y, clickedWire);
+              if (forkWireIds.length > 1) {
+                this.rendererRight.selectedWireIds = new Set(forkWireIds);
+                this.rendererRight._primaryWireId = null;
+              } else {
+                this.rendererRight.selectedWireId = clickedWire.id;
+              }
               this.rendererRight.render();
               return;
             }
@@ -20243,7 +21264,13 @@
 
           const hitWire = this.rendererRight.findWireAt(world.x, world.y);
           if (hitWire) {
-            this.rendererRight.selectedWireId = hitWire.id;
+            const forkWireIds = this.rendererRight.getForkWireIdsAt(world.x, world.y, hitWire);
+            if (forkWireIds.length > 1) {
+              this.rendererRight.selectedWireIds = new Set(forkWireIds);
+              this.rendererRight._primaryWireId = null;
+            } else {
+              this.rendererRight.selectedWireId = hitWire.id;
+            }
             this.rendererRight.selectedCompId = null;
             this.rendererRight.render();
             return;
@@ -20587,10 +21614,6 @@
             sep.className = 'ctx-divider';
             menu.appendChild(sep);
             addAction(ICONS.autoLayout, 'Alles anordnen (A)', () => this.runAlignAction('all'));
-            if (selComps.size >= 3) {
-              addAction(ICONS.autoRoute, 'Vertikal gleichmäßig verteilen', () => this.distributeSelection('v'));
-              addAction(ICONS.autoRoute, 'Horizontal gleichmäßig verteilen', () => this.distributeSelection('h'));
-            }
           }
 
           if (selComps.size >= 1 && this.engine.mode === 'edit') {
@@ -20621,7 +21644,7 @@
           menu.appendChild(dupItem);
 
           const delItem = document.createElement('div');
-          delItem.className = 'ctx-item danger';
+          delItem.className = 'ctx-item danger ctx-danger-btn';
           delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Auswahl löschen (Entf)</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
@@ -21619,9 +22642,38 @@
         const outcome = { routed: 0, fallback: 0 };
         if (!circuit || !circuit.wires || circuit.wires.length === 0) return outcome;
         const useDiagonal = Boolean(options.allowDiagonal) && this.allowDiagonalWires !== false;
-        const ids = targetIds ? new Set(targetIds) : null;
+        let ids = targetIds ? new Set(targetIds) : null;
+
+        if (ids) {
+          let added = true;
+          while (added) {
+            added = false;
+            for (const w of circuit.wires) {
+              if (!w.fromCompId && w.fromWireId && ids.has(w.fromWireId) && !ids.has(w.id)) {
+                const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
+                if (isAuto) {
+                  ids.add(w.id);
+                  added = true;
+                }
+              }
+            }
+          }
+        }
+
+        const affectedRootKeys = ids ? new Set() : null;
         for (const w of circuit.wires) {
           if (ids && !ids.has(w.id)) continue;
+          const root = circuit.resolveWireRoot(w);
+          if (root.compId) {
+            if (affectedRootKeys) affectedRootKeys.add(`${root.compId}\u0000${root.pin}`);
+            if (!w.fromCompId && w.fromWireId && w.toCompId) {
+              w.fromCompId = root.compId;
+              w.fromPin = root.pin;
+              w._fromComp = circuit.getComponent(root.compId) || null;
+              w.fromWireId = null;
+              w.fromPoint = null;
+            }
+          }
           w.waypoints = [];
           w.channelOffset = 0;
           w.style = 'orthogonal';
@@ -21720,6 +22772,33 @@
             }
           }
         }
+        if (ids) {
+          const detachedIds = [];
+          for (const w of circuit.wires) {
+            if (!w.fromCompId && w.fromWireId && ids.has(w.fromWireId) && !ids.has(w.id)) {
+              const parent = circuit.getWire(w.fromWireId);
+              const parentPts = parent ? this.renderer.getWirePolyline(parent) : [];
+              const anchor = w.fromPoint || (parentPts[0] || null);
+              const dSq = (anchor && parentPts.length >= 2) ? circuit._projectPointOnPoints(parentPts, anchor).distSq : Infinity;
+              if (dSq > 16 && w.toCompId) {
+                const root = circuit.resolveWireRoot(w);
+                if (root.compId) {
+                  w.fromCompId = root.compId;
+                  w.fromPin = root.pin;
+                  w._fromComp = circuit.getComponent(root.compId) || null;
+                  w.fromWireId = null;
+                  w.fromPoint = null;
+                  detachedIds.push(w.id);
+                }
+              }
+            }
+          }
+          if (detachedIds.length > 0) {
+            return this.routeWires(detachedIds, options);
+          }
+        }
+        circuit.normalizeForkWires((w) => this.renderer.getWirePolyline(w), affectedRootKeys);
+        circuit.updateWireLevelsFromDrivers();
         return outcome;
       }
 
@@ -21749,7 +22828,8 @@
         for (const w of circuit.wires) {
           const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
           if (!isAuto) continue;
-          if (moved.has(w.fromCompId) || moved.has(w.toCompId)) { targets.push(w.id); continue; }
+          const root = circuit.resolveWireRoot(w);
+          if (moved.has(w.fromCompId) || moved.has(root.compId) || moved.has(w.toCompId)) { targets.push(w.id); continue; }
           const pts = this.renderer.getWirePolyline(w);
           for (const c of boxes) {
             if (this.renderer.isWireIntersectingBox(pts, c.x + 1, c.y + 1, c.x + c.width - 1, c.y + c.height - 1)) {
@@ -21902,7 +22982,10 @@
         let targets = null;
         if (scopeIds) {
           const s = new Set(scopeIds);
-          targets = circuit.wires.filter(w => s.has(w.fromCompId) || s.has(w.toCompId)).map(w => w.id);
+          targets = circuit.wires.filter(w => {
+            const root = circuit.resolveWireRoot(w);
+            return s.has(w.fromCompId) || s.has(root.compId) || s.has(w.toCompId);
+          }).map(w => w.id);
         }
         const tab = this.getActiveTab();
         const memoKey = JSON.stringify([this.layoutSpacing, this.layoutInputs, this.allowDiagonalWires !== false, scopeIds ? scopeIds.slice().sort() : null]);
@@ -21919,22 +23002,55 @@
         if (this.layoutInputs === 'left' || this.layoutInputs === 'near') strategies = [this.layoutInputs];
         else strategies = movable <= 150 ? ['smart', 'near'] : ['smart'];
 
-        const startPos = circuit.components.map(c => ({ c, x: c.x, y: c.y }));
-        const startWires = circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted, style: w.style }));
         const capture = () => ({
           pos: circuit.components.map(c => ({ c, x: c.x, y: c.y })),
-          wires: circuit.wires.map(w => ({ w, waypoints: w.waypoints, autoRouted: w.autoRouted, style: w.style }))
+          wires: circuit.wires.map(w => ({
+            w,
+            fromCompId: w.fromCompId,
+            fromPin: w.fromPin,
+            fromWireId: w.fromWireId,
+            fromPoint: w.fromPoint ? { x: w.fromPoint.x, y: w.fromPoint.y } : null,
+            toCompId: w.toCompId,
+            toPin: w.toPin,
+            toWireId: w.toWireId,
+            toPoint: w.toPoint ? { x: w.toPoint.x, y: w.toPoint.y } : null,
+            waypoints: (w.waypoints || []).map(p => ({ x: p.x, y: p.y })),
+            autoRouted: w.autoRouted,
+            style: w.style,
+            channelOffset: w.channelOffset
+          })),
+          probes: (circuit.probes || []).map(p => ({ p, wireId: p.wireId, offsetRatio: p.offsetRatio }))
         });
         const restore = (state) => {
           for (const p of state.pos) { p.c.x = p.x; p.c.y = p.y; }
-          for (const e of state.wires) { e.w.waypoints = e.waypoints; e.w.autoRouted = e.autoRouted; e.w.style = e.style; e.w._preview = false; }
+          for (const e of state.wires) {
+            e.w.fromCompId = e.fromCompId;
+            e.w.fromPin = e.fromPin;
+            e.w.fromWireId = e.fromWireId;
+            e.w.fromPoint = e.fromPoint ? { x: e.fromPoint.x, y: e.fromPoint.y } : null;
+            e.w.toCompId = e.toCompId;
+            e.w.toPin = e.toPin;
+            e.w.toWireId = e.toWireId;
+            e.w.toPoint = e.toPoint ? { x: e.toPoint.x, y: e.toPoint.y } : null;
+            e.w.waypoints = e.waypoints.map(p => ({ x: p.x, y: p.y }));
+            e.w.autoRouted = e.autoRouted;
+            e.w.style = e.style;
+            e.w.channelOffset = e.channelOffset;
+            e.w._preview = false;
+          }
+          for (const pr of (state.probes || [])) {
+            pr.p.wireId = pr.wireId;
+            pr.p.offsetRatio = pr.offsetRatio;
+          }
+          circuit.syncWirePointers();
         };
+        const startState = capture();
 
         let best = null;
         const startedAt = Date.now();
         for (let i = 0; i < strategies.length; i++) {
           if (i > 0 && Date.now() - startedAt > 450) break;
-          if (i > 0) restore({ pos: startPos, wires: startWires });
+          if (i > 0) restore(startState);
           const layout = AutoLayoutEngine.compute(circuit, Object.assign({ scope: scopeIds, inputAlign: strategies[i] }, this.getLayoutOptions()));
           for (const [id, p] of layout.positions) {
             const c = circuit.getComponent(id);
@@ -21965,7 +23081,7 @@
       layoutSignature() {
         const c = this.circuit;
         return c.components.map(k => `${k.id}:${k.type}:${k.x},${k.y}:${k.width}x${k.height}`).join('|') + '#'
-          + c.wires.map(w => `${w.id}:${w.fromCompId}.${w.fromPin}>${w.toCompId}.${w.toPin}:${w.style || 'orthogonal'}:${w.autoRouted ? 'a' : 'm'}${(w.waypoints || []).map(p => `${p.x},${p.y}`).join(';')}`).join('|');
+          + c.wires.map(w => `${w.id}:${w.fromCompId}.${w.fromPin}|${w.fromWireId || ''}${w.fromPoint ? `@${w.fromPoint.x},${w.fromPoint.y}` : ''}>${w.toCompId}.${w.toPin}:${w.style || 'orthogonal'}:${w.autoRouted ? 'a' : 'm'}${(w.waypoints || []).map(p => `${p.x},${p.y}`).join(';')}`).join('|');
       }
 
       describeLayoutReport(report) {
@@ -22020,7 +23136,10 @@
           if (from && (from.x !== c.x || from.y !== c.y)) moves.push({ comp: c, fx: from.x, fy: from.y, tx: c.x, ty: c.y });
         }
         const movedIds = new Set(moves.map(mv => mv.comp.id));
-        const previewWires = circuit.wires.filter(w => movedIds.has(w.fromCompId) || movedIds.has(w.toCompId));
+        const previewWires = circuit.wires.filter(w => {
+          const root = circuit.resolveWireRoot(w);
+          return movedIds.has(w.fromCompId) || movedIds.has(root.compId) || movedIds.has(w.toCompId);
+        });
         for (const w of previewWires) w._preview = true;
         for (const mv of moves) { mv.comp.x = mv.fx; mv.comp.y = mv.fy; }
 
@@ -22085,34 +23204,6 @@
         this.showToast(`${comps.length} Bauteile ${names[mode] || ''} ausgerichtet`);
         return true;
       }
-
-      /** Spreads the selected components evenly between the two outermost ones. */
-      distributeSelection(axis) {
-        const comps = Array.from(this.renderer.selectedCompIds || []).map(id => this.circuit.getComponent(id)).filter(Boolean);
-        if (comps.length < 3) {
-          this.showToast('Wähle zum Verteilen mindestens drei Bauteile aus.');
-          return false;
-        }
-        this.checkpointHistory();
-        const snap = (v) => Math.round(v / GRID_SIZE) * GRID_SIZE;
-        const horizontal = axis === 'h';
-        comps.sort((a, b) => horizontal ? (a.x - b.x) : (a.y - b.y));
-        const first = comps[0], last = comps[comps.length - 1];
-        const start = horizontal ? first.x : first.y;
-        const end = horizontal ? last.x + last.width : last.y + last.height;
-        const total = comps.reduce((s, c) => s + (horizontal ? c.width : c.height), 0);
-        const gap = Math.max(GRID_SIZE, (end - start - total) / (comps.length - 1));
-        let cursor = start;
-        for (const c of comps) {
-          if (horizontal) c.x = snap(cursor); else c.y = snap(cursor);
-          cursor += (horizontal ? c.width : c.height) + gap;
-        }
-        this.rerouteWiresAround(comps.map(c => c.id));
-        this.refreshAll();
-        this.showToast(`${comps.length} Bauteile ${horizontal ? 'horizontal' : 'vertikal'} gleichmäßig verteilt`);
-        return true;
-      }
-
 
       initExtendedUI() {
         this.scenarioFilterLevel = 0;
@@ -22199,12 +23290,6 @@
             this.updateAlignMenuState();
           });
         });
-        pop.querySelectorAll('[data-distribute]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            this.distributeSelection(btn.getAttribute('data-distribute'));
-            this.updateAlignMenuState();
-          });
-        });
         pop.querySelectorAll('[data-spacing]').forEach(btn => {
           btn.addEventListener('click', () => {
             this.layoutSpacing = btn.getAttribute('data-spacing');
@@ -22281,7 +23366,6 @@
         const label = document.getElementById('align-selection-count');
         if (label) label.textContent = count === 1 ? '1 Bauteil gewählt' : `${count} Bauteile gewählt`;
         document.querySelectorAll('#align-popover [data-align]').forEach(b => { b.disabled = count < 2; });
-        document.querySelectorAll('#align-popover [data-distribute]').forEach(b => { b.disabled = count < 3; });
         document.querySelectorAll('#seg-layout-spacing [data-spacing]').forEach(b => {
           b.classList.toggle('active', b.getAttribute('data-spacing') === this.layoutSpacing);
         });
@@ -22509,8 +23593,12 @@
           grow(comp.x, comp.y); grow(comp.x + comp.width, comp.y + comp.height);
         }
         for (const w of c.wires) {
-          const a = c.getComponent(w.fromCompId).getPinWorldPos(true, w.fromPin);
-          const b = c.getComponent(w.toCompId).getPinWorldPos(false, w.toPin);
+          const root = c.resolveWireRoot(w);
+          const fc = c.getComponent(w.fromCompId || root.compId);
+          const tc = c.getComponent(w.toCompId);
+          if (!fc || !tc) continue;
+          const a = fc.getPinWorldPos(true, w.fromCompId ? w.fromPin : root.pin);
+          const b = tc.getPinWorldPos(false, w.toPin);
           const corners = routes.get(w.id);
           const pts = corners ? [a, ...corners, b] : this.renderer.computeWirePath(a, b, null, 0);
           preview.lines.push(pts);
@@ -22895,7 +23983,10 @@
 
           const inputs = [];
           for (const inC of inputComps) {
-            const outgoing = circuit.wires.filter(w => w.fromCompId === inC.id && gateIndex.has(w.toCompId));
+            const outgoing = circuit.wires.filter(w => {
+              const root = circuit.resolveWireRoot(w);
+              return (w.fromCompId === inC.id || root.compId === inC.id) && gateIndex.has(w.toCompId);
+            });
             const label = inC.params.label || inC.type || 'IN';
             const targets = outgoing.map(w => ({
               targetCompIdx: gateIndex.get(w.toCompId),
@@ -22910,27 +24001,37 @@
 
           const outputs = [];
           for (const outC of outputComps) {
-            const incoming = circuit.wires.filter(w => w.toCompId === outC.id && gateIndex.has(w.fromCompId));
+            const incoming = circuit.wires.filter(w => {
+              const root = circuit.resolveWireRoot(w);
+              return w.toCompId === outC.id && gateIndex.has(w.fromCompId || root.compId);
+            });
             const label = outC.params.label || outC.type || 'OUT';
             if (incoming.length > 0) {
               const w = incoming[0];
+              const root = circuit.resolveWireRoot(w);
               outputs.push({
                 name: label,
-                sourceCompIdx: gateIndex.get(w.fromCompId),
-                sourcePin: w.fromPin
+                sourceCompIdx: gateIndex.get(w.fromCompId || root.compId),
+                sourcePin: w.fromCompId ? w.fromPin : root.pin
               });
             }
           }
           if (outputs.length === 0) outputs.push({ name: 'OUT', sourceCompIdx: Math.max(0, gates.length - 1), sourcePin: 0 });
 
           const subWires = circuit.wires
-            .filter(w => gateIndex.has(w.fromCompId) && gateIndex.has(w.toCompId))
-            .map(w => ({
-              from: gateIndex.get(w.fromCompId),
-              fp: w.fromPin,
-              to: gateIndex.get(w.toCompId),
-              tp: w.toPin,
-              wp: (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
+            .map(w => {
+              const root = circuit.resolveWireRoot(w);
+              const fromId = w.fromCompId || root.compId;
+              const fp = w.fromCompId ? w.fromPin : root.pin;
+              return { w, fromId, fp };
+            })
+            .filter(item => gateIndex.has(item.fromId) && gateIndex.has(item.w.toCompId))
+            .map(item => ({
+              from: gateIndex.get(item.fromId),
+              fp: item.fp,
+              to: gateIndex.get(item.w.toCompId),
+              tp: item.w.toPin,
+              wp: (item.w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
             }));
 
           modData = {
@@ -22964,13 +24065,19 @@
               params: JSON.parse(JSON.stringify(c.params || {}))
             })),
             wires: circuit.wires
-              .filter(w => index.has(w.fromCompId) && index.has(w.toCompId))
-              .map(w => ({
-                from: index.get(w.fromCompId),
-                fp: w.fromPin,
-                to: index.get(w.toCompId),
-                tp: w.toPin,
-                wp: (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
+              .map(w => {
+                const root = circuit.resolveWireRoot(w);
+                const fromId = w.fromCompId || root.compId;
+                const fp = w.fromCompId ? w.fromPin : root.pin;
+                return { w, fromId, fp };
+              })
+              .filter(item => index.has(item.fromId) && index.has(item.w.toCompId))
+              .map(item => ({
+                from: index.get(item.fromId),
+                fp: item.fp,
+                to: index.get(item.w.toCompId),
+                tp: item.w.toPin,
+                wp: (item.w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
               }))
           };
         }
@@ -23376,8 +24483,15 @@
         }
         const moved = new Set(ids);
         for (const w of this.circuit.wires) {
-          if (moved.has(w.fromCompId) && moved.has(w.toCompId) && w.waypoints && w.waypoints.length > 0) {
-            w.waypoints = w.waypoints.map(p => ({ x: p.x + dx * GRID_SIZE, y: p.y + dy * GRID_SIZE }));
+          const root = this.circuit.resolveWireRoot(w);
+          const fromId = w.fromCompId || root.compId;
+          if (moved.has(fromId) && moved.has(w.toCompId)) {
+            if (w.waypoints && w.waypoints.length > 0) {
+              w.waypoints = w.waypoints.map(p => ({ x: p.x + dx * GRID_SIZE, y: p.y + dy * GRID_SIZE }));
+            }
+            if (!w.fromCompId && w.fromPoint) {
+              w.fromPoint = { x: w.fromPoint.x + dx * GRID_SIZE, y: w.fromPoint.y + dy * GRID_SIZE };
+            }
           }
         }
         this.rerouteWiresAround(ids);
@@ -23400,8 +24514,10 @@
         if (!this.smartWires) return;
         const ids = new Set(compIds);
         for (const w of this.circuit.wires) {
-          const inside = ids.has(w.fromCompId) && ids.has(w.toCompId);
-          if (inside || !(ids.has(w.fromCompId) || ids.has(w.toCompId))) continue;
+          const root = this.circuit.resolveWireRoot(w);
+          const fromId = w.fromCompId || root.compId;
+          const inside = ids.has(fromId) && ids.has(w.toCompId);
+          if (inside || !(ids.has(fromId) || ids.has(w.toCompId))) continue;
           if (w.autoRouted && w.waypoints && w.waypoints.length > 0) {
             w._preview = true;
             this._previewWires.push(w);

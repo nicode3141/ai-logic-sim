@@ -278,3 +278,58 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > ich hab obwohl ich die verzögerung auf 0 gesetzt hab trotzdme delay
+
+---
+
+## 2026-11-17 — Mehrfachauswahl: Roter Lösch-Button & Entfernen von Vertikal/Horizontal-Verteilen
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-067
+- **Prompt:**
+
+> kannst du bitte das mehrfachauswahlfenster bearbeiten. Erstmal will ich das der Auswahl löschen button nen roten hintergrund bekommt. Zudem sollst du das veritkal und horizontal anordnen generell löschen im programm
+
+---
+
+## 2026-11-17 — Inspector-Overflow bei `Verlegungsart` & direktes Inline-Umbenennen von Messpunkten
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-068
+- **Prompt:**
+
+> da gibt es einen overflow und mache es auch so wenn ich auf ein text button von einem messpunkt clicke das ich den namen direkt anpassen kann
+
+---
+
+## 2026-11-17 — Kontrastreiche Leitungs-Auswahlkreise & Zentrierung in Auswahlfenstern
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-069
+- **Prompt:**
+
+> wenn ich eine neue verbindung mache dann ist der auswahlkreis vom letzten punkt wei und es fehlt kontrast. auch in sämtlichen auswahlfenstern sind die sachen nicht zentriert und generell nicht schön. Fixe das
+
+---
+
+## 2026-11-17 — Alle Verbindungen bei Klick vor einer Gabelung auswählen
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-070
+- **Prompt:**
+
+> wenn ich vor eine gabelung klicke dann will ich das alle verbindungen bei der gabelung ausgewählt werden.
+
+---
+
+## 2026-11-17 — Leitungs-Gabelungen nativ als Verzweigung speichern (keine überlappenden Stammleitungen)
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-071
+- **Prompt:**
+
+> wenn ich an ein ende klicke dann überlappt teilweise immernoch die anderen sachen. ich will generell das du verbindung implementierst das ein gabelung gespeichert werden das ist doch optimierter?

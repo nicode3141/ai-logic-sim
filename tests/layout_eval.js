@@ -332,11 +332,11 @@ function runTestSuite() {
       }
       console.log('  Wires:');
       for (const w of app.circuit.wires) {
-        const fromC = app.circuit.getComponent(w.fromCompId);
-        const toC = app.circuit.getComponent(w.toCompId);
-        const p1 = fromC.getPinWorldPos(true, w.fromPin);
-        const p2 = toC.getPinWorldPos(false, w.toPin);
-        console.log(`    ${w.id} (${w.fromCompId}->${w.toCompId}): p1=(${p1.x},${p1.y}) p2=(${p2.x},${p2.y}) offset=${w.channelOffset}`);
+        const pts = app.renderer.getWirePolyline(w);
+        const root = app.circuit.resolveWireRoot ? app.circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
+        const p1 = pts[0] || { x: 0, y: 0 };
+        const p2 = pts[pts.length - 1] || { x: 0, y: 0 };
+        console.log(`    ${w.id} (${w.fromCompId || `wire:${w.fromWireId || '?'}` || root.compId}->${w.toCompId}): p1=(${p1.x},${p1.y}) p2=(${p2.x},${p2.y}) offset=${w.channelOffset}`);
       }
       console.log('  Crossings details:');
       for (const cd of res.crossingDetails) {

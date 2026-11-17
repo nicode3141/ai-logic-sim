@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bf672a25-2738-41bc-bb23-40f2f9c0489c" name="Changes" comment="" />
+    <list default="true" id="bf672a25-2738-41bc-bb23-40f2f9c0489c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WISHLIST.md" beforeDir="false" afterPath="$PROJECT_DIR$/WISHLIST.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docu/PROMPT_LOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/docu/PROMPT_LOG.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/comprehensive_test_suite.js" beforeDir="false" afterPath="$PROJECT_DIR$/tests/comprehensive_test_suite.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/layout_eval.js" beforeDir="false" afterPath="$PROJECT_DIR$/tests/layout_eval.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,23 +23,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.002264476802239" />
-      <entry key="MS500" value="1.5075054774683498" />
-      <entry key="S2" value="2.4917230950119116" />
-      <entry key="S5" value="4.217287163439712" />
-      <entry key="S10" value="6.890568090326566" />
-      <entry key="S30" value="10.819901272252023" />
-      <entry key="S60" value="12.278525458367092" />
-      <entry key="M2" value="13.128227111781069" />
-      <entry key="M5" value="15.118787580381586" />
-      <entry key="M10" value="20.78236645932087" />
-      <entry key="M15" value="25.790347055554655" />
-      <entry key="M30" value="34.53319854783337" />
-      <entry key="H1" value="41.15970625595204" />
-      <entry key="H2" value="45.260173592953834" />
-      <entry key="H4" value="47.544039514579374" />
-      <entry key="D1" value="49.578162327114036" />
-      <entry key="W1" value="49.93942349861484" />
+      <entry key="MS100" value="1.5836855493279012" />
+      <entry key="MS500" value="2.353001317463793" />
+      <entry key="S2" value="3.425267280643572" />
+      <entry key="S5" value="5.171930895184984" />
+      <entry key="S10" value="7.853414430167395" />
+      <entry key="S30" value="11.800419393918569" />
+      <entry key="S60" value="13.26746636884649" />
+      <entry key="M2" value="14.122313578194186" />
+      <entry key="M5" value="16.11606314418949" />
+      <entry key="M10" value="21.780493862658005" />
+      <entry key="M15" value="26.788797804872242" />
+      <entry key="M30" value="35.5321613112118" />
+      <entry key="H1" value="42.1590881163496" />
+      <entry key="H2" value="46.259833731311254" />
+      <entry key="H4" value="48.54386100857271" />
+      <entry key="D1" value="50.57813130319842" />
+      <entry key="W1" value="50.93941903433114" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -53,23 +61,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9416869947533573" />
-      <entry key="MS500" value="1.4886337193023715" />
-      <entry key="S2" value="2.4824889280112816" />
-      <entry key="S5" value="4.20445064965388" />
-      <entry key="S10" value="6.876684002835446" />
-      <entry key="S30" value="10.81168673109063" />
-      <entry key="S60" value="12.273761627916455" />
-      <entry key="M2" value="13.125660021875758" />
-      <entry key="M5" value="15.11769717465907" />
-      <entry key="M10" value="20.78177597579214" />
-      <entry key="M15" value="25.789927547468523" />
-      <entry key="M30" value="34.5329659018114" />
-      <entry key="H1" value="41.15958110936441" />
-      <entry key="H2" value="45.26010826124212" />
-      <entry key="H4" value="47.54400607623489" />
-      <entry key="D1" value="49.57815663897927" />
-      <entry key="W1" value="49.93942268309888" />
+      <entry key="MS100" value="1.1307740285991177" />
+      <entry key="MS500" value="2.2335737755033267" />
+      <entry key="S2" value="3.3896087688142145" />
+      <entry key="S5" value="5.148477591468374" />
+      <entry key="S10" value="7.834213246174125" />
+      <entry key="S30" value="11.790419083815685" />
+      <entry key="S60" value="13.261806143634892" />
+      <entry key="M2" value="14.119297200432696" />
+      <entry key="M5" value="16.114792732931686" />
+      <entry key="M10" value="21.77981332726107" />
+      <entry key="M15" value="26.78831825103504" />
+      <entry key="M30" value="35.53189863625084" />
+      <entry key="H1" value="42.158947953565296" />
+      <entry key="H2" value="46.25976089102385" />
+      <entry key="H4" value="48.543823815813596" />
+      <entry key="D1" value="50.57812498930954" />
+      <entry key="W1" value="50.93941812942127" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -92,10 +100,11 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "begin",
+    "git-widget-placeholder": "fabian",
     "ignore.virus.scanning.warn.message": "true",
     "javascript.preferred.runtime.type.id": "node",
-    "last_opened_file_path": "C:/Users/leqit/Documents/ai-logic-sim",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/leqit/Documents/GitHub/ai-logic-sim",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -104,18 +113,6 @@
     "settings.editor.selected.configurable": "com.intellij.mcpserver.settings"
   }
 }]]></component>
-  <component name="QodanaHighlightedReportService">
-    <option name="localRunNotPublishedPersistedInfo">
-      <LocalReportPersistedInfo>
-        <option name="path" value="C:\Users\leqit\AppData\Local\Temp\qodana_output\qodana.sarif.json" />
-        <option name="reportGuid" value="82d7845d-24f1-4012-9514-1d014818c884" />
-        <option name="reportName" value="ai-logic-sim/qodana/2026-11-05" />
-      </LocalReportPersistedInfo>
-    </option>
-  </component>
-  <component name="QodanaIsSelectedPersistenceService">
-    <option name="selectedOrLoading" value="true" />
-  </component>
   <component name="QodanaReportsService">
     <option name="descriptions">
       <ReportDescription localRun="true" path="C:\Users\leqit\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="82d7845d-24f1-4012-9514-1d014818c884" reportId="ai-logic-sim/qodana/2026-11-05" />
@@ -124,7 +121,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-56aff7b04f6f-JavaScript-WS-263.7307.202" />
+        <option value="bundled-jdk-30f59d01ecdd-ac68fc9d2b05-intellij.indexing.shared.core-IU-263.7307.200" />
       </set>
     </attachedChunks>
   </component>
