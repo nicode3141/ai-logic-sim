@@ -3854,14 +3854,17 @@ runTest('WISH-071', 'Wire forks are stored explicitly as fromWireId + fromPoint 
     lastMd({ button: 0, clientX: cx, clientY: cy, shiftKey: false, ctrlKey: false, metaKey: false, preventDefault: () => {} });
   };
 
-  // 1. Scenario load / Auto-Layout stores multi-drop fanouts (jk_hi) as non-overlapping fork tree
+  // 1. Scenario load / Auto-Layout stores multi-drop fanouts (jk_hi) as non-overlapping Steiner fork tree
   app.loadScenario('jk_counter', { silent: true });
   const hiWires = app.circuit.wires.filter(w => app.circuit.resolveWireRoot(w).compId === 'jk_hi');
-  assertEqual(hiWires.length, 6, 'jk_hi net has 6 wires to J/K inputs');
+  const hiTrunkWires = hiWires.filter(w => app.circuit.isForkTrunkWire(w));
+  const hiLeafWires = hiWires.filter(w => !app.circuit.isForkTrunkWire(w));
+  assertEqual(hiLeafWires.length, 6, 'jk_hi net has 6 leaf wires to J/K inputs');
+  assertEqual(hiTrunkWires.length >= 1, true, 'jk_hi net stores shared upstream segments as explicit Steiner fork trunk wire(s)');
   const hiRootWires = hiWires.filter(w => w.fromCompId === 'jk_hi');
-  const hiForkedWires = hiWires.filter(w => !w.fromCompId && w.fromWireId && w.fromPoint);
-  assertEqual(hiRootWires.length, 1, 'jk_hi net has exactly 1 stem wire attached to output pin');
-  assertEqual(hiForkedWires.length, 5, 'Remaining 5 fanout wires are stored as explicit fromWireId + fromPoint forks');
+  assertEqual(hiRootWires.length, 1, 'jk_hi net has exactly 1 stem trunk wire attached to output pin');
+  assertEqual(app.circuit.isForkTrunkWire(hiRootWires[0]), true, 'Single stem wire attached to jk_hi is an explicit fork trunk wire');
+  assertEqual(hiLeafWires.every(w => !w.fromCompId && Boolean(w.fromWireId) && Boolean(w.fromPoint)), true, 'All 6 leaf wires to J/K inputs start at explicit fromWireId + fromPoint fork junctions');
 
   // Verify zero collinear segment overlap between any pair of wires in jk_hi net
   const segOverlapPx = (ptsA, ptsB) => {
@@ -3905,7 +3908,7 @@ runTest('WISH-071', 'Wire forks are stored explicitly as fromWireId + fromPoint 
   }
 
   // Click on terminal segment before jk_ff1.J (safely outside 10px pin radius) selects ONLY that branch
-  const j1Wire = hiWires.find(w => w.toCompId === 'jk_ff1' && w.toPin === 0);
+  const j1Wire = hiLeafWires.find(w => w.toCompId === 'jk_ff1' && w.toPin === 0);
   const j1Pts = app.renderer.getWirePolyline(j1Wire);
   const j1End = j1Pts[j1Pts.length - 1];
   const j1Prev = j1Pts[j1Pts.length - 2];
@@ -3914,13 +3917,13 @@ runTest('WISH-071', 'Wire forks are stored explicitly as fromWireId + fromPoint 
   assertEqual(app.renderer.selectedWireId, j1Wire.id, 'Selected wire is the terminal J1 branch');
   assertEqual(Boolean(j1Wire.fromWireId && j1Wire.fromPoint), true, 'Terminal J1 wire starts at a stored fork junction rather than root component');
 
-  // Click on trunk right outside jk_hi output pin (before first fork) selects all 6 wires
+  // Click on trunk right outside jk_hi output pin (before first fork) selects all wires in fork tree
   const rootPts = app.renderer.getWirePolyline(hiRootWires[0]);
   const rootSegDist = Math.hypot(rootPts[1].x - rootPts[0].x, rootPts[1].y - rootPts[0].y);
   clickAt(rootPts[0].x + Math.min(20, Math.max(12, rootSegDist * 0.5)), rootPts[0].y);
-  assertEqual(app.renderer.selectedWireIds.size, 6, 'Clicking upstream of first jk_hi fork selects all 6 wires in fork tree');
+  assertEqual(app.renderer.selectedWireIds.size, hiWires.length, 'Clicking upstream of first jk_hi fork selects all wires in fork tree');
 
-  // 2. Drawing overlapping manual wires from same output pin collapses into stored fork + removeWire stem promotion
+  // 2. Drawing overlapping manual wires from same output pin collapses into dedicated Steiner trunk + 2 child branches + removeWire trunk cleanup
   const app2 = new LogicSimApp();
   app2.circuit.clear();
   const c2 = app2.circuit;
@@ -3931,29 +3934,275 @@ runTest('WISH-071', 'Wire forks are stored explicitly as fromWireId + fromPoint 
   app2.finishNewWire(wA, wA.waypoints);
   const wB = c2.addWire(sw.id, 0, led2.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 160 }]);
   app2.finishNewWire(wB, wB.waypoints);
-  const rootCount = [wA, wB].filter(w => w.fromCompId === sw.id && !w.fromWireId).length;
-  const childWire = [wA, wB].find(w => !w.fromCompId && Boolean(w.fromWireId));
-  const stemWire = [wA, wB].find(w => w.fromCompId === sw.id);
-  assertEqual(rootCount, 1, 'Overlapping manual wires collapse to 1 root stem wire');
-  assertEqual(Boolean(childWire && childWire.fromWireId === stemWire.id), true, 'Second wire becomes explicit child branch of stem');
-  assertEqual(childWire.fromPoint.x === 200 && childWire.fromPoint.y === 100, true, 'Child fork stores exact junction (200, 100)');
-  assertEqual(segOverlapPx(app2.renderer.getWirePolyline(stemWire), app2.renderer.getWirePolyline(childWire)), 0, 'Manual overlapping wires share 0 overlapping pixels after normalization');
+  const rootWires2 = c2.wires.filter(w => w.fromCompId === sw.id && !w.fromWireId);
+  const trunkWire = rootWires2[0];
+  assertEqual(rootWires2.length, 1, 'Overlapping manual wires collapse to 1 root trunk wire');
+  assertEqual(c2.isForkTrunkWire(trunkWire), true, 'Root wire is stored as explicit Steiner fork trunk wire');
+  assertEqual(trunkWire.toPoint && trunkWire.toPoint.x === 200 && trunkWire.toPoint.y === 100, true, 'Trunk wire ends cleanly at fork junction (200, 100)');
+  assertEqual(!wA.fromCompId && wA.fromWireId === trunkWire.id, true, 'First leaf wire wA becomes explicit child branch of trunk');
+  assertEqual(!wB.fromCompId && wB.fromWireId === trunkWire.id, true, 'Second leaf wire wB becomes explicit child branch of trunk');
+  assertEqual(wA.fromPoint.x === 200 && wA.fromPoint.y === 100, true, 'wA fork stores exact junction (200, 100)');
+  assertEqual(wB.fromPoint.x === 200 && wB.fromPoint.y === 100, true, 'wB fork stores exact junction (200, 100)');
+  assertEqual(segOverlapPx(app2.renderer.getWirePolyline(trunkWire), app2.renderer.getWirePolyline(wA)), 0, 'Trunk and wA share 0 overlapping pixels after normalization');
+  assertEqual(segOverlapPx(app2.renderer.getWirePolyline(trunkWire), app2.renderer.getWirePolyline(wB)), 0, 'Trunk and wB share 0 overlapping pixels after normalization');
+  assertEqual(segOverlapPx(app2.renderer.getWirePolyline(wA), app2.renderer.getWirePolyline(wB)), 0, 'Leaf branches wA and wB share 0 overlapping pixels after normalization');
 
-  // JSON roundtrip preserves fork tree & signal
+  // JSON roundtrip preserves trunk + fork tree & signal
   const jsonSnap = c2.toJSON();
   const roundtrip = new Circuit();
   roundtrip.fromJSON(jsonSnap);
-  assertEqual(roundtrip.getWire(childWire.id).fromWireId, stemWire.id, 'fromWireId preserved across JSON roundtrip');
-  assertEqual(roundtrip.getWire(childWire.id).fromPoint.x, 200, 'fromPoint preserved across JSON roundtrip');
+  assertEqual(roundtrip.getWire(wB.id).fromWireId, trunkWire.id, 'fromWireId preserved across JSON roundtrip');
+  assertEqual(roundtrip.getWire(wB.id).fromPoint.x, 200, 'fromPoint preserved across JSON roundtrip');
   assertEqual(roundtrip.getComponent(led2.id).inputs[0].value, 1, 'LED2 retains HIGH level after fork JSON roundtrip');
 
-  // Removing stem wire promotes child wire to inherit upstream connection
-  roundtrip.removeWire(stemWire.id);
-  const promoted = roundtrip.getWire(childWire.id);
-  assertEqual(promoted.fromCompId, sw.id, 'Deleting stem promotes child branch to inherit source switch');
+  // Deleting a leaf branch triggers removeWire trunk cleanup and merges trunk into remaining branch
+  roundtrip.removeWire(wA.id);
+  assertEqual(roundtrip.getWire(trunkWire.id), null, 'Deleting 1 of 2 leaf branches cleans up obsolete fork trunk wire');
+  const promoted = roundtrip.getWire(wB.id);
+  assertEqual(promoted.fromCompId, sw.id, 'Remaining leaf branch is promoted to inherit source switch');
   assertEqual(promoted.fromWireId, null, 'Promoted branch clears stale fromWireId');
+  assertEqual(promoted.fromPoint, null, 'Promoted branch clears stale fromPoint');
   roundtrip.syncImmediateWireLevels();
   assertEqual(roundtrip.getComponent(promoted.toCompId).inputs[0].value, 1, 'Promoted branch continues driving target LED with HIGH');
+});
+
+runTest('WISH-072', 'Single-component delete menu item uses red ctx-danger-btn and non-gate modules hide permanent pin circles while keeping hover & inversion bubbles', () => {
+  // (a) Single-component context menu "Bauteil löschen" carries ctx-item, danger, and ctx-danger-btn
+  const app = new LogicSimApp();
+  app.circuit.clear();
+  app.engine.mode = 'edit';
+  const comp = app.circuit.addComponent('COUNTER', 100, 100);
+  app.renderer.selectedCompIds = new Set([comp.id]);
+  app.renderer.selectedWireIds = new Set();
+
+  app.showContextMenu(100, 100, comp, null, { x: 100, y: 100 });
+  const menu = app.contextMenuEl;
+  const items = Array.from(menu.children);
+  const delItem = items.find(el => (el.textContent || '').includes('Bauteil löschen'));
+  assertEqual(Boolean(delItem), true, 'Bauteil löschen present in single-component context menu');
+  const delClasses = (delItem.className || '').trim().split(/\s+/);
+  assertEqual(delClasses.includes('ctx-item'), true, 'Bauteil löschen has ctx-item class');
+  assertEqual(delClasses.includes('danger'), true, 'Bauteil löschen has danger class');
+  assertEqual(delClasses.includes('ctx-danger-btn'), true, 'Bauteil löschen has ctx-danger-btn class for red background');
+  app.hideContextMenu();
+
+  // (b) Non-gate modules draw 0 permanent pin circles when unhovered and non-inverted,
+  //     1 hovered circle (radius 6) via drawPinCircle on hover, and outer rBubble=3.2 circles when inverted
+  const c = new Circuit();
+  const engine = new SimulationEngine(c, new RingBuffer(10), () => {});
+  const renderer = new CanvasRenderer(createMockElem('grid-canvas'), c, engine);
+  const arcCalls = [];
+  const spyCtx = Object.assign({}, mockCtx, {
+    arc: (x, y, r) => arcCalls.push({ x, y, r })
+  });
+
+  const sw = c.addComponent('SWITCH', 100, 100);
+  const counter = c.addComponent('COUNTER', 260, 100);
+  const jkff = c.addComponent('JK_FF', 460, 100);
+
+  // Unhovered & non-inverted: SWITCH and COUNTER draw 0 arcs; JK_FF draws 0 pin circles (only inherent !Q outer bubble r=3.2)
+  renderer.hoveredPin = null;
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, sw);
+  assertEqual(arcCalls.length, 0, 'Unhovered SWITCH draws 0 pin circles via ctx.arc');
+
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, counter);
+  assertEqual(arcCalls.length, 0, 'Unhovered non-inverted COUNTER draws 0 pin circles via ctx.arc');
+
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, jkff);
+  const jkPinCircles = arcCalls.filter(a => Math.abs(a.r - 4.2) < 0.01 || Math.abs(a.r - 6) < 0.01);
+  assertEqual(jkPinCircles.length, 0, 'Unhovered JK_FF draws 0 pin circles via drawPinCircle');
+  const jkNegQBubbles = arcCalls.filter(a => Math.abs(a.r - 3.2) < 0.01);
+  assertEqual(jkNegQBubbles.length, 1, 'JK_FF still draws 1 inherent !Q outer inversion bubble (r=3.2)');
+
+  // Hovering an input pin (COUNTER pin 1) draws 1 hovered pin circle (radius 6)
+  arcCalls.length = 0;
+  renderer.hoveredPin = { compId: counter.id, isOutput: false, pinIndex: 1 };
+  renderer.drawComponentPins(spyCtx, counter);
+  assertEqual(arcCalls.length, 1, 'Hovering COUNTER input pin draws exactly 1 pin circle');
+  assertEqual(arcCalls[0].r, 6, 'Hovered input pin circle uses radius 6');
+  assertEqual(arcCalls[0].x, counter.x + counter.inputs[1].relX, 'Hovered input pin circle x matches pin');
+  assertEqual(arcCalls[0].y, counter.y + counter.inputs[1].relY, 'Hovered input pin circle y matches pin');
+
+  // Hovering an output pin (SWITCH pin 0) draws 1 hovered pin circle (radius 6)
+  arcCalls.length = 0;
+  renderer.hoveredPin = { compId: sw.id, isOutput: true, pinIndex: 0 };
+  renderer.drawComponentPins(spyCtx, sw);
+  assertEqual(arcCalls.length, 1, 'Hovering SWITCH output pin draws exactly 1 pin circle');
+  assertEqual(arcCalls[0].r, 6, 'Hovered output pin circle uses radius 6');
+  assertEqual(arcCalls[0].x, sw.x + sw.outputs[0].relX, 'Hovered output pin circle x matches pin');
+  assertEqual(arcCalls[0].y, sw.y + sw.outputs[0].relY, 'Hovered output pin circle y matches pin');
+
+  // Inverted input/output on non-gate modules still draws outer inversion bubbles (rBubble = 3.2)
+  renderer.hoveredPin = null;
+  const counterInv = c.addComponent('COUNTER', 260, 280, {
+    invertedInputs: [true, false, false],
+    invertedOutput: true
+  });
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, counterInv);
+  const rBubble = 3.2;
+  const leftBubbles = arcCalls.filter(a => Math.abs(a.r - rBubble) < 0.01 && a.x < counterInv.x);
+  const rightBubbles = arcCalls.filter(a => Math.abs(a.r - rBubble) < 0.01 && a.x > counterInv.x + counterInv.width);
+  const nonBubbleArcs = arcCalls.filter(a => Math.abs(a.r - rBubble) >= 0.01);
+  assertEqual(leftBubbles.length, 1, 'Inverted input on COUNTER draws 1 outer inversion bubble (r=3.2) left of module');
+  assertEqual(rightBubbles.length, counterInv.outputs.length, 'invertedOutput on COUNTER draws outer inversion bubbles (r=3.2) right of module');
+  assertEqual(nonBubbleArcs.length, 0, 'Inverted COUNTER without hover draws 0 regular pin circles');
+
+  const jkffInv = c.addComponent('JK_FF', 460, 280, {
+    invertedInputs: [false, true, false],
+    invertedOutput: true
+  });
+  arcCalls.length = 0;
+  renderer.drawComponentPins(spyCtx, jkffInv);
+  const jkLeftBubbles = arcCalls.filter(a => Math.abs(a.r - rBubble) < 0.01 && a.x < jkffInv.x);
+  const jkRightBubbles = arcCalls.filter(a => Math.abs(a.r - rBubble) < 0.01 && a.x > jkffInv.x + jkffInv.width);
+  const jkNonBubbleArcs = arcCalls.filter(a => Math.abs(a.r - rBubble) >= 0.01);
+  assertEqual(jkLeftBubbles.length, 1, 'Inverted input on JK_FF draws 1 outer inversion bubble (r=3.2) left of module');
+  assertEqual(jkRightBubbles.length, 2, 'Inverted Q and !Q on JK_FF draw 2 outer inversion bubbles (r=3.2) right of module');
+  assertEqual(jkNonBubbleArcs.length, 0, 'Inverted JK_FF without hover draws 0 regular pin circles');
+});
+
+runTest('WISH-073', 'Movable fork junctions, isolated downstream branch selection in jk_counter, and Java Swing / Light CAD theme-card contrast', () => {
+  // Capture window mousemove/mouseup listeners cleanly like WISH-053 / WISH-054
+  const prevWinAdd = window.addEventListener;
+  const canvasEl = document.getElementById('grid-canvas');
+  const prevCanvasListeners = {};
+  if (canvasEl && canvasEl.listeners) {
+    for (const k of Object.keys(canvasEl.listeners)) prevCanvasListeners[k] = canvasEl.listeners[k].slice();
+  }
+  const winListeners = {};
+  window.addEventListener = (type, fn) => {
+    if (!winListeners[type]) winListeners[type] = [];
+    winListeners[type].push(fn);
+    return prevWinAdd(type, fn);
+  };
+  let app;
+  try {
+    app = new LogicSimApp();
+  } finally {
+    window.addEventListener = prevWinAdd;
+  }
+
+  const prevRectFn = app.gridCanvas.getBoundingClientRect;
+  try {
+    app.gridCanvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800, right: 1200, bottom: 800 });
+    app.allowDiagonalWires = false;
+    app.engine.mode = 'edit';
+
+    const mdHandlers = app.gridCanvas.listeners.mousedown || [];
+    const lastMd = mdHandlers[mdHandlers.length - 1];
+    const mm = (ev) => (winListeners.mousemove || []).forEach(fn => fn(ev));
+    const mu = (ev) => (winListeners.mouseup || []).forEach(fn => fn(ev));
+    const toClient = (wx, wy) => ({
+      x: wx * app.renderer.zoom + app.renderer.panX,
+      y: wy * app.renderer.zoom + app.renderer.panY
+    });
+
+    // (a) In jk_counter, clicking lower chain jkw_k1 after its fork at (380, 140) selects ONLY jkw_k1
+    app.loadScenario('jk_counter', { silent: true });
+    app.renderer.panX = 0;
+    app.renderer.panY = 0;
+    app.renderer.zoom = 1;
+    app.selectItem(null, null);
+
+    const k1Wire = app.circuit.getWire('jkw_k1');
+    const j1Wire = app.circuit.getWire('jkw_j1');
+    assertEqual(Boolean(k1Wire && !k1Wire.fromCompId && k1Wire.fromWireId && k1Wire.fromPoint), true, 'jkw_k1 starts at an explicit fork junction');
+    assertEqual(k1Wire.fromPoint.x, 380, 'jkw_k1 fork junction x is 380');
+    assertEqual(k1Wire.fromPoint.y, 140, 'jkw_k1 fork junction y is 140');
+
+    const k1Pts = app.renderer.getWirePolyline(k1Wire);
+    let clickPt = null;
+    for (let i = k1Pts.length - 2; i >= 0; i--) {
+      const pA = k1Pts[i], pB = k1Pts[i + 1];
+      const segLen = Math.hypot(pB.x - pA.x, pB.y - pA.y);
+      if (segLen < 16) continue;
+      const cand = { x: pA.x + (pB.x - pA.x) * 0.45, y: pA.y + (pB.y - pA.y) * 0.45 };
+      if (
+        Math.hypot(cand.x - k1Wire.fromPoint.x, cand.y - k1Wire.fromPoint.y) > 12 &&
+        !app.renderer.findJunctionAt(cand.x, cand.y, 11) &&
+        !app.renderer.findComponentAt(cand.x, cand.y) &&
+        !app.renderer.findPinAt(cand.x, cand.y, 10)
+      ) {
+        clickPt = cand;
+        break;
+      }
+    }
+    assertEqual(Boolean(clickPt), true, 'Found clickable downstream point on jkw_k1 outside fork and pin radii');
+    const cClick = toClient(clickPt.x, clickPt.y);
+    lastMd({ button: 0, clientX: cClick.x, clientY: cClick.y, shiftKey: false, ctrlKey: false, metaKey: false, preventDefault: () => {} });
+    assertEqual(app.renderer.selectedWireIds.size, 1, 'Clicking lower chain jkw_k1 after fork selects ONLY 1 wire');
+    assertEqual(app.renderer.selectedWireId, k1Wire.id, 'Selected wire is jkw_k1');
+    assertEqual(app.renderer.selectedWireIds.has(j1Wire.id), false, 'Does NOT select sibling jkw_j1');
+    assertEqual(app.renderer.selectedWireIds.has(k1Wire.fromWireId), false, 'Does NOT select upstream trunk before (380, 140)');
+
+    // (b) findJunctionAt locates a fork junction and mousedown -> mousemove -> mouseup moves trunk toPoint + child fromPoint cleanly
+    app.circuit.clear();
+    app.selectItem(null, null);
+    const sw = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 1 }); // out at (120, 100)
+    const led1 = app.circuit.addComponent('LED', 340, 40);  // in at (340, 60)
+    const led2 = app.circuit.addComponent('LED', 340, 140); // in at (340, 160)
+    const wA = app.circuit.addWire(sw.id, 0, led1.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 60 }]);
+    app.finishNewWire(wA, wA.waypoints);
+    const wB = app.circuit.addWire(sw.id, 0, led2.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 160 }]);
+    app.finishNewWire(wB, wB.waypoints);
+    const trunk = app.circuit.wires.find(w => app.circuit.isForkTrunkWire(w));
+    assertEqual(Boolean(trunk), true, 'Fork circuit creates a dedicated Steiner trunk wire');
+
+    const junc = app.renderer.findJunctionAt(200, 100, 10);
+    assertEqual(Boolean(junc), true, 'findJunctionAt locates fork junction at (200, 100)');
+    assertEqual(junc.x === 200 && junc.y === 100, true, 'Junction coordinates equal (200, 100)');
+    assertEqual(junc.endWires.some(w => w.id === trunk.id), true, 'Trunk wire is attached in endWires');
+    assertEqual(junc.startWires.some(w => w.id === wA.id) && junc.startWires.some(w => w.id === wB.id), true, 'Child wires are attached in startWires');
+
+    const cStart = toClient(200, 100);
+    const cMove = toClient(243, 118); // snaps to (240, 120)
+    lastMd({ button: 0, clientX: cStart.x, clientY: cStart.y, shiftKey: false, ctrlKey: false, metaKey: false, preventDefault: () => {} });
+    assertEqual(Boolean(app.draggingJunction), true, 'mousedown on fork junction initiates draggingJunction');
+    assertEqual(Boolean(app.renderer.activeJunctionDrag), true, 'mousedown sets activeJunctionDrag highlight');
+
+    mm({ clientX: cMove.x, clientY: cMove.y, target: app.gridCanvas, __autoPan: true });
+    assertEqual(trunk.toPoint.x === 240 && trunk.toPoint.y === 120, true, 'mousemove moves trunk toPoint to grid-snapped (240, 120)');
+    assertEqual(wA.fromPoint.x === 240 && wA.fromPoint.y === 120, true, 'mousemove moves wA fromPoint to grid-snapped (240, 120)');
+    assertEqual(wB.fromPoint.x === 240 && wB.fromPoint.y === 120, true, 'mousemove moves wB fromPoint to grid-snapped (240, 120)');
+
+    mu({ clientX: cMove.x, clientY: cMove.y, shiftKey: false, ctrlKey: false });
+    assertEqual(app.draggingJunction, null, 'mouseup clears draggingJunction');
+    assertEqual(app.renderer.activeJunctionDrag, null, 'mouseup clears activeJunctionDrag');
+    const movedJunc = app.renderer.findJunctionAt(240, 120, 10);
+    assertEqual(Boolean(movedJunc && movedJunc.x === 240 && movedJunc.y === 120), true, 'findJunctionAt finds moved junction at (240, 120)');
+
+    const isOrtho = (pts) => {
+      if (!pts || pts.length < 2) return false;
+      for (let i = 0; i + 1 < pts.length; i++) {
+        if (Math.abs(pts[i].x - pts[i + 1].x) >= 0.5 && Math.abs(pts[i].y - pts[i + 1].y) >= 0.5) return false;
+      }
+      return true;
+    };
+    assertEqual(isOrtho(app.renderer.getWirePolyline(trunk)), true, 'Moved trunk wire remains strictly orthogonal');
+    assertEqual(isOrtho(app.renderer.getWirePolyline(wA)), true, 'Moved child wA remains strictly orthogonal');
+    assertEqual(isOrtho(app.renderer.getWirePolyline(wB)), true, 'Moved child wB remains strictly orthogonal');
+
+    // (c) Theme CSS rules scope variables with :not(.theme-card) and enforce high-contrast java_swing / light_cad card text
+    for (const t of ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad']) {
+      assertEqual(html.includes(`[data-theme="${t}"]:not(.theme-card)`), true, `[data-theme="${t}"] root block excludes .theme-card`);
+    }
+    assertEqual(/\[data-theme="java_swing"\]\s+\.theme-card\s+\.theme-card-title\s*\{\s*color:\s*#000000\s*!important;/.test(html), true, 'java_swing theme card title enforces #000000');
+    assertEqual(/\[data-theme="java_swing"\]\s+\.theme-card\s+\.theme-card-desc\s*\{\s*color:\s*#333333\s*!important;/.test(html), true, 'java_swing theme card desc enforces #333333');
+    assertEqual(/\[data-theme="light_cad"\]\s+\.theme-card\s+\.theme-card-title\s*\{\s*color:\s*#0f172a\s*!important;/.test(html), true, 'light_cad theme card title enforces #0f172a');
+    assertEqual(/\[data-theme="light_cad"\]\s+\.theme-card\s+\.theme-card-desc\s*\{\s*color:\s*#475569\s*!important;/.test(html), true, 'light_cad theme card desc enforces #475569');
+  } finally {
+    if (app && typeof app.stopDragAutoPan === 'function') app.stopDragAutoPan();
+    if (app && app.gridCanvas) app.gridCanvas.getBoundingClientRect = prevRectFn;
+    if (canvasEl && canvasEl.listeners) {
+      for (const k of Object.keys(canvasEl.listeners)) {
+        if (prevCanvasListeners[k]) canvasEl.listeners[k] = prevCanvasListeners[k];
+      }
+    }
+  }
 });
 
 console.log('\n================================================================');

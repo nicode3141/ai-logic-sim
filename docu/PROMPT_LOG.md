@@ -333,3 +333,38 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > wenn ich an ein ende klicke dann überlappt teilweise immernoch die anderen sachen. ich will generell das du verbindung implementierst das ein gabelung gespeichert werden das ist doch optimierter?
+
+---
+
+## 2026-11-17 — Roter Lösch-Button im Einzelauswahl-Kontextmenü & Pin-Kreise an Modulen entfernen
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-072
+- **Prompt:**
+
+> ich will das beim selectionsmenu der bauteil löschen button roten hintergrund hat
+> entferne bei modulen den kreis das man es visuell besser sieht
+
+---
+
+## 2026-11-17 — Verschiebbare Gabelungspunkte, exakte Zweigauswahl & Theme-Karten-Kontrast (Java Swing / Clean Light)
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-073
+- **Prompt:**
+
+> man kann nicht die verbindungspunkte (gabelungen) bewegen. fixe das. wenn ich an untere kette klicke wir die verbindungen vor der gabelung auch selektiert
+> bei java swing ist der kontrast der name des anderen themes immernoch falsch
+
+---
+
+## 2026-11-17 — Commit und Push der Änderungen auf Branch `fabian`
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-067, WISH-068, WISH-069, WISH-070, WISH-071, WISH-072, WISH-073
+- **Prompt:**
+
+> pushe das

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LogicSim Pro — Digitaler Web-Logiksimulator</title>
   <style>
-    :root, [data-theme="modern"] {
+    :root, [data-theme="modern"]:not(.theme-card) {
       --bg-deep: #10141d;
       --bg-canvas: #10141d;
       --bg-surface: #182030;
@@ -56,7 +56,7 @@
       scrollbar-color: #424242 transparent;
     }
 
-    [data-theme="pitch_black"] {
+    [data-theme="pitch_black"]:not(.theme-card) {
       --bg-deep: #000000;
       --bg-canvas: #000000;
       --bg-surface: #09090b;
@@ -94,7 +94,7 @@
       text-shadow: none !important;
     }
 
-    [data-theme="java_swing"] {
+    [data-theme="java_swing"]:not(.theme-card) {
       --bg-deep: #d4d0c8;
       --bg-canvas: #ffffff;
       --bg-surface: #ffffff;
@@ -152,6 +152,9 @@
       background: #dfdacb !important;
       border-color: #555555 !important;
     }
+
+    [data-theme="java_swing"] .theme-card .theme-card-title { color: #000000 !important; }
+    [data-theme="java_swing"] .theme-card .theme-card-desc { color: #333333 !important; }
 
     [data-theme="java_swing"] .btn.btn-danger {
       background: #b00000 !important;
@@ -274,7 +277,7 @@
       color: #ffffff !important;
     }
 
-    [data-theme="blueprint"] {
+    [data-theme="blueprint"]:not(.theme-card) {
       --bg-deep: #071527;
       --bg-canvas: #071527;
       --bg-surface: #0b1d3a;
@@ -303,7 +306,7 @@
       --control-radius: 3px;
     }
 
-    [data-theme="light_cad"] {
+    [data-theme="light_cad"]:not(.theme-card) {
       --bg-deep: #f1f5f9;
       --bg-canvas: #f8fafc;
       --bg-surface: #ffffff;
@@ -331,6 +334,9 @@
       --card-radius: 6px;
       --control-radius: 4px;
     }
+
+    [data-theme="light_cad"] .theme-card .theme-card-title { color: #0f172a !important; }
+    [data-theme="light_cad"] .theme-card .theme-card-desc { color: #475569 !important; }
 
     [data-theme="light_cad"] .menubar-btn:hover,
     [data-theme="light_cad"] .app-menu-item:hover {
@@ -8088,7 +8094,13 @@
         return this._simplifyOrthoPts(pts);
       }
 
-      /** Splits overlapping shared-source wire prefixes into stored fork branches (fromWireId + fromPoint). */
+      /** Returns true when `wire` is an intermediate Steiner fork trunk ending at `toPoint` with downstream `fromWireId` children. */
+      isForkTrunkWire(wire) {
+        if (!wire || wire.toCompId || wire.toWireId || !wire.toPoint) return false;
+        return Array.isArray(this.wires) && this.wires.some(w => w && w.fromWireId === wire.id);
+      }
+
+      /** Splits overlapping shared-source wire prefixes into stored Steiner trunk + fork branch trees (fromWireId + fromPoint). */
       normalizeForkWires(getPolylineFn = null, targetRootKeys = null) {
         if (!Array.isArray(this.wires) || this.wires.length < 2) return 0;
         const getPts = (w) => this._simplifyOrthoPts(
@@ -8152,6 +8164,25 @@
           if (!fc) continue;
           const rootPos = fc.getPinWorldPos(true, group[0].rootPin);
 
+          const groupIdSet = new Set(group.map(g => g.wire.id));
+          let hasOutsideRef = false;
+          for (const ow of this.wires) {
+            if (!groupIdSet.has(ow.id) && ow.fromWireId && groupIdSet.has(ow.fromWireId)) {
+              hasOutsideRef = true;
+              break;
+            }
+          }
+          if (hasOutsideRef) continue;
+
+          const oldTrunks = [];
+          const leafEntries = [];
+          for (const g of group) {
+            if (this.isForkTrunkWire(g.wire)) oldTrunks.push(g);
+            else leafEntries.push(g);
+          }
+          if (leafEntries.length === 0) continue;
+          if (leafEntries.length === 1 && oldTrunks.length === 0) continue;
+
           const fullCache = new Map();
           const buildFull = (w, depth = 0) => {
             if (fullCache.has(w.id)) return fullCache.get(w.id);
@@ -8172,25 +8203,32 @@
             return combined;
           };
 
-          const items = [];
           const oldProbePositions = [];
-          const groupWireIds = new Set(group.map(g => g.wire.id));
           for (const p of (this.probes || [])) {
-            if (!groupWireIds.has(p.wireId)) continue;
+            if (!groupIdSet.has(p.wireId)) continue;
             const oldPts = wirePtsRaw.get(p.wireId);
             if (oldPts) oldProbePositions.push({ probe: p, pt: pointAtRatio(oldPts, p.offsetRatio) });
           }
 
-          for (const g of group) {
+          const items = [];
+          for (const g of leafEntries) {
             const fullPts = buildFull(g.wire);
             if (!fullPts || fullPts.length < 2 || !ptEq(fullPts[0], rootPos)) continue;
             const cum = [0];
             for (let k = 0; k + 1 < fullPts.length; k++) {
               cum.push(cum[k] + Math.hypot(fullPts[k + 1].x - fullPts[k].x, fullPts[k + 1].y - fullPts[k].y));
             }
-            items.push({ wire: g.wire, pts: fullPts, cum, total: cum[cum.length - 1], origIndex: g.origIndex, wasRoot: Boolean(g.wire.fromCompId) });
+            items.push({ wire: g.wire, pts: fullPts, cum, total: cum[cum.length - 1], origIndex: g.origIndex });
           }
-          if (items.length < 2) continue;
+          if (items.length === 0) continue;
+          if (items.length === 1 && oldTrunks.length === 0) continue;
+
+          const oldTrunkIds = new Set(oldTrunks.map(g => g.wire.id));
+          if (oldTrunkIds.size > 0) {
+            this.wires = this.wires.filter(w => !oldTrunkIds.has(w.id));
+            for (const tid of oldTrunkIds) this.wireMap.delete(tid);
+            changedCount += oldTrunkIds.size;
+          }
 
           const infoAtDist = (it, d) => {
             const pts = it.pts, cum = it.cum;
@@ -8255,97 +8293,135 @@
             }
           };
 
-          const scoreStem = (it, forkDist, dir) => {
-            const after = infoAtDist(it, forkDist);
-            const continuesStraight = !after.ended && after.dir === dir ? 1 : 0;
-            const isStraightWire = it.pts.length === 2 ? 1 : 0;
-            const remLen = Math.max(0, it.total - forkDist);
-            return continuesStraight * 100000 + isStraightWire * 50000 + (it.wasRoot ? 1000 : 0) + remLen * 0.01 - it.origIndex * 0.0001;
-          };
-
-          const decompose = (subItems, originDist, originPt, parentWire, lockedStem = null, depth = 0) => {
-            if (!subItems || subItems.length === 0 || depth > 80) return;
-            if (subItems.length === 1) {
-              if (subItems[0] !== lockedStem) applyGeometry(subItems[0], originDist, originPt, parentWire);
-              return;
-            }
-            const dirBuckets = new Map();
-            for (const it of subItems) {
-              const inf = infoAtDist(it, originDist);
-              if (inf.ended || inf.segRemaining <= 0.5) {
-                if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
-                continue;
+          const newTrunks = [];
+          if (items.length === 1) {
+            applyGeometry(items[0], 0, rootPos, null);
+          } else {
+            const decompose = (subItems, originDist, originPt, parentWire, depth = 0) => {
+              if (!subItems || subItems.length === 0 || depth > 80) return;
+              if (subItems.length === 1) {
+                applyGeometry(subItems[0], originDist, originPt, parentWire);
+                return;
               }
-              let bucket = dirBuckets.get(inf.dir);
-              if (!bucket) { bucket = []; dirBuckets.set(inf.dir, bucket); }
-              bucket.push({ item: it, segRem: inf.segRemaining });
-            }
-
-            for (const [dir, entries] of dirBuckets.entries()) {
-              const bucketItems = entries.map(e => e.item);
-              if (bucketItems.length === 1) {
-                if (bucketItems[0] !== lockedStem) applyGeometry(bucketItems[0], originDist, originPt, parentWire);
-                continue;
-              }
-              if (dir.startsWith('DIAG:')) {
-                for (const it of bucketItems) {
-                  if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
-                }
-                continue;
-              }
-              const dMin = Math.min(...entries.map(e => e.segRem));
-              if (!(dMin > 0.5)) {
-                for (const it of bucketItems) {
-                  if (it !== lockedStem) applyGeometry(it, originDist, originPt, parentWire);
-                }
-                continue;
-              }
-
-              const forkDist = originDist + dMin;
-              const jInfo = infoAtDist(bucketItems[0], forkDist);
-              const J = jInfo.pt;
-
-              let stem = (lockedStem && bucketItems.includes(lockedStem)) ? lockedStem : null;
-              if (!stem) {
-                let bestScore = -Infinity;
-                for (const it of bucketItems) {
-                  const s = scoreStem(it, forkDist, dir);
-                  if (s > bestScore) { bestScore = s; stem = it; }
-                }
-                applyGeometry(stem, originDist, originPt, parentWire);
-              }
-
-              const stemAfter = infoAtDist(stem, forkDist);
-              const postBuckets = new Map();
-              for (const it of bucketItems) {
-                if (it === stem) continue;
-                const inf = infoAtDist(it, forkDist);
+              const dirBuckets = new Map();
+              for (const it of subItems) {
+                const inf = infoAtDist(it, originDist);
                 if (inf.ended || inf.segRemaining <= 0.5) {
-                  applyGeometry(it, forkDist, J, stem.wire);
+                  applyGeometry(it, originDist, originPt, parentWire);
                   continue;
                 }
-                let arr = postBuckets.get(inf.dir);
-                if (!arr) { arr = []; postBuckets.set(inf.dir, arr); }
-                arr.push(it);
+                let bucket = dirBuckets.get(inf.dir);
+                if (!bucket) { bucket = []; dirBuckets.set(inf.dir, bucket); }
+                bucket.push({ item: it, segRem: inf.segRemaining });
               }
 
-              for (const [postDir, restGroup] of postBuckets.entries()) {
-                if (!stemAfter.ended && postDir === stemAfter.dir) {
-                  decompose([stem, ...restGroup], forkDist, J, parentWire, stem, depth + 1);
-                } else {
-                  decompose(restGroup, forkDist, J, stem.wire, null, depth + 1);
+              for (const [dir, entries] of dirBuckets.entries()) {
+                const bucketItems = entries.map(e => e.item);
+                if (bucketItems.length === 1) {
+                  applyGeometry(bucketItems[0], originDist, originPt, parentWire);
+                  continue;
                 }
-              }
-            }
-          };
+                if (dir.startsWith('DIAG:')) {
+                  for (const it of bucketItems) {
+                    applyGeometry(it, originDist, originPt, parentWire);
+                  }
+                  continue;
+                }
+                const dMin = Math.min(...entries.map(e => e.segRem));
+                if (!(dMin > 0.5)) {
+                  for (const it of bucketItems) {
+                    applyGeometry(it, originDist, originPt, parentWire);
+                  }
+                  continue;
+                }
 
-          decompose(items, 0, rootPos, null, null, 0);
+                let forkDist = originDist + dMin;
+                let guard = 0;
+                while (guard++ < 200) {
+                  const nextInfos = bucketItems.map(it => infoAtDist(it, forkDist));
+                  if (nextInfos.some(inf => inf.ended || !(inf.segRemaining > 0.5))) break;
+                  const d0 = nextInfos[0].dir;
+                  if (!d0 || d0.startsWith('DIAG:')) break;
+                  if (nextInfos.every(inf => inf.dir === d0)) {
+                    const stepMin = Math.min(...nextInfos.map(inf => inf.segRemaining));
+                    if (!(stepMin > 0.5)) break;
+                    forkDist += stepMin;
+                  } else {
+                    break;
+                  }
+                }
+
+                const jInfo = infoAtDist(bucketItems[0], forkDist);
+                const J = { x: Math.round(jInfo.pt.x), y: Math.round(jInfo.pt.y) };
+
+                const endedAtFork = [];
+                const contAtFork = [];
+                for (const it of bucketItems) {
+                  const inf = infoAtDist(it, forkDist);
+                  if (inf.ended || !(inf.segRemaining > 0.5)) endedAtFork.push(it);
+                  else contAtFork.push(it);
+                }
+
+                if (endedAtFork.length > 0) {
+                  const stem = endedAtFork[0];
+                  applyGeometry(stem, originDist, originPt, parentWire);
+                  if (contAtFork.length > 0) {
+                    decompose(contAtFork, forkDist, J, stem.wire, depth + 1);
+                  }
+                  continue;
+                }
+
+                const refItem = bucketItems[0];
+                const trunkPts = [{ x: Math.round(originPt.x), y: Math.round(originPt.y) }];
+                for (let k = 0; k < refItem.pts.length; k++) {
+                  if (refItem.cum[k] > originDist + 0.5 && refItem.cum[k] < forkDist - 0.5) {
+                    trunkPts.push({ x: Math.round(refItem.pts[k].x), y: Math.round(refItem.pts[k].y) });
+                  }
+                }
+                trunkPts.push(J);
+                const cleanTrunkPts = this._simplifyOrthoPts(trunkPts);
+                let trunkCorners = cleanTrunkPts.slice(1, -1).map(p => ({ x: p.x, y: p.y }));
+                if (trunkCorners.length === 0 && cleanTrunkPts.length === 2) {
+                  const pA = cleanTrunkPts[0], pB = cleanTrunkPts[1];
+                  const isForwardStraight = Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + 20;
+                  if (!isForwardStraight) trunkCorners = [{ x: pB.x, y: pB.y }];
+                }
+
+                const trunkWire = this.addWire(
+                  parentWire ? null : group[0].rootCompId,
+                  parentWire ? 0 : group[0].rootPin,
+                  null,
+                  0,
+                  null,
+                  [],
+                  {
+                    fromWireId: parentWire ? parentWire.id : null,
+                    fromPoint: parentWire ? { x: Math.round(originPt.x), y: Math.round(originPt.y) } : null,
+                    toPoint: J
+                  }
+                );
+                if (!trunkWire) {
+                  for (const it of bucketItems) applyGeometry(it, originDist, originPt, parentWire);
+                  continue;
+                }
+                trunkWire.waypoints = trunkCorners;
+                trunkWire.autoRouted = true;
+                newTrunks.push(trunkWire);
+                changedCount++;
+
+                decompose(bucketItems, forkDist, J, trunkWire, depth + 1);
+              }
+            };
+
+            decompose(items, 0, rootPos, null, 0);
+          }
 
           if (oldProbePositions.length > 0) {
+            const candidateWires = [...newTrunks, ...items.map(it => it.wire)];
             const postPtsMap = new Map();
-            for (const item of items) {
-              const p = getPts(item.wire);
-              if (p && p.length >= 2) postPtsMap.set(item.wire.id, p);
+            for (const nw of candidateWires) {
+              const p = getPts(nw);
+              if (p && p.length >= 2) postPtsMap.set(nw.id, p);
             }
             for (const { probe, pt } of oldProbePositions) {
               let bestWire = null;
@@ -8355,13 +8431,13 @@
                 bestWire = this.getWire(probe.wireId);
               }
               if (!bestWire) {
-                for (const item of items) {
-                  const pts = postPtsMap.get(item.wire.id);
+                for (const nw of candidateWires) {
+                  const pts = postPtsMap.get(nw.id);
                   if (!pts) continue;
                   const proj = this._projectPointOnPoints(pts, pt);
                   if (proj.distSq < bestDistSq) {
                     bestDistSq = proj.distSq;
-                    bestWire = item.wire;
+                    bestWire = nw;
                   }
                 }
               }
@@ -8463,6 +8539,8 @@
 
         const wire = this.wireMap.get(wireId) || this.wires.find(w => w.id === wireId);
         if (wire) {
+          const parentId = (!wire.fromCompId && wire.fromWireId) ? wire.fromWireId : null;
+
           // Promote downstream fromWireId branches when deleting an intermediate trunk whose driver still exists
           const directChildren = this.wires.filter(w => w.fromWireId === wireId && !w.fromCompId);
           const driverAlive = wire.fromCompId ? Boolean(this.compMap.get(wire.fromCompId)) : Boolean(wire.fromWireId || wire.fromPoint);
@@ -8515,6 +8593,82 @@
           const idx = this.wires.findIndex(w => w.id === wireId);
           if (idx !== -1) {
             this.wires.splice(idx, 1);
+          }
+
+          if (parentId) {
+            const parent = this.wireMap.get(parentId) || this.wires.find(w => w.id === parentId);
+            if (parent && !parent.toCompId && !parent.toWireId && parent.toPoint) {
+              const remainingChildren = this.wires.filter(w => w.fromWireId === parent.id && !w.fromCompId);
+              if (remainingChildren.length === 0) {
+                this.removeWire(parent.id, ringBuffer);
+              } else if (remainingChildren.length === 1) {
+                const onlyChild = remainingChildren[0];
+                const parentPts = this._getFallbackWirePolyline(parent);
+                const childPts = this._getFallbackWirePolyline(onlyChild);
+                const polyLen = (pts) => {
+                  let len = 0;
+                  for (let k = 0; k + 1 < pts.length; k++) len += Math.hypot(pts[k + 1].x - pts[k].x, pts[k + 1].y - pts[k].y);
+                  return len;
+                };
+                const ptAtRatio = (pts, ratio) => {
+                  const total = polyLen(pts);
+                  if (total <= 0 || pts.length === 0) return pts[0] ? { x: pts[0].x, y: pts[0].y } : { x: 0, y: 0 };
+                  const target = Math.max(0, Math.min(1, ratio)) * total;
+                  let acc = 0;
+                  for (let k = 0; k + 1 < pts.length; k++) {
+                    const seg = Math.hypot(pts[k + 1].x - pts[k].x, pts[k + 1].y - pts[k].y);
+                    if (acc + seg >= target || k === pts.length - 2) {
+                      const t = seg > 0 ? Math.max(0, Math.min(1, (target - acc) / seg)) : 0;
+                      return { x: pts[k].x + (pts[k + 1].x - pts[k].x) * t, y: pts[k].y + (pts[k + 1].y - pts[k].y) * t };
+                    }
+                    acc += seg;
+                  }
+                  return { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
+                };
+                const probeSnap = [];
+                for (const pr of (this.probes || [])) {
+                  if (pr.wireId === parent.id && parentPts.length >= 2) {
+                    probeSnap.push({ probe: pr, pt: ptAtRatio(parentPts, pr.offsetRatio) });
+                  } else if (pr.wireId === onlyChild.id && childPts.length >= 2) {
+                    probeSnap.push({ probe: pr, pt: ptAtRatio(childPts, pr.offsetRatio) });
+                  }
+                }
+
+                const origAnchor = (onlyChild.fromPoint ? { ...onlyChild.fromPoint } : null) ||
+                  (childPts[0] ? { ...childPts[0] } : parent.toPoint);
+
+                onlyChild.fromCompId = parent.fromCompId || '';
+                onlyChild.fromPin = parent.fromPin || 0;
+                onlyChild._fromComp = parent.fromCompId ? (this.compMap.get(parent.fromCompId) || null) : null;
+                onlyChild.fromWireId = parent.fromWireId || null;
+                onlyChild.fromPoint = (!onlyChild.fromCompId && parent.fromPoint) ? { ...parent.fromPoint } : null;
+
+                if (parentPts.length >= 2 && childPts.length >= 2) {
+                  const prefixPts = this._extractPrefixPoints(parentPts, origAnchor);
+                  const combined = this._simplifyOrthoPts([...prefixPts, ...childPts.slice(1)]);
+                  let corners = combined.length >= 2 ? combined.slice(1, -1).map(p => ({ x: p.x, y: p.y })) : [];
+                  if (corners.length === 0 && combined.length === 2) {
+                    const pA = combined[0], pB = combined[1];
+                    if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + 20)) corners = [{ x: pB.x, y: pB.y }];
+                  }
+                  onlyChild.waypoints = corners;
+                }
+
+                const mergedPts = this._getFallbackWirePolyline(onlyChild);
+                const mergedLen = polyLen(mergedPts);
+                for (const { probe, pt } of probeSnap) {
+                  probe.wireId = onlyChild.id;
+                  if (mergedLen > 0 && mergedPts.length >= 2) {
+                    const proj = this._projectPointOnPoints(mergedPts, pt);
+                    probe.offsetRatio = Math.max(0.05, Math.min(0.95, proj.distAlong / mergedLen));
+                  }
+                }
+
+                this.wireMap.delete(parent.id);
+                const pIdx = this.wires.findIndex(w => w.id === parent.id);
+                if (pIdx !== -1) this.wires.splice(pIdx, 1);
+              }
+            }
           }
         }
       }
@@ -8592,7 +8746,7 @@
           if (existing) continue;
 
           for (const w of this.wires) {
-            if (w.toPoint && !w.toCompId && !w.toWireId) {
+            if (w.toPoint && !w.toCompId && !w.toWireId && !this.isForkTrunkWire(w)) {
               const minX = Math.min(comp.x, pinPos.x);
               const maxX = Math.max(comp.x, pinPos.x);
               const clampedX = Math.max(minX, Math.min(maxX, w.toPoint.x));
@@ -8658,9 +8812,9 @@
               const w2 = this.wires[j];
               if (!w2 || w1.id === w2.id) continue;
 
-              const w1OpenEnd = Boolean(w1.toPoint && !w1.toCompId && !w1.toWireId);
+              const w1OpenEnd = Boolean(w1.toPoint && !w1.toCompId && !w1.toWireId && !this.isForkTrunkWire(w1));
               const w1OpenStart = Boolean(w1.fromPoint && !w1.fromCompId && !w1.fromWireId);
-              const w2OpenEnd = Boolean(w2.toPoint && !w2.toCompId && !w2.toWireId);
+              const w2OpenEnd = Boolean(w2.toPoint && !w2.toCompId && !w2.toWireId && !this.isForkTrunkWire(w2));
               const w2OpenStart = Boolean(w2.fromPoint && !w2.fromCompId && !w2.fromWireId);
 
               // 1. w1 has open end, w2 has open start meeting at same point
@@ -10368,10 +10522,13 @@
         for (const w of (circuit.wires || [])) {
           const pts = getPolyline(w);
           if (!pts || pts.length < 2) continue;
-          res.wires++;
+          const isTrunk = Boolean(circuit.isForkTrunkWire && circuit.isForkTrunkWire(w));
+          if (!isTrunk) {
+            res.wires++;
+            if (pts.length === 2 && pts[0].y === pts[1].y) res.straightWires++;
+          }
           const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
           const net = (root.compId ? root.compId : w.fromCompId) + '\u0000' + (root.compId ? root.pin : w.fromPin);
-          if (pts.length === 2 && pts[0].y === pts[1].y) res.straightWires++;
           res.bends += Math.max(0, pts.length - 2);
           const hit = new Set();
           for (let i = 0; i + 1 < pts.length; i++) {
@@ -11560,9 +11717,11 @@
         this.hoveredMidpoint = null;
         this.hoveredSegment = null;
         this.hoveredTerminus = null;
+        this.hoveredJunction = null;
         this.activeWaypointDrag = null;
         this.activeWireDrag = null;
         this.activeTerminusDrag = null;
+        this.activeJunctionDrag = null;
         this.selectionBox = null;
         this.showWireBridges = true;
         this.allowDiagonalWires = true;
@@ -11973,6 +12132,8 @@
 
       findWireAt(worldX, worldY, tolerance = 7) {
         const tolSq = tolerance * tolerance;
+        let bestWire = null;
+        let bestDistSq = tolSq;
         for (let i = this.circuit.wires.length - 1; i >= 0; i--) {
           const w = this.circuit.wires[i];
           const pts = this.getWirePolyline(w);
@@ -11981,12 +12142,14 @@
           for (let j = 0; j < pts.length - 1; j++) {
             const pA = pts[j];
             const pB = pts[j + 1];
-            if (this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y) <= tolSq) {
-              return w;
+            const dSq = this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y);
+            if (dSq < bestDistSq || (dSq <= bestDistSq && !bestWire)) {
+              bestDistSq = dSq;
+              bestWire = w;
             }
           }
         }
-        return null;
+        return bestWire;
       }
 
       isWireIntersectingBox(pts, minX, minY, maxX, maxY) {
@@ -12126,6 +12289,56 @@
         return junctions;
       }
 
+      findJunctionAt(worldX, worldY, radius = 10) {
+        if (!this.circuit || !Array.isArray(this.circuit.wires) || this.circuit.wires.length === 0) return null;
+        const wireEntries = [];
+        for (const w of this.circuit.wires) {
+          const pts = this.getWirePolyline(w);
+          if (pts && pts.length >= 2) wireEntries.push({ wire: w, pts });
+        }
+        const junctions = this.findWireJunctions(wireEntries);
+        if (!junctions || junctions.length === 0) return null;
+
+        const rSq = radius * radius;
+        let best = null;
+        let bestDistSq = rSq;
+        for (const j of junctions) {
+          const dx = worldX - j.x;
+          const dy = worldY - j.y;
+          const dSq = dx * dx + dy * dy;
+          if (dSq <= bestDistSq) {
+            bestDistSq = dSq;
+            best = j;
+          }
+        }
+        if (!best) return null;
+
+        const jx = best.x;
+        const jy = best.y;
+        const endWires = [];
+        const startWires = [];
+        const passWires = [];
+
+        for (const entry of wireEntries) {
+          const { wire: w, pts } = entry;
+          const first = pts[0];
+          const last = pts[pts.length - 1];
+          const atStart = (!w.fromCompId && (w.fromPoint || w.fromWireId)) && Math.hypot(first.x - jx, first.y - jy) <= 4;
+          const atEnd = (!w.toCompId && (w.toPoint || w.toWireId)) && Math.hypot(last.x - jx, last.y - jy) <= 4;
+          if (atEnd) endWires.push(w);
+          if (atStart) startWires.push(w);
+          if (!atStart && !atEnd) {
+            for (let k = 1; k < pts.length - 1; k++) {
+              if (Math.hypot(pts[k].x - jx, pts[k].y - jy) <= 4) {
+                passWires.push({ wire: w, waypointIndex: k - 1 });
+                break;
+              }
+            }
+          }
+        }
+        return { x: jx, y: jy, endWires, startWires, passWires };
+      }
+
 
       findOpenTerminusAt(worldX, worldY, radius = 12) {
         if (!this.circuit || !this.circuit.wires) return null;
@@ -12135,7 +12348,7 @@
           : this.circuit.wires;
 
         for (const wire of wires) {
-          if (!wire.toCompId && !wire.toWireId && wire.toPoint) {
+          if (!wire.toCompId && !wire.toWireId && wire.toPoint && !(this.circuit.isForkTrunkWire && this.circuit.isForkTrunkWire(wire))) {
             const dx = worldX - wire.toPoint.x;
             const dy = worldY - wire.toPoint.y;
             if (dx * dx + dy * dy <= rSq) {
@@ -12155,9 +12368,11 @@
 
       findWaypointAt(worldX, worldY, radius = 9) {
         const rSq = radius * radius;
-        const targetWires = this.selectedWireId
-          ? [this.circuit.wires.find(w => w.id === this.selectedWireId)].filter(Boolean)
-          : this.circuit.wires;
+        const targetWires = (this.selectedWireIds && this.selectedWireIds.size > 0)
+          ? this.circuit.wires.filter(w => this.selectedWireIds.has(w.id))
+          : (this.selectedWireId
+              ? [this.circuit.wires.find(w => w.id === this.selectedWireId)].filter(Boolean)
+              : this.circuit.wires);
 
         for (const wire of targetWires) {
           const pts = this.getWirePolyline(wire);
@@ -12176,24 +12391,30 @@
 
 
       findMidpointHandleAt(worldX, worldY, radius = 8) {
-        if (!this.selectedWireId) return null;
-        const wire = this.circuit.wires.find(w => w.id === this.selectedWireId);
-        if (!wire) return null;
-        const pts = this.getWirePolyline(wire);
-        if (pts.length < 2) return null;
+        const targetWires = (this.selectedWireIds && this.selectedWireIds.size > 0)
+          ? this.circuit.wires.filter(w => this.selectedWireIds.has(w.id))
+          : (this.selectedWireId
+              ? [this.circuit.wires.find(w => w.id === this.selectedWireId)].filter(Boolean)
+              : []);
+        if (targetWires.length === 0) return null;
 
         const rSq = radius * radius;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const pA = pts[i];
-          const pB = pts[i + 1];
-          const len = Math.hypot(pB.x - pA.x, pB.y - pA.y);
-          if (len < 22) continue;
-          const mx = (pA.x + pB.x) / 2;
-          const my = (pA.y + pB.y) / 2;
-          const dx = worldX - mx;
-          const dy = worldY - my;
-          if (dx * dx + dy * dy <= rSq) {
-            return { wire, segmentIndex: i, x: mx, y: my };
+        for (const wire of targetWires) {
+          const pts = this.getWirePolyline(wire);
+          if (pts.length < 2) continue;
+
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+            const len = Math.hypot(pB.x - pA.x, pB.y - pA.y);
+            if (len < 22) continue;
+            const mx = (pA.x + pB.x) / 2;
+            const my = (pA.y + pB.y) / 2;
+            const dx = worldX - mx;
+            const dy = worldY - my;
+            if (dx * dx + dy * dy <= rSq) {
+              return { wire, segmentIndex: i, x: mx, y: my };
+            }
           }
         }
         return null;
@@ -12201,23 +12422,33 @@
 
 
       findWireSegmentAt(worldX, worldY, tolerance = 6) {
-        if (!this.selectedWireId) return null;
-        const wire = this.circuit.wires.find(w => w.id === this.selectedWireId);
-        if (!wire) return null;
-        const pts = this.getWirePolyline(wire);
-        if (pts.length < 2) return null;
+        const targetWires = (this.selectedWireIds && this.selectedWireIds.size > 0)
+          ? this.circuit.wires.filter(w => this.selectedWireIds.has(w.id))
+          : (this.selectedWireId
+              ? [this.circuit.wires.find(w => w.id === this.selectedWireId)].filter(Boolean)
+              : []);
+        if (targetWires.length === 0) return null;
 
         const tolSq = tolerance * tolerance;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const pA = pts[i];
-          const pB = pts[i + 1];
-          if (this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y) <= tolSq) {
-            const isHorizontal = pA.y === pB.y;
-            const isVertical = pA.x === pB.x;
-            return { wire, segmentIndex: i, isHorizontal, isVertical, pA, pB };
+        let best = null;
+        let bestDistSq = tolSq;
+        for (const wire of targetWires) {
+          const pts = this.getWirePolyline(wire);
+          if (pts.length < 2) continue;
+
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+            const dSq = this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y);
+            if (dSq <= bestDistSq) {
+              bestDistSq = dSq;
+              const isHorizontal = pA.y === pB.y;
+              const isVertical = pA.x === pB.x;
+              best = { wire, segmentIndex: i, isHorizontal, isVertical, pA, pB };
+            }
           }
         }
-        return null;
+        return best;
       }
 
 
@@ -12370,6 +12601,8 @@
           const pts = polyMap.get(w.id);
           if (!pts) continue;
           const proj = this.projectPointOnPolyline(pts, clickPt);
+          if (hitWire.fromWireId === w.id && hitProj.distAlong > 0.5) continue;
+          if (w.fromWireId && w.fromWireId === hitWire.fromWireId && hitProj.distAlong > 0.5 && proj.distAlong <= 0.5) continue;
           if (proj.distSq <= overlapDistLimit) {
             enqueue(w, proj.distAlong);
           }
@@ -12386,7 +12619,7 @@
             const childPts = polyMap.get(child.id);
             if (!childPts) continue;
             const bProj = this.projectPointOnPolyline(curPts, childPts[0]);
-            if (bProj.distAlong >= minDistAlong - 6) {
+            if (bProj.distAlong >= minDistAlong - 1) {
               enqueue(child, 0);
             }
           }
@@ -12413,7 +12646,7 @@
                 const jp = curPts[k];
                 if (Math.hypot(jp.x - p0.x, jp.y - p0.y) < 4) continue;
                 const jProj = this.projectPointOnPolyline(curPts, jp);
-                if (jProj.distAlong >= minDistAlong - 6 && this.distToWireSq(jp.x, jp.y, sibPts) <= 16) {
+                if (jProj.distAlong >= minDistAlong - 1 && this.distToWireSq(jp.x, jp.y, sibPts) <= 16) {
                   const sibClickProj = this.projectPointOnPolyline(sibPts, clickPt);
                   if (sibClickProj.distSq <= 25 || this.distToWireSq(curPts[1].x, curPts[1].y, sibPts) <= 16) {
                     enqueue(sib, this.projectPointOnPolyline(sibPts, jp).distAlong);
@@ -12879,7 +13112,7 @@
           }
           ctx.stroke();
 
-          if (isSelected && this.engine.mode === 'edit' && (this.selectedWireIds.size <= 1 || w.id === this.selectedWireId)) {
+          if (isSelected && this.engine.mode === 'edit') {
             const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
             const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
             const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
@@ -12982,7 +13215,7 @@
           const isWireSel = this.selectedWireIds.has(w.id) || this.selectedWireId === w.id;
 
           const openEndpoints = [];
-          if (!w.toCompId && !w.toWireId && w.toPoint) {
+          if (!w.toCompId && !w.toWireId && w.toPoint && !(this.circuit && this.circuit.isForkTrunkWire && this.circuit.isForkTrunkWire(w))) {
             openEndpoints.push({ pt: pts[pts.length - 1], isEnd: true });
           }
           if (!w.fromCompId && !w.fromWireId && w.fromPoint) {
@@ -13020,12 +13253,29 @@
           ctx.save();
           const isHigh = junc.level === 1;
           const isSel = junc.isSelected;
+          const isJuncHovered = Boolean(this.hoveredJunction && Math.hypot(this.hoveredJunction.x - junc.x, this.hoveredJunction.y - junc.y) <= 4);
+          const isJuncDragging = Boolean(this.activeJunctionDrag && Math.hypot(this.activeJunctionDrag.x - junc.x, this.activeJunctionDrag.y - junc.y) <= 4);
 
-          const dotRadius = isSel ? 4.8 : 4.0;
-          const fillColor = isSel ? '#00b0ff' : (isHigh ? '#00e676' : '#475569');
+          if (isJuncHovered || isJuncDragging) {
+            ctx.beginPath();
+            ctx.arc(junc.x, junc.y, isJuncDragging ? 9 : 8.5, 0, Math.PI * 2);
+            ctx.strokeStyle = isJuncDragging ? contrastStroke : accentBlue;
+            ctx.lineWidth = isJuncDragging ? 2.2 : 1.8;
+            ctx.shadowColor = isJuncDragging
+              ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)')
+              : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
 
-          if (isHigh || isSel) {
-            ctx.shadowColor = isSel ? 'rgba(0, 176, 255, 0.6)' : 'rgba(0, 230, 118, 0.6)';
+          const dotRadius = (isJuncHovered || isJuncDragging) ? 6 : (isSel ? 4.8 : 4.0);
+          const fillColor = (isJuncHovered || isJuncDragging) ? '#00e676' : (isSel ? '#00b0ff' : (isHigh ? '#00e676' : '#475569'));
+
+          if (isHigh || isSel || isJuncHovered || isJuncDragging) {
+            ctx.shadowColor = (isJuncHovered || isJuncDragging)
+              ? 'rgba(0, 230, 118, 0.7)'
+              : (isSel ? 'rgba(0, 176, 255, 0.6)' : 'rgba(0, 230, 118, 0.6)');
             ctx.shadowBlur = 6;
           }
 
@@ -13036,7 +13286,7 @@
           ctx.shadowBlur = 0;
 
           ctx.lineWidth = 1.4;
-          ctx.strokeStyle = '#080b10';
+          ctx.strokeStyle = isJuncDragging ? contrastStroke : (isLightCanvas ? '#0f172a' : '#080b10');
           ctx.stroke();
           ctx.restore();
         }
@@ -14108,7 +14358,7 @@
             this.hoveredPin.pinIndex === i;
           const isInv = Boolean(comp.params.invertedInputs && comp.params.invertedInputs[i]);
 
-          if ((!isGateComp && !isInv) || isHovered) {
+          if (isHovered) {
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
@@ -14163,7 +14413,7 @@
           const isNegatedQ = isFF && (pin.name === '!Q' || pin.defaultName === '!Q');
           const isInv = isFF ? (isNegatedQ || (i === 0 && Boolean(comp.params.invertedOutput))) : Boolean(comp.params.invertedOutput);
 
-          if ((!isGateComp && !isInv) || isHovered) {
+          if (isHovered) {
             this.drawPinCircle(ctx, px, py, pin.value === 1, isHovered);
           }
 
@@ -17632,6 +17882,7 @@
         this.draggingWaypoint = null;
         this.draggingSegment = null;
         this.draggingTerminus = null;
+        this.draggingJunction = null;
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
         this.compMouseDownPos = null;
@@ -18518,6 +18769,11 @@
               x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
               y: Math.round(p.y / GRID_SIZE) * GRID_SIZE
             }));
+          } else if (pts.length === 2 && wire.style !== 'diagonal' && !(Math.abs(pts[0].y - pts[1].y) < 0.5 && pts[1].x >= pts[0].x + 20)) {
+            wire.waypoints = [{
+              x: Math.round(pts[1].x / GRID_SIZE) * GRID_SIZE,
+              y: Math.round(pts[1].y / GRID_SIZE) * GRID_SIZE
+            }];
           } else {
             wire.waypoints = [];
           }
@@ -18529,17 +18785,146 @@
         if (!wire || !wire.waypoints || wire.waypoints.length === 0) return;
         const pts = this.renderer.getWirePolyline(wire);
         if (pts.length <= 2) {
-          wire.waypoints = [];
+          if (pts.length === 2 && wire.style !== 'diagonal' && !(Math.abs(pts[0].y - pts[1].y) < 0.5 && pts[1].x >= pts[0].x + 20)) {
+            wire.waypoints = [{
+              x: Math.round(pts[1].x / GRID_SIZE) * GRID_SIZE,
+              y: Math.round(pts[1].y / GRID_SIZE) * GRID_SIZE
+            }];
+          } else {
+            wire.waypoints = [];
+          }
           return;
         }
         const simple = this.renderer.simplifyCollinear(pts);
         if (simple.length <= 2) {
-          wire.waypoints = [];
+          if (simple.length === 2 && wire.style !== 'diagonal' && !(Math.abs(simple[0].y - simple[1].y) < 0.5 && simple[1].x >= simple[0].x + 20)) {
+            wire.waypoints = [{
+              x: Math.round(simple[1].x / GRID_SIZE) * GRID_SIZE,
+              y: Math.round(simple[1].y / GRID_SIZE) * GRID_SIZE
+            }];
+          } else {
+            wire.waypoints = [];
+          }
         } else {
           wire.waypoints = simple.slice(1, -1).map(p => ({
             x: Math.round(p.x / GRID_SIZE) * GRID_SIZE,
             y: Math.round(p.y / GRID_SIZE) * GRID_SIZE
           }));
+        }
+      }
+
+      createJunctionDragState(jx, jy, juncInfo = null, excludeWireIds = null) {
+        const info = juncInfo || this.renderer.findJunctionAt(jx, jy, 4);
+        const endWires = info ? info.endWires : [];
+        const startWires = info ? info.startWires : [];
+        const passWires = info ? info.passWires : [];
+        const endpoints = [];
+        const passItems = [];
+        const allWires = [];
+        const seenWires = new Set();
+
+        const trackEndpoint = (w, isEnd) => {
+          if (!w || (excludeWireIds && excludeWireIds.has(w.id))) return;
+          if (!seenWires.has(w.id)) {
+            seenWires.add(w.id);
+            allWires.push(w);
+          }
+          this.ensureWireWaypoints(w, true);
+          const pts = this.renderer.getWirePolyline(w);
+          if (pts.length < 2) return;
+          if (pts.length === 2) {
+            const fixedEnd = isEnd ? pts[0] : pts[1];
+            const origDir = Math.abs(fixedEnd.y - jy) < 0.5 ? 'H' : 'V';
+            endpoints.push({ wire: w, isEnd, wasTwoPoint: true, fixedEnd: { x: fixedEnd.x, y: fixedEnd.y }, origDir });
+          } else {
+            const adjPt = isEnd ? pts[pts.length - 2] : pts[1];
+            const wpIndex = isEnd ? w.waypoints.length - 1 : 0;
+            const lockAxis = Math.abs(adjPt.y - jy) < 0.5 ? 'y' : 'x';
+            endpoints.push({ wire: w, isEnd, wasTwoPoint: false, wpIndex, lockAxis });
+          }
+        };
+
+        for (const w of endWires) trackEndpoint(w, true);
+        for (const w of startWires) trackEndpoint(w, false);
+
+        for (const pw of passWires) {
+          const w = pw.wire;
+          if (!w || (excludeWireIds && excludeWireIds.has(w.id))) continue;
+          if (!seenWires.has(w.id)) {
+            seenWires.add(w.id);
+            allWires.push(w);
+          }
+          this.ensureWireWaypoints(w, true);
+          const pts = this.renderer.getWirePolyline(w);
+          let cornerIdx = -1;
+          for (let k = 1; k < pts.length - 1; k++) {
+            if (Math.hypot(pts[k].x - jx, pts[k].y - jy) <= 4) {
+              cornerIdx = k;
+              break;
+            }
+          }
+          if (cornerIdx === -1) continue;
+          const wpIdx = cornerIdx - 1;
+          const prevPt = pts[cornerIdx - 1];
+          const nextPt = pts[cornerIdx + 1];
+          const prevLockAxis = wpIdx - 1 >= 0 ? (Math.abs(prevPt.y - jy) < 0.5 ? 'y' : 'x') : null;
+          const nextLockAxis = wpIdx + 1 < w.waypoints.length ? (Math.abs(nextPt.y - jy) < 0.5 ? 'y' : 'x') : null;
+          passItems.push({ wire: w, wpIndex: wpIdx, prevLockAxis, nextLockAxis });
+        }
+
+        return { origX: jx, origY: jy, x: jx, y: jy, endpoints, passItems, allWires };
+      }
+
+      applyJunctionDragPosition(state, nx, ny) {
+        if (!state) return;
+        state.x = nx;
+        state.y = ny;
+        for (const ep of state.endpoints) {
+          const w = ep.wire;
+          if (ep.isEnd) {
+            if (w.toPoint) { w.toPoint.x = nx; w.toPoint.y = ny; }
+            else if (w.toWireId) w.toPoint = { x: nx, y: ny };
+          } else {
+            if (w.fromPoint) { w.fromPoint.x = nx; w.fromPoint.y = ny; }
+            else if (w.fromWireId) w.fromPoint = { x: nx, y: ny };
+          }
+          if (w.style === 'diagonal') continue;
+          if (ep.wasTwoPoint) {
+            if (ep.origDir === 'H') {
+              if (Math.abs(ny - ep.fixedEnd.y) < 0.5) {
+                w.waypoints = ep.isEnd
+                  ? (nx >= ep.fixedEnd.x + 20 ? [] : [{ x: nx, y: ny }])
+                  : (ep.fixedEnd.x >= nx + 20 ? [] : [{ x: ep.fixedEnd.x, y: ep.fixedEnd.y }]);
+              } else {
+                w.waypoints = [{ x: nx, y: ep.fixedEnd.y }];
+              }
+            } else {
+              if (Math.abs(nx - ep.fixedEnd.x) < 0.5) {
+                w.waypoints = ep.isEnd
+                  ? [{ x: nx, y: ny }]
+                  : [{ x: ep.fixedEnd.x, y: ep.fixedEnd.y }];
+              } else {
+                w.waypoints = [{ x: ep.fixedEnd.x, y: ny }];
+              }
+            }
+          } else {
+            const adj = w.waypoints && w.waypoints[ep.wpIndex];
+            if (adj) {
+              if (ep.lockAxis === 'x') adj.x = nx;
+              else adj.y = ny;
+            }
+          }
+        }
+        for (const pw of state.passItems) {
+          const w = pw.wire;
+          const wp = w.waypoints && w.waypoints[pw.wpIndex];
+          if (wp) { wp.x = nx; wp.y = ny; }
+          if (pw.prevLockAxis && w.waypoints[pw.wpIndex - 1]) {
+            w.waypoints[pw.wpIndex - 1][pw.prevLockAxis] = pw.prevLockAxis === 'x' ? nx : ny;
+          }
+          if (pw.nextLockAxis && w.waypoints[pw.wpIndex + 1]) {
+            w.waypoints[pw.wpIndex + 1][pw.nextLockAxis] = pw.nextLockAxis === 'x' ? nx : ny;
+          }
         }
       }
 
@@ -20381,6 +20766,26 @@
           }
 
           if (this.engine.mode === 'edit') {
+            const hitJunction = (!e.shiftKey && !e.ctrlKey) ? this.renderer.findJunctionAt(world.x, world.y, 7) : null;
+            if (hitJunction) {
+              this.pushHistory(this.getActiveTab());
+              const juncWireIds = Array.from(new Set([
+                ...hitJunction.endWires.map(w => w.id),
+                ...hitJunction.startWires.map(w => w.id),
+                ...hitJunction.passWires.map(pw => pw.wire.id)
+              ]));
+              if (juncWireIds.length > 1) {
+                this.selectMulti([], juncWireIds);
+              } else if (juncWireIds.length === 1) {
+                this.selectItem(null, juncWireIds[0]);
+              }
+              this.draggingJunction = this.createJunctionDragState(hitJunction.x, hitJunction.y, hitJunction);
+              this.renderer.activeJunctionDrag = { x: hitJunction.x, y: hitJunction.y };
+              canvas.style.cursor = 'grabbing';
+              this.renderer.render();
+              return;
+            }
+
             const hitTerminus = this.renderer.findOpenTerminusAt(world.x, world.y, 12);
             if (hitTerminus) {
               this.selectItem(null, hitTerminus.wire.id);
@@ -20400,47 +20805,78 @@
             }
           }
 
-          if (this.engine.mode === 'edit' && this.renderer.selectedWireId) {
-            const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
-            if (hitWp && hitWp.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitWp.wire, true);
-              this.draggingWaypoint = { wire: hitWp.wire, index: hitWp.waypointIndex, startX: hitWp.x, startY: hitWp.y };
-              this.renderer.activeWaypointDrag = { wire: hitWp.wire, index: hitWp.waypointIndex };
-              canvas.style.cursor = 'crosshair';
-              this.renderer.render();
-              return;
-            }
+          if (this.engine.mode === 'edit' && !e.shiftKey && !e.ctrlKey && (this.renderer.selectedWireIds.size > 0 || this.renderer.selectedWireId)) {
+            const isWireSelected = (wid) => this.renderer.selectedWireIds.has(wid) || this.renderer.selectedWireId === wid;
+            const hasMultiCompSel = this.renderer.selectedCompIds && this.renderer.selectedCompIds.size > 0;
+            if (!hasMultiCompSel) {
+              const hitWp = this.renderer.findWaypointAt(world.x, world.y, 9);
+              if (hitWp && isWireSelected(hitWp.wire.id)) {
+                this.ensureWireWaypoints(hitWp.wire, true);
+                this.draggingWaypoint = { wire: hitWp.wire, index: hitWp.waypointIndex, startX: hitWp.x, startY: hitWp.y };
+                this.renderer.activeWaypointDrag = { wire: hitWp.wire, index: hitWp.waypointIndex };
+                canvas.style.cursor = 'crosshair';
+                this.renderer.render();
+                return;
+              }
 
-            const hitMid = this.renderer.findMidpointHandleAt(world.x, world.y, 8);
-            if (hitMid && hitMid.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitMid.wire, true);
-              const mx = Math.round(hitMid.x / GRID_SIZE) * GRID_SIZE;
-              const my = Math.round(hitMid.y / GRID_SIZE) * GRID_SIZE;
-              hitMid.wire.waypoints.splice(hitMid.segmentIndex, 0, { x: mx, y: my });
-              this.draggingWaypoint = { wire: hitMid.wire, index: hitMid.segmentIndex, startX: mx, startY: my };
-              this.renderer.activeWaypointDrag = { wire: hitMid.wire, index: hitMid.segmentIndex };
-              this.renderer.render();
-              if (this.inspector) this.inspector.render(null, hitMid.wire.id);
-              canvas.style.cursor = 'crosshair';
-              return;
-            }
+              const hitMid = this.renderer.findMidpointHandleAt(world.x, world.y, 8);
+              if (hitMid && isWireSelected(hitMid.wire.id)) {
+                if (this.renderer.selectedWireIds.size > 1) {
+                  const forkIds = this.renderer.getForkWireIdsAt(world.x, world.y, hitMid.wire);
+                  const sameFork = forkIds.length === this.renderer.selectedWireIds.size && forkIds.every(id => this.renderer.selectedWireIds.has(id));
+                  if (!sameFork) {
+                    if (forkIds.length > 1) this.selectMulti([], forkIds);
+                    else this.selectItem(null, hitMid.wire.id);
+                    return;
+                  }
+                }
+                this.ensureWireWaypoints(hitMid.wire, true);
+                const mx = Math.round(hitMid.x / GRID_SIZE) * GRID_SIZE;
+                const my = Math.round(hitMid.y / GRID_SIZE) * GRID_SIZE;
+                hitMid.wire.waypoints.splice(hitMid.segmentIndex, 0, { x: mx, y: my });
+                this.draggingWaypoint = { wire: hitMid.wire, index: hitMid.segmentIndex, startX: mx, startY: my };
+                this.renderer.activeWaypointDrag = { wire: hitMid.wire, index: hitMid.segmentIndex };
+                this.renderer.render();
+                if (this.inspector) this.inspector.render(null, hitMid.wire.id);
+                canvas.style.cursor = 'crosshair';
+                return;
+              }
 
-            const hitSeg = this.renderer.findWireSegmentAt(world.x, world.y, 6);
-            if (hitSeg && hitSeg.wire.id === this.renderer.selectedWireId) {
-              this.ensureWireWaypoints(hitSeg.wire, true);
-              const segPts = this.renderer.getWirePolyline(hitSeg.wire);
-              this.draggingSegment = {
-                wire: hitSeg.wire,
-                segmentIndex: hitSeg.segmentIndex,
-                isHorizontal: hitSeg.isHorizontal,
-                isVertical: hitSeg.isVertical,
-                pA: hitSeg.pA,
-                pB: hitSeg.pB,
-                p1: segPts[0],
-                p2: segPts[segPts.length - 1]
-              };
-              canvas.style.cursor = hitSeg.isHorizontal ? 'row-resize' : 'col-resize';
-              return;
+              const hitSeg = this.renderer.findWireSegmentAt(world.x, world.y, 6);
+              if (hitSeg && isWireSelected(hitSeg.wire.id)) {
+                if (this.renderer.selectedWireIds.size > 1) {
+                  const forkIds = this.renderer.getForkWireIdsAt(world.x, world.y, hitSeg.wire);
+                  const sameFork = forkIds.length === this.renderer.selectedWireIds.size && forkIds.every(id => this.renderer.selectedWireIds.has(id));
+                  if (!sameFork) {
+                    if (forkIds.length > 1) this.selectMulti([], forkIds);
+                    else this.selectItem(null, hitSeg.wire.id);
+                  }
+                }
+                this.ensureWireWaypoints(hitSeg.wire, true);
+                const segPts = this.renderer.getWirePolyline(hitSeg.wire);
+                const segCount = Math.max(1, segPts.length - 1);
+                const isFirstSeg = hitSeg.segmentIndex === 0;
+                const isLastSeg = hitSeg.segmentIndex >= segCount - 1;
+                const hasStartJunc = Boolean(isFirstSeg && hitSeg.wire.fromPoint && hitSeg.wire.fromWireId);
+                const hasEndJunc = Boolean(isLastSeg && hitSeg.wire.toPoint);
+                const exclude = new Set([hitSeg.wire.id]);
+                this.draggingSegment = {
+                  wire: hitSeg.wire,
+                  segmentIndex: hitSeg.segmentIndex,
+                  segCount,
+                  wasTwoPoint: segPts.length <= 2,
+                  isHorizontal: hitSeg.isHorizontal,
+                  isVertical: hitSeg.isVertical,
+                  pA: hitSeg.pA,
+                  pB: hitSeg.pB,
+                  p1: segPts[0],
+                  p2: segPts[segPts.length - 1],
+                  startJunctionDrag: hasStartJunc ? this.createJunctionDragState(segPts[0].x, segPts[0].y, null, exclude) : null,
+                  endJunctionDrag: hasEndJunc ? this.createJunctionDragState(segPts[segPts.length - 1].x, segPts[segPts.length - 1].y, null, exclude) : null
+                };
+                canvas.style.cursor = hitSeg.isHorizontal ? 'row-resize' : 'col-resize';
+                return;
+              }
             }
           }
 
@@ -20638,6 +21074,19 @@
             return;
           }
 
+          if (this.draggingJunction && this.engine.mode === 'edit') {
+            const nx = Math.max(-5000, Math.min(5000, Math.round(world.x / GRID_SIZE) * GRID_SIZE));
+            const ny = Math.max(-5000, Math.min(5000, Math.round(world.y / GRID_SIZE) * GRID_SIZE));
+            this.applyJunctionDragPosition(this.draggingJunction, nx, ny);
+            if (this.renderer.activeJunctionDrag) {
+              this.renderer.activeJunctionDrag.x = nx;
+              this.renderer.activeJunctionDrag.y = ny;
+            }
+            this.renderer.render();
+            canvas.style.cursor = 'grabbing';
+            return;
+          }
+
           if (this.draggingTerminus && this.engine.mode === 'edit') {
             const dragTerm = this.draggingTerminus;
             const wire = dragTerm.wire;
@@ -20700,11 +21149,59 @@
             const { wire, isHorizontal, isVertical } = dragSeg;
             const p1 = dragSeg.p1 || (wire.waypoints && wire.waypoints[0]) || { x: 0, y: 0 };
             const p2 = dragSeg.p2 || (wire.waypoints && wire.waypoints[wire.waypoints.length - 1]) || { x: 0, y: 0 };
+            const segCount = dragSeg.segCount || Math.max(1, (wire.waypoints ? wire.waypoints.length + 1 : 1));
 
             if (isHorizontal) {
-              const ny = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
-              if (dragSeg.segmentIndex === 0) {
-                if (!wire.waypoints || wire.waypoints.length === 0) {
+              const ny = Math.max(-5000, Math.min(5000, Math.round(world.y / GRID_SIZE) * GRID_SIZE));
+              if (dragSeg.startJunctionDrag && dragSeg.endJunctionDrag) {
+                if (!wire.fromPoint) wire.fromPoint = { x: dragSeg.startJunctionDrag.origX, y: ny };
+                else wire.fromPoint.y = ny;
+                if (!wire.toPoint) wire.toPoint = { x: dragSeg.endJunctionDrag.origX, y: ny };
+                else wire.toPoint.y = ny;
+                if (wire.style !== 'diagonal') {
+                  const p1x = dragSeg.startJunctionDrag.origX;
+                  const p2x = dragSeg.endJunctionDrag.origX;
+                  wire.waypoints = (p2x >= p1x + 20) ? [] : [{ x: p2x, y: ny }];
+                }
+                this.applyJunctionDragPosition(dragSeg.startJunctionDrag, dragSeg.startJunctionDrag.origX, ny);
+                this.applyJunctionDragPosition(dragSeg.endJunctionDrag, dragSeg.endJunctionDrag.origX, ny);
+              } else if (dragSeg.startJunctionDrag) {
+                const jx = dragSeg.startJunctionDrag.origX;
+                if (!wire.fromPoint) wire.fromPoint = { x: jx, y: ny };
+                else wire.fromPoint.y = ny;
+                this.applyJunctionDragPosition(dragSeg.startJunctionDrag, jx, ny);
+                if (dragSeg.wasTwoPoint) {
+                  if (Math.abs(ny - p2.y) < 0.5) {
+                    wire.waypoints = (p2.x >= jx + 20) ? [] : [{ x: p2.x, y: p2.y }];
+                  } else {
+                    const s2 = jx < p2.x ? -1 : 1;
+                    wire.waypoints = Math.abs(p2.x - jx) >= 40
+                      ? [{ x: p2.x + s2 * 20, y: ny }, { x: p2.x + s2 * 20, y: p2.y }]
+                      : [{ x: p2.x, y: ny }];
+                  }
+                } else if (wire.waypoints[0]) {
+                  wire.waypoints[0].y = ny;
+                }
+              } else if (dragSeg.endJunctionDrag) {
+                const jx = dragSeg.endJunctionDrag.origX;
+                if (!wire.toPoint) wire.toPoint = { x: jx, y: ny };
+                else wire.toPoint.y = ny;
+                this.applyJunctionDragPosition(dragSeg.endJunctionDrag, jx, ny);
+                if (dragSeg.wasTwoPoint) {
+                  if (Math.abs(ny - p1.y) < 0.5) {
+                    wire.waypoints = (jx >= p1.x + 20) ? [] : [{ x: jx, y: ny }];
+                  } else {
+                    const s1 = p1.x < jx ? 1 : -1;
+                    wire.waypoints = Math.abs(jx - p1.x) >= 40
+                      ? [{ x: p1.x + s1 * 20, y: p1.y }, { x: p1.x + s1 * 20, y: ny }]
+                      : [{ x: p1.x, y: ny }];
+                  }
+                } else {
+                  const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                  if (lastWp) lastWp.y = ny;
+                }
+              } else if (dragSeg.segmentIndex === 0) {
+                if (!wire.waypoints || wire.waypoints.length === 0 || dragSeg.wasTwoPoint) {
                   const s1 = p1.x < p2.x ? 1 : -1;
                   const s2 = p1.x < p2.x ? -1 : 1;
                   wire.waypoints = [
@@ -20714,6 +21211,7 @@
                     { x: p2.x + s2 * 20, y: p2.y }
                   ];
                   dragSeg.segmentIndex = 2;
+                  dragSeg.wasTwoPoint = false;
                 } else {
                   const s1 = p1.x < wire.waypoints[0].x ? 1 : -1;
                   wire.waypoints.unshift(
@@ -20723,7 +21221,7 @@
                   if (wire.waypoints[2]) wire.waypoints[2].y = ny;
                   dragSeg.segmentIndex = 2;
                 }
-              } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
+              } else if (dragSeg.segmentIndex >= segCount - 1) {
                 const prevN = wire.waypoints.length;
                 const lastWp = wire.waypoints[prevN - 1];
                 const s2 = lastWp.x < p2.x ? -1 : 1;
@@ -20740,9 +21238,54 @@
                 if (wp2) wp2.y = ny;
               }
             } else if (isVertical) {
-              const nx = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
-              if (dragSeg.segmentIndex === 0) {
-                if (!wire.waypoints || wire.waypoints.length === 0) {
+              const nx = Math.max(-5000, Math.min(5000, Math.round(world.x / GRID_SIZE) * GRID_SIZE));
+              if (dragSeg.startJunctionDrag && dragSeg.endJunctionDrag) {
+                if (!wire.fromPoint) wire.fromPoint = { x: nx, y: dragSeg.startJunctionDrag.origY };
+                else wire.fromPoint.x = nx;
+                if (!wire.toPoint) wire.toPoint = { x: nx, y: dragSeg.endJunctionDrag.origY };
+                else wire.toPoint.x = nx;
+                if (wire.style !== 'diagonal') {
+                  wire.waypoints = [{ x: nx, y: dragSeg.endJunctionDrag.origY }];
+                }
+                this.applyJunctionDragPosition(dragSeg.startJunctionDrag, nx, dragSeg.startJunctionDrag.origY);
+                this.applyJunctionDragPosition(dragSeg.endJunctionDrag, nx, dragSeg.endJunctionDrag.origY);
+              } else if (dragSeg.startJunctionDrag) {
+                const jy = dragSeg.startJunctionDrag.origY;
+                if (!wire.fromPoint) wire.fromPoint = { x: nx, y: jy };
+                else wire.fromPoint.x = nx;
+                this.applyJunctionDragPosition(dragSeg.startJunctionDrag, nx, jy);
+                if (dragSeg.wasTwoPoint) {
+                  if (Math.abs(nx - p2.x) < 0.5) {
+                    wire.waypoints = [{ x: p2.x, y: p2.y }];
+                  } else {
+                    const s2 = jy < p2.y ? -1 : 1;
+                    wire.waypoints = Math.abs(p2.y - jy) >= 40
+                      ? [{ x: nx, y: p2.y + s2 * 20 }, { x: p2.x, y: p2.y + s2 * 20 }]
+                      : [{ x: nx, y: p2.y }];
+                  }
+                } else if (wire.waypoints[0]) {
+                  wire.waypoints[0].x = nx;
+                }
+              } else if (dragSeg.endJunctionDrag) {
+                const jy = dragSeg.endJunctionDrag.origY;
+                if (!wire.toPoint) wire.toPoint = { x: nx, y: jy };
+                else wire.toPoint.x = nx;
+                this.applyJunctionDragPosition(dragSeg.endJunctionDrag, nx, jy);
+                if (dragSeg.wasTwoPoint) {
+                  if (Math.abs(nx - p1.x) < 0.5) {
+                    wire.waypoints = [{ x: nx, y: jy }];
+                  } else {
+                    const s1 = p1.y < jy ? 1 : -1;
+                    wire.waypoints = Math.abs(jy - p1.y) >= 40
+                      ? [{ x: p1.x, y: p1.y + s1 * 20 }, { x: nx, y: p1.y + s1 * 20 }]
+                      : [{ x: nx, y: p1.y }];
+                  }
+                } else {
+                  const lastWp = wire.waypoints[wire.waypoints.length - 1];
+                  if (lastWp) lastWp.x = nx;
+                }
+              } else if (dragSeg.segmentIndex === 0) {
+                if (!wire.waypoints || wire.waypoints.length === 0 || dragSeg.wasTwoPoint) {
                   const s1 = p1.y < p2.y ? 1 : -1;
                   const s2 = p1.y < p2.y ? -1 : 1;
                   wire.waypoints = [
@@ -20752,6 +21295,7 @@
                     { x: p2.x, y: p2.y + s2 * 20 }
                   ];
                   dragSeg.segmentIndex = 2;
+                  dragSeg.wasTwoPoint = false;
                 } else {
                   const s1 = p1.y < wire.waypoints[0].y ? 1 : -1;
                   wire.waypoints.unshift(
@@ -20761,7 +21305,7 @@
                   if (wire.waypoints[2]) wire.waypoints[2].x = nx;
                   dragSeg.segmentIndex = 2;
                 }
-              } else if (dragSeg.segmentIndex >= wire.waypoints.length) {
+              } else if (dragSeg.segmentIndex >= segCount - 1) {
                 const prevN = wire.waypoints.length;
                 const lastWp = wire.waypoints[prevN - 1];
                 const s2 = lastWp.y < p2.y ? -1 : 1;
@@ -20832,11 +21376,12 @@
             const rawPin = !probe ? this.renderer.findPinAt(world.x, world.y, 8) : null;
             const isOccupiedInput = rawPin && !rawPin.isOutput && Boolean(this.circuit.getWireToInput(rawPin.compId, rawPin.pinIndex));
             const pin = (!this.renderer.activeWireDrag && isOccupiedInput) ? null : rawPin;
-            const hitTerminus = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findOpenTerminusAt(world.x, world.y, 12) : null;
-            const hitWp = (!probe && !pin && !hitTerminus && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
-            const hitMid = (!probe && !pin && !hitTerminus && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
-            const hitSeg = (!probe && !pin && !hitTerminus && !hitWp && !hitMid && this.engine.mode === 'edit') ? this.renderer.findWireSegmentAt(world.x, world.y, 6) : null;
-            const wire = (!probe && !pin && !hitTerminus && !hitWp && !hitMid && !hitSeg) ? this.renderer.findWireAt(world.x, world.y) : null;
+            const hitJunction = (!probe && !pin && this.engine.mode === 'edit') ? this.renderer.findJunctionAt(world.x, world.y, 7) : null;
+            const hitTerminus = (!probe && !pin && !hitJunction && this.engine.mode === 'edit') ? this.renderer.findOpenTerminusAt(world.x, world.y, 12) : null;
+            const hitWp = (!probe && !pin && !hitJunction && !hitTerminus && this.engine.mode === 'edit') ? this.renderer.findWaypointAt(world.x, world.y, 9) : null;
+            const hitMid = (!probe && !pin && !hitJunction && !hitTerminus && !hitWp && this.engine.mode === 'edit') ? this.renderer.findMidpointHandleAt(world.x, world.y, 8) : null;
+            const hitSeg = (!probe && !pin && !hitJunction && !hitTerminus && !hitWp && !hitMid && this.engine.mode === 'edit') ? this.renderer.findWireSegmentAt(world.x, world.y, 6) : null;
+            const wire = (!probe && !pin && !hitJunction && !hitTerminus && !hitWp && !hitMid && !hitSeg) ? this.renderer.findWireAt(world.x, world.y) : null;
 
             const prevProbe = this.renderer.hoveredProbeId;
             const prevPin = this.renderer.hoveredPin;
@@ -20845,6 +21390,7 @@
             const prevMid = this.renderer.hoveredMidpoint;
             const prevSeg = this.renderer.hoveredSegment;
             const prevTerm = this.renderer.hoveredTerminus;
+            const prevJunc = this.renderer.hoveredJunction;
 
             this.renderer.hoveredProbeId = probe ? probe.id : null;
             this.renderer.hoveredPin = pin;
@@ -20853,6 +21399,7 @@
             this.renderer.hoveredMidpoint = hitMid;
             this.renderer.hoveredSegment = hitSeg;
             this.renderer.hoveredTerminus = hitTerminus;
+            this.renderer.hoveredJunction = hitJunction;
 
             if (this.spacePressed) {
               canvas.style.cursor = 'grab';
@@ -20860,6 +21407,8 @@
               canvas.style.cursor = 'pointer';
             } else if (pin && this.engine.mode === 'edit') {
               canvas.style.cursor = 'crosshair';
+            } else if (hitJunction) {
+              canvas.style.cursor = 'grab';
             } else if (hitTerminus) {
               canvas.style.cursor = 'grab';
             } else if (hitWp) {
@@ -20881,6 +21430,8 @@
               }
             }
 
+            const juncChanged = Boolean(prevJunc) !== Boolean(hitJunction) ||
+              (prevJunc && hitJunction && (prevJunc.x !== hitJunction.x || prevJunc.y !== hitJunction.y));
             if (
               prevProbe !== this.renderer.hoveredProbeId ||
               prevPin !== pin ||
@@ -20888,7 +21439,8 @@
               prevWp !== hitWp ||
               prevMid !== hitMid ||
               prevSeg !== hitSeg ||
-              prevTerm !== hitTerminus
+              prevTerm !== hitTerminus ||
+              juncChanged
             ) {
               this.renderer.render();
             }
@@ -20920,6 +21472,18 @@
               this.refreshAll();
             }
             this.isMouseDraggingWire = false;
+          }
+
+          if (this.draggingJunction) {
+            const affected = this.draggingJunction.allWires || [];
+            this.draggingJunction = null;
+            this.renderer.activeJunctionDrag = null;
+            for (const w of affected) {
+              this.cleanWireWaypoints(w);
+            }
+            this.circuit.syncImmediateWireLevels();
+            this.commitHistory(this.getActiveTab());
+            this.refreshAll();
           }
 
           if (this.draggingTerminus) {
@@ -20962,9 +21526,16 @@
           }
 
           if (this.draggingSegment) {
-            const w = this.draggingSegment.wire;
+            const dragSeg = this.draggingSegment;
+            const w = dragSeg.wire;
             this.draggingSegment = null;
             if (w) this.cleanWireWaypoints(w);
+            if (dragSeg.startJunctionDrag && dragSeg.startJunctionDrag.allWires) {
+              for (const aw of dragSeg.startJunctionDrag.allWires) this.cleanWireWaypoints(aw);
+            }
+            if (dragSeg.endJunctionDrag && dragSeg.endJunctionDrag.allWires) {
+              for (const aw of dragSeg.endJunctionDrag.allWires) this.cleanWireWaypoints(aw);
+            }
             this.refreshAll();
           }
 
@@ -21864,7 +22435,7 @@
           menu.appendChild(dupItem);
 
           const delItem = document.createElement('div');
-          delItem.className = 'ctx-item danger';
+          delItem.className = 'ctx-item danger ctx-danger-btn';
           delItem.innerHTML = `<span>${ICONS.trash}</span> <span>Bauteil löschen</span>`;
           delItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
@@ -22645,6 +23216,20 @@
         let ids = targetIds ? new Set(targetIds) : null;
 
         if (ids) {
+          const seedRootKeys = new Set();
+          for (const w of circuit.wires) {
+            if (!ids.has(w.id)) continue;
+            const root = circuit.resolveWireRoot(w);
+            if (root.compId) seedRootKeys.add(`${root.compId}\u0000${root.pin}`);
+          }
+          if (seedRootKeys.size > 0) {
+            for (const w of circuit.wires) {
+              const root = circuit.resolveWireRoot(w);
+              if (root.compId && seedRootKeys.has(`${root.compId}\u0000${root.pin}`)) {
+                ids.add(w.id);
+              }
+            }
+          }
           let added = true;
           while (added) {
             added = false;
@@ -22660,13 +23245,38 @@
           }
         }
 
-        const affectedRootKeys = ids ? new Set() : null;
+        const oldTrunkIds = new Set();
+        const netLeafMap = new Map();
+        const netKeyByWireId = new Map();
         for (const w of circuit.wires) {
           if (ids && !ids.has(w.id)) continue;
           const root = circuit.resolveWireRoot(w);
+          const key = root.compId ? `${root.compId}\u0000${root.pin}` : '';
+          if (key) netKeyByWireId.set(w.id, key);
+          if (circuit.isForkTrunkWire && circuit.isForkTrunkWire(w)) {
+            oldTrunkIds.add(w.id);
+          } else if (key && !netLeafMap.has(key)) {
+            netLeafMap.set(key, w);
+          }
+        }
+        if (oldTrunkIds.size > 0) {
+          for (const pr of (circuit.probes || [])) {
+            if (oldTrunkIds.has(pr.wireId)) {
+              const key = netKeyByWireId.get(pr.wireId);
+              const leaf = key ? netLeafMap.get(key) : null;
+              if (leaf) pr.wireId = leaf.id;
+            }
+          }
+        }
+
+        const affectedRootKeys = ids ? new Set() : null;
+        for (const w of circuit.wires) {
+          if (ids && !ids.has(w.id)) continue;
+          if (oldTrunkIds.has(w.id)) continue;
+          const root = circuit.resolveWireRoot(w);
           if (root.compId) {
             if (affectedRootKeys) affectedRootKeys.add(`${root.compId}\u0000${root.pin}`);
-            if (!w.fromCompId && w.fromWireId && w.toCompId) {
+            if (!w.fromCompId && w.fromWireId && (w.toCompId || w.toPoint)) {
               w.fromCompId = root.compId;
               w.fromPin = root.pin;
               w._fromComp = circuit.getComponent(root.compId) || null;
@@ -22679,6 +23289,13 @@
           w.style = 'orthogonal';
           w.autoRouted = true;
           w._preview = false;
+        }
+        if (oldTrunkIds.size > 0) {
+          circuit.wires = circuit.wires.filter(w => !oldTrunkIds.has(w.id));
+          for (const tid of oldTrunkIds) {
+            circuit.wireMap.delete(tid);
+            if (ids) ids.delete(tid);
+          }
         }
         let routes = null;
         try {
@@ -23023,6 +23640,7 @@
         });
         const restore = (state) => {
           for (const p of state.pos) { p.c.x = p.x; p.c.y = p.y; }
+          circuit.wires = state.wires.map(e => e.w);
           for (const e of state.wires) {
             e.w.fromCompId = e.fromCompId;
             e.w.fromPin = e.fromPin;
@@ -23043,6 +23661,7 @@
             pr.p.offsetRatio = pr.offsetRatio;
           }
           circuit.syncWirePointers();
+          circuit.updateWireLevelsFromDrivers();
         };
         const startState = capture();
 
