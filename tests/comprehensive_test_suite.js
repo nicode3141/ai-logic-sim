@@ -143,9 +143,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides, buildPdfFromJpegDataUrl };'
 );
-const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides, buildPdfFromJpegDataUrl } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -2466,6 +2466,26 @@ runTest('WISH-049', 'Reference designators survive import and can be edited uniq
   const inspectorSource = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
   assertEqual(inspectorSource.includes("addTextControl('Referenz'"), true, 'Inspector exposes reference control');
   assertEqual(other.params.ref === sw.params.ref, false, 'References remain unique per circuit');
+});
+
+runTest('WISH-049', 'PDF export builds a valid embedded-image PDF', () => {
+  const pdf = buildPdfFromJpegDataUrl('data:image/jpeg;base64,QUJD', 800, 600);
+  assertEqual(pdf.startsWith('%PDF-1.4'), true, 'PDF starts with version header');
+  assertEqual(pdf.includes('/Filter /DCTDecode'), true, 'JPEG image uses DCTDecode');
+  assertEqual(pdf.includes('\nQUJD\n'), true, 'Image payload is embedded');
+  assertEqual(pdf.includes('xref'), true, 'PDF contains cross-reference table');
+  assertEqual(pdf.endsWith('%%EOF'), true, 'PDF ends with EOF marker');
+});
+
+runTest('WISH-049', 'File menu exposes PNG and PDF circuit exports', () => {
+  const app = new LogicSimApp();
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assertEqual(typeof app.exportCanvasAsPNG, 'function', 'PNG export is available');
+  assertEqual(typeof app.exportCanvasAsPDF, 'function', 'PDF export is available');
+  assertEqual(typeof app.renderCircuitExportCanvas, 'function', 'Export canvas is shared');
+  assertEqual(html.includes('id="menu-item-export-pdf"'), true, 'PDF menu entry exists');
+  assertEqual(html.includes("'menu.file.export_pdf': 'Als PDF exportieren'"), true, 'German PDF label exists');
+  assertEqual(html.includes("'menu.file.export_pdf': 'Export PDF'"), true, 'English PDF label exists');
 });
 
 console.log('\n================================================================');

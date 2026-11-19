@@ -4029,6 +4029,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               <span data-i18n="menu.file.export_png">Bild exportieren (PNG)</span>
             </button>
+            <button class="app-menu-item" id="menu-item-export-pdf">
+              <span data-tabler-icon="print" data-tabler-size="14" style="display:inline-flex;width:14px;"></span>
+              <span data-i18n="menu.file.export_pdf">Als PDF exportieren</span>
+            </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-clear">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-red);"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -5216,6 +5220,7 @@
           'menu.file.open': 'Öffnen…',
           'menu.file.save': 'Speichern…',
           'menu.file.export_png': 'Als PNG exportieren',
+          'menu.file.export_pdf': 'Als PDF exportieren',
           'menu.file.clear': 'Arbeitsfläche leeren',
           'menu.edit': 'Bearbeiten',
           'menu.edit.undo': 'Rückgängig',
@@ -5373,6 +5378,7 @@
           'menu.file.open': 'Open…',
           'menu.file.save': 'Save…',
           'menu.file.export_png': 'Export PNG',
+          'menu.file.export_pdf': 'Export PDF',
           'menu.file.clear': 'Clear Canvas',
           'menu.edit': 'Edit',
           'menu.edit.undo': 'Undo',
@@ -6413,6 +6419,40 @@
         used.add(value);
       });
       return clean;
+    }
+
+    function buildPdfFromJpegDataUrl(dataUrl, width, height) {
+      const base64 = String(dataUrl || '').split(',')[1] || '';
+      const pageW = 842;
+      const pageH = 595;
+      const margin = 28;
+      const scale = Math.min((pageW - margin * 2) / width, (pageH - margin * 2) / height);
+      const imgW = width * scale;
+      const imgH = height * scale;
+      const x = (pageW - imgW) / 2;
+      const y = (pageH - imgH) / 2;
+      const content = `q\n${imgW.toFixed(2)} 0 0 ${imgH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ\n`;
+      const objects = [
+        null,
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>`,
+        `<< /Length ${content.length} >>\nstream\n${content}endstream`,
+        `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${base64.length} >>\nstream\n${base64}\nendstream`
+      ];
+      let pdf = '%PDF-1.4\n';
+      const offsets = [0];
+      for (let i = 1; i < objects.length; i += 1) {
+        offsets[i] = pdf.length;
+        pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
+      }
+      const xref = pdf.length;
+      pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+      for (let i = 1; i < objects.length; i += 1) {
+        pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
+      }
+      pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      return pdf;
     }
 
     /**
@@ -23051,6 +23091,10 @@
           closeAllMenus();
           this.exportCanvasAsPNG();
         });
+        document.getElementById('menu-item-export-pdf')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.exportCanvasAsPDF();
+        });
         document.getElementById('menu-item-clear')?.addEventListener('click', () => {
           closeAllMenus();
           if (confirm(I18N.phrase('Möchtest du die Schaltung wirklich leeren?'))) {
@@ -23909,12 +23953,12 @@
         } catch (e) {}
       }
 
-      exportCanvasAsPNG() {
+      renderCircuitExportCanvas() {
         try {
           const comps = this.circuit.components;
           if (comps.length === 0) {
             this.showToast('Die Schaltung ist leer.');
-            return;
+            return null;
           }
 
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -23974,10 +24018,20 @@
           this.renderer.panY = origPanY;
           this.renderer.zoom = origZoom;
           this.renderer.render();
+          return offCanvas;
+        } catch (err) {
+          console.error('Export canvas error:', err);
+          this.showToast('Fehler beim Export: ' + err.message);
+          return null;
+        }
+      }
 
-          const dataUrl = offCanvas.toDataURL('image/png');
+      exportCanvasAsPNG() {
+        const canvas = this.renderCircuitExportCanvas();
+        if (!canvas) return;
+        try {
           const a = document.createElement('a');
-          a.href = dataUrl;
+          a.href = canvas.toDataURL('image/png');
           a.download = `logicsim_schaltung_${Date.now()}.png`;
           document.body.appendChild(a);
           a.click();
@@ -23986,6 +24040,30 @@
         } catch (err) {
           console.error('PNG export error:', err);
           this.showToast('Fehler beim PNG-Export: ' + err.message);
+        }
+      }
+
+      exportCanvasAsPDF() {
+        const canvas = this.renderCircuitExportCanvas();
+        if (!canvas) return;
+        try {
+          const jpeg = canvas.toDataURL('image/jpeg', 0.92);
+          const pdf = buildPdfFromJpegDataUrl(jpeg, canvas.width, canvas.height);
+          const bytes = new Uint8Array(pdf.length);
+          for (let i = 0; i < pdf.length; i += 1) bytes[i] = pdf.charCodeAt(i) & 0xff;
+          const blob = new Blob([bytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `logicsim_schaltung_${Date.now()}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          this.showToast('📄 Als PDF exportiert');
+        } catch (err) {
+          console.error('PDF export error:', err);
+          this.showToast('Fehler beim PDF-Export: ' + err.message);
         }
       }
     }
