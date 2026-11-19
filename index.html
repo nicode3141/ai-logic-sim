@@ -822,6 +822,94 @@
       opacity: 0.55;
     }
 
+    .tool-rail {
+      width: var(--rail-width);
+      min-width: var(--rail-width);
+      background: var(--bg-panel-alt);
+      border-right: 1px solid var(--panel-divider);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 0;
+      z-index: 12;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .tool-rail.sim-locked .edit-only {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .rail-btn {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--control-radius);
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .rail-btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-dim);
+      color: var(--text-main);
+    }
+
+    .rail-btn.active {
+      background: var(--accent-blue-dim);
+      border-color: var(--border-bright);
+      color: var(--accent-blue);
+    }
+
+    .rail-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .rail-btn::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      border-radius: var(--control-radius);
+      padding: 4px 7px;
+      font-size: 10.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+      z-index: 60;
+    }
+
+    .rail-btn:hover::after {
+      opacity: 1;
+    }
+
+    .rail-divider {
+      width: 24px;
+      height: 1px;
+      flex: 0 0 1px;
+      background: var(--panel-divider);
+      margin: 5px 0;
+    }
+
     .panel-header {
       padding: 8px 10px;
       font-size: 11px;
@@ -834,6 +922,20 @@
       align-items: center;
       justify-content: space-between;
       background: var(--bg-panel-alt);
+    }
+
+    .panel-subtitle {
+      font-size: 9.5px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-dim);
+    }
+
+    .palette-item.placement-active {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: -2px;
+      background: var(--accent-blue-dim);
     }
 
     .palette-category {
@@ -1067,6 +1169,53 @@
 
     .prop-input:focus {
       border-color: var(--accent-blue);
+    }
+
+    .prop-section {
+      background: var(--panel-section-bg);
+      border: 1px solid var(--panel-divider);
+      border-radius: var(--card-radius);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .prop-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent-blue);
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--panel-divider);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .prop-hint {
+      font-size: 10.5px;
+      line-height: 1.45;
+      color: var(--text-dim);
+    }
+
+    .inspector-select {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      padding: 5px 7px;
+      border-radius: var(--control-radius);
+      font-size: 11.5px;
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .prop-info-box {
@@ -3678,7 +3827,7 @@
        Only the chrome is scaled with CSS zoom; the drawing canvases keep their size so the
        pointer maths on them stays exact. The toolbar wraps instead of overlapping. */
     :root { --ui-scale: 1; }
-    #app-menubar, #toolbar, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .menubar-dropdown {
+    #app-menubar, #toolbar, #tool-rail, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .menubar-dropdown {
       zoom: var(--ui-scale, 1);
     }
     #toolbar {
@@ -4110,10 +4259,31 @@
     </header>
 
     <div id="main-area">
+      <nav id="tool-rail" class="tool-rail" aria-label="Werkzeuge">
+        <button type="button" id="rail-select" class="rail-btn active edit-only" data-i18n-title="rail.select" title="Auswahl"><span data-tabler-icon="pointer" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-place" class="rail-btn edit-only" data-i18n-title="rail.place" title="Bauteil platzieren"><span data-tabler-icon="place" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-wire" class="rail-btn edit-only" data-i18n-title="rail.wire" title="Leitung zeichnen"><span data-tabler-icon="wire" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-probe" class="rail-btn edit-only" data-i18n-title="rail.probe" title="Messpunkt setzen"><span data-tabler-icon="probe" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-route" class="rail-btn edit-only" data-i18n-title="rail.route" title="Autoroute"><span data-tabler-icon="route" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-delete" class="rail-btn edit-only" data-i18n-title="rail.delete" title="Löschen"><span data-tabler-icon="trash" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-undo" class="rail-btn edit-only" data-i18n-title="rail.undo" title="Rückgängig"><span data-tabler-icon="undo" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-redo" class="rail-btn edit-only" data-i18n-title="rail.redo" title="Wiederholen"><span data-tabler-icon="redo" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-fit" class="rail-btn" data-i18n-title="rail.fit" title="Einpassen"><span data-tabler-icon="fit" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-zoom-in" class="rail-btn" data-i18n-title="rail.zoomIn" title="Hineinzoomen"><span data-tabler-icon="zoomIn" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-zoom-out" class="rail-btn" data-i18n-title="rail.zoomOut" title="Herauszoomen"><span data-tabler-icon="zoomOut" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-analyzer" class="rail-btn" data-i18n-title="rail.analyzer" title="Impulsdiagramm"><span data-tabler-icon="analyzer" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-inspector" class="rail-btn" data-i18n-title="rail.inspector" title="Eigenschaften"><span data-tabler-icon="properties" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-shortcuts" class="rail-btn" data-i18n-title="rail.shortcuts" title="Tastenkürzel"><span data-tabler-icon="keyboard" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-settings" class="rail-btn" data-i18n-title="rail.settings" title="Einstellungen"><span data-tabler-icon="settings" data-tabler-size="18"></span></button>
+      </nav>
+
       <aside id="sidebar">
         <div class="panel-header">
-          <span data-i18n="palette.title">Bauteil-Palette</span>
-          <span style="font-size: 10px; color: var(--text-dim);">Drag &amp; Drop</span>
+          <span data-i18n="palette.library">Bauteilbibliothek</span>
+          <span class="panel-subtitle" data-i18n="palette.placeHint">Klick = platzieren</span>
         </div>
         <div class="palette-view-bar">
           <span class="palette-view-label">Ansicht</span>
@@ -4366,7 +4536,7 @@
       <aside id="inspector">
         <div id="inspector-resizer" title="Breite ziehen"></div>
         <div class="panel-header">
-          <span>Inspector</span>
+          <span data-i18n="panel.properties">Eigenschaften</span>
           <button id="btn-inspector-toggle" class="collapse-btn" title="Inspector einklappen" style="font-size: 11px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -5011,7 +5181,25 @@
           'toolbar.redo': 'Wiederholen',
           'toolbar.split': 'Split',
 
+          'rail.select': 'Auswahl',
+          'rail.place': 'Bauteil platzieren',
+          'rail.wire': 'Leitung zeichnen',
+          'rail.probe': 'Messpunkt setzen',
+          'rail.route': 'Autoroute',
+          'rail.delete': 'Löschen',
+          'rail.undo': 'Rückgängig',
+          'rail.redo': 'Wiederholen',
+          'rail.fit': 'Einpassen',
+          'rail.zoomIn': 'Hineinzoomen',
+          'rail.zoomOut': 'Herauszoomen',
+          'rail.analyzer': 'Impulsdiagramm',
+          'rail.inspector': 'Eigenschaften',
+          'rail.shortcuts': 'Tastenkürzel',
+          'rail.settings': 'Einstellungen',
           'palette.title': 'Bauteil-Palette',
+          'palette.library': 'Bauteilbibliothek',
+          'palette.placeHint': 'Klick = platzieren',
+          'panel.properties': 'Eigenschaften',
           'palette.search': 'Suchen…  ( / )',
           'palette.empty': 'Kein Bauteil gefunden.',
           'palette.cat.sources': 'Eingänge',
@@ -5140,7 +5328,25 @@
           'toolbar.redo': 'Redo',
           'toolbar.split': 'Split',
 
+          'rail.select': 'Select',
+          'rail.place': 'Place component',
+          'rail.wire': 'Draw wire',
+          'rail.probe': 'Place probe',
+          'rail.route': 'Autoroute',
+          'rail.delete': 'Delete',
+          'rail.undo': 'Undo',
+          'rail.redo': 'Redo',
+          'rail.fit': 'Fit view',
+          'rail.zoomIn': 'Zoom in',
+          'rail.zoomOut': 'Zoom out',
+          'rail.analyzer': 'Logic analyzer',
+          'rail.inspector': 'Properties',
+          'rail.shortcuts': 'Keyboard shortcuts',
+          'rail.settings': 'Settings',
           'palette.title': 'Component Palette',
+          'palette.library': 'Component Library',
+          'palette.placeHint': 'Click = place',
+          'panel.properties': 'Properties',
           'palette.search': 'Search…  ( / )',
           'palette.empty': 'No part found.',
           'palette.cat.sources': 'Inputs',
@@ -15938,10 +16144,13 @@
 
         this.currentTruthTableData = null;
 
+        hydrateTablerIcons(document);
+
         this.initMenubarEvents();
         this.initTabsEvents();
         this.initSplitScreenEvents();
         this.initToolbarEvents();
+        this.initToolRailEvents();
         this.initPaletteEvents();
         this.initCanvasEvents();
         this.initRightCanvasEvents();
@@ -17098,6 +17307,8 @@
 
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('sim-locked', isSim);
+        const toolRail = document.getElementById('tool-rail');
+        if (toolRail) toolRail.classList.toggle('sim-locked', isSim);
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -17296,6 +17507,57 @@
         this.renderer.zoom = 1.0;
         document.getElementById('btn-zoom-reset').textContent = '100%';
         this.refreshAll();
+      }
+
+      initToolRailEvents() {
+        const click = (id) => {
+          const el = document.getElementById(id);
+          if (el && typeof el.click === 'function' && !el.disabled) el.click();
+        };
+        const actions = {
+          'rail-select': () => {
+            if (typeof this.cancelPlacement === 'function') this.cancelPlacement();
+            this.setActiveRailTool('select');
+          },
+          'rail-place': () => {
+            this.setActiveRailTool('place');
+            const search = document.getElementById('palette-search-input');
+            if (search && typeof search.focus === 'function') search.focus();
+          },
+          'rail-wire': () => {
+            this.setActiveRailTool('wire');
+            const hint = document.getElementById('status-hint');
+            if (hint) hint.textContent = 'Von Pin zu Pin ziehen verdrahtet · Esc: Auswahl';
+          },
+          'rail-probe': () => {
+            this.setActiveRailTool('probe');
+            if (typeof this.armPlacement === 'function') this.armPlacement('PROBE');
+          },
+          'rail-route': () => click('btn-auto-route'),
+          'rail-delete': () => this.deleteSelection(),
+          'rail-undo': () => this.undo(),
+          'rail-redo': () => this.redo(),
+          'rail-fit': () => click('btn-zoom-fit'),
+          'rail-zoom-in': () => click('btn-zoom-in'),
+          'rail-zoom-out': () => click('btn-zoom-out'),
+          'rail-analyzer': () => click('btn-analyzer-toggle'),
+          'rail-inspector': () => click('btn-inspector-toggle'),
+          'rail-shortcuts': () => click('btn-help'),
+          'rail-settings': () => click('mbtn-settings')
+        };
+        Object.entries(actions).forEach(([id, action]) => {
+          const btn = document.getElementById(id);
+          if (btn) btn.addEventListener('click', action);
+        });
+      }
+
+      setActiveRailTool(name) {
+        if (typeof document.querySelectorAll !== 'function') return;
+        document.querySelectorAll('#tool-rail .rail-btn').forEach(btn => {
+          const active = btn.id === `rail-${name}`;
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
       }
 
       initToolbarEvents() {
