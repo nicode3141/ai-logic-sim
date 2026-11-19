@@ -2438,6 +2438,36 @@ runTest('WISH-049', 'Shortcut settings expose editable bindings with reset', () 
   assertEqual(Object.keys(app.shortcutOverrides).length, 0, 'Reset clears all overrides');
 });
 
+runTest('WISH-049', 'Components receive unique KiCad-style reference designators', () => {
+  const circuit = new Circuit();
+  const sw1 = circuit.addComponent('SWITCH', 0, 0);
+  const sw2 = circuit.addComponent('SWITCH', 40, 0);
+  const led = circuit.addComponent('LED', 80, 0);
+  const gate = circuit.addComponent('AND', 120, 0);
+  const duplicate = circuit.addComponent('SWITCH', 160, 0, { ref: 'SW1' });
+
+  assertEqual(sw1.params.ref, 'SW1');
+  assertEqual(sw2.params.ref, 'SW2');
+  assertEqual(led.params.ref, 'D1');
+  assertEqual(gate.params.ref, 'U1');
+  assertEqual(duplicate.params.ref, 'SW3', 'Duplicate reference is regenerated');
+});
+
+runTest('WISH-049', 'Reference designators survive import and can be edited uniquely', () => {
+  const source = new Circuit();
+  const sw = source.addComponent('SWITCH', 0, 0, { label: 'A' });
+  sw.params.ref = 'SW7';
+  const target = new Circuit();
+  target.fromJSON(source.toJSON());
+  assertEqual(target.getComponent(sw.id).params.ref, 'SW7', 'Valid reference survives JSON roundtrip');
+
+  const app = new LogicSimApp();
+  const other = app.circuit.addComponent('SWITCH', 40, 0);
+  const inspectorSource = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assertEqual(inspectorSource.includes("addTextControl('Referenz'"), true, 'Inspector exposes reference control');
+  assertEqual(other.params.ref === sw.params.ref, false, 'References remain unique per circuit');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

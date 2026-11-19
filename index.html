@@ -5727,7 +5727,7 @@
       // --- keys ---
       'Strg': 'Ctrl', 'Umschalt': 'Shift', 'Entf': 'Del', 'Leertaste': 'Space',
       // --- inspector ---
-      'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
+      'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Referenz': 'Reference', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
       '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:',
       'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
@@ -6202,6 +6202,19 @@
     };
 
     const GATE_DELAY_TYPES = { NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1 };
+
+    const REFERENCE_PREFIXES = {
+      SWITCH: 'SW', BUTTON: 'BTN', CLOCK: 'CLK', CONST: 'PWR', PROBE: 'TP',
+      LED: 'D', LED_MATRIX: 'D', SEVEN_SEGMENT: 'DS', DISPLAY: 'DS',
+      CUSTOM_IC: 'U', FULL_ADDER: 'U', HALF_ADDER: 'U', MUX: 'U', DEMUX: 'U',
+      COUNTER: 'U', SHIFT_REG: 'U', D_FF: 'U', JK_FF: 'U', T_FF: 'U', RS_FF: 'U',
+      NOT: 'U', BUFFER: 'U', TRI_STATE: 'U', MAJORITY: 'U', AND: 'U', OR: 'U',
+      NAND: 'U', NOR: 'U', XOR: 'U', XNOR: 'U'
+    };
+
+    function referencePrefixForType(type) {
+      return REFERENCE_PREFIXES[type] || 'U';
+    }
     const GATE_DELAY_MAX = 20;
 
     const LED_COLORS = {
@@ -7902,10 +7915,31 @@
         return `${prefix}_${this.nextId++}`;
       }
 
+      generateReference(type, exceptId = null) {
+        const prefix = referencePrefixForType(type);
+        const used = new Set(this.components
+          .filter(comp => comp.id !== exceptId && comp.params && comp.params.ref)
+          .map(comp => comp.params.ref));
+        let index = 1;
+        while (used.has(`${prefix}${index}`)) index += 1;
+        return `${prefix}${index}`;
+      }
+
+      normalizeReference(type, rawRef, exceptId = null) {
+        const prefix = referencePrefixForType(type);
+        const value = String(rawRef || '').trim().toUpperCase();
+        if (new RegExp(`^${prefix}\\d{1,4}$`).test(value)) {
+          const taken = this.components.some(comp => comp.id !== exceptId && comp.params && comp.params.ref === value);
+          if (!taken) return value;
+        }
+        return this.generateReference(type, exceptId);
+      }
+
       addComponent(type, x, y, customParams = {}, forcedId = null) {
         const id = forcedId || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
         comp.circuit = this;
+        comp.params.ref = this.normalizeReference(comp.type, customParams && customParams.ref, comp.id);
         this.components.push(comp);
         this.compMap.set(comp.id, comp);
         return comp;
@@ -12303,7 +12337,8 @@
           ctx.fillStyle = pal.textLabel;
           ctx.font = '600 10.5px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
+          const refPrefix = comp.params.ref ? `${comp.params.ref} · ` : '';
+          ctx.fillText(`${refPrefix}${comp.params.label || type}`, x + width / 2, y - 5);
           if (this.showGateDelay && GATE_DELAY_TYPES[type]) {
             const effDelay = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : (comp.params.delay || 1);
             if (effDelay > 0) {
@@ -14776,6 +14811,12 @@
             this.onChange(false);
           });
         } else {
+          this.addTextControl('Referenz', comp.params.ref || '', isSim, (val) => {
+            const ref = String(val || '').trim().toUpperCase();
+            const taken = this.circuit.components.some(other => other.id !== comp.id && other.params && other.params.ref === ref);
+            if (/^[A-Z]{1,4}\d{1,4}$/.test(ref) && !taken) comp.params.ref = ref;
+            this.onChange(false);
+          });
           this.addTextControl('Beschriftung', comp.params.label, isSim, (val) => {
             comp.params.label = val;
             this.onChange(false);
