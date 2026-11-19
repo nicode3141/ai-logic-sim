@@ -82,6 +82,7 @@ feat/*, fix/*, chore/*, docs/* ──► PR / merge ──► dev ──► PR /
 | **WISH-046** | Bauteil-Palette im Simulationsmodus abgedunkelt & gesperrt | `fix/palette-sim-lock` | 🟢 **Completed** | 55 % Deckkraft; Drag & Drop, Doppelklick und Löschen in der Simulation gesperrt. |
 | **WISH-047** | Doppelte Takt-/Zoom-Anzeige im Impulsdiagramm entfernt, Leeres-Arbeitsfläche-Popup entfernt | `feat/palette-sim-edit-and-slider-dedup` | 🟢 **Completed** | Nur noch Slider ohne zusätzliche Hz-/ms-/px-pro-Tick-Texte. |
 | **WISH-048** | Kamera folgt beim Verschieben ausgewählter Module | `feat/drag-autopan` | 🟢 **Completed** | Auto-Scroll am Rand der Arbeitsfläche beim Ziehen von Modulen. |
+| **WISH-049** | KiCad-inspiriertes, professionelles EDA-Design (Toolbars, Sidebars, Properties, Bibliothek, Klick-Platzierung, Shortcuts, Annotationen, Exporte, Tabler Icons) | `feat/kicad-prof` | 🟡 **In Progress** | Industrietaugliche, modulare Oberfläche mit linkem Werkzeug-Rail, Bauteilbibliothek, rechten Properties-Panel, anpassbaren Kürzeln, Bauteilkennzeichnungen und Vektor-/Druckexport. Inspiration: `docu/design/refs`. |
 
 ---
 

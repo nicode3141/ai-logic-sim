@@ -373,3 +373,33 @@ A change is complete when:
 - There is no README. Treat `AGENTS.md`, `CONTRIBUTING.md`, `WISHLIST.md`, `CHANGELOG.md`, and `docu/` as the documentation source of truth.
 - If a feature touches analyzer rendering, simulation timing, wire routing, or i18n, add focused regression tests; these areas have the highest historical failure rate.
 - Future improvements worth considering: browser-based smoke tests for real canvas interactions, shared test helpers to prevent state leakage, and eventually extracting modules from the single-file source without breaking the offline single-file requirement.
+
+# Feat/Kicad-prof
+
+Your task is to optimize the design. The simulator will be used in the industry and has to compy industry design and standards.
+Things that are important:
+
+- professional design
+- modular
+- customizable shortcuts
+- good labels
+- annotations
+- exports (PDF, etc)
+
+Also it should be able to have a design like KiCad.
+
+- Toolbars / Sidebars (top left right)
+- Properties Panels
+- Autoroute
+- When clicking on a component, it should be in the current place mode (not only drag and drop)
+- Component System / Component Libary
+
+## Design Changes
+
+Please use docu/design/refs images as inspiration
+Clean elegant design.
+Use Tabler Icons now as the primary icon library.
+
+## Additional Rules
+
+Work incrementally with many commits.

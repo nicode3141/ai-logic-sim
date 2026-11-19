@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 - **Feature:** Die Kamera folgt beim Verschieben ausgewählter Module - am Rand der Arbeitsfläche scrollt die Ansicht automatisch mit (WISH-048).
+- **Feature (in progress):** KiCad-inspiriertes Professional-EDA-Design mit Werkzeug-Rail, Bauteilbibliothek, Properties-Panel, Klick-Platzierung, anpassbaren Shortcuts, Annotationen und Vektor-/Druckexport (WISH-049).
 
 ### 🔧 Changed
 - **Feature:** Doppelte Takt-/Zoom-Anzeigen im Impulsdiagramm entfernt, nur noch die Slider (WISH-047).

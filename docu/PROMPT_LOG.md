@@ -82,3 +82,32 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 > gibt es einen weg die merges zu verstecken und außerdem löschst du die alten branches nicht. Außerdem passe die contribution.md file nochmal so an das auch ein changelog aufgeschrieben wird mit fix und feature ähnlich wie bei der wishlist und schreibe auch rein das man diese wishlist bzw. offene requests noch fixed
 > kannst du bitte alpha in dev mergen
 > Wir haben jetzt nochmal die contribution, agents und changelogs angepasst. Bitte befolge jetzt genau so wie es dort steht und arbeite mit pull requests!!!!
+
+---
+
+## 2026-11-19 — PR text request
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** Release promotion / no WISH ID
+- **Prompt:**
+
+> please give me text for a PR from dev to main
+
+---
+
+## 2026-11-19 — KiCad-style professional design (WISH-049)
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> I have a new feature to do called deat/kicad-prof. All infos are in AGENTS.md starting at line 377 for these changes.
+
+The referenced feature brief asks for a professional, modular, industry-grade
+EDA design with customizable shortcuts, good labels, annotations, PDF/other
+exports, KiCad-like toolbars and sidebars, properties panels, autoroute,
+click-to-place components, a component library, clean elegant visuals based on
+`docu/design/refs`, Tabler Icons as the primary icon library, and incremental
+commits.
