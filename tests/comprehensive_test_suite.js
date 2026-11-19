@@ -144,9 +144,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, GATE_DELAY_TYPES };'
 );
-const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, GATE_DELAY_TYPES } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -4203,6 +4203,99 @@ runTest('WISH-073', 'Movable fork junctions, isolated downstream branch selectio
       }
     }
   }
+});
+
+runTest('WISH-074', 'All logic and sequential modules support configurable propagation delay without gate pin stubs', () => {
+  const moduleTypes = ['FULL_ADDER', 'MUX', 'DECODER', 'BCD_DEC', 'SR_FF', 'D_FF', 'JK_FF', 'T_FF', 'D_LATCH', 'COUNTER', 'SHIFT_REG', 'CUSTOM_IC'];
+
+  // 1. All modules are registered in GATE_DELAY_TYPES, support global/module/instance delay, and keep zero pin stub offset
+  const app = new LogicSimApp();
+  app.setGlobalGateDelay(4, false);
+  for (const t of moduleTypes) {
+    assertEqual(Boolean(GATE_DELAY_TYPES[t]), true, `${t} is enabled in GATE_DELAY_TYPES`);
+    const comp = app.circuit.addComponent(t, 100, 100, t === 'CUSTOM_IC' ? { inputs: [{ name: 'A' }], outputs: [{ name: 'Y' }], subcircuit: { components: [], wires: [] } } : {});
+    assertEqual(comp.getEffectiveDelay(), 4, `${t} inherits globalGateDelay = 4`);
+    if (comp.inputs.length > 0) assertEqual(comp.inputs[0].relX, 0, `${t} keeps input pin on left wall (no gate stub)`);
+    if (comp.outputs.length > 0) assertEqual(comp.outputs[0].relX, comp.width, `${t} keeps output pin on right wall (no gate stub)`);
+    app.setModuleGateDelay(t, 6, false);
+    assertEqual(comp.getEffectiveDelay(), 6, `${t} inherits moduleGateDelays[${t}] = 6`);
+    comp.params.delay = 2;
+    assertEqual(comp.getEffectiveDelay(), 2, `${t} respects per-instance delay = 2`);
+    assertEqual(html.includes(`<option value="${t}"`), true, `Palette delay dropdown contains <option value="${t}">`);
+  }
+
+  // 2. Multi-output combinational module (FULL_ADDER with delay=3) delays both SUM and COUT simultaneously
+  const cComb = new Circuit();
+  const swA = cComb.addComponent('SWITCH', 40, 60, { initialValue: 1 });
+  const swB = cComb.addComponent('SWITCH', 40, 120, { initialValue: 1 });
+  const adder = cComb.addComponent('FULL_ADDER', 200, 80, { delay: 3 });
+  cComb.addWire(swA.id, 0, adder.id, 0);
+  cComb.addWire(swB.id, 0, adder.id, 1);
+  // Start with A=1, B=1 -> syncImmediate settles SUM=0, COUT=1
+  cComb.syncImmediateWireLevels();
+  assertEqual(adder.outputs[0].value, 0, 'FULL_ADDER initial SUM is 0 (1+1)');
+  assertEqual(adder.outputs[1].value, 1, 'FULL_ADDER initial COUT is 1 (1+1)');
+  // Switch B off -> SUM becomes 1, COUT becomes 0 after 3 ticks
+  swB.state.value = 0; swB.outputs[0].value = 0; swB.nextOutputs[0] = 0;
+  cComb.updateWireLevelsFromDrivers();
+  cComb.step(); // tick 1: delayTimer -> 2 (still old SUM=0, COUT=1)
+  assertEqual(adder.outputs[0].value, 0, 'FULL_ADDER holds SUM=0 on tick 1 of 3-tick delay');
+  assertEqual(adder.outputs[1].value, 1, 'FULL_ADDER holds COUT=1 on tick 1 of 3-tick delay');
+  cComb.step(); // tick 2: delayTimer -> 1
+  assertEqual(adder.outputs[0].value, 0, 'FULL_ADDER holds SUM=0 on tick 2 of 3-tick delay');
+  assertEqual(adder.outputs[1].value, 1, 'FULL_ADDER holds COUT=1 on tick 2 of 3-tick delay');
+  cComb.step(); // tick 3: commits new outputs together
+  assertEqual(adder.outputs[0].value, 1, 'FULL_ADDER updates SUM=1 on tick 3');
+  assertEqual(adder.outputs[1].value, 0, 'FULL_ADDER updates COUT=0 on tick 3');
+
+  // 3. Sequential module (JK_FF with delay=3) latches clock edge and delays both Q and !Q by 3 ticks
+  const cSeq = new Circuit();
+  const swJ = cSeq.addComponent('SWITCH', 40, 60, { initialValue: 1 });
+  const swK = cSeq.addComponent('SWITCH', 40, 140, { initialValue: 0 });
+  const swClk = cSeq.addComponent('SWITCH', 40, 100, { initialValue: 0 });
+  const jk = cSeq.addComponent('JK_FF', 200, 80, { trigger: 'rising', delay: 3 });
+  cSeq.addWire(swJ.id, 0, jk.id, 0);
+  cSeq.addWire(swClk.id, 0, jk.id, 1);
+  cSeq.addWire(swK.id, 0, jk.id, 2);
+  cSeq.syncImmediateWireLevels();
+  assertEqual(jk.outputs[0].value, 0, 'JK_FF initial Q=0');
+  assertEqual(jk.outputs[1].value, 1, 'JK_FF initial !Q=1');
+
+  // Rising edge on CLK with delay=3
+  swClk.state.value = 1; swClk.outputs[0].value = 1; swClk.nextOutputs[0] = 1;
+  cSeq.updateWireLevelsFromDrivers();
+  cSeq.step(); // tick 1: captures edge, delayTimer -> 2, committedQ remains 0
+  assertEqual(jk.outputs[0].value, 0, 'JK_FF holds Q=0 on tick 1 of 3-tick delay');
+  assertEqual(jk.outputs[1].value, 1, 'JK_FF holds !Q=1 on tick 1 of 3-tick delay');
+  assertEqual(jk.state.committedQ, 0, 'JK_FF visual committedQ stays 0 during delay countdown');
+  cSeq.step(); // tick 2: delayTimer -> 1
+  assertEqual(jk.outputs[0].value, 0, 'JK_FF holds Q=0 on tick 2 of 3-tick delay');
+  cSeq.step(); // tick 3: commits Q=1, !Q=0
+  assertEqual(jk.outputs[0].value, 1, 'JK_FF updates Q=1 on tick 3');
+  assertEqual(jk.outputs[1].value, 0, 'JK_FF updates !Q=0 on tick 3');
+  assertEqual(jk.state.committedQ, 1, 'JK_FF visual committedQ updates to 1 on commit');
+
+  // 4. Sequential module stepCombinational works in Edit mode with delay
+  app.circuit.clear();
+  app.engine.setMode('edit');
+  const swEdit = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 0 });
+  const tffEdit = app.circuit.addComponent('T_FF', 180, 60, { trigger: 'rising', delay: 2 });
+  const swT = app.circuit.addComponent('SWITCH', 40, 140, { initialValue: 1 });
+  app.circuit.addWire(swT.id, 0, tffEdit.id, 0);
+  app.circuit.addWire(swEdit.id, 0, tffEdit.id, 1);
+  app.circuit.syncImmediateWireLevels();
+  swEdit.state.value = 1; swEdit.outputs[0].value = 1; swEdit.nextOutputs[0] = 1;
+  app.circuit.updateWireLevelsFromDrivers();
+  const p1 = app.circuit.stepCombinational();
+  assertEqual(p1, true, 'stepCombinational reports pending delay on T_FF tick 1');
+  assertEqual(tffEdit.outputs[0].value, 0, 'T_FF in edit mode holds Q=0 on tick 1');
+  app.circuit.stepCombinational();
+  assertEqual(tffEdit.outputs[0].value, 1, 'T_FF in edit mode commits Q=1 on tick 2');
+
+  // 5. Inspector renders Verzögerung slider for module components like JK_FF & COUNTER
+  app.selectItem(tffEdit.id, null);
+  const inspText = app.inspector.container.textContent || '';
+  assertEqual(inspText.includes('Verzögerung'), true, 'Inspector renders Verzögerung slider for T_FF module');
 });
 
 console.log('\n================================================================');

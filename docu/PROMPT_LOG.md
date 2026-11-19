@@ -368,3 +368,14 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > pushe das
+
+---
+
+## 2026-11-17 — Konfigurierbare Verzögerung für alle Module & Sequenzbausteine
+
+- **Author:** Leegende
+- **Branch:** `fabian`
+- **Related:** WISH-074
+- **Prompt:**
+
+> momentan haben module und sonstige bauteile immernoch keine verzögerung. Wie kann ich das ändern? (Antwort + Umsetzungsbestätigung: „ja“)

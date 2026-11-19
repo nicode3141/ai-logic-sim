@@ -4558,6 +4558,18 @@
             <option value="BUFFER" data-base-label="Puffer (BUFFER)">Puffer (BUFFER)</option>
             <option value="TRI_STATE" data-base-label="Tri-State">Tri-State</option>
             <option value="MAJORITY" data-base-label="Mehrheitsgatter">Mehrheitsgatter</option>
+            <option value="FULL_ADDER" data-base-label="Volladdierer">Volladdierer</option>
+            <option value="MUX" data-base-label="Multiplexer 2:1">Multiplexer 2:1</option>
+            <option value="DECODER" data-base-label="Decoder 2:4">Decoder 2:4</option>
+            <option value="BCD_DEC" data-base-label="BCD-zu-7-Segment-Decoder">BCD-zu-7-Segment-Decoder</option>
+            <option value="SR_FF" data-base-label="SR-Flipflop">SR-Flipflop</option>
+            <option value="D_FF" data-base-label="D-Flipflop">D-Flipflop</option>
+            <option value="JK_FF" data-base-label="JK-Flipflop">JK-Flipflop</option>
+            <option value="T_FF" data-base-label="T-Flipflop">T-Flipflop</option>
+            <option value="D_LATCH" data-base-label="D-Latch">D-Latch</option>
+            <option value="COUNTER" data-base-label="4-Bit-Zähler">4-Bit-Zähler</option>
+            <option value="SHIFT_REG" data-base-label="4-Bit-Schieberegister">4-Bit-Schieberegister</option>
+            <option value="CUSTOM_IC" data-base-label="Eigenes IC">Eigenes IC</option>
           </select>
           <div id="palette-delay-dropdown" class="palette-delay-dropdown">
             <button type="button" id="palette-delay-trigger" class="palette-delay-trigger" aria-haspopup="listbox" aria-expanded="false">
@@ -5885,7 +5897,7 @@
       'OR-Gatter': 'OR gate', 'NAND-Gatter': 'NAND gate', 'NOR-Gatter': 'NOR gate', 'XOR-Gatter': 'XOR gate', 'XNOR-Gatter': 'XNOR gate',
       'Tri-State-Puffer': 'Tri-state buffer', 'Mehrheitsgatter': 'Majority gate', '7-Segment-Anzeige': '7-segment display',
       'BCD-zu-7-Segment-Decoder': 'BCD to 7-segment decoder', 'SR-Flipflop': 'SR flip-flop', 'D-Flipflop': 'D flip-flop', 'JK-Flipflop': 'JK flip-flop',
-      'T-Flipflop': 'T flip-flop', 'Messpunkt': 'Probe',
+      'T-Flipflop': 'T flip-flop', 'D-Latch': 'D latch', 'Volladdierer': 'Full adder', 'Multiplexer 2:1': '2:1 Multiplexer', 'Decoder 2:4': '2:4 Decoder', '4-Bit-Zähler': '4-bit counter', '4-Bit-Schieberegister': '4-bit shift register', 'Eigenes IC': 'Custom IC', 'Messpunkt': 'Probe',
       // --- context menus ---
       'Im Inspector anzeigen': 'Show in inspector', 'Bauteil duplizieren': 'Duplicate part', 'Bauteil löschen': 'Delete part',
       'Links bündig ausrichten': 'Align left', 'Rechts bündig ausrichten': 'Align right', 'Oben bündig ausrichten': 'Align top', 'Unten bündig ausrichten': 'Align bottom',
@@ -6340,7 +6352,12 @@
       XNOR: '=1'
     };
 
-    const GATE_DELAY_TYPES = { NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1 };
+    const ONLY_GATE_TYPES = { NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1 };
+    const GATE_DELAY_TYPES = {
+      NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1,
+      FULL_ADDER: 1, MUX: 1, DECODER: 1, BCD_DEC: 1,
+      SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1, COUNTER: 1, SHIFT_REG: 1, CUSTOM_IC: 1
+    };
     const GATE_DELAY_MIN = 0;
     const GATE_DELAY_MAX = 20;
 
@@ -7338,7 +7355,7 @@
           name,
           defaultName: defaultInNames[idx],
           index: idx,
-          relX: GATE_DELAY_TYPES[this.type] ? -GATE_PIN_STUB : 0,
+          relX: ONLY_GATE_TYPES[this.type] ? -GATE_PIN_STUB : 0,
           relY: inOffsets[idx] !== undefined ? inOffsets[idx] : this.computePinRelY(idx, inNames.length),
           value: prevInVals[idx] ?? 0
         }));
@@ -7347,7 +7364,7 @@
           name,
           defaultName: defaultOutNames[idx],
           index: idx,
-          relX: this.width + (GATE_DELAY_TYPES[this.type] ? GATE_PIN_STUB : 0),
+          relX: this.width + (ONLY_GATE_TYPES[this.type] ? GATE_PIN_STUB : 0),
           relY: outOffsets[idx] !== undefined ? outOffsets[idx] : this.computePinRelY(idx, outNames.length),
           value: prevOutVals[idx] ?? 0
         }));
@@ -7378,6 +7395,7 @@
         this.state = {};
         this.state.delayTimer = 0;
         this.state.pendingOutput = null;
+        this.state.pendingOutputs = null;
 
         switch (this.type) {
           case 'SWITCH':
@@ -7405,25 +7423,25 @@
           case 'FULL_ADDER':
             this.state = {};
             this.compute();
-            this.commit();
+            this.commit(true);
             break;
           case 'BCD_DEC':
-            this.state = { currentVal: 0 };
+            this.state = { currentVal: 0, committedVal: 0 };
             this.compute([0, 0, 0, 0]);
-            this.commit();
+            this.commit(true);
             break;
           case 'COUNTER':
-            this.state = { count: 0, prevClk: 0 };
+            this.state = { count: 0, prevClk: 0, committedCount: 0 };
             break;
           case 'SHIFT_REG':
-            this.state = { bits: [0, 0, 0, 0], prevClk: 0 };
+            this.state = { bits: [0, 0, 0, 0], prevClk: 0, committedBits: [0, 0, 0, 0] };
             break;
           case 'SR_FF':
           case 'D_FF':
           case 'JK_FF':
           case 'T_FF': {
             const initQ = this.params.initialValue ? 1 : 0;
-            this.state = { q: initQ, lastClk: 0 };
+            this.state = { q: initQ, committedQ: initQ, lastClk: 0 };
             this.outputs[0].value = initQ;
             this.outputs[1].value = initQ === 1 ? 0 : 1;
             this.nextOutputs[0] = initQ;
@@ -7432,7 +7450,7 @@
           }
           case 'D_LATCH': {
             const initQ = this.params.initialValue ? 1 : 0;
-            this.state = { q: initQ };
+            this.state = { q: initQ, committedQ: initQ };
             this.outputs[0].value = initQ;
             this.outputs[1].value = initQ === 1 ? 0 : 1;
             this.nextOutputs[0] = initQ;
@@ -7867,37 +7885,70 @@
        * clocked simulation (edit mode, truth tables): gate delays are skipped there.
        */
       commit(immediate = false) {
+        let committedNow = false;
+        const nOut = this.outputs.length;
         if (!GATE_DELAY_TYPES[this.type] || immediate) {
           this.state.delayTimer = 0;
           this.state.pendingOutput = null;
+          this.state.pendingOutputs = null;
           this.state.delayLine = null;
-          for (let i = 0; i < this.outputs.length; i++) {
+          for (let i = 0; i < nOut; i++) {
             this.outputs[i].value = this.nextOutputs[i];
           }
+          committedNow = true;
         } else {
           const delay = typeof this.getEffectiveDelay === 'function' ? this.getEffectiveDelay() : (this.params.delay || 1);
-          const target = this.nextOutputs[0];
-          const current = this.outputs[0].value;
-
           if (delay <= 1) {
             this.state.delayTimer = 0;
             this.state.pendingOutput = null;
+            this.state.pendingOutputs = null;
             this.state.delayLine = null;
-            this.outputs[0].value = target;
+            if (nOut === 1) {
+              this.outputs[0].value = this.nextOutputs[0];
+            } else {
+              for (let i = 0; i < nOut; i++) {
+                this.outputs[i].value = this.nextOutputs[i];
+              }
+            }
+            committedNow = true;
           } else {
-            if (target === current) {
+            let hasDiff = false;
+            for (let i = 0; i < nOut; i++) {
+              if (this.nextOutputs[i] !== this.outputs[i].value) {
+                hasDiff = true;
+                break;
+              }
+            }
+            if (!hasDiff) {
               this.state.delayTimer = 0;
               this.state.pendingOutput = null;
+              this.state.pendingOutputs = null;
+              committedNow = true;
             } else {
-              if (this.state.pendingOutput !== target) {
-                this.state.pendingOutput = target;
+              const prevPending = this.state.pendingOutputs;
+              let matchesPending = Array.isArray(prevPending) && prevPending.length === nOut;
+              if (matchesPending) {
+                for (let i = 0; i < nOut; i++) {
+                  if (prevPending[i] !== this.nextOutputs[i]) {
+                    matchesPending = false;
+                    break;
+                  }
+                }
+              }
+              if (!matchesPending) {
+                this.state.pendingOutputs = this.nextOutputs.slice(0, nOut);
+                this.state.pendingOutput = nOut > 0 ? this.nextOutputs[0] : null;
                 this.state.delayTimer = delay - 1;
               } else if (this.state.delayTimer > 1) {
                 this.state.delayTimer--;
               } else {
-                this.outputs[0].value = target;
+                for (let i = 0; i < nOut; i++) {
+                  this.outputs[i].value = this.nextOutputs[i];
+                }
                 this.state.pendingOutput = null;
+                this.state.pendingOutputs = null;
                 this.state.delayTimer = 0;
+                committedNow = true;
               }
             }
           }
@@ -7907,16 +7958,24 @@
           this.state.counter = this.state.nextCounter;
           this.state.value = this.state.nextValue;
         } else if (this.type === 'BCD_DEC' && this.state.nextVal !== undefined) {
+          if (committedNow) this.state.committedVal = this.state.nextVal;
+          else if (this.state.committedVal === undefined) this.state.committedVal = this.state.currentVal ?? 0;
           this.state.currentVal = this.state.nextVal;
         } else if (this.type === 'COUNTER' && this.state.nextCount !== undefined) {
+          if (committedNow) this.state.committedCount = this.state.nextCount;
+          else if (this.state.committedCount === undefined) this.state.committedCount = this.state.count ?? 0;
           this.state.count = this.state.nextCount;
           this.state.prevClk = this.state.nextPrevClk;
         } else if (this.type === 'SHIFT_REG' && this.state.nextBits !== undefined) {
+          if (committedNow) this.state.committedBits = [...this.state.nextBits];
+          else if (!this.state.committedBits) this.state.committedBits = [...(this.state.bits || [0, 0, 0, 0])];
           this.state.bits = this.state.nextBits;
           this.state.prevClk = this.state.nextPrevClk;
         }
 
         if (this.state.nextQ !== undefined) {
+          if (committedNow) this.state.committedQ = this.state.nextQ;
+          else if (this.state.committedQ === undefined) this.state.committedQ = this.state.q ?? 0;
           this.state.q = this.state.nextQ;
         }
         if (this.state.nextLastClk !== undefined) {
@@ -9226,7 +9285,9 @@
         for (let i = 0; i < comps.length; i++) {
           const c = comps[i];
           if (GATE_DELAY_TYPES[c.type]) {
-            if (c.getEffectiveDelay() === 0) settleComps.push(c);
+            if (c.getEffectiveDelay() === 0 && (!combinationalOnly || !isSeq[c.type])) {
+              settleComps.push(c);
+            }
           } else if (isGlobalZero) {
             if (isComb[c.type] || (!combinationalOnly && isSeq[c.type])) {
               settleComps.push(c);
@@ -9289,9 +9350,9 @@
       }
 
       /**
-       * Advances combinational components by 1 tick respecting gate delays,
+       * Advances delay-capable and combinational components by 1 tick respecting delays,
        * used for edit-mode propagation at the configured Hz rate.
-       * Returns true if any gate still has a pending delay or changed output.
+       * Returns true if any component still has a pending delay or changed output.
        */
       stepCombinational() {
         const comps = this.components;
@@ -9300,7 +9361,7 @@
         const prevOutputs = new Array(comps.length);
         for (let i = 0; i < comps.length; i++) {
           const c = comps[i];
-          if (isComb[c.type]) {
+          if (isComb[c.type] || GATE_DELAY_TYPES[c.type]) {
             prevOutputs[i] = c.outputs.map(o => o.value);
             c.compute();
           }
@@ -9310,12 +9371,12 @@
         let hasZeroDelay = false;
         for (let i = 0; i < comps.length; i++) {
           const c = comps[i];
-          if (!isComb[c.type]) continue;
+          if (!isComb[c.type] && !GATE_DELAY_TYPES[c.type]) continue;
           if (GATE_DELAY_TYPES[c.type] && c.getEffectiveDelay() === 0) {
             hasZeroDelay = true;
           }
           c.commit(false);
-          if (c.state.delayTimer > 0 || c.state.pendingOutput !== null) {
+          if (c.state.delayTimer > 0 || c.state.pendingOutput !== null || (Array.isArray(c.state.pendingOutputs) && c.state.pendingOutputs.length > 0)) {
             hasPending = true;
           }
           const prev = prevOutputs[i];
@@ -9330,7 +9391,7 @@
         }
 
         this.updateWireLevelsFromDrivers();
-        if ((hasZeroDelay || this.globalGateDelay === 0) && this.settleZeroDelayGates(true)) {
+        if ((hasZeroDelay || this.globalGateDelay === 0) && this.settleZeroDelayGates(false)) {
           hasPending = true;
         }
         return hasPending;
@@ -10677,6 +10738,8 @@
         if (!state || typeof state !== 'object') return {};
         const copy = { ...state };
         if (Array.isArray(state.bits)) copy.bits = [...state.bits];
+        if (Array.isArray(state.committedBits)) copy.committedBits = [...state.committedBits];
+        if (Array.isArray(state.pendingOutputs)) copy.pendingOutputs = [...state.pendingOutputs];
         if (Array.isArray(state.delayLine)) copy.delayLine = [...state.delayLine];
         if (Array.isArray(state.nextBits)) copy.nextBits = [...state.nextBits];
         return copy;
@@ -14182,7 +14245,7 @@
           }
 
           case 'BCD_DEC': {
-            const val = comp.state.currentVal ?? 0;
+            const val = (comp.state.delayTimer > 0 && comp.state.committedVal !== undefined) ? comp.state.committedVal : (comp.state.currentVal ?? 0);
             const hexChar = (val <= 9 || comp.params.hexMode) ? HEX_CHARS[val] : '-';
 
             ctx.fillStyle = pal.moduleFill;
@@ -14207,7 +14270,7 @@
           }
 
           case 'COUNTER': {
-            const cnt = comp.state.count ?? 0;
+            const cnt = (comp.state.delayTimer > 0 && comp.state.committedCount !== undefined) ? comp.state.committedCount : (comp.state.count ?? 0);
             const hexStr = '0x' + cnt.toString(16).toUpperCase();
             const modeStr = comp.params.mode === 'bcd' ? 'MOD 10' : 'MOD 16';
 
@@ -14233,7 +14296,7 @@
           }
 
           case 'SHIFT_REG': {
-            const bits = comp.state.bits || [0, 0, 0, 0];
+            const bits = (comp.state.delayTimer > 0 && comp.state.committedBits) ? comp.state.committedBits : (comp.state.bits || [0, 0, 0, 0]);
             const bitStr = `${bits[3]}${bits[2]}${bits[1]}${bits[0]}`;
             const val = bits[3] * 8 + bits[2] * 4 + bits[1] * 2 + bits[0];
 
@@ -14263,7 +14326,7 @@
           case 'JK_FF':
           case 'T_FF':
           case 'D_LATCH': {
-            const q = comp.state.q ?? 0;
+            const q = (comp.state.delayTimer > 0 && comp.state.committedQ !== undefined) ? comp.state.committedQ : (comp.state.q ?? 0);
             const names = {
               SR_FF: 'SR-FF',
               D_FF: 'D-FF',
@@ -16222,6 +16285,7 @@
             comp.params.delay = parseGateDelay(val, 1);
             comp.state.delayTimer = 0;
             comp.state.pendingOutput = null;
+            comp.state.pendingOutputs = null;
             comp.state.delayLine = null;
             this.onChange(false);
           }, (val) => formatDelayWithHz(val, this.engine.frequency || 10));
@@ -16699,6 +16763,7 @@
               c.params.delay = d;
               c.state.delayTimer = 0;
               c.state.pendingOutput = null;
+              c.state.pendingOutputs = null;
               c.state.delayLine = null;
             }
             this.onChange(false);
@@ -16873,6 +16938,7 @@
           FULL_ADDER: 'Volladdierer',
           MUX: 'Multiplexer 2:1',
           DECODER: 'Decoder 2:4',
+          CUSTOM_IC: 'Eigenes IC',
           PROBE: 'Messpunkt'
         };
         return names[type] || type;
@@ -19443,7 +19509,7 @@
         }
         circuit.updateWireLevelsFromDrivers();
         if (typeof circuit.settleZeroDelayGates === 'function') {
-          circuit.settleZeroDelayGates(true);
+          circuit.settleZeroDelayGates(false);
         }
         this.stopEditPropagation();
 
@@ -26440,6 +26506,7 @@
               if (GATE_DELAY_TYPES[comp.type] && (comp.params.delay === null || comp.params.delay === undefined)) {
                 comp.state.delayTimer = 0;
                 comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
                 comp.state.delayLine = null;
               }
             }
@@ -26475,6 +26542,7 @@
               if (comp.type === type && (comp.params.delay === null || comp.params.delay === undefined)) {
                 comp.state.delayTimer = 0;
                 comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
                 comp.state.delayLine = null;
               }
             }
