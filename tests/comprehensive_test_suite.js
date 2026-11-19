@@ -143,9 +143,9 @@ if (!scriptMatch) throw new Error('No script tag found in index.html');
 
 const evalFn = new Function(
   'window', 'document', 'localStorage',
-  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS };'
+  scriptMatch[1] + '; return { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides };'
 );
-const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS } = evalFn(window, document, localStorage);
+const { LogicSimApp, CanvasRenderer, LogicAnalyzerRenderer, Circuit, Component, Wire, Probe, RingBuffer, SimulationEngine, BooleanParser, TruthTableGenerator, escapeHtml, sanitizeParams, attachSliderHoldRepeat, I18N, LED_COLORS, SIGNAL_COLOR_PRESETS, SHORTCUT_DEFINITIONS, SHORTCUT_LOOKUP, normalizeShortcutEvent, formatShortcut, sanitizeShortcutOverrides } = evalFn(window, document, localStorage);
 
 console.log('================================================================');
 console.log('       COMPREHENSIVE TEST, PEN-TEST & HARDENING SUITE           ');
@@ -2359,6 +2359,83 @@ runTest('WISH-047', 'Camera auto-pans while dragging selected modules near the c
   app.isDraggingGroup = false; app.draggingComp = null;
   app.startDragAutoPan();
   assertEqual(Boolean(app._autoPanActive), false, 'No auto-pan loop when nothing is dragged');
+});
+
+runTest('WISH-049', 'Click-to-place mode arms, previews, places, and cancels', () => {
+  const app = new LogicSimApp();
+  const ghost = document.getElementById('placement-ghost');
+  app.engine.mode = 'edit';
+
+  app.armPlacement('AND');
+  assertEqual(Boolean(app.pendingPlacement), true, 'Palette selection arms pending placement');
+  assertEqual(app.pendingPlacement.type, 'AND');
+  assertEqual(ghost.hidden, false, 'Placement ghost becomes visible');
+  assertEqual(app.gridCanvas.classList.contains('placement-active'), true, 'Canvas shows placement cursor');
+
+  let placedArgs = null;
+  app.placePaletteItem = (...args) => { placedArgs = args; };
+  app.placePendingAt(40, 60, 'canvas', 'renderer', () => 'tab');
+  assertEqual(placedArgs[0], 'AND', 'Canvas click reuses palette placement path');
+  assertEqual(placedArgs[1], 40);
+  assertEqual(placedArgs[2], 60);
+
+  app.cancelPlacement();
+  assertEqual(app.pendingPlacement, null, 'Escape/cancel clears pending placement');
+  assertEqual(ghost.hidden, true, 'Placement ghost is hidden again');
+  assertEqual(app.gridCanvas.classList.contains('placement-active'), false, 'Canvas cursor is restored');
+});
+
+runTest('WISH-049', 'Shortcut normalization and formatting are locale-aware', () => {
+  assertEqual(normalizeShortcutEvent({ key: 'z', ctrlKey: true }), 'ctrl+z');
+  assertEqual(normalizeShortcutEvent({ key: 'Z', ctrlKey: true, shiftKey: true }), 'ctrl+shift+z');
+  assertEqual(normalizeShortcutEvent({ key: '?', shiftKey: true }), '?');
+  assertEqual(normalizeShortcutEvent({ key: ' ' }), 'space');
+  assertEqual(formatShortcut('ctrl+z', 'de'), 'Strg+Z');
+  assertEqual(formatShortcut('ctrl+z', 'en'), 'Ctrl+Z');
+  assertEqual(SHORTCUT_DEFINITIONS.length >= 20, true, 'Professional shortcut actions are registered');
+  assertEqual(Boolean(SHORTCUT_LOOKUP['edit.undo']), true, 'Undo is a customizable action');
+});
+
+runTest('WISH-049', 'Shortcut overrides are sanitized and conflict-free', () => {
+  const clean = sanitizeShortcutOverrides({
+    'edit.undo': 'ctrl+u',
+    'edit.redo': 'ctrl+u',
+    'file.new': 'javascript:alert(1)',
+    unknown: 'x'
+  });
+  assertEqual(clean['edit.undo'], 'ctrl+u', 'Valid override is kept');
+  assertEqual(clean['edit.redo'], undefined, 'Duplicate binding is rejected');
+  assertEqual(clean['file.new'], undefined, 'Invalid binding is rejected');
+  assertEqual(clean.unknown, undefined, 'Unknown action is rejected');
+});
+
+runTest('WISH-049', 'Shortcut dispatch honors overrides and suppresses replaced defaults', () => {
+  const app = new LogicSimApp();
+  let undone = 0;
+  app.undo = () => { undone += 1; };
+  app.shortcutOverrides = { 'edit.undo': 'ctrl+u' };
+
+  const preventDefault = () => {};
+  assertEqual(app.dispatchShortcut({ key: 'u', ctrlKey: true, preventDefault }), true, 'Override triggers action');
+  assertEqual(undone, 1);
+  assertEqual(app.isSuppressedDefaultShortcut({ key: 'z', ctrlKey: true }), true, 'Old default binding is suppressed');
+  assertEqual(app.dispatchShortcut({ key: 'z', ctrlKey: true, preventDefault }), false, 'Old default no longer triggers action');
+  assertEqual(undone, 1);
+});
+
+runTest('WISH-049', 'Shortcut settings expose editable bindings with reset', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assertEqual(html.includes('id="shortcut-list"'), true, 'Settings modal contains shortcut list');
+  assertEqual(html.includes('id="btn-shortcuts-reset"'), true, 'Settings modal contains reset control');
+
+  const app = new LogicSimApp();
+  let saved = null;
+  app.saveSettings = () => { saved = { ...app.shortcutOverrides }; };
+  assertEqual(app.setShortcutOverride('edit.undo', 'ctrl+u'), true);
+  assertEqual(saved['edit.undo'], 'ctrl+u', 'Override is persisted through saveSettings');
+  assertEqual(app.setShortcutOverride('edit.redo', 'ctrl+u'), false, 'Conflicting override is rejected');
+  app.resetShortcutOverrides();
+  assertEqual(Object.keys(app.shortcutOverrides).length, 0, 'Reset clears all overrides');
 });
 
 console.log('\n================================================================');

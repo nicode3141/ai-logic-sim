@@ -940,6 +940,55 @@
       cursor: crosshair !important;
     }
 
+    .shortcut-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-dim);
+      border-radius: var(--control-radius);
+      background: var(--bg-deep);
+    }
+
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 9px;
+      border-bottom: 1px solid var(--border-dim);
+      font-size: 11.5px;
+      color: var(--text-main);
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: 0;
+    }
+
+    .shortcut-key {
+      min-width: 96px;
+      padding: 4px 8px;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--control-radius);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .shortcut-key:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .shortcut-key.capturing {
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+
+    .shortcut-reset {
+      margin-top: 8px;
+    }
+
     .panel-header {
       padding: 8px 10px;
       font-size: 11px;
@@ -4974,6 +5023,13 @@
             </div>
           </div>
 
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="settings.shortcuts_title">Tastenkürzel:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin: 4px 0 8px;" data-i18n="settings.shortcuts_hint">Klicken und neue Taste drücken…</div>
+            <div id="shortcut-list" class="shortcut-list"></div>
+            <button class="btn shortcut-reset" id="btn-shortcuts-reset" data-i18n="settings.shortcuts_reset">Standard wiederherstellen</button>
+          </div>
+
           <!-- 3b. Oberflaechengroesse -->
           <div class="settings-section">
             <div class="settings-section-title">Oberflächengröße (Schrift &amp; Bedienelemente):</div>
@@ -5102,8 +5158,8 @@
             <div class="help-row"><span>Mehrfachauswahl</span><span>Rahmen ziehen oder <kbd>Umschalt</kbd>+Klick</span></div>
             <div class="help-row"><span>Kontextmenü</span><span>Rechtsklick auf Bauteil, Leitung oder Fläche</span></div>
             <div class="help-title">Anordnen</div>
-            <div class="help-row"><span>Auto-Anordnen</span><span><kbd>A</kbd></span></div>
-            <div class="help-row"><span>Leitungen neu verlegen</span><span><kbd>L</kbd></span></div>
+            <div class="help-row"><span>Auto-Anordnen</span><span data-shortcut-display="edit.layout"><kbd>A</kbd></span></div>
+            <div class="help-row"><span>Leitungen neu verlegen</span><span data-shortcut-display="edit.reroute"><kbd>L</kbd></span></div>
             <div class="help-row"><span>Auswahl verschieben</span><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> (ein Rasterschritt)</span></div>
             <div class="help-row"><span>Ausrichten / Verteilen</span><span>Pfeil neben „Auto-Anordnen“</span></div>
           </div>
@@ -5111,17 +5167,17 @@
             <div class="help-title">Ansicht</div>
             <div class="help-row"><span>Zoomen</span><span>Mausrad, <kbd>+</kbd> / <kbd>−</kbd></span></div>
             <div class="help-row"><span>Verschieben</span><span><kbd>Leertaste</kbd> halten + ziehen, oder mittlere Maustaste</span></div>
-            <div class="help-row"><span>Alles einpassen</span><span><kbd>F</kbd></span></div>
-            <div class="help-row"><span>Szenarien</span><span><kbd>G</kbd></span></div>
+            <div class="help-row"><span>Alles einpassen</span><span data-shortcut-display="view.zoom_fit"><kbd>F</kbd></span></div>
+            <div class="help-row"><span>Szenarien</span><span data-shortcut-display="demos.gallery"><kbd>G</kbd></span></div>
             <div class="help-title">Simulation</div>
-            <div class="help-row"><span>Edit ↔ Simulation</span><span><kbd>Tab</kbd></span></div>
+            <div class="help-row"><span>Edit ↔ Simulation</span><span data-shortcut-display="view.mode"><kbd>Tab</kbd></span></div>
             <div class="help-row"><span>Start / Pause</span><span><kbd>Leertaste</kbd> (im Simulationsmodus)</span></div>
             <div class="help-row"><span>Einzelschritt</span><span><kbd>.</kbd> vor, <kbd>,</kbd> zurück</span></div>
             <div class="help-title">Bearbeiten</div>
-            <div class="help-row"><span>Rückgängig / Wiederholen</span><span><kbd>Strg</kbd>+<kbd>Z</kbd> / <kbd>Strg</kbd>+<kbd>Y</kbd></span></div>
-            <div class="help-row"><span>Kopieren / Einfügen / Duplizieren</span><span><kbd>Strg</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></span></div>
-            <div class="help-row"><span>Löschen</span><span><kbd>Entf</kbd></span></div>
-            <div class="help-row"><span>Wahrheitstabelle / Schaltalgebra</span><span><kbd>Strg</kbd>+<kbd>T</kbd> / <kbd>Strg</kbd>+<kbd>B</kbd></span></div>
+            <div class="help-row"><span>Rückgängig / Wiederholen</span><span><span data-shortcut-display="edit.undo"><kbd>Strg</kbd>+<kbd>Z</kbd></span> / <span data-shortcut-display="edit.redo"><kbd>Strg</kbd>+<kbd>Y</kbd></span></span></div>
+            <div class="help-row"><span>Kopieren / Einfügen / Duplizieren</span><span><span data-shortcut-display="edit.copy"><kbd>Strg</kbd>+<kbd>C</kbd></span> / <span data-shortcut-display="edit.paste"><kbd>V</kbd></span> / <span data-shortcut-display="edit.duplicate"><kbd>D</kbd></span></span></div>
+            <div class="help-row"><span>Löschen</span><span data-shortcut-display="edit.delete"><kbd>Entf</kbd></span></div>
+            <div class="help-row"><span>Wahrheitstabelle / Schaltalgebra</span><span><span data-shortcut-display="analysis.truth_table"><kbd>Strg</kbd>+<kbd>T</kbd></span> / <span data-shortcut-display="analysis.bool_synth"><kbd>Strg</kbd>+<kbd>B</kbd></span></span></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -5301,6 +5357,13 @@
           'settings.fluid_hint': 'Live & flüssig in Echtzeit',
           'settings.language_title': 'Sprache:',
           'settings.language_desc': 'Sprache der Oberfläche:',
+          'settings.shortcuts_title': 'Tastenkürzel:',
+          'settings.shortcuts_hint': 'Klicken und neue Taste drücken…',
+          'settings.shortcuts_reset': 'Standard wiederherstellen',
+          'settings.shortcuts_capturing': 'Taste drücken…',
+          'settings.shortcuts_conflict': 'Kürzel ist bereits belegt',
+          'shortcut.view_mode': 'Edit / Simulation umschalten',
+          'shortcut.palette_search': 'Bauteilsuche fokussieren',
           'settings.close': 'Schließen'
         },
         en: {
@@ -5451,6 +5514,13 @@
           'settings.fluid_hint': 'Live & fluid in real-time',
           'settings.language_title': 'Language:',
           'settings.language_desc': 'Interface language:',
+          'settings.shortcuts_title': 'Keyboard shortcuts:',
+          'settings.shortcuts_hint': 'Click a shortcut, then press a new key…',
+          'settings.shortcuts_reset': 'Restore defaults',
+          'settings.shortcuts_capturing': 'Press key…',
+          'settings.shortcuts_conflict': 'Shortcut is already assigned',
+          'shortcut.view_mode': 'Toggle edit / simulation',
+          'shortcut.palette_search': 'Focus component search',
           'settings.close': 'Close'
         }
       },
@@ -6248,6 +6318,88 @@
         node.innerHTML = tablerIcon(node.dataset ? node.dataset.tablerIcon : '', size);
         if (node.dataset) node.dataset.tablerHydrated = '1';
       });
+    }
+
+    function focusPaletteSearch() {
+      const search = document.getElementById('palette-search-input');
+      if (search && typeof search.focus === 'function') search.focus();
+    }
+
+    const SHORTCUT_DEFINITIONS = [
+      { id: 'file.new', default: 'ctrl+n', label: 'menu.file.new', menuId: 'menu-item-new', run: app => app.createNewTab() },
+      { id: 'file.open', default: 'ctrl+o', label: 'menu.file.open', menuId: 'menu-item-open', run: app => app.importCircuitJSON() },
+      { id: 'file.save', default: 'ctrl+s', label: 'menu.file.save', menuId: 'menu-item-save', run: app => app.exportCircuitJSON() },
+      { id: 'edit.undo', default: 'ctrl+z', label: 'menu.edit.undo', menuId: 'menu-item-undo', run: app => app.undo() },
+      { id: 'edit.redo', default: 'ctrl+y', label: 'menu.edit.redo', menuId: 'menu-item-redo', run: app => app.redo() },
+      { id: 'edit.select_all', default: 'ctrl+a', label: 'menu.edit.select_all', menuId: 'menu-item-select-all', run: app => app.selectAll() },
+      { id: 'edit.copy', default: 'ctrl+c', label: 'menu.edit.copy', menuId: 'menu-item-copy', run: app => app.copySelection() },
+      { id: 'edit.paste', default: 'ctrl+v', label: 'menu.edit.paste', menuId: 'menu-item-paste', run: app => app.pasteClipboard() },
+      { id: 'edit.duplicate', default: 'ctrl+d', label: 'menu.edit.duplicate', menuId: 'menu-item-duplicate', run: app => app.duplicateSelection() },
+      { id: 'edit.delete', default: 'delete', label: 'menu.edit.delete', menuId: 'menu-item-delete', mode: 'edit', run: app => app.deleteSelection() },
+      { id: 'edit.layout', default: 'a', label: 'menu.edit.layout', menuId: 'menu-item-layout', mode: 'edit', run: app => app.runAlignAction('all') },
+      { id: 'edit.reroute', default: 'l', label: 'menu.edit.reroute', menuId: 'menu-item-reroute', mode: 'edit', run: app => app.runAlignAction('wires') },
+      { id: 'view.zoom_in', default: '+', label: 'menu.view.zoom_in', menuId: 'menu-item-zoom-in', run: app => app.setZoom(app.renderer.zoom * 1.15) },
+      { id: 'view.zoom_out', default: '-', label: 'menu.view.zoom_out', menuId: 'menu-item-zoom-out', run: app => app.setZoom(app.renderer.zoom / 1.15) },
+      { id: 'view.zoom_reset', default: '0', label: 'menu.view.zoom_reset', menuId: 'menu-item-zoom-reset', run: app => { app.renderer.panX = 40; app.renderer.panY = 40; app.setZoom(1.0); } },
+      { id: 'view.zoom_fit', default: 'f', label: 'menu.view.zoom_fit', menuId: 'menu-item-zoom-fit', run: app => app.runAlignAction('fit') },
+      { id: 'view.mode', default: 'tab', label: 'shortcut.view_mode', run: app => app.toggleMode() },
+      { id: 'analysis.truth_table', default: 'ctrl+t', label: 'menu.analysis.truth_table', menuId: 'menu-item-truth-table', run: app => app.openTruthTableModal() },
+      { id: 'analysis.bool_synth', default: 'ctrl+b', label: 'menu.analysis.bool_synth', menuId: 'menu-item-bool-synth', run: app => app.openBoolSynthModal() },
+      { id: 'demos.gallery', default: 'g', label: 'menu.demos.gallery', menuId: 'menu-item-gallery', run: app => app.openScenarioGallery() },
+      { id: 'help.shortcuts', default: '?', label: 'menu.help.shortcuts', menuId: 'menu-item-help', run: app => app.showModal('help-modal') },
+      { id: 'palette.search', default: '/', label: 'shortcut.palette_search', run: focusPaletteSearch }
+    ];
+
+    const SHORTCUT_LOOKUP = Object.create(null);
+    SHORTCUT_DEFINITIONS.forEach(def => { SHORTCUT_LOOKUP[def.id] = def; });
+
+    const SHORTCUT_LABELS_DE = {
+      ctrl: 'Strg', meta: 'Cmd', alt: 'Alt', shift: 'Umschalt',
+      space: 'Leer', escape: 'Esc', delete: 'Entf', backspace: 'Rücktaste', tab: 'Tab',
+      enter: 'Eingabe', arrowleft: '←', arrowright: '→', arrowup: '↑', arrowdown: '↓', '+': '+'
+    };
+
+    const SHORTCUT_LABELS_EN = {
+      ctrl: 'Ctrl', meta: 'Cmd', alt: 'Alt', shift: 'Shift',
+      space: 'Space', escape: 'Esc', delete: 'Del', backspace: 'Backspace', tab: 'Tab',
+      enter: 'Enter', arrowleft: '←', arrowright: '→', arrowup: '↑', arrowdown: '↓', '+': '+'
+    };
+
+    function isValidShortcutBinding(value) {
+      return typeof value === 'string' && value.length > 0 && value.length <= 48 && /^[a-z0-9+\-./?]+$/.test(value);
+    }
+
+    function normalizeShortcutEvent(e) {
+      if (!e || e.key === undefined || e.key === null) return '';
+      let key = String(e.key);
+      if (key === ' ') key = 'space';
+      else key = key.toLowerCase();
+      if (!key || key === 'dead' || key === 'process' || key === 'unidentified') return '';
+      const parts = [];
+      if (e.ctrlKey || e.metaKey) parts.push('ctrl');
+      if (e.altKey) parts.push('alt');
+      const punctuation = key.length === 1 && !/[a-z0-9]/.test(key);
+      if (e.shiftKey && !punctuation) parts.push('shift');
+      parts.push(key);
+      return parts.join('+');
+    }
+
+    function formatShortcut(binding, lang) {
+      const labels = lang === 'en' ? SHORTCUT_LABELS_EN : SHORTCUT_LABELS_DE;
+      return String(binding || '').split('+').map(part => labels[part] || (part.length === 1 ? part.toUpperCase() : part)).join('+');
+    }
+
+    function sanitizeShortcutOverrides(raw) {
+      const clean = Object.create(null);
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+      const used = new Set(SHORTCUT_DEFINITIONS.map(def => def.default));
+      SHORTCUT_DEFINITIONS.forEach(def => {
+        const value = raw[def.id];
+        if (!isValidShortcutBinding(value) || value === def.default || used.has(value)) return;
+        clean[def.id] = value;
+        used.add(value);
+      });
+      return clean;
     }
 
     /**
@@ -16157,6 +16309,8 @@
         this.compMouseDownPos = null;
         this.pendingPlacement = null;
         this.placementGhost = null;
+        this.shortcutOverrides = {};
+        this.shortcutCaptureId = null;
 
         this.allowEditModeInteraction = true;
         this.uiScale = 1;
@@ -16202,6 +16356,9 @@
         this.initInspectorResizerEvents();
         this.initModalEvents();
         this.initSettingsModalEvents();
+        this.initShortcutSettingsEvents();
+        this.renderShortcutSettings();
+        this.refreshShortcutLabels();
         this.initExtendedUI();
         this.setShowWireBridges(this.showWireBridges);
 
@@ -17662,6 +17819,7 @@
           ghost.hidden = true;
           return;
         }
+        ghost.hidden = false;
         const label = this.getPlacementLabel(this.pendingPlacement.type);
         const icon = this.getPlacementIcon(this.pendingPlacement.type);
         ghost.innerHTML = tablerIcon(icon, 16) + `<span>${escapeHtml(label)}</span>`;
@@ -20250,6 +20408,127 @@
         }
       }
 
+      refreshShortcutLabels() {
+        SHORTCUT_DEFINITIONS.forEach(def => {
+          if (!def.menuId) return;
+          const item = document.getElementById(def.menuId);
+          if (!item || typeof item.querySelector !== 'function') return;
+          const span = item.querySelector('.menu-shortcut');
+          if (span) span.textContent = formatShortcut(this.getShortcutBinding(def.id), I18N.currentLang);
+        });
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('[data-shortcut-display]').forEach(el => {
+            const id = typeof el.getAttribute === 'function' ? el.getAttribute('data-shortcut-display') : null;
+            if (SHORTCUT_LOOKUP[id]) el.textContent = formatShortcut(this.getShortcutBinding(id), I18N.currentLang);
+          });
+        }
+      }
+
+      renderShortcutSettings() {
+        const list = document.getElementById('shortcut-list');
+        if (!list) return;
+        list.innerHTML = SHORTCUT_DEFINITIONS.map(def => {
+          const label = I18N.t(def.label, def.label);
+          const binding = this.getShortcutBinding(def.id);
+          const display = formatShortcut(binding, I18N.currentLang);
+          return `<div class="shortcut-row"><span>${escapeHtml(label)}</span><button type="button" class="shortcut-key" data-shortcut-id="${def.id}" data-shortcut-binding="${escapeHtml(binding)}">${escapeHtml(display)}</button></div>`;
+        }).join('');
+      }
+
+      initShortcutSettingsEvents() {
+        const list = document.getElementById('shortcut-list');
+        if (list && typeof list.addEventListener === 'function') {
+          list.addEventListener('click', e => {
+            const target = e.target;
+            const button = target && typeof target.closest === 'function' ? target.closest('.shortcut-key') : null;
+            if (!button || typeof button.getAttribute !== 'function') return;
+            const id = button.getAttribute('data-shortcut-id');
+            if (SHORTCUT_LOOKUP[id]) this.captureShortcut(id, button);
+          });
+        }
+        const reset = document.getElementById('btn-shortcuts-reset');
+        if (reset && typeof reset.addEventListener === 'function') {
+          reset.addEventListener('click', () => this.resetShortcutOverrides());
+        }
+      }
+
+      captureShortcut(id, button) {
+        if (this._shortcutCaptureHandler && typeof window.removeEventListener === 'function') {
+          window.removeEventListener('keydown', this._shortcutCaptureHandler, true);
+        }
+        this.shortcutCaptureId = id;
+        if (button) {
+          button.textContent = I18N.t('settings.shortcuts_capturing');
+          if (button.classList) button.classList.add('capturing');
+        }
+        this._shortcutCaptureHandler = (e) => {
+          e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          window.removeEventListener('keydown', this._shortcutCaptureHandler, true);
+          this._shortcutCaptureHandler = null;
+          this.shortcutCaptureId = null;
+          const combo = normalizeShortcutEvent(e);
+          if (combo !== 'escape' && isValidShortcutBinding(combo) && this.setShortcutOverride(id, combo)) return;
+          if (combo !== 'escape' && combo) this.showToast(I18N.t('settings.shortcuts_conflict'));
+          this.renderShortcutSettings();
+        };
+        window.addEventListener('keydown', this._shortcutCaptureHandler, true);
+      }
+
+      getShortcutBinding(id) {
+        const def = SHORTCUT_LOOKUP[id];
+        if (!def) return '';
+        const override = this.shortcutOverrides && typeof this.shortcutOverrides === 'object' ? this.shortcutOverrides[id] : null;
+        return isValidShortcutBinding(override) ? override : def.default;
+      }
+
+      isShortcutConflict(binding, exceptId) {
+        return SHORTCUT_DEFINITIONS.some(def => def.id !== exceptId && this.getShortcutBinding(def.id) === binding);
+      }
+
+      setShortcutOverride(id, binding) {
+        const def = SHORTCUT_LOOKUP[id];
+        if (!def || !isValidShortcutBinding(binding)) return false;
+        if (binding !== def.default && this.isShortcutConflict(binding, id)) return false;
+        if (!this.shortcutOverrides || typeof this.shortcutOverrides !== 'object' || Array.isArray(this.shortcutOverrides)) {
+          this.shortcutOverrides = Object.create(null);
+        }
+        if (binding === def.default) delete this.shortcutOverrides[id];
+        else this.shortcutOverrides[id] = binding;
+        this.saveSettings();
+        this.refreshShortcutLabels();
+        this.renderShortcutSettings();
+        return true;
+      }
+
+      resetShortcutOverrides() {
+        this.shortcutOverrides = Object.create(null);
+        this.saveSettings();
+        this.refreshShortcutLabels();
+        this.renderShortcutSettings();
+      }
+
+      isSuppressedDefaultShortcut(e) {
+        const combo = normalizeShortcutEvent(e);
+        if (!combo || !this.shortcutOverrides || typeof this.shortcutOverrides !== 'object') return false;
+        if (combo === 'ctrl+shift+z' && isValidShortcutBinding(this.shortcutOverrides['edit.redo'])) return true;
+        return SHORTCUT_DEFINITIONS.some(def => {
+          const override = this.shortcutOverrides[def.id];
+          return isValidShortcutBinding(override) && def.default === combo;
+        });
+      }
+
+      dispatchShortcut(e) {
+        const combo = normalizeShortcutEvent(e);
+        if (!combo || (typeof this.isModalOpen === 'function' && this.isModalOpen())) return false;
+        const def = SHORTCUT_DEFINITIONS.find(item => this.getShortcutBinding(item.id) === combo);
+        if (!def || typeof def.run !== 'function') return false;
+        if (def.mode === 'edit' && this.engine.mode === 'sim') return false;
+        e.preventDefault();
+        def.run(this);
+        return true;
+      }
+
       initKeyboardEvents() {
         window.addEventListener('keydown', (e) => {
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
@@ -20261,6 +20540,9 @@
           }
 
           const isCtrl = e.ctrlKey || e.metaKey;
+
+          if (this.isSuppressedDefaultShortcut(e)) return;
+          if (this.dispatchShortcut(e)) return;
 
           if (isCtrl && e.key.toLowerCase() === 'z') {
             e.preventDefault();
@@ -23334,6 +23616,8 @@
           document.title = I18N.t('app.title');
           I18N.dom.refresh();
 
+          this.refreshShortcutLabels();
+          this.renderShortcutSettings();
           this.updateStatusBar();
         }
         this.relabelScenarioTabs();
@@ -23493,6 +23777,7 @@
               else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint');
               else this.setAppTheme('modern');
             }
+            if (s.shortcuts !== undefined) this.shortcutOverrides = sanitizeShortcutOverrides(s.shortcuts);
           }
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
           if (storedBridges === 'false') {
@@ -23545,7 +23830,8 @@
             appTheme: this.appTheme,
             symbolStandard: this.symbolStandard,
             uiScale: this.uiScale,
-            paletteView: this.paletteView
+            paletteView: this.paletteView,
+            shortcuts: this.shortcutOverrides || {}
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));

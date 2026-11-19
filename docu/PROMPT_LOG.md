@@ -111,3 +111,25 @@ exports, KiCad-like toolbars and sidebars, properties panels, autoroute,
 click-to-place components, a component library, clean elegant visuals based on
 `docu/design/refs`, Tabler Icons as the primary icon library, and incremental
 commits.
+
+---
+
+## 2026-11-19 — KiCad-prof status check
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> What did we do so far?
+
+---
+
+## 2026-11-19 — Continue KiCad-prof implementation
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
