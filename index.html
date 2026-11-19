@@ -910,6 +910,36 @@
       margin: 5px 0;
     }
 
+    .placement-ghost {
+      position: fixed;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-blue);
+      border-radius: var(--control-radius);
+      color: var(--text-main);
+      font-size: 11.5px;
+      font-weight: 600;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .placement-ghost[hidden] {
+      display: none;
+    }
+
+    .placement-ghost svg {
+      color: var(--accent-blue);
+      flex-shrink: 0;
+    }
+
+    #grid-canvas.placement-active, #grid-canvas-right.placement-active {
+      cursor: crosshair !important;
+    }
+
     .panel-header {
       padding: 8px 10px;
       font-size: 11px;
@@ -4636,6 +4666,8 @@
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
 
+    <div id="placement-ghost" class="placement-ghost" hidden></div>
+
     <div id="coords-jump-popover" class="coords-popover" style="display: none;">
       <div class="coords-popover-header">
         <span>📍 Zu Koordinate springen</span>
@@ -5196,6 +5228,9 @@
           'rail.inspector': 'Eigenschaften',
           'rail.shortcuts': 'Tastenkürzel',
           'rail.settings': 'Einstellungen',
+          'placement.active': 'Platzieren',
+          'placement.cancel': 'Esc: abbrechen',
+          'placement.placed': 'platziert',
           'palette.title': 'Bauteil-Palette',
           'palette.library': 'Bauteilbibliothek',
           'palette.placeHint': 'Klick = platzieren',
@@ -5343,6 +5378,9 @@
           'rail.inspector': 'Properties',
           'rail.shortcuts': 'Keyboard shortcuts',
           'rail.settings': 'Settings',
+          'placement.active': 'Placing',
+          'placement.cancel': 'Esc: cancel',
+          'placement.placed': 'placed',
           'palette.title': 'Component Palette',
           'palette.library': 'Component Library',
           'palette.placeHint': 'Click = place',
@@ -16117,6 +16155,8 @@
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
         this.compMouseDownPos = null;
+        this.pendingPlacement = null;
+        this.placementGhost = null;
 
         this.allowEditModeInteraction = true;
         this.uiScale = 1;
@@ -16154,6 +16194,7 @@
         this.initPaletteEvents();
         this.initCanvasEvents();
         this.initRightCanvasEvents();
+        this.initPlacementEvents();
         this.initAnalyzerEvents();
         this.initKeyboardEvents();
         this.initContextMenuEvents();
@@ -17309,6 +17350,7 @@
         sidebar.classList.toggle('sim-locked', isSim);
         const toolRail = document.getElementById('tool-rail');
         if (toolRail) toolRail.classList.toggle('sim-locked', isSim);
+        if (isSim && this.pendingPlacement) this.cancelPlacement();
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -17560,6 +17602,99 @@
         });
       }
 
+      initPlacementEvents() {
+        [this.gridCanvas, this.gridCanvasRight].filter(Boolean).forEach(canvas => {
+          canvas.addEventListener('mousemove', (e) => this.updatePlacementGhost(e));
+          canvas.addEventListener('mouseleave', () => {
+            const ghost = document.getElementById('placement-ghost');
+            if (ghost) ghost.hidden = true;
+          });
+        });
+      }
+
+      getPlacementLabel(type) {
+        if (!type) return '';
+        if (type.startsWith('MODULE:')) {
+          const id = type.slice(7);
+          const mod = this.getCustomModules().find(m => m.id === id);
+          return (mod && mod.name) ? mod.name : id;
+        }
+        return I18N.t(`comp.${type}`, type);
+      }
+
+      getPlacementIcon(type) {
+        if (!type) return 'place';
+        if (type === 'CLOCK') return 'clock';
+        if (type === 'SWITCH' || type === 'BUTTON') return 'switch';
+        if (type === 'PROBE') return 'probe';
+        if (type.startsWith('MODULE:')) return 'chip';
+        if (type.includes('LED') || type.includes('DISPLAY')) return 'led';
+        return 'place';
+      }
+
+      armPlacement(type) {
+        if (!type || this.engine.mode === 'sim') return;
+        this.pendingPlacement = { type };
+        this.setActiveRailTool('place');
+        this.refreshPlacementUi();
+      }
+
+      cancelPlacement() {
+        if (!this.pendingPlacement) return;
+        this.pendingPlacement = null;
+        this.setActiveRailTool('select');
+        this.refreshPlacementUi();
+        if (typeof this.updateStatusHint === 'function') this.updateStatusHint();
+      }
+
+      refreshPlacementUi() {
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('.palette-item').forEach(item => {
+            item.classList.toggle('placement-active', !!this.pendingPlacement && item.dataset.type === this.pendingPlacement.type);
+          });
+        }
+        [this.gridCanvas, this.gridCanvasRight].filter(Boolean).forEach(canvas => {
+          canvas.classList.toggle('placement-active', !!this.pendingPlacement);
+        });
+        const ghost = document.getElementById('placement-ghost');
+        if (!ghost) return;
+        if (!this.pendingPlacement) {
+          ghost.hidden = true;
+          return;
+        }
+        const label = this.getPlacementLabel(this.pendingPlacement.type);
+        const icon = this.getPlacementIcon(this.pendingPlacement.type);
+        ghost.innerHTML = tablerIcon(icon, 16) + `<span>${escapeHtml(label)}</span>`;
+        const hint = document.getElementById('status-hint');
+        if (hint) {
+          hint.textContent = `${I18N.t('placement.active')}: ${label} · ${I18N.t('placement.cancel')}`;
+        }
+      }
+
+      updatePlacementGhost(e) {
+        if (!this.pendingPlacement) return;
+        const ghost = document.getElementById('placement-ghost');
+        if (!ghost) return;
+        ghost.hidden = false;
+        const maxX = (window.innerWidth || 1920) - 180;
+        const maxY = (window.innerHeight || 1080) - 60;
+        ghost.style.left = `${Math.max(4, Math.min(maxX, (e.clientX || 0) + 16))}px`;
+        ghost.style.top = `${Math.max(4, Math.min(maxY, (e.clientY || 0) + 16))}px`;
+      }
+
+      placePendingAt(screenX, screenY, canvas, renderer, getTab) {
+        const pending = this.pendingPlacement;
+        if (!pending) return;
+        const tab = getTab && getTab();
+        if (!tab) return;
+        this.placePaletteItem(pending.type, screenX, screenY, tab, renderer, canvas);
+        const hint = document.getElementById('status-hint');
+        if (hint) {
+          const label = this.getPlacementLabel(pending.type);
+          hint.textContent = `${label} ${I18N.t('placement.placed')} · ${I18N.t('placement.cancel')}`;
+        }
+      }
+
       initToolbarEvents() {
         document.getElementById('btn-mode-edit').addEventListener('click', () => {
           this.engine.setMode('edit');
@@ -17801,6 +17936,12 @@
             e.dataTransfer.effectAllowed = 'copy';
           });
 
+          item.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            const type = item.dataset.type;
+            if (type) this.armPlacement(type);
+          });
+
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
@@ -17886,14 +18027,16 @@
           const renderer = getRenderer();
           if (!tab || !renderer) return;
 
-          this.pushHistory(tab);
-
           const rect = canvas.getBoundingClientRect();
-          const screenX = e.clientX - rect.left;
-          const screenY = e.clientY - rect.top;
-          const worldPos = renderer.screenToWorld(screenX, screenY);
+          this.placePaletteItem(type, e.clientX - rect.left, e.clientY - rect.top, tab, renderer, canvas);
+        });
+      }
 
-          if (type === 'PROBE') {
+      placePaletteItem(type, screenX, screenY, tab, renderer, canvas) {
+        this.pushHistory(tab);
+        const worldPos = renderer.screenToWorld(screenX, screenY);
+
+        if (type === 'PROBE') {
             const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 25);
             let targetWire = hitWire;
             if (!targetWire) {
@@ -18022,9 +18165,8 @@
             this.selectItem(comp.id, null);
             this.highlightInspector();
           }
-          this.commitHistory(tab);
-          this.refreshAll();
-        });
+        this.commitHistory(tab);
+        this.refreshAll();
       }
 
       snapOpenWiresToComponent(comp, snapRadius = 24) {
@@ -18090,6 +18232,13 @@
           }
 
           if (e.button !== 0) return; // Right-click handled by contextmenu listener
+
+          if (this.pendingPlacement && !this.spacePressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.placePendingAt(sx, sy, canvas, this.renderer, () => this.getActiveTab());
+            return;
+          }
 
           if (e.altKey && this.engine.mode === 'edit') {
             const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
@@ -18966,6 +19115,13 @@
           }
 
           if (e.button !== 0) return;
+
+          if (this.pendingPlacement && !this.spacePressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.placePendingAt(sx, sy, canvas, this.rendererRight, () => this.getRightTab());
+            return;
+          }
 
           if (this.engine.mode === 'sim') {
             const clickedComp = this.rendererRight.findComponentAt(world.x, world.y);
@@ -20229,6 +20385,10 @@
             return;
           }
 
+          if (e.key === 'Escape' && this.pendingPlacement) {
+            this.cancelPlacement();
+            return;
+          }
           if (e.key === 'Escape') {
             this.closeAllModals();
             if (this.renderer.activeWireDrag) {
@@ -21870,7 +22030,10 @@
 
       updateStatusHint() {
         let text;
-        if (this.renderer.activeWireDrag) {
+        if (this.pendingPlacement) {
+          const label = this.getPlacementLabel(this.pendingPlacement.type);
+          text = `${I18N.t('placement.active')}: ${label} · ${I18N.t('placement.cancel')}`;
+        } else if (this.renderer.activeWireDrag) {
           text = 'Leitung ziehen: Pin, Leitung oder freie Stelle klicken · Enter: fertig · Esc: abbrechen · Umschalt: diagonal';
         } else if (this.engine.mode === 'sim') {
           text = 'Simulation: Schalter klicken, Taster halten · Leertaste: Start/Pause · Tab: zurück zu Edit';
