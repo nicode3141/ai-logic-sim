@@ -29,6 +29,9 @@
       --accent-red-dim: rgba(239, 68, 68, 0.16);
       --wire-low: #38465c;
       --wire-high: #00ff66;
+      --rail-width: 48px;
+      --panel-section-bg: #1a2333;
+      --panel-divider: #253144;
       --btn-radius: 4px;
       --card-radius: 4px;
       --control-radius: 4px;
@@ -80,6 +83,9 @@
       --accent-red-dim: rgba(255, 82, 82, 0.14);
       --wire-low: #3f3f46;
       --wire-high: #00e676;
+      --rail-width: 48px;
+      --panel-section-bg: #121215;
+      --panel-divider: #3f3f46;
       --btn-radius: 2px;
       --card-radius: 3px;
       --control-radius: 2px;
@@ -118,6 +124,9 @@
       --accent-red-dim: rgba(204, 0, 0, 0.15);
       --wire-low: #333333;
       --wire-high: #008000;
+      --rail-width: 48px;
+      --panel-section-bg: #f6f4ea;
+      --panel-divider: #a8a49a;
       --btn-radius: 0px;
       --card-radius: 0px;
       --control-radius: 0px;
@@ -309,6 +318,9 @@
       --accent-red-dim: rgba(248, 113, 113, 0.18);
       --wire-low: #1e497d;
       --wire-high: #38bdf8;
+      --rail-width: 48px;
+      --panel-section-bg: #0f284e;
+      --panel-divider: #1e497d;
       --btn-radius: 3px;
       --card-radius: 4px;
       --control-radius: 3px;
@@ -338,6 +350,9 @@
       --accent-red-dim: rgba(220, 38, 38, 0.14);
       --wire-low: #475569;
       --wire-high: #059669;
+      --rail-width: 48px;
+      --panel-section-bg: #f1f5f9;
+      --panel-divider: #cbd5e1;
       --btn-radius: 4px;
       --card-radius: 6px;
       --control-radius: 4px;
@@ -932,6 +947,173 @@
       opacity: 0.55;
     }
 
+    .tool-rail {
+      width: var(--rail-width);
+      min-width: var(--rail-width);
+      background: var(--bg-panel-alt);
+      border-right: 1px solid var(--panel-divider);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 0;
+      z-index: 12;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .tool-rail.sim-locked .edit-only {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .rail-btn {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--control-radius);
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .rail-btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-dim);
+      color: var(--text-main);
+    }
+
+    .rail-btn.active {
+      background: var(--accent-blue-dim);
+      border-color: var(--border-bright);
+      color: var(--accent-blue);
+    }
+
+    .rail-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .rail-btn::after {
+      content: attr(title);
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-main);
+      border-radius: var(--control-radius);
+      padding: 4px 7px;
+      font-size: 10.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+      z-index: 60;
+    }
+
+    .rail-btn:hover::after {
+      opacity: 1;
+    }
+
+    .rail-divider {
+      width: 24px;
+      height: 1px;
+      flex: 0 0 1px;
+      background: var(--panel-divider);
+      margin: 5px 0;
+    }
+
+    .placement-ghost {
+      position: fixed;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-blue);
+      border-radius: var(--control-radius);
+      color: var(--text-main);
+      font-size: 11.5px;
+      font-weight: 600;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .placement-ghost[hidden] {
+      display: none;
+    }
+
+    .placement-ghost svg {
+      color: var(--accent-blue);
+      flex-shrink: 0;
+    }
+
+    #grid-canvas.placement-active, #grid-canvas-right.placement-active {
+      cursor: crosshair !important;
+    }
+
+    .shortcut-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-dim);
+      border-radius: var(--control-radius);
+      background: var(--bg-deep);
+    }
+
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 9px;
+      border-bottom: 1px solid var(--border-dim);
+      font-size: 11.5px;
+      color: var(--text-main);
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: 0;
+    }
+
+    .shortcut-key {
+      min-width: 96px;
+      padding: 4px 8px;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--control-radius);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .shortcut-key:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .shortcut-key.capturing {
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+
+    .shortcut-reset {
+      margin-top: 8px;
+    }
+
     .panel-header {
       padding: 8px 10px;
       font-size: 11px;
@@ -944,6 +1126,20 @@
       align-items: center;
       justify-content: space-between;
       background: var(--bg-panel-alt);
+    }
+
+    .panel-subtitle {
+      font-size: 9.5px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-dim);
+    }
+
+    .palette-item.placement-active {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: -2px;
+      background: var(--accent-blue-dim);
     }
 
     .palette-category {
@@ -1195,6 +1391,41 @@
       border-color: var(--accent-blue);
     }
 
+    .prop-section {
+      background: var(--panel-section-bg);
+      border: 1px solid var(--panel-divider);
+      border-radius: var(--card-radius);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .prop-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent-blue);
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--panel-divider);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .prop-hint {
+      font-size: 10.5px;
+      line-height: 1.45;
+      color: var(--text-dim);
+    }
+
     .inspector-select {
       background: var(--bg-deep);
       border: 1px solid var(--border-bright);
@@ -1232,7 +1463,6 @@
       user-select: text;
       -webkit-user-select: text;
     }
-
     .prop-info-box {
       background: var(--bg-deep);
       border: 1px solid var(--border-dim);
@@ -3978,7 +4208,7 @@
        Only the chrome is scaled with CSS zoom; the drawing canvases keep their size so the
        pointer maths on them stays exact. The toolbar wraps instead of overlapping. */
     :root { --ui-scale: 1; }
-    #app-menubar, #toolbar, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .coords-popover {
+    #app-menubar, #toolbar, #tool-rail, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .coords-popover {
       zoom: var(--ui-scale, 1);
     }
     #toolbar {
@@ -4231,6 +4461,10 @@
             <button class="app-menu-item" id="menu-item-export-png">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               <span data-i18n="menu.file.export_png">Bild exportieren (PNG)</span>
+            </button>
+            <button class="app-menu-item" id="menu-item-export-pdf">
+              <span data-tabler-icon="print" data-tabler-size="14" style="display:inline-flex;width:14px;"></span>
+              <span data-i18n="menu.file.export_pdf">Als PDF exportieren</span>
             </button>
             <div class="app-menu-divider"></div>
             <button class="app-menu-item" id="menu-item-clear">
@@ -4541,10 +4775,31 @@
     </header>
 
     <div id="main-area">
+      <nav id="tool-rail" class="tool-rail" aria-label="Werkzeuge">
+        <button type="button" id="rail-select" class="rail-btn active edit-only" data-i18n-title="rail.select" title="Auswahl"><span data-tabler-icon="pointer" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-place" class="rail-btn edit-only" data-i18n-title="rail.place" title="Bauteil platzieren"><span data-tabler-icon="place" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-wire" class="rail-btn edit-only" data-i18n-title="rail.wire" title="Leitung zeichnen"><span data-tabler-icon="wire" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-probe" class="rail-btn edit-only" data-i18n-title="rail.probe" title="Messpunkt setzen"><span data-tabler-icon="probe" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-route" class="rail-btn edit-only" data-i18n-title="rail.route" title="Autoroute"><span data-tabler-icon="route" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-delete" class="rail-btn edit-only" data-i18n-title="rail.delete" title="Löschen"><span data-tabler-icon="trash" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-undo" class="rail-btn edit-only" data-i18n-title="rail.undo" title="Rückgängig"><span data-tabler-icon="undo" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-redo" class="rail-btn edit-only" data-i18n-title="rail.redo" title="Wiederholen"><span data-tabler-icon="redo" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-fit" class="rail-btn" data-i18n-title="rail.fit" title="Einpassen"><span data-tabler-icon="fit" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-zoom-in" class="rail-btn" data-i18n-title="rail.zoomIn" title="Hineinzoomen"><span data-tabler-icon="zoomIn" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-zoom-out" class="rail-btn" data-i18n-title="rail.zoomOut" title="Herauszoomen"><span data-tabler-icon="zoomOut" data-tabler-size="18"></span></button>
+        <div class="rail-divider"></div>
+        <button type="button" id="rail-analyzer" class="rail-btn" data-i18n-title="rail.analyzer" title="Impulsdiagramm"><span data-tabler-icon="analyzer" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-inspector" class="rail-btn" data-i18n-title="rail.inspector" title="Eigenschaften"><span data-tabler-icon="properties" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-shortcuts" class="rail-btn" data-i18n-title="rail.shortcuts" title="Tastenkürzel"><span data-tabler-icon="keyboard" data-tabler-size="18"></span></button>
+        <button type="button" id="rail-settings" class="rail-btn" data-i18n-title="rail.settings" title="Einstellungen"><span data-tabler-icon="settings" data-tabler-size="18"></span></button>
+      </nav>
+
       <aside id="sidebar">
         <div class="panel-header">
-          <span data-i18n="palette.title">Bauteil-Palette</span>
-          <span style="font-size: 10px; color: var(--text-dim);">Drag &amp; Drop</span>
+          <span data-i18n="palette.library">Bauteilbibliothek</span>
+          <span class="panel-subtitle" data-i18n="palette.placeHint">Klick = platzieren</span>
         </div>
         <div class="palette-view-bar">
           <span class="palette-view-label">Ansicht</span>
@@ -4840,7 +5095,7 @@
       <aside id="inspector">
         <div id="inspector-resizer" title="Breite ziehen"></div>
         <div class="panel-header">
-          <span>Inspector</span>
+          <span data-i18n="panel.properties">Eigenschaften</span>
           <button id="btn-inspector-toggle" class="collapse-btn" title="Inspector einklappen" style="font-size: 11px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -4939,6 +5194,8 @@
       <span class="status-hint" id="status-hint">Von Pin zu Pin ziehen verdrahtet · A: anordnen</span>
       <span class="status-item" id="status-zoom">100 %</span>
     </footer>
+
+    <div id="placement-ghost" class="placement-ghost" hidden></div>
 
     <div id="coords-jump-popover" class="coords-popover" style="display: none;">
       <div class="coords-popover-header">
@@ -5246,6 +5503,13 @@
             </div>
           </div>
 
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="settings.shortcuts_title">Tastenkürzel:</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin: 4px 0 8px;" data-i18n="settings.shortcuts_hint">Klicken und neue Taste drücken…</div>
+            <div id="shortcut-list" class="shortcut-list"></div>
+            <button class="btn shortcut-reset" id="btn-shortcuts-reset" data-i18n="settings.shortcuts_reset">Standard wiederherstellen</button>
+          </div>
+
           <!-- 3b. Oberflaechengroesse -->
           <div class="settings-section">
             <div class="settings-section-title">Oberflächengröße (Schrift &amp; Bedienelemente):</div>
@@ -5374,8 +5638,8 @@
             <div class="help-row"><span>Mehrfachauswahl</span><span>Rahmen ziehen oder <kbd>Umschalt</kbd>+Klick</span></div>
             <div class="help-row"><span>Kontextmenü</span><span>Rechtsklick auf Bauteil, Leitung oder Fläche</span></div>
             <div class="help-title">Anordnen</div>
-            <div class="help-row"><span>Auto-Anordnen</span><span><kbd>A</kbd></span></div>
-            <div class="help-row"><span>Leitungen neu verlegen</span><span><kbd>L</kbd></span></div>
+            <div class="help-row"><span>Auto-Anordnen</span><span data-shortcut-display="edit.layout"><kbd>A</kbd></span></div>
+            <div class="help-row"><span>Leitungen neu verlegen</span><span data-shortcut-display="edit.reroute"><kbd>L</kbd></span></div>
             <div class="help-row"><span>Auswahl verschieben</span><span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> (ein Rasterschritt)</span></div>
             <div class="help-row"><span>Anordnen-Optionen</span><span>Pfeil neben „Auto-Anordnen“</span></div>
           </div>
@@ -5383,17 +5647,17 @@
             <div class="help-title">Ansicht</div>
             <div class="help-row"><span>Zoomen</span><span>Mausrad, <kbd>+</kbd> / <kbd>−</kbd></span></div>
             <div class="help-row"><span>Verschieben</span><span><kbd>Leertaste</kbd> halten + ziehen, oder mittlere Maustaste</span></div>
-            <div class="help-row"><span>Alles einpassen</span><span><kbd>F</kbd></span></div>
-            <div class="help-row"><span>Szenarien</span><span><kbd>G</kbd></span></div>
+            <div class="help-row"><span>Alles einpassen</span><span data-shortcut-display="view.zoom_fit"><kbd>F</kbd></span></div>
+            <div class="help-row"><span>Szenarien</span><span data-shortcut-display="demos.gallery"><kbd>G</kbd></span></div>
             <div class="help-title">Simulation</div>
-            <div class="help-row"><span>Edit ↔ Simulation</span><span><kbd>Tab</kbd></span></div>
+            <div class="help-row"><span>Edit ↔ Simulation</span><span data-shortcut-display="view.mode"><kbd>Tab</kbd></span></div>
             <div class="help-row"><span>Start / Pause</span><span><kbd>Leertaste</kbd> (im Simulationsmodus)</span></div>
             <div class="help-row"><span>Einzelschritt</span><span><kbd>.</kbd> vor, <kbd>,</kbd> zurück</span></div>
             <div class="help-title">Bearbeiten</div>
-            <div class="help-row"><span>Rückgängig / Wiederholen</span><span><kbd>Strg</kbd>+<kbd>Z</kbd> / <kbd>Strg</kbd>+<kbd>Y</kbd></span></div>
-            <div class="help-row"><span>Kopieren / Einfügen / Duplizieren</span><span><kbd>Strg</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></span></div>
-            <div class="help-row"><span>Löschen</span><span><kbd>Entf</kbd></span></div>
-            <div class="help-row"><span>Wahrheitstabelle / Schaltalgebra</span><span><kbd>Strg</kbd>+<kbd>T</kbd> / <kbd>Strg</kbd>+<kbd>B</kbd></span></div>
+            <div class="help-row"><span>Rückgängig / Wiederholen</span><span><span data-shortcut-display="edit.undo"><kbd>Strg</kbd>+<kbd>Z</kbd></span> / <span data-shortcut-display="edit.redo"><kbd>Strg</kbd>+<kbd>Y</kbd></span></span></div>
+            <div class="help-row"><span>Kopieren / Einfügen / Duplizieren</span><span><span data-shortcut-display="edit.copy"><kbd>Strg</kbd>+<kbd>C</kbd></span> / <span data-shortcut-display="edit.paste"><kbd>V</kbd></span> / <span data-shortcut-display="edit.duplicate"><kbd>D</kbd></span></span></div>
+            <div class="help-row"><span>Löschen</span><span data-shortcut-display="edit.delete"><kbd>Entf</kbd></span></div>
+            <div class="help-row"><span>Wahrheitstabelle / Schaltalgebra</span><span><span data-shortcut-display="analysis.truth_table"><kbd>Strg</kbd>+<kbd>T</kbd></span> / <span data-shortcut-display="analysis.bool_synth"><kbd>Strg</kbd>+<kbd>B</kbd></span></span></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -5432,6 +5696,7 @@
           'menu.file.open': 'Öffnen…',
           'menu.file.save': 'Speichern…',
           'menu.file.export_png': 'Als PNG exportieren',
+          'menu.file.export_pdf': 'Als PDF exportieren',
           'menu.file.clear': 'Arbeitsfläche leeren',
           'menu.edit': 'Bearbeiten',
           'menu.edit.undo': 'Rückgängig',
@@ -5485,7 +5750,28 @@
           'toolbar.redo': 'Wiederholen',
           'toolbar.split': 'Split',
 
+          'rail.select': 'Auswahl',
+          'rail.place': 'Bauteil platzieren',
+          'rail.wire': 'Leitung zeichnen',
+          'rail.probe': 'Messpunkt setzen',
+          'rail.route': 'Autoroute',
+          'rail.delete': 'Löschen',
+          'rail.undo': 'Rückgängig',
+          'rail.redo': 'Wiederholen',
+          'rail.fit': 'Einpassen',
+          'rail.zoomIn': 'Hineinzoomen',
+          'rail.zoomOut': 'Herauszoomen',
+          'rail.analyzer': 'Impulsdiagramm',
+          'rail.inspector': 'Eigenschaften',
+          'rail.shortcuts': 'Tastenkürzel',
+          'rail.settings': 'Einstellungen',
+          'placement.active': 'Platzieren',
+          'placement.cancel': 'Esc: abbrechen',
+          'placement.placed': 'platziert',
           'palette.title': 'Bauteil-Palette',
+          'palette.library': 'Bauteilbibliothek',
+          'palette.placeHint': 'Klick = platzieren',
+          'panel.properties': 'Eigenschaften',
           'palette.search': 'Suchen…  ( / )',
           'palette.empty': 'Kein Bauteil gefunden.',
           'palette.cat.sources': 'Eingänge',
@@ -5552,6 +5838,13 @@
           'settings.fluid_hint': 'Live & flüssig in Echtzeit',
           'settings.language_title': 'Sprache:',
           'settings.language_desc': 'Sprache der Oberfläche:',
+          'settings.shortcuts_title': 'Tastenkürzel:',
+          'settings.shortcuts_hint': 'Klicken und neue Taste drücken…',
+          'settings.shortcuts_reset': 'Standard wiederherstellen',
+          'settings.shortcuts_capturing': 'Taste drücken…',
+          'settings.shortcuts_conflict': 'Kürzel ist bereits belegt',
+          'shortcut.view_mode': 'Edit / Simulation umschalten',
+          'shortcut.palette_search': 'Bauteilsuche fokussieren',
           'settings.close': 'Schließen'
         },
         en: {
@@ -5561,6 +5854,7 @@
           'menu.file.open': 'Open…',
           'menu.file.save': 'Save…',
           'menu.file.export_png': 'Export PNG',
+          'menu.file.export_pdf': 'Export PDF',
           'menu.file.clear': 'Clear Canvas',
           'menu.edit': 'Edit',
           'menu.edit.undo': 'Undo',
@@ -5614,7 +5908,28 @@
           'toolbar.redo': 'Redo',
           'toolbar.split': 'Split',
 
+          'rail.select': 'Select',
+          'rail.place': 'Place component',
+          'rail.wire': 'Draw wire',
+          'rail.probe': 'Place probe',
+          'rail.route': 'Autoroute',
+          'rail.delete': 'Delete',
+          'rail.undo': 'Undo',
+          'rail.redo': 'Redo',
+          'rail.fit': 'Fit view',
+          'rail.zoomIn': 'Zoom in',
+          'rail.zoomOut': 'Zoom out',
+          'rail.analyzer': 'Logic analyzer',
+          'rail.inspector': 'Properties',
+          'rail.shortcuts': 'Keyboard shortcuts',
+          'rail.settings': 'Settings',
+          'placement.active': 'Placing',
+          'placement.cancel': 'Esc: cancel',
+          'placement.placed': 'placed',
           'palette.title': 'Component Palette',
+          'palette.library': 'Component Library',
+          'palette.placeHint': 'Click = place',
+          'panel.properties': 'Properties',
           'palette.search': 'Search…  ( / )',
           'palette.empty': 'No part found.',
           'palette.cat.sources': 'Inputs',
@@ -5681,6 +5996,13 @@
           'settings.fluid_hint': 'Live & fluid in real-time',
           'settings.language_title': 'Language:',
           'settings.language_desc': 'Interface language:',
+          'settings.shortcuts_title': 'Keyboard shortcuts:',
+          'settings.shortcuts_hint': 'Click a shortcut, then press a new key…',
+          'settings.shortcuts_reset': 'Restore defaults',
+          'settings.shortcuts_capturing': 'Press key…',
+          'settings.shortcuts_conflict': 'Shortcut is already assigned',
+          'shortcut.view_mode': 'Toggle edit / simulation',
+          'shortcut.palette_search': 'Focus component search',
           'settings.close': 'Close'
         }
       },
@@ -5890,7 +6212,7 @@
       // --- keys ---
       'Strg': 'Ctrl', 'Umschalt': 'Shift', 'Entf': 'Del', 'Leertaste': 'Space',
       // --- inspector ---
-      'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
+      'Wähle ein Bauteil oder eine Leitung aus.': 'Select a part or a wire.', 'Bauteil:': 'Part:', 'Referenz': 'Reference', 'Beschriftung': 'Label', 'Startwert': 'Initial value',
       '0 (aus)': '0 (off)', '1 (ein)': '1 (on)', '🗑 Bauteil löschen': '🗑 Delete part', 'Halbperiode (Ticks)': 'Half period (ticks)', 'Halbperiode T½:': 'Half period T½:', 'HIGH-Phase (Ticks)': 'HIGH phase (ticks)', 'LOW-Phase (Ticks)': 'LOW phase (ticks)',
       'Festwert': 'Value', '1 (immer an)': '1 (always on)', '0 (immer aus)': '0 (always off)', 'Verzögerung': 'Delay', 'Verzögerung (Auswahl)': 'Delay (selection)', 'Globale Verzögerung': 'Global delay', 'Alle (Global)': 'All (Global)', 'Puffer (BUFFER)': 'Buffer (BUFFER)', 'Sofort (0 ms)': 'Instant (0 ms)',
       'Ausgang invertieren (○)': 'Invert output (○)', 'Eingänge invertieren (○):': 'Invert inputs (○):', 'Eingänge (2–8)': 'Inputs (2–8)', 'Eingänge (n):': 'Inputs (n):',
@@ -6416,6 +6738,19 @@
       SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1, COUNTER: 1, SHIFT_REG: 1, CUSTOM_IC: 1
     };
     const GATE_DELAY_MIN = 0;
+
+    const REFERENCE_PREFIXES = {
+      SWITCH: 'SW', BUTTON: 'BTN', CLOCK: 'CLK', CONST: 'PWR', PROBE: 'TP',
+      LED: 'D', LED_MATRIX: 'D', SEVEN_SEGMENT: 'DS', DISPLAY: 'DS',
+      CUSTOM_IC: 'U', FULL_ADDER: 'U', HALF_ADDER: 'U', MUX: 'U', DEMUX: 'U',
+      COUNTER: 'U', SHIFT_REG: 'U', D_FF: 'U', JK_FF: 'U', T_FF: 'U', RS_FF: 'U',
+      NOT: 'U', BUFFER: 'U', TRI_STATE: 'U', MAJORITY: 'U', AND: 'U', OR: 'U',
+      NAND: 'U', NOR: 'U', XOR: 'U', XNOR: 'U'
+    };
+
+    function referencePrefixForType(type) {
+      return REFERENCE_PREFIXES[type] || 'U';
+    }
     const GATE_DELAY_MAX = 20;
 
     function parseGateDelay(val, fallback = 1) {
@@ -6480,6 +6815,193 @@
       circle: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/></svg>',
       refresh: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>'
     };
+
+    const TABLER_ICONS = {
+      pointer: '<path d="M4 3l7 17l2.5 -7.5l7.5 -2.5z" />',
+      hand: '<path d="M8 13v-7a1.5 1.5 0 0 1 3 0v5" /><path d="M11 11v-5a1.5 1.5 0 0 1 3 0v5" /><path d="M14 11v-3a1.5 1.5 0 0 1 3 0v7" /><path d="M8 12v-2a1.5 1.5 0 0 0 -3 0v7c0 3 2 5 5 5h3c3 0 5-2 5-5v-4a1.5 1.5 0 0 0 -3 0" />',
+      wire: '<path d="M3 18h5l3-12h4l3 12h3" /><circle cx="3" cy="18" r="2" /><circle cx="21" cy="18" r="2" />',
+      place: '<rect x="4" y="4" width="16" height="16" rx="2" /><rect x="9" y="9" width="6" height="6" rx="1" /><path d="M12 1v3M12 20v3M1 12h3M20 12h3" />',
+      library: '<rect x="3" y="4" width="7" height="16" rx="1" /><rect x="14" y="4" width="7" height="16" rx="1" /><path d="M6 8h1M17 8h1" />',
+      properties: '<path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="8" cy="12" r="2" /><circle cx="18" cy="18" r="2" />',
+      route: '<circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M6 8.5v5a4 4 0 0 0 4 4h5.5" />',
+      grid: '<rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18M15 3v18M3 9h18M3 15h18" />',
+      search: '<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6-6" />',
+      zoomIn: '<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6-6M10 7v6M7 10h6" />',
+      zoomOut: '<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6-6M7 10h6" />',
+      fit: '<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4" />',
+      undo: '<path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-2" />',
+      redo: '<path d="M15 14l5-5-5-5" /><path d="M20 9H10a6 6 0 0 0 0 12h2" />',
+      save: '<path d="M6 4h10l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" /><path d="M8 4v5h7V4M8 20v-6h8v6" />',
+      open: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />',
+      export: '<path d="M12 15V3M8 7l4-4 4 4" /><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />',
+      print: '<path d="M6 9V4h12v5" /><path d="M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1" /><path d="M6 14h12v6H6zM18 12h.01" />',
+      settings: '<circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.96 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.96a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.04 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.04A1.7 1.7 0 0 0 20.96 10H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z" />',
+      keyboard: '<rect x="2" y="5" width="20" height="14" rx="2" /><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M8 16h8" />',
+      help: '<circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.8.6-1.5 1.1-1.5 2.5" /><path d="M12 17h.01" />',
+      play: '<path d="M7 4l12 8-12 8z" />',
+      pause: '<path d="M8 5v14M16 5v14" />',
+      stepBack: '<path d="M18 5v14l-10-7zM6 5v14" />',
+      stepForward: '<path d="M6 5v14l10-7zM18 5v14" />',
+      reset: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" />',
+      probe: '<path d="M12 3a5 5 0 0 0-5 5c0 4 5 12 5 12s5-8 5-12a5 5 0 0 0-5-5z" /><circle cx="12" cy="8" r="1.5" />',
+      label: '<path d="M4 5h9l7 7-7 7H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" /><path d="M8 9h.01" />',
+      trash: '<path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M9 7V4h6v3" />',
+      copy: '<rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />',
+      check: '<path d="M5 12l4 4L19 6" />',
+      close: '<path d="M6 6l12 12M18 6L6 18" />',
+      plus: '<path d="M12 5v14M5 12h14" />',
+      minus: '<path d="M5 12h14" />',
+      layers: '<path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 13l9 5 9-5M3 17l9 5 9-5" />',
+      chip: '<rect x="6" y="6" width="12" height="12" rx="2" /><rect x="10" y="10" width="4" height="4" /><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />',
+      clock: '<circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />',
+      switch: '<path d="M3 12h4M17 8h4M17 16h4" /><circle cx="9" cy="12" r="2" /><circle cx="15" cy="8" r="2" /><circle cx="15" cy="16" r="2" /><path d="M10.8 11l3-2.5M10.8 13l3 2.5" />',
+      led: '<path d="M9 15h6v4H9zM12 15V9" /><path d="M8 9a4 4 0 1 1 8 0c0 2-4 6-4 6S8 11 8 9z" />',
+      truthTable: '<rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M3 14h18M9 4v16M15 4v16" />',
+      panelLeft: '<rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" />',
+      panelRight: '<rect x="3" y="4" width="18" height="16" rx="2" /><path d="M15 4v16" />',
+      analyzer: '<path d="M3 20h18M5 16v-5M10 16V6M15 16v-8M20 16v-4" />',
+      chevronDown: '<path d="M6 9l6 6 6-6" />',
+      chevronRight: '<path d="M9 6l6 6-6 6" />',
+      bridge: '<path d="M3 17h18M6 17v-4a6 6 0 0 1 12 0v4" /><path d="M9 17v-4a3 3 0 0 1 6 0v4" />',
+      magic: '<path d="M4 20l10-10M14 4l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3zM19 12l.7 2.3L22 15l-2.3.7L19 18l-.7-2.3L16 15l2.3-.7z" />',
+      pin: '<path d="M12 17v5" /><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6z" />',
+      text: '<path d="M5 6V4h14v2M12 4v16M9 20h6" />'
+    };
+
+    function tablerIcon(name, size, className) {
+      const px = Number(size);
+      const dimension = Number.isFinite(px) ? Math.max(10, Math.min(32, Math.round(px))) : 16;
+      const path = TABLER_ICONS[name] || TABLER_ICONS.pointer;
+      const cls = className ? ` class="${escapeHtml(className)}"` : '';
+      return `<svg${cls} width="${dimension}" height="${dimension}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${path}</svg>`;
+    }
+
+    function hydrateTablerIcons(root) {
+      const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+      if (!scope || typeof scope.querySelectorAll !== 'function') return;
+      scope.querySelectorAll('[data-tabler-icon]').forEach(node => {
+        if (node.dataset && node.dataset.tablerHydrated === '1') return;
+        const size = node.dataset ? parseInt(node.dataset.tablerSize || '16', 10) : 16;
+        node.innerHTML = tablerIcon(node.dataset ? node.dataset.tablerIcon : '', size);
+        if (node.dataset) node.dataset.tablerHydrated = '1';
+      });
+    }
+
+    function focusPaletteSearch() {
+      const search = document.getElementById('palette-search-input');
+      if (search && typeof search.focus === 'function') search.focus();
+    }
+
+    const SHORTCUT_DEFINITIONS = [
+      { id: 'file.new', default: 'ctrl+n', label: 'menu.file.new', menuId: 'menu-item-new', run: app => app.createNewTab() },
+      { id: 'file.open', default: 'ctrl+o', label: 'menu.file.open', menuId: 'menu-item-open', run: app => app.importCircuitJSON() },
+      { id: 'file.save', default: 'ctrl+s', label: 'menu.file.save', menuId: 'menu-item-save', run: app => app.exportCircuitJSON() },
+      { id: 'edit.undo', default: 'ctrl+z', label: 'menu.edit.undo', menuId: 'menu-item-undo', run: app => app.undo() },
+      { id: 'edit.redo', default: 'ctrl+y', label: 'menu.edit.redo', menuId: 'menu-item-redo', run: app => app.redo() },
+      { id: 'edit.select_all', default: 'ctrl+a', label: 'menu.edit.select_all', menuId: 'menu-item-select-all', run: app => app.selectAll() },
+      { id: 'edit.copy', default: 'ctrl+c', label: 'menu.edit.copy', menuId: 'menu-item-copy', run: app => app.copySelection() },
+      { id: 'edit.paste', default: 'ctrl+v', label: 'menu.edit.paste', menuId: 'menu-item-paste', run: app => app.pasteClipboard() },
+      { id: 'edit.duplicate', default: 'ctrl+d', label: 'menu.edit.duplicate', menuId: 'menu-item-duplicate', run: app => app.duplicateSelection() },
+      { id: 'edit.delete', default: 'delete', label: 'menu.edit.delete', menuId: 'menu-item-delete', mode: 'edit', run: app => app.deleteSelection() },
+      { id: 'edit.layout', default: 'a', label: 'menu.edit.layout', menuId: 'menu-item-layout', mode: 'edit', run: app => app.runAlignAction('all') },
+      { id: 'edit.reroute', default: 'l', label: 'menu.edit.reroute', menuId: 'menu-item-reroute', mode: 'edit', run: app => app.runAlignAction('wires') },
+      { id: 'view.zoom_in', default: '+', label: 'menu.view.zoom_in', menuId: 'menu-item-zoom-in', run: app => app.setZoom(app.renderer.zoom * 1.15) },
+      { id: 'view.zoom_out', default: '-', label: 'menu.view.zoom_out', menuId: 'menu-item-zoom-out', run: app => app.setZoom(app.renderer.zoom / 1.15) },
+      { id: 'view.zoom_reset', default: '0', label: 'menu.view.zoom_reset', menuId: 'menu-item-zoom-reset', run: app => { app.renderer.panX = 40; app.renderer.panY = 40; app.setZoom(1.0); } },
+      { id: 'view.zoom_fit', default: 'f', label: 'menu.view.zoom_fit', menuId: 'menu-item-zoom-fit', run: app => app.runAlignAction('fit') },
+      { id: 'view.mode', default: 'tab', label: 'shortcut.view_mode', run: app => app.toggleMode() },
+      { id: 'analysis.truth_table', default: 'ctrl+t', label: 'menu.analysis.truth_table', menuId: 'menu-item-truth-table', run: app => app.openTruthTableModal() },
+      { id: 'analysis.bool_synth', default: 'ctrl+b', label: 'menu.analysis.bool_synth', menuId: 'menu-item-bool-synth', run: app => app.openBoolSynthModal() },
+      { id: 'demos.gallery', default: 'g', label: 'menu.demos.gallery', menuId: 'menu-item-gallery', run: app => app.openScenarioGallery() },
+      { id: 'help.shortcuts', default: '?', label: 'menu.help.shortcuts', menuId: 'menu-item-help', run: app => app.showModal('help-modal') },
+      { id: 'palette.search', default: '/', label: 'shortcut.palette_search', run: focusPaletteSearch }
+    ];
+
+    const SHORTCUT_LOOKUP = Object.create(null);
+    SHORTCUT_DEFINITIONS.forEach(def => { SHORTCUT_LOOKUP[def.id] = def; });
+
+    const SHORTCUT_LABELS_DE = {
+      ctrl: 'Strg', meta: 'Cmd', alt: 'Alt', shift: 'Umschalt',
+      space: 'Leer', escape: 'Esc', delete: 'Entf', backspace: 'Rücktaste', tab: 'Tab',
+      enter: 'Eingabe', arrowleft: '←', arrowright: '→', arrowup: '↑', arrowdown: '↓', '+': '+'
+    };
+
+    const SHORTCUT_LABELS_EN = {
+      ctrl: 'Ctrl', meta: 'Cmd', alt: 'Alt', shift: 'Shift',
+      space: 'Space', escape: 'Esc', delete: 'Del', backspace: 'Backspace', tab: 'Tab',
+      enter: 'Enter', arrowleft: '←', arrowright: '→', arrowup: '↑', arrowdown: '↓', '+': '+'
+    };
+
+    function isValidShortcutBinding(value) {
+      return typeof value === 'string' && value.length > 0 && value.length <= 48 && /^[a-z0-9+\-./?]+$/.test(value);
+    }
+
+    function normalizeShortcutEvent(e) {
+      if (!e || e.key === undefined || e.key === null) return '';
+      let key = String(e.key);
+      if (key === ' ') key = 'space';
+      else key = key.toLowerCase();
+      if (!key || key === 'dead' || key === 'process' || key === 'unidentified') return '';
+      const parts = [];
+      if (e.ctrlKey || e.metaKey) parts.push('ctrl');
+      if (e.altKey) parts.push('alt');
+      const punctuation = key.length === 1 && !/[a-z0-9]/.test(key);
+      if (e.shiftKey && !punctuation) parts.push('shift');
+      parts.push(key);
+      return parts.join('+');
+    }
+
+    function formatShortcut(binding, lang) {
+      const labels = lang === 'en' ? SHORTCUT_LABELS_EN : SHORTCUT_LABELS_DE;
+      return String(binding || '').split('+').map(part => labels[part] || (part.length === 1 ? part.toUpperCase() : part)).join('+');
+    }
+
+    function sanitizeShortcutOverrides(raw) {
+      const clean = Object.create(null);
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+      const used = new Set(SHORTCUT_DEFINITIONS.map(def => def.default));
+      SHORTCUT_DEFINITIONS.forEach(def => {
+        const value = raw[def.id];
+        if (!isValidShortcutBinding(value) || value === def.default || used.has(value)) return;
+        clean[def.id] = value;
+        used.add(value);
+      });
+      return clean;
+    }
+
+    function buildPdfFromJpegDataUrl(dataUrl, width, height) {
+      const base64 = String(dataUrl || '').split(',')[1] || '';
+      const pageW = 842;
+      const pageH = 595;
+      const margin = 28;
+      const scale = Math.min((pageW - margin * 2) / width, (pageH - margin * 2) / height);
+      const imgW = width * scale;
+      const imgH = height * scale;
+      const x = (pageW - imgW) / 2;
+      const y = (pageH - imgH) / 2;
+      const content = `q\n${imgW.toFixed(2)} 0 0 ${imgH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ\n`;
+      const objects = [
+        null,
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>`,
+        `<< /Length ${content.length} >>\nstream\n${content}endstream`,
+        `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${base64.length} >>\nstream\n${base64}\nendstream`
+      ];
+      let pdf = '%PDF-1.4\n';
+      const offsets = [0];
+      for (let i = 1; i < objects.length; i += 1) {
+        offsets[i] = pdf.length;
+        pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
+      }
+      const xref = pdf.length;
+      pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+      for (let i = 1; i < objects.length; i += 1) {
+        pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
+      }
+      pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      return pdf;
+    }
 
     /**
      * Security & Sanitization Helpers
@@ -8270,6 +8792,26 @@
         }
       }
 
+      generateReference(type, exceptId = null) {
+        const prefix = referencePrefixForType(type);
+        const used = new Set(this.components
+          .filter(comp => comp.id !== exceptId && comp.params && comp.params.ref)
+          .map(comp => comp.params.ref));
+        let index = 1;
+        while (used.has(`${prefix}${index}`)) index += 1;
+        return `${prefix}${index}`;
+      }
+
+      normalizeReference(type, rawRef, exceptId = null) {
+        const prefix = referencePrefixForType(type);
+        const value = String(rawRef || '').trim().toUpperCase();
+        if (new RegExp(`^${prefix}\\d{1,4}$`).test(value)) {
+          const taken = this.components.some(comp => comp.id !== exceptId && comp.params && comp.params.ref === value);
+          if (!taken) return value;
+        }
+        return this.generateReference(type, exceptId);
+      }
+
       addComponent(type, x, y, customParams = {}, forcedId = null) {
         const cleanForced = (forcedId && forcedId !== '__proto__' && forcedId !== 'constructor' && forcedId !== 'prototype' && !this.compMap.has(String(forcedId)))
           ? String(forcedId)
@@ -8278,6 +8820,7 @@
         const id = cleanForced || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
         comp.circuit = this;
+        comp.params.ref = this.normalizeReference(comp.type, customParams && customParams.ref, comp.id);
         this.components.push(comp);
         this.compMap.set(comp.id, comp);
         if (comp.type === 'PROBE') this._probeCompCount++;
@@ -14186,7 +14729,8 @@
           ctx.fillStyle = pal.textLabel;
           ctx.font = '600 10.5px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(comp.params.label || type, x + width / 2, y - 5);
+          const refPrefix = comp.params.ref ? `${comp.params.ref} · ` : '';
+          ctx.fillText(`${refPrefix}${comp.params.label || type}`, x + width / 2, y - 5);
           if (this.showGateDelay && GATE_DELAY_TYPES[type]) {
             const effDelay = typeof comp.getEffectiveDelay === 'function' ? comp.getEffectiveDelay() : parseGateDelay(comp.params.delay, 1);
             if (effDelay >= 0) {
@@ -16996,6 +17540,12 @@
             this.onChange(false);
           });
         } else {
+          this.addTextControl('Referenz', comp.params.ref || '', isSim, (val) => {
+            const ref = String(val || '').trim().toUpperCase();
+            const taken = this.circuit.components.some(other => other.id !== comp.id && other.params && other.params.ref === ref);
+            if (/^[A-Z]{1,4}\d{1,4}$/.test(ref) && !taken) comp.params.ref = ref;
+            this.onChange(false);
+          });
           this.addTextControl('Beschriftung', comp.params.label, isSim, (val) => {
             comp.params.label = String(val || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
             this.onChange(false);
@@ -18817,6 +19367,10 @@
         this.dragOffsetWorld = { x: 0, y: 0 };
         this.activeButtonComp = null;
         this.compMouseDownPos = null;
+        this.pendingPlacement = null;
+        this.placementGhost = null;
+        this.shortcutOverrides = {};
+        this.shortcutCaptureId = null;
 
         this.allowEditModeInteraction = true;
         this.uiScale = 1;
@@ -18845,13 +19399,17 @@
 
         this.currentTruthTableData = null;
 
+        hydrateTablerIcons(document);
+
         this.initMenubarEvents();
         this.initTabsEvents();
         this.initSplitScreenEvents();
         this.initToolbarEvents();
+        this.initToolRailEvents();
         this.initPaletteEvents();
         this.initCanvasEvents();
         this.initRightCanvasEvents();
+        this.initPlacementEvents();
         this.initAnalyzerEvents();
         this.initKeyboardEvents();
         this.initContextMenuEvents();
@@ -18859,6 +19417,9 @@
         this.initInspectorResizerEvents();
         this.initModalEvents();
         this.initSettingsModalEvents();
+        this.initShortcutSettingsEvents();
+        this.renderShortcutSettings();
+        this.refreshShortcutLabels();
         this.initExtendedUI();
         this.setShowWireBridges(this.showWireBridges);
 
@@ -20317,6 +20878,9 @@
 
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('sim-locked', isSim);
+        const toolRail = document.getElementById('tool-rail');
+        if (toolRail) toolRail.classList.toggle('sim-locked', isSim);
+        if (isSim && this.pendingPlacement) this.cancelPlacement();
         const alignSplit = document.getElementById('align-split');
         if (alignSplit) alignSplit.classList.toggle('sim-locked', isSim);
         const btnAutoRoute = document.getElementById('btn-auto-route');
@@ -20695,6 +21259,151 @@
         this.renderer.zoom = 1.0;
         document.getElementById('btn-zoom-reset').textContent = '100%';
         this.refreshAll();
+      }
+
+      initToolRailEvents() {
+        const click = (id) => {
+          const el = document.getElementById(id);
+          if (el && typeof el.click === 'function' && !el.disabled) el.click();
+        };
+        const actions = {
+          'rail-select': () => {
+            if (typeof this.cancelPlacement === 'function') this.cancelPlacement();
+            this.setActiveRailTool('select');
+          },
+          'rail-place': () => {
+            this.setActiveRailTool('place');
+            const search = document.getElementById('palette-search-input');
+            if (search && typeof search.focus === 'function') search.focus();
+          },
+          'rail-wire': () => {
+            this.setActiveRailTool('wire');
+            const hint = document.getElementById('status-hint');
+            if (hint) hint.textContent = 'Von Pin zu Pin ziehen verdrahtet · Esc: Auswahl';
+          },
+          'rail-probe': () => {
+            this.setActiveRailTool('probe');
+            if (typeof this.armPlacement === 'function') this.armPlacement('PROBE');
+          },
+          'rail-route': () => click('btn-auto-route'),
+          'rail-delete': () => this.deleteSelection(),
+          'rail-undo': () => this.undo(),
+          'rail-redo': () => this.redo(),
+          'rail-fit': () => click('btn-zoom-fit'),
+          'rail-zoom-in': () => click('btn-zoom-in'),
+          'rail-zoom-out': () => click('btn-zoom-out'),
+          'rail-analyzer': () => click('btn-analyzer-toggle'),
+          'rail-inspector': () => click('btn-inspector-toggle'),
+          'rail-shortcuts': () => click('btn-help'),
+          'rail-settings': () => click('mbtn-settings')
+        };
+        Object.entries(actions).forEach(([id, action]) => {
+          const btn = document.getElementById(id);
+          if (btn) btn.addEventListener('click', action);
+        });
+      }
+
+      setActiveRailTool(name) {
+        if (typeof document.querySelectorAll !== 'function') return;
+        document.querySelectorAll('#tool-rail .rail-btn').forEach(btn => {
+          const active = btn.id === `rail-${name}`;
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+      }
+
+      initPlacementEvents() {
+        [this.gridCanvas, this.gridCanvasRight].filter(Boolean).forEach(canvas => {
+          canvas.addEventListener('mousemove', (e) => this.updatePlacementGhost(e));
+          canvas.addEventListener('mouseleave', () => {
+            const ghost = document.getElementById('placement-ghost');
+            if (ghost) ghost.hidden = true;
+          });
+        });
+      }
+
+      getPlacementLabel(type) {
+        if (!type) return '';
+        if (type.startsWith('MODULE:')) {
+          const id = type.slice(7);
+          const mod = this.getCustomModules().find(m => m.id === id);
+          return (mod && mod.name) ? mod.name : id;
+        }
+        return I18N.t(`comp.${type}`, type);
+      }
+
+      getPlacementIcon(type) {
+        if (!type) return 'place';
+        if (type === 'CLOCK') return 'clock';
+        if (type === 'SWITCH' || type === 'BUTTON') return 'switch';
+        if (type === 'PROBE') return 'probe';
+        if (type.startsWith('MODULE:')) return 'chip';
+        if (type.includes('LED') || type.includes('DISPLAY')) return 'led';
+        return 'place';
+      }
+
+      armPlacement(type) {
+        if (!type || this.engine.mode === 'sim') return;
+        this.pendingPlacement = { type };
+        this.setActiveRailTool('place');
+        this.refreshPlacementUi();
+      }
+
+      cancelPlacement() {
+        if (!this.pendingPlacement) return;
+        this.pendingPlacement = null;
+        this.setActiveRailTool('select');
+        this.refreshPlacementUi();
+        if (typeof this.updateStatusHint === 'function') this.updateStatusHint();
+      }
+
+      refreshPlacementUi() {
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('.palette-item').forEach(item => {
+            item.classList.toggle('placement-active', !!this.pendingPlacement && item.dataset.type === this.pendingPlacement.type);
+          });
+        }
+        [this.gridCanvas, this.gridCanvasRight].filter(Boolean).forEach(canvas => {
+          canvas.classList.toggle('placement-active', !!this.pendingPlacement);
+        });
+        const ghost = document.getElementById('placement-ghost');
+        if (!ghost) return;
+        if (!this.pendingPlacement) {
+          ghost.hidden = true;
+          return;
+        }
+        ghost.hidden = false;
+        const label = this.getPlacementLabel(this.pendingPlacement.type);
+        const icon = this.getPlacementIcon(this.pendingPlacement.type);
+        ghost.innerHTML = tablerIcon(icon, 16) + `<span>${escapeHtml(label)}</span>`;
+        const hint = document.getElementById('status-hint');
+        if (hint) {
+          hint.textContent = `${I18N.t('placement.active')}: ${label} · ${I18N.t('placement.cancel')}`;
+        }
+      }
+
+      updatePlacementGhost(e) {
+        if (!this.pendingPlacement) return;
+        const ghost = document.getElementById('placement-ghost');
+        if (!ghost) return;
+        ghost.hidden = false;
+        const maxX = (window.innerWidth || 1920) - 180;
+        const maxY = (window.innerHeight || 1080) - 60;
+        ghost.style.left = `${Math.max(4, Math.min(maxX, (e.clientX || 0) + 16))}px`;
+        ghost.style.top = `${Math.max(4, Math.min(maxY, (e.clientY || 0) + 16))}px`;
+      }
+
+      placePendingAt(screenX, screenY, canvas, renderer, getTab) {
+        const pending = this.pendingPlacement;
+        if (!pending) return;
+        const tab = getTab && getTab();
+        if (!tab) return;
+        this.placePaletteItem(pending.type, screenX, screenY, tab, renderer, canvas);
+        const hint = document.getElementById('status-hint');
+        if (hint) {
+          const label = this.getPlacementLabel(pending.type);
+          hint.textContent = `${label} ${I18N.t('placement.placed')} · ${I18N.t('placement.cancel')}`;
+        }
       }
 
       initToolbarEvents() {
@@ -21379,6 +22088,12 @@
         items.forEach((item) => {
           this.bindPaletteItemDrag(item);
 
+          item.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            const type = item.dataset.type;
+            if (type) this.armPlacement(type);
+          });
+
           item.addEventListener('dblclick', () => {
             if (this.engine.mode === 'sim') return;
             const type = item.dataset.type;
@@ -21492,11 +22207,12 @@
             this.setActivePane(renderer === this.rendererRight ? 'right' : 'left');
           }
 
-          this.pushHistory(tab);
-
           const rect = canvas.getBoundingClientRect();
-          const screenX = clientX - rect.left;
-          const screenY = clientY - rect.top;
+          this.placePaletteItem(type, clientX - rect.left, clientY - rect.top, tab, renderer, canvas);
+      }
+
+      placePaletteItem(type, screenX, screenY, tab, renderer, canvas) {
+          if (!tab || !renderer || !type) return;
           const worldPos = renderer.screenToWorld(screenX, screenY);
 
           const finalizeDrop = () => {
@@ -21709,6 +22425,13 @@
           }
 
           if (e.button !== 0) return; // Right-click handled by contextmenu listener
+
+          if (this.pendingPlacement && !this.spacePressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.placePendingAt(sx, sy, canvas, this.renderer, () => this.getActiveTab());
+            return;
+          }
 
           if (e.altKey && this.engine.mode === 'edit') {
             const pinHit = this.renderer.findPinAt(world.x, world.y, 10);
@@ -22878,6 +23601,13 @@
           }
 
           if (e.button !== 0) return;
+
+          if (this.pendingPlacement && !this.spacePressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.placePendingAt(sx, sy, canvas, this.rendererRight, () => this.getRightTab());
+            return;
+          }
 
           if (this.engine.mode === 'sim') {
             const clickedComp = this.rendererRight.findComponentAt(world.x, world.y);
@@ -24078,6 +24808,127 @@
         }
       }
 
+      refreshShortcutLabels() {
+        SHORTCUT_DEFINITIONS.forEach(def => {
+          if (!def.menuId) return;
+          const item = document.getElementById(def.menuId);
+          if (!item || typeof item.querySelector !== 'function') return;
+          const span = item.querySelector('.menu-shortcut');
+          if (span) span.textContent = formatShortcut(this.getShortcutBinding(def.id), I18N.currentLang);
+        });
+        if (typeof document.querySelectorAll === 'function') {
+          document.querySelectorAll('[data-shortcut-display]').forEach(el => {
+            const id = typeof el.getAttribute === 'function' ? el.getAttribute('data-shortcut-display') : null;
+            if (SHORTCUT_LOOKUP[id]) el.textContent = formatShortcut(this.getShortcutBinding(id), I18N.currentLang);
+          });
+        }
+      }
+
+      renderShortcutSettings() {
+        const list = document.getElementById('shortcut-list');
+        if (!list) return;
+        list.innerHTML = SHORTCUT_DEFINITIONS.map(def => {
+          const label = I18N.t(def.label, def.label);
+          const binding = this.getShortcutBinding(def.id);
+          const display = formatShortcut(binding, I18N.currentLang);
+          return `<div class="shortcut-row"><span>${escapeHtml(label)}</span><button type="button" class="shortcut-key" data-shortcut-id="${def.id}" data-shortcut-binding="${escapeHtml(binding)}">${escapeHtml(display)}</button></div>`;
+        }).join('');
+      }
+
+      initShortcutSettingsEvents() {
+        const list = document.getElementById('shortcut-list');
+        if (list && typeof list.addEventListener === 'function') {
+          list.addEventListener('click', e => {
+            const target = e.target;
+            const button = target && typeof target.closest === 'function' ? target.closest('.shortcut-key') : null;
+            if (!button || typeof button.getAttribute !== 'function') return;
+            const id = button.getAttribute('data-shortcut-id');
+            if (SHORTCUT_LOOKUP[id]) this.captureShortcut(id, button);
+          });
+        }
+        const reset = document.getElementById('btn-shortcuts-reset');
+        if (reset && typeof reset.addEventListener === 'function') {
+          reset.addEventListener('click', () => this.resetShortcutOverrides());
+        }
+      }
+
+      captureShortcut(id, button) {
+        if (this._shortcutCaptureHandler && typeof window.removeEventListener === 'function') {
+          window.removeEventListener('keydown', this._shortcutCaptureHandler, true);
+        }
+        this.shortcutCaptureId = id;
+        if (button) {
+          button.textContent = I18N.t('settings.shortcuts_capturing');
+          if (button.classList) button.classList.add('capturing');
+        }
+        this._shortcutCaptureHandler = (e) => {
+          e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          window.removeEventListener('keydown', this._shortcutCaptureHandler, true);
+          this._shortcutCaptureHandler = null;
+          this.shortcutCaptureId = null;
+          const combo = normalizeShortcutEvent(e);
+          if (combo !== 'escape' && isValidShortcutBinding(combo) && this.setShortcutOverride(id, combo)) return;
+          if (combo !== 'escape' && combo) this.showToast(I18N.t('settings.shortcuts_conflict'));
+          this.renderShortcutSettings();
+        };
+        window.addEventListener('keydown', this._shortcutCaptureHandler, true);
+      }
+
+      getShortcutBinding(id) {
+        const def = SHORTCUT_LOOKUP[id];
+        if (!def) return '';
+        const override = this.shortcutOverrides && typeof this.shortcutOverrides === 'object' ? this.shortcutOverrides[id] : null;
+        return isValidShortcutBinding(override) ? override : def.default;
+      }
+
+      isShortcutConflict(binding, exceptId) {
+        return SHORTCUT_DEFINITIONS.some(def => def.id !== exceptId && this.getShortcutBinding(def.id) === binding);
+      }
+
+      setShortcutOverride(id, binding) {
+        const def = SHORTCUT_LOOKUP[id];
+        if (!def || !isValidShortcutBinding(binding)) return false;
+        if (binding !== def.default && this.isShortcutConflict(binding, id)) return false;
+        if (!this.shortcutOverrides || typeof this.shortcutOverrides !== 'object' || Array.isArray(this.shortcutOverrides)) {
+          this.shortcutOverrides = Object.create(null);
+        }
+        if (binding === def.default) delete this.shortcutOverrides[id];
+        else this.shortcutOverrides[id] = binding;
+        this.saveSettings();
+        this.refreshShortcutLabels();
+        this.renderShortcutSettings();
+        return true;
+      }
+
+      resetShortcutOverrides() {
+        this.shortcutOverrides = Object.create(null);
+        this.saveSettings();
+        this.refreshShortcutLabels();
+        this.renderShortcutSettings();
+      }
+
+      isSuppressedDefaultShortcut(e) {
+        const combo = normalizeShortcutEvent(e);
+        if (!combo || !this.shortcutOverrides || typeof this.shortcutOverrides !== 'object') return false;
+        if (combo === 'ctrl+shift+z' && isValidShortcutBinding(this.shortcutOverrides['edit.redo'])) return true;
+        return SHORTCUT_DEFINITIONS.some(def => {
+          const override = this.shortcutOverrides[def.id];
+          return isValidShortcutBinding(override) && def.default === combo;
+        });
+      }
+
+      dispatchShortcut(e) {
+        const combo = normalizeShortcutEvent(e);
+        if (!combo || (typeof this.isModalOpen === 'function' && this.isModalOpen())) return false;
+        const def = SHORTCUT_DEFINITIONS.find(item => this.getShortcutBinding(item.id) === combo);
+        if (!def || typeof def.run !== 'function') return false;
+        if (def.mode === 'edit' && this.engine.mode === 'sim') return false;
+        e.preventDefault();
+        def.run(this);
+        return true;
+      }
+
       initKeyboardEvents() {
         window.addEventListener('keydown', (e) => {
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
@@ -24089,6 +24940,9 @@
           }
 
           const isCtrl = e.ctrlKey || e.metaKey;
+
+          if (this.isSuppressedDefaultShortcut(e)) return;
+          if (this.dispatchShortcut(e)) return;
 
           if (isCtrl && e.key.toLowerCase() === 'z') {
             e.preventDefault();
@@ -24213,6 +25067,10 @@
             return;
           }
 
+          if (e.key === 'Escape' && this.pendingPlacement) {
+            this.cancelPlacement();
+            return;
+          }
           if (e.key === 'Escape') {
             this.closeAllModals();
             if (this.renderer.activeWireDrag) {
@@ -26148,7 +27006,10 @@
 
       updateStatusHint() {
         let text;
-        if (this.renderer.activeWireDrag) {
+        if (this.pendingPlacement) {
+          const label = this.getPlacementLabel(this.pendingPlacement.type);
+          text = `${I18N.t('placement.active')}: ${label} · ${I18N.t('placement.cancel')}`;
+        } else if (this.renderer.activeWireDrag) {
           text = 'Leitung ziehen: Pin, Leitung oder freie Stelle klicken · Enter: fertig · Esc: abbrechen · Umschalt: diagonal';
         } else if (this.engine.mode === 'sim') {
           text = 'Simulation: Schalter klicken, Taster halten · Leertaste: Start/Pause · Tab: zurück zu Edit';
@@ -26971,6 +27832,10 @@
           closeAllMenus();
           this.exportCanvasAsPNG();
         });
+        document.getElementById('menu-item-export-pdf')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.exportCanvasAsPDF();
+        });
         document.getElementById('menu-item-clear')?.addEventListener('click', () => {
           closeAllMenus();
           if (confirm(I18N.phrase('Möchtest du die Schaltung wirklich leeren?'))) {
@@ -27631,6 +28496,8 @@
           document.title = I18N.t('app.title');
           I18N.dom.refresh();
 
+          this.refreshShortcutLabels();
+          this.renderShortcutSettings();
           this.updateStatusBar();
         }
         this.relabelScenarioTabs();
@@ -27925,6 +28792,7 @@
               else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint', false);
               else this.setAppTheme('modern', false);
             }
+            if (s.shortcuts !== undefined) this.shortcutOverrides = sanitizeShortcutOverrides(s.shortcuts);
           }
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
           if (storedBridges !== null) {
@@ -27977,7 +28845,8 @@
             appTheme: this.appTheme,
             symbolStandard: this.symbolStandard,
             uiScale: this.uiScale,
-            paletteView: this.paletteView
+            paletteView: this.paletteView,
+            shortcuts: this.shortcutOverrides || {}
           };
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));
@@ -28018,7 +28887,7 @@
         } catch (e) {}
       }
 
-      exportCanvasAsPNG() {
+      renderCircuitExportCanvas() {
         try {
           const targetRenderer = (this.splitScreenMode && this.activePane === 'right' && this.rendererRight && this.rendererRight.circuit)
             ? this.rendererRight
@@ -28027,7 +28896,7 @@
           const comps = targetCircuit ? targetCircuit.components : [];
           if (comps.length === 0) {
             this.showToast('Die Schaltung ist leer.');
-            return;
+            return null;
           }
 
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -28105,7 +28974,19 @@
             targetRenderer.render();
           }
 
-          const dataUrl = typeof offCanvas.toDataURL === 'function' ? offCanvas.toDataURL('image/png') : '';
+          return offCanvas;
+        } catch (err) {
+          console.error('Export canvas error:', err);
+          this.showToast('Fehler beim Export: ' + err.message);
+          return null;
+        }
+      }
+
+      exportCanvasAsPNG() {
+        const canvas = this.renderCircuitExportCanvas();
+        if (!canvas) return;
+        try {
+          const dataUrl = typeof canvas.toDataURL === 'function' ? canvas.toDataURL('image/png') : '';
           const a = document.createElement('a');
           a.href = dataUrl;
           a.download = `logicsim_schaltung_${Date.now()}.png`;
@@ -28116,6 +28997,30 @@
         } catch (err) {
           console.error('PNG export error:', err);
           this.showToast('Fehler beim PNG-Export: ' + err.message);
+        }
+      }
+
+      exportCanvasAsPDF() {
+        const canvas = this.renderCircuitExportCanvas();
+        if (!canvas) return;
+        try {
+          const jpeg = canvas.toDataURL('image/jpeg', 0.92);
+          const pdf = buildPdfFromJpegDataUrl(jpeg, canvas.width, canvas.height);
+          const bytes = new Uint8Array(pdf.length);
+          for (let i = 0; i < pdf.length; i += 1) bytes[i] = pdf.charCodeAt(i) & 0xff;
+          const blob = new Blob([bytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `logicsim_schaltung_${Date.now()}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          this.showToast('📄 Als PDF exportiert');
+        } catch (err) {
+          console.error('PDF export error:', err);
+          this.showToast('Fehler beim PDF-Export: ' + err.message);
         }
       }
     }

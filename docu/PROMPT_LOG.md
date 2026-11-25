@@ -412,3 +412,65 @@ This file is the chronological log of user prompts for the **AI Logic Simulator*
 - **Prompt:**
 
 > nachdem du fertig bist pushe auf den dev channel, merge die sachen und lösche nicht mehr genutzte branches
+
+---
+
+## 2026-11-19 — PR text request
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** Release promotion / no WISH ID
+- **Prompt:**
+
+> please give me text for a PR from dev to main
+
+---
+
+## 2026-11-19 — KiCad-style professional design (WISH-049)
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> I have a new feature to do called deat/kicad-prof. All infos are in AGENTS.md starting at line 377 for these changes.
+
+The referenced feature brief asks for a professional, modular, industry-grade
+EDA design with customizable shortcuts, good labels, annotations, PDF/other
+exports, KiCad-like toolbars and sidebars, properties panels, autoroute,
+click-to-place components, a component library, clean elegant visuals based on
+`docu/design/refs`, Tabler Icons as the primary icon library, and incremental
+commits.
+
+---
+
+## 2026-11-19 — KiCad-prof status check
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> What did we do so far?
+
+---
+
+## 2026-11-19 — Continue KiCad-prof implementation
+
+- **Author:** nicode
+- **Branch:** `feat/kicad-prof`
+- **Related:** WISH-049
+- **Prompt:**
+
+> Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+
+---
+
+## 2026-11-26 — Merge von `feat/kicad-prof` in `dev` (ohne Branches zu löschen)
+
+- **Author:** Leegende
+- **Branch:** `dev`
+- **Related:** WISH-049 (KiCad)
+- **Prompt:**
+
+> kannst du kicad auch mergen aber bitte nichts löschen oder verwerfen
