@@ -3146,44 +3146,50 @@ runTest('WISH-059', 'Non-gate module input and output inversion bubbles render c
 });
 
 runTest('WISH-060', 'Java Swing slider track alignment CSS and palette delay dropdown live timing labels', () => {
-  // 1. Static CSS check: java_swing runnable track uses border: none and height: 4px so thumb has no horizontal/vertical offset
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  const swingTrackMatch = html.match(/\[data-theme="java_swing"\]\s+input\[type="range"\]::-webkit-slider-runnable-track\s*\{([^}]*)\}/);
-  assertEqual(Boolean(swingTrackMatch), true, 'java_swing range track CSS block exists');
-  assertEqual(swingTrackMatch[1].includes('border: none'), true, 'java_swing range track uses border: none to avoid left-edge thumb offset');
-  assertEqual(swingTrackMatch[1].includes('height: 4px'), true, 'java_swing range track keeps 4px height matching margin-top: -6px on 16px thumb');
+  const prevLang = I18N.currentLang;
+  I18N.currentLang = 'de';
+  try {
+    // 1. Static CSS check: java_swing runnable track uses border: none and height: 4px so thumb has no horizontal/vertical offset
+    const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+    const swingTrackMatch = html.match(/\[data-theme="java_swing"\]\s+input\[type="range"\]::-webkit-slider-runnable-track\s*\{([^}]*)\}/);
+    assertEqual(Boolean(swingTrackMatch), true, 'java_swing range track CSS block exists');
+    assertEqual(swingTrackMatch[1].includes('border: none'), true, 'java_swing range track uses border: none to avoid left-edge thumb offset');
+    assertEqual(swingTrackMatch[1].includes('height: 4px'), true, 'java_swing range track keeps 4px height matching margin-top: -6px on 16px thumb');
 
-  // 2. Dropdown options show concise right-aligned ms values only
-  const app = new LogicSimApp();
-  const sel = document.getElementById('palette-delay-type');
-  const optGlobal = createMockElem('opt-global');
-  optGlobal.value = '__GLOBAL__';
-  optGlobal['data-base-label'] = 'Alle (Global)';
-  const optAnd = createMockElem('opt-and');
-  optAnd.value = 'AND';
-  optAnd['data-base-label'] = 'AND-Gatter';
-  const optOr = createMockElem('opt-or');
-  optOr.value = 'OR';
-  optOr['data-base-label'] = 'OR-Gatter';
-  sel.options = [optGlobal, optAnd, optOr];
-  sel.value = '__GLOBAL__';
+    // 2. Dropdown options show concise right-aligned ms values only
+    const app = new LogicSimApp();
+    const sel = document.getElementById('palette-delay-type');
+    const optGlobal = createMockElem('opt-global');
+    optGlobal.value = '__GLOBAL__';
+    optGlobal['data-base-label'] = 'Alle (Global)';
+    const optAnd = createMockElem('opt-and');
+    optAnd.value = 'AND';
+    optAnd['data-base-label'] = 'AND-Gatter';
+    const optOr = createMockElem('opt-or');
+    optOr.value = 'OR';
+    optOr['data-base-label'] = 'OR-Gatter';
+    sel.options = [optGlobal, optAnd, optOr];
+    sel.value = '__GLOBAL__';
 
-  app.engine.setFrequency(10);
-  app.setGlobalGateDelay(0, false);
-  app.setModuleGateDelay('AND', 3, false);
+    app.engine.setFrequency(10);
+    app.setGlobalGateDelay(0, false);
+    app.setModuleGateDelay('AND', 3, false);
 
-  const menu = document.getElementById('palette-delay-menu');
-  assertEqual(menu.children.length, 3, 'Custom palette delay dropdown renders 3 rows');
-  assertEqual(menu.children[0].children[0].textContent, 'Alle (Global)', 'Row 0 left label is Alle (Global)');
-  assertEqual(menu.children[0].children[1].textContent, '0 ms', 'Row 0 right-aligned value is 0 ms');
-  assertEqual(menu.children[1].children[0].textContent, 'AND-Gatter', 'Row 1 left label is AND-Gatter');
-  assertEqual(menu.children[1].children[1].textContent, '300 ms', 'Row 1 right-aligned value is 300 ms');
-  assertEqual(menu.children[2].children[1].textContent, '0 ms', 'Row 2 inherited right-aligned value is 0 ms');
+    const menu = document.getElementById('palette-delay-menu');
+    assertEqual(menu.children.length, 3, 'Custom palette delay dropdown renders 3 rows');
+    assertEqual(menu.children[0].children[0].textContent, 'Alle (Global)', 'Row 0 left label is Alle (Global)');
+    assertEqual(menu.children[0].children[1].textContent, '0 ms', 'Row 0 right-aligned value is 0 ms');
+    assertEqual(menu.children[1].children[0].textContent, 'AND-Gatter', 'Row 1 left label is AND-Gatter');
+    assertEqual(menu.children[1].children[1].textContent, '300 ms', 'Row 1 right-aligned value is 300 ms');
+    assertEqual(menu.children[2].children[1].textContent, '0 ms', 'Row 2 inherited right-aligned value is 0 ms');
 
-  // Changing frequency recalculates dropdown times
-  app.engine.setFrequency(20);
-  app.syncPaletteDelayUi();
-  assertEqual(menu.children[1].children[1].textContent, '150 ms', 'Dropdown option right-aligned time updates to 150 ms at 20 Hz');
+    // Changing frequency recalculates dropdown times
+    app.engine.setFrequency(20);
+    app.syncPaletteDelayUi();
+    assertEqual(menu.children[1].children[1].textContent, '150 ms', 'Dropdown option right-aligned time updates to 150 ms at 20 Hz');
+  } finally {
+    I18N.currentLang = prevLang;
+  }
 });
 
 runTest('WISH-061', 'Remove symbol-norm switcher from workspace context menu and use diagonal wires in auto-arrange when allowed', () => {
@@ -4296,6 +4302,237 @@ runTest('WISH-074', 'All logic and sequential modules support configurable propa
   app.selectItem(tffEdit.id, null);
   const inspText = app.inspector.container.textContent || '';
   assertEqual(inspText.includes('Verzögerung'), true, 'Inspector renders Verzögerung slider for T_FF module');
+});
+
+runTest('WISH-075', 'Comprehensive bug fixes: Steiner fork clipboard/nudge/inline-NOT, playhead scrub, floating/toWireId levels, parser/synthesis, truth table, CUSTOM_IC, settings & PNG export', () => {
+  const prevLang = I18N.currentLang;
+  const prevGetItem = localStorage.getItem;
+  const prevSetItem = localStorage.setItem;
+  const prevCreateElement = document.createElement;
+  I18N.currentLang = 'de';
+
+  try {
+    const app = new LogicSimApp();
+    app.engine.setMode('edit');
+    app.renderer.panX = 0;
+    app.renderer.panY = 0;
+    app.renderer.zoom = 1;
+
+    // 1. Open wire terminus right-click context menu does not throw showWireContextMenu TypeError
+    app.circuit.clear(app.ringBuffer);
+    const swTerm = app.circuit.addComponent('SWITCH', 40, 80);
+    app.circuit.addWire(swTerm.id, 0, null, 0, null, [], { toPoint: { x: 240, y: 100 } });
+    const ctxHandlers = app.gridCanvas.listeners.contextmenu || [];
+    ctxHandlers.forEach(fn => fn({ clientX: 240, clientY: 100, preventDefault: () => {} }));
+    assertEqual(app.contextMenuEl.style.display, 'block', 'Right-clicking open wire terminus opens context menu without throwing');
+    app.hideContextMenu();
+
+    // 2. Steiner fork tree copy/paste (duplicateSelection), nudgeSelection, and inlineGateIntoWire (NOT drop)
+    app.circuit.clear(app.ringBuffer);
+    app.setGlobalGateDelay(0, true);
+    const swFork = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 1 }); // pin at (120, 100)
+    const ledA = app.circuit.addComponent('LED', 300, 40); // pin at (300, 60)
+    const ledB = app.circuit.addComponent('LED', 300, 120); // pin at (300, 140)
+    app.circuit.addWire(swFork.id, 0, ledA.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 60 }]);
+    app.circuit.addWire(swFork.id, 0, ledB.id, 0, null, [{ x: 200, y: 100 }, { x: 200, y: 140 }]);
+    app.circuit.normalizeForkWires();
+    const origTrunk = app.circuit.wires.find(w => app.circuit.isForkTrunkWire(w));
+    assertEqual(Boolean(origTrunk), true, 'normalizeForkWires creates Steiner fork trunk');
+    const origProbe = app.circuit.addProbe(origTrunk.id, { name: 'FORK_PR' });
+    app.circuit.syncImmediateWireLevels();
+
+    app.selectMulti([swFork.id, ledA.id, ledB.id], []);
+    app.duplicateSelection();
+    assertEqual(app.circuit.components.length, 6, 'duplicateSelection duplicates all 3 components');
+    assertEqual(app.circuit.getProbes().length, 2, 'duplicateSelection preserves probe on Steiner fork tree');
+    const dupTrunk = app.circuit.wires.find(w => w.id !== origTrunk.id && app.circuit.isForkTrunkWire(w));
+    assertEqual(Boolean(dupTrunk), true, 'Pasted selection preserves Steiner fork trunk');
+    const dupLeds = app.circuit.components.filter(c => c.type === 'LED' && c.id !== ledA.id && c.id !== ledB.id);
+    app.circuit.syncImmediateWireLevels();
+    assertEqual(dupLeds[0].inputs[0].value, 1, 'First duplicated fork LED receives HIGH');
+    assertEqual(dupLeds[1].inputs[0].value, 1, 'Second duplicated fork LED receives HIGH');
+
+    // Nudge duplicated selection including Steiner fork trunk and clamp check
+    const oldTrunkToX = dupTrunk.toPoint.x;
+    app.nudgeSelection(1, 1);
+    assertEqual(Number.isFinite(dupTrunk.toPoint.x) && dupTrunk.toPoint.x !== oldTrunkToX, true, 'nudgeSelection updates Steiner fork trunk toPoint');
+
+    // Inline NOT gate onto Steiner fork trunk rebinds all child branches and probes
+    const inlined = app.circuit.inlineGateIntoWire(origTrunk, 'NOT', 140, 80);
+    assertEqual(Boolean(inlined && inlined.wireOut), true, 'inlineGateIntoWire succeeds on Steiner fork trunk');
+    app.circuit.syncImmediateWireLevels();
+    assertEqual(ledA.inputs[0].value, 0, 'Inline NOT on trunk inverts downstream branch ledA to 0');
+    assertEqual(ledB.inputs[0].value, 0, 'Inline NOT on trunk inverts downstream branch ledB to 0');
+    assertEqual(Boolean(app.circuit.getWire(origProbe.wireId)), true, 'Probe on split trunk is rebound to a live wire');
+
+    // 3. Floating wire Zombie HIGH reset & toWireId signal propagation
+    const cWire = new Circuit();
+    const swW = cWire.addComponent('SWITCH', 40, 80, { initialValue: 1 });
+    const wFloat = cWire.addWire(swW.id, 0, null, 0, null, [], { toPoint: { x: 200, y: 100 } });
+    cWire.syncImmediateWireLevels();
+    assertEqual(wFloat.level, 1, 'Driven open-ended wire starts HIGH');
+    wFloat.fromCompId = '';
+    wFloat.fromPoint = { x: 100, y: 100 };
+    cWire.updateWireLevelsFromDrivers();
+    assertEqual(wFloat.level, 0, 'Detached floating wire resets to LOW (no Zombie HIGH)');
+
+    const ledW = cWire.addComponent('LED', 280, 160);
+    const wTarget = cWire.addWire(null, 0, ledW.id, 0, null, [], { fromPoint: { x: 180, y: 180 } });
+    cWire.addWire(swW.id, 0, null, 0, null, [], { toWireId: wTarget.id, toPoint: { x: 180, y: 180 } });
+    cWire.syncImmediateWireLevels();
+    assertEqual(wTarget.level, 1, 'toWireId driver wire propagates HIGH to target wire');
+    assertEqual(ledW.inputs[0].value, 1, 'Target wire connected via toWireId drives LED input HIGH');
+
+    // 4. SimulationEngine playhead scrubbing (backward to past tick & forward back to head)
+    const cScrub = new Circuit();
+    const rbScrub = new RingBuffer(128);
+    const engScrub = new SimulationEngine(cScrub, rbScrub);
+    const clkScrub = cScrub.addComponent('CLOCK', 40, 80, { highTicks: 1, lowTicks: 1 });
+    const cntScrub = cScrub.addComponent('COUNTER', 200, 60, { delay: 0 });
+    const wScrub = cScrub.addWire(clkScrub.id, 0, cntScrub.id, 0);
+    cScrub.addProbe(wScrub.id, { name: 'CLK' });
+    engScrub.setMode('sim');
+    let countAt2 = 0;
+    for (let t = 1; t <= 6; t++) {
+      engScrub.stepTick();
+      if (t === 2) countAt2 = cntScrub.state.count;
+    }
+    const countAt6 = cntScrub.state.count;
+    assertEqual(engScrub.scrubToTick(2), true, 'scrubToTick(2) restores historical snapshot');
+    assertEqual(engScrub.tickCount, 2, 'tickCount matches scrubbed tick 2');
+    assertEqual(cntScrub.state.count, countAt2, 'COUNTER state matches historical tick 2');
+    assertEqual(engScrub.scrubToTick(6), true, 'scrubToTick(6) restores head snapshot');
+    assertEqual(engScrub.tickCount, 6, 'tickCount restored to head tick 6');
+    assertEqual(cntScrub.state.count, countAt6, 'COUNTER state restored to head tick 6');
+    engScrub.stepTick();
+    assertEqual(engScrub.tickCount, 7, 'Stepping after scrubbing back to head advances monotonically to tick 7');
+
+    // 5. BooleanParser semicolon validation, 3-input XOR parity synthesis, and >8-input gate cascading
+    let badSyntax = false;
+    try { BooleanParser.parse('Y = A B'); } catch (_) { badSyntax = true; }
+    assertEqual(badSyntax, true, 'BooleanParser rejects missing operator / missing semicolon between tokens');
+
+    const cXor = new Circuit();
+    cXor.globalGateDelay = 0;
+    BooleanParser.synthesizeToCircuit(cXor, BooleanParser.parse('Y = A ^ B ^ C'), { mode: 'replace' });
+    for (const c of cXor.components) {
+      if (c.type === 'SWITCH') { c.state.value = 1; c.outputs[0].value = 1; c.nextOutputs[0] = 1; }
+    }
+    cXor.syncImmediateWireLevels();
+    const xorLed = cXor.components.find(c => c.type === 'LED');
+    assertEqual(xorLed.inputs[0].value, 1, 'Synthesized 3-input XOR uses odd parity (1 ^ 1 ^ 1 = 1)');
+
+    const cWide = new Circuit();
+    cWide.globalGateDelay = 0;
+    BooleanParser.synthesizeToCircuit(cWide, BooleanParser.parse('Y = V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 | V8 | V9'), { mode: 'replace' });
+    const wideGates = cWide.components.filter(c => c.type === 'OR');
+    assertEqual(wideGates.length >= 2 && wideGates.every(g => g.inputs.length <= 8), true, '10-term OR synthesis cascades into <=8-input gates');
+    const v9 = cWide.components.find(c => c.type === 'SWITCH' && c.params.label === 'V9');
+    v9.state.value = 1; v9.outputs[0].value = 1; v9.nextOutputs[0] = 1;
+    cWide.syncImmediateWireLevels();
+    assertEqual(cWide.components.find(c => c.type === 'LED').inputs[0].value, 1, 'Cascaded 10-term OR propagates V9=1 to LED');
+
+    // 6. TruthTableGenerator SWITCH state.value preservation, label deduplication, wire-tap probes & applyInputCombination
+    app.circuit.clear(app.ringBuffer);
+    const s1 = app.circuit.addComponent('SWITCH', 40, 40, { label: 'SW', initialValue: 1 });
+    const s2 = app.circuit.addComponent('SWITCH', 40, 100, { label: 'SW_2', initialValue: 0 });
+    const s3 = app.circuit.addComponent('SWITCH', 40, 160, { initialValue: 0 }); // unlabeled -> default 'SW'
+    const gAnd = app.circuit.addComponent('AND', 200, 80, { numInputs: 3, delay: 0 });
+    app.circuit.addWire(s1.id, 0, gAnd.id, 0);
+    app.circuit.addWire(s2.id, 0, gAnd.id, 1);
+    app.circuit.addWire(s3.id, 0, gAnd.id, 2);
+    const wTap = app.circuit.addWire(gAnd.id, 0, null, 0, null, [], { toPoint: { x: 340, y: 100 } });
+    app.circuit.addProbe(wTap.id, { name: 'TAP_Y' });
+
+    const tt = TruthTableGenerator.generate(app.circuit, app.engine);
+    assertEqual(Boolean(tt.error), false, 'TruthTableGenerator evaluates circuits with wire-tap probes as outputs');
+    assertEqual(new Set(tt.inputs.map(i => i.name)).size, 3, 'Collision-free deduplication produces 3 unique input names');
+    assertEqual(s1.state.value, 1, 'TruthTableGenerator restores original SWITCH state.value = 1');
+    assertEqual(tt.rows[7].outputs.TAP_Y, 1, '3-input AND wire-tap probe row 7 evaluates to 1');
+
+    app.currentTruthTableData = tt;
+    app.applyInputCombination({ [tt.inputs[0].name]: 0, [tt.inputs[1].name]: 1, [tt.inputs[2].name]: 1 });
+    assertEqual(s1.state.value, 0, 'applyInputCombination updates s1.state.value to 0');
+    assertEqual(s2.state.value, 1, 'applyInputCombination updates s2.state.value to 1');
+    assertEqual(s3.state.value, 1, 'applyInputCombination updates deduplicated s3.state.value to 1');
+
+    // 7. CUSTOM_IC >4-stage combinational settling, invertedOutput resetState, and multi-pin HEX_DISPLAY compression
+    const icChain = new Component('ic6', 'CUSTOM_IC', 0, 0, {
+      delay: 0,
+      inputs: [{ name: 'A', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+      outputs: [{ name: 'Y', sourceCompIdx: 5, sourcePin: 0 }],
+      subcircuit: {
+        components: Array.from({ length: 6 }, (_, i) => ({ type: 'NOT', dx: i * 60, dy: 0, params: {} })),
+        wires: Array.from({ length: 5 }, (_, i) => ({ from: i, fp: 0, to: i + 1, tp: 0, wp: [] }))
+      }
+    });
+    icChain.compute([1]);
+    assertEqual(icChain.nextOutputs[0], 1, '6-stage NOT chain inside CUSTOM_IC settles in a single evaluation');
+    icChain.compute([0]);
+    assertEqual(icChain.nextOutputs[0], 0, '6-stage NOT chain inside CUSTOM_IC settles 0 -> 0');
+
+    const icInv = new Component('ic_inv', 'CUSTOM_IC', 0, 0, {
+      invertedOutput: true,
+      inputs: [{ name: 'A', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+      outputs: [{ name: 'Y', sourceCompIdx: 0, sourcePin: 0 }],
+      subcircuit: { components: [{ type: 'BUFFER', dx: 0, dy: 0, params: {} }], wires: [] }
+    });
+    icInv.resetState();
+    assertEqual(icInv.outputs[0].value, 1, 'CUSTOM_IC resetState honors invertedOutput');
+
+    app.circuit.clear(app.ringBuffer);
+    const hexSw0 = app.circuit.addComponent('SWITCH', 40, 40, { label: 'B0' });
+    const hexSw1 = app.circuit.addComponent('SWITCH', 40, 100, { label: 'B1' });
+    const hexBuf0 = app.circuit.addComponent('BUFFER', 160, 40);
+    const hexBuf1 = app.circuit.addComponent('BUFFER', 160, 100);
+    const hexDisp = app.circuit.addComponent('HEX_DISPLAY', 300, 40, { label: 'HEX' });
+    app.circuit.addWire(hexSw0.id, 0, hexBuf0.id, 0);
+    app.circuit.addWire(hexSw1.id, 0, hexBuf1.id, 0);
+    app.circuit.addWire(hexBuf0.id, 0, hexDisp.id, 0);
+    app.circuit.addWire(hexBuf1.id, 0, hexDisp.id, 1);
+    app.selectMulti([hexSw0.id, hexSw1.id, hexBuf0.id, hexBuf1.id, hexDisp.id], []);
+    const hexMod = app.saveSelectionAsModule('Hex2Bit', true);
+    assertEqual(Boolean(hexMod && hexMod.outputs.length === 2), true, 'CUSTOM_IC compression preserves multiple connected HEX_DISPLAY input pins');
+
+    // 8. Settings persistence (showWireBridges = false) & exportCanvasAsPNG light-theme background + offCtx translation
+    const memStore = new Map();
+    localStorage.getItem = (k) => (memStore.has(k) ? memStore.get(k) : null);
+    localStorage.setItem = (k, v) => { memStore.set(k, String(v)); };
+
+    app.setShowWireBridges(false);
+    app.saveSettings();
+    const appReloaded = new LogicSimApp();
+    assertEqual(appReloaded.showWireBridges, false, 'loadSettings preserves showWireBridges = false across reload');
+
+    const pngTranslates = [];
+    const pngBgFills = [];
+    document.createElement = (tag) => {
+      const el = prevCreateElement(tag);
+      if (tag === 'canvas') {
+        const ctxSpy = Object.assign({}, mockCtx, {
+          fillStyle: '',
+          translate: (x, y) => pngTranslates.push({ x, y }),
+          fillRect: (x, y, w, h) => {
+            if (x === 0 && y === 0 && w >= 200 && h >= 150) pngBgFills.push(ctxSpy.fillStyle);
+          }
+        });
+        el.getContext = () => ctxSpy;
+        el.toDataURL = () => 'data:image/png;base64,AA==';
+      }
+      return el;
+    };
+    app.circuit.clear(app.ringBuffer);
+    app.circuit.addComponent('AND', 600, 400);
+    app.setAppTheme('java_swing', false);
+    app.exportCanvasAsPNG();
+    assertEqual(pngBgFills[0].toLowerCase(), '#ffffff', 'exportCanvasAsPNG uses java_swing palette background #ffffff');
+    assertEqual(pngTranslates.some(t => t.x !== 0 || t.y !== 0), true, 'exportCanvasAsPNG translates offscreen context by panX/panY');
+  } finally {
+    I18N.currentLang = prevLang;
+    localStorage.getItem = prevGetItem;
+    localStorage.setItem = prevSetItem;
+    document.createElement = prevCreateElement;
+  }
 });
 
 console.log('\n================================================================');

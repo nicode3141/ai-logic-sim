@@ -141,7 +141,8 @@
       box-shadow: inset 1px 1px #ffffff, inset -1px -1px #808080 !important;
     }
 
-    [data-theme="java_swing"] .btn:active,
+    [data-theme="java_swing"] .btn:active:not(:disabled),
+    [data-theme="java_swing"] #btn-analyzer-loop.active,
     [data-theme="java_swing"] .mode-btn.active-edit,
     [data-theme="java_swing"] .mode-btn.active-sim,
     [data-theme="java_swing"] .tab-item.active,
@@ -151,6 +152,13 @@
       box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
       background: #dfdacb !important;
       border-color: #555555 !important;
+    }
+
+    [data-theme="java_swing"] #btn-sim-start.btn-warning,
+    [data-theme="java_swing"] #btn-analyzer-sim-start.btn-warning {
+      background: #fef3c7 !important;
+      border-color: #b45309 !important;
+      color: #78350f !important;
     }
 
     [data-theme="java_swing"] .theme-card .theme-card-title { color: #000000 !important; }
@@ -1261,7 +1269,7 @@
     }
 
     .color-swatch.active {
-      border-color: #ffffff;
+      border-color: var(--text-main);
       box-shadow: 0 0 8px currentColor;
     }
 
@@ -1719,7 +1727,7 @@
       line-height: 18px;
       border-radius: 3px;
       background: rgba(0, 230, 118, 0.22);
-      color: #00e676;
+      color: var(--accent-green);
       font-weight: 700;
     }
     .tt-val-0 {
@@ -1729,7 +1737,7 @@
       line-height: 18px;
       border-radius: 3px;
       background: rgba(100, 116, 139, 0.18);
-      color: #94a3b8;
+      color: var(--text-muted);
     }
 
     .tt-badge-current {
@@ -2462,7 +2470,7 @@
     .synth-legend-math {
       font-family: var(--font-mono);
       font-weight: 700;
-      color: #f8fafc;
+      color: var(--text-main);
     }
     .synth-legend-desc {
       color: var(--text-dim);
@@ -3970,10 +3978,14 @@
        Only the chrome is scaled with CSS zoom; the drawing canvases keep their size so the
        pointer maths on them stays exact. The toolbar wraps instead of overlapping. */
     :root { --ui-scale: 1; }
-    #app-menubar, #toolbar, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .menubar-dropdown {
+    #app-menubar, #toolbar, #sidebar, .tabs-bar, #inspector, .logic-modal, .context-menu, .coords-popover {
       zoom: var(--ui-scale, 1);
     }
     #toolbar {
+      height: auto;
+      min-height: 38px;
+      max-height: none;
+      padding: 4px 10px;
       flex-wrap: wrap;
       overflow: visible;
     }
@@ -4759,7 +4771,7 @@
           <div id="canvas-pane-left" class="canvas-pane">
             <div class="pane-header" id="pane-header-left" style="display: none;">
               <span class="pane-title" id="pane-title-left">Schaltung 1 (Links)</span>
-              <span class="pane-badge">Fokus</span>
+              <span class="pane-badge" id="pane-badge-left">Fokus</span>
             </div>
             <canvas id="grid-canvas"></canvas>
 
@@ -4800,7 +4812,10 @@
 
           <div id="canvas-pane-right" class="canvas-pane" style="display: none;">
             <div class="pane-header" id="pane-header-right">
-              <span class="pane-title" id="pane-title-right">Rechte Schaltung</span>
+              <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                <span class="pane-title" id="pane-title-right">Rechte Schaltung</span>
+                <span class="pane-badge" id="pane-badge-right" style="display: none;">Fokus</span>
+              </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <select id="select-pane-right-tab" class="select-pane-tab" title="Tab für die rechte Ansicht"></select>
                 <button id="btn-close-split" class="tab-close-btn" title="Split-Screen schließen">✕</button>
@@ -6035,7 +6050,18 @@
       'Fehlertoleranz': 'Fault tolerance', 'Adressierung': 'Addressing', 'Vergleich': 'Comparison', 'Schaltalgebra': 'Boolean algebra',
       'Datenübertragung': 'Data transfer', 'Anzeige': 'Display', 'Bausteine': 'Modules', 'Speicher': 'Memory', 'Rückkopplung': 'Feedback',
       'Flipflop': 'Flip-flop', 'Flanke': 'Edge', 'Takt': 'Clock', 'Schieben': 'Shifting', 'Zähler': 'Counter', 'Synchron': 'Synchronous',
-      'Steuerung': 'Control', 'Zweierkomplement': "Two's complement", 'Groß': 'Large', 'Automat': 'State machine'
+      'Steuerung': 'Control', 'Zweierkomplement': "Two's complement", 'Groß': 'Large', 'Automat': 'State machine',
+      'Fokus': 'Focus', 'Noch nicht angeordnet.': 'Not aligned yet.', 'Vorschau': 'Preview', 'Palettenansicht': 'Palette view',
+      'Bauteile mit Beschriftung anzeigen': 'Show parts with labels', 'Bauteile als gezeichnete Vorschau anzeigen': 'Show parts as drawn previews',
+      'Verzögerung global oder modulspezifisch einstellen': 'Set delay globally or per module type', 'Modultyp für Verzögerung': 'Module type for delay',
+      'NOT (Invertierer): Auf Pin zum Invertieren (○), auf Leitung zum Einfügen oder frei platzieren': 'NOT (inverter): drop on a pin to invert (○), on a wire to insert, or place freely',
+      'Szenario': 'Scenario', 'Simulation starten': 'Start simulation', 'Aktuelle Simulations-Geschwindigkeit': 'Current simulation speed',
+      'HIGH Signalfarbe flüssig wählen': 'Pick HIGH signal color smoothly', 'LOW Signalfarbe flüssig wählen': 'Pick LOW signal color smoothly',
+      'Hexadezimalcode': 'Hexadecimal color code', 'Schräge Leitungen erlauben': 'Allow diagonal wires',
+      'Diagonale Leitungsführung mit Umschalt-Taste erlauben. Aus: strikt rechtwinklig.': 'Allow diagonal wire routing while holding Shift. Off: strictly orthogonal.',
+      'Oberflächengröße (Schrift & Bedienelemente):': 'UI Scale (Font & Controls):',
+      'Menüs, Werkzeugleiste, Palette und Eigenschaften größer oder kleiner darstellen. Die Zeichenfläche bleibt unverändert.': 'Scale menus, toolbar, palette and inspector larger or smaller. The canvas remains unchanged.',
+      'Kleiner': 'Smaller', 'Größer': 'Larger', 'Oberflächengröße in Prozent': 'UI scale in percent'
     });
 
     /** Labels drawn on the canvas (scenario circuits): exact names first, then word by word. */
@@ -6066,6 +6092,7 @@
       [/^\((\d+) Kan(?:al|äle)\)$/, (m) => `(${I18N_PLURAL(m[1], 'channel', 'channels')})`],
       [/^✓ angeordnet: (\d+)\/(\d+) gerade, (\d+) Kreuzung(?:en)?$/, (m) => `✓ aligned: ${m[1]}/${m[2]} straight, ${I18N_PLURAL(m[3], 'crossing', 'crossings')}`],
       [/^Stufe (\d)( · |: )(.+)$/, (m, tr) => `Level ${m[1]}${m[2]}${tr(m[3])}`],
+      [/^Stufe (\d+)$/, (m) => `Level ${m[1]}`],
       [/^STUFE (\d)$/, (m) => `LEVEL ${m[1]}`],
       [/^(\d) · (.+)$/, (m, tr) => `${m[1]} · ${tr(m[2])}`],
       [/^(\d+) von (\d+) erkundet$/, (m) => `${m[1]} of ${m[2]} explored`],
@@ -6091,6 +6118,7 @@
       [/^Viewport auf (X: .*) zentriert$/, (m) => `Centered on ${m[1]}`],
       [/^Eingänge live geschaltet: (.*)$/, (m) => `Inputs set: ${m[1]}`],
       [/^Leitungsbrücken (aktiviert|deaktiviert)$/, (m) => `Wire bridges ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
+      [/^Schräge Leitungen (erlaubt|deaktiviert)$/, (m) => `Diagonal wires ${m[1] === 'erlaubt' ? 'on' : 'off'}`],
       [/^Gatterverzögerungs-Anzeige (aktiviert|deaktiviert)$/, (m) => `Gate delay display ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
       [/^Schalter im Edit-Modus (klickbar|nur verschiebbar)$/, (m) => `Switches in edit mode: ${m[1] === 'klickbar' ? 'clickable' : 'move only'}`],
       [/^Fehler beim Laden der JSON-Datei: (.*)$/, (m, tr) => `Could not load the JSON file: ${tr(m[1])}`],
@@ -6113,8 +6141,13 @@
       [/^(?:Strg|Umschalt|Entf|Leertaste)(?:\+.+)?$/, (m) => I18N_KEYS_EN(m[0])],
       // language-neutral texts: identifiers, numbers with units, coordinates, formulas
       [/^[A-Z0-9_\->→:·'\/+ .,()&|!^=<>≥½○⊕∧∨¬↔≡*~-]+$/, (m) => m[0]],
-      [/^-?[\d.,]+ ?(?:Hz|px|px\/T|Ticks?|Pins?|T|%)$/, (m) => m[0]],
+      [/^[+-]?[\d.,]+ ?(?:Hz(?: \(\d+ ms\))?|ms|px|px\/T|Ticks?|Pins?|T|%)$/, (m) => m[0]],
       [/^(\d+) Ticks? \((\d+ ms)\)$/, (m) => `${m[1]} ${m[1] === '1' ? 'tick' : 'ticks'} (${m[2]})`],
+      [/^(?:Playhead: t = \d+ \| )?Zeitrahmen: (\d+\.\.\d+) \((\d+) Ticks?\)(?: \| Klammern: t = (\d+\.\.\d+) \((.+)\))?$/, (m) => {
+        const playPrefix = m[0].startsWith('Playhead:') ? m[0].split(' | ')[0] + ' | ' : '';
+        const loopSuffix = m[3] ? ` | Loop: t = ${m[3]} (${m[4]})` : '';
+        return `${playPrefix}Window: ${m[1]} (${m[2]} ${m[2] === '1' ? 'tick' : 'ticks'})${loopSuffix}`;
+      }],
       [/^Global verwenden \((.+)\)$/, (m, tr) => `Use global (${tr(m[1])})`],
       [/^[XY][:=] ?-?\d+.*$/, (m) => m[0]],
       [/[∧∨¬⊕]|^\(.*·.*\)$/, (m) => m.input],
@@ -6139,7 +6172,10 @@
           if (m) { out = I18N_PATTERNS_EN[i][1](m, (x) => I18N.phrase(x)); break; }
         }
       }
-      if (out === undefined) { this.missing.add(core); return text; }
+      if (out === undefined) {
+        if (this.missing.size < 500) this.missing.add(core);
+        return text;
+      }
       return text.replace(core, () => out);
     };
 
@@ -6270,38 +6306,59 @@
       if (typeof m.id !== 'string' || !/^mod_[a-z0-9]{4,30}$/i.test(m.id)) return null;
       const name = String(m.name || 'Modul').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 40) || 'Modul';
       const num = (v) => (Number.isFinite(Number(v)) ? Math.max(-100000, Math.min(100000, Number(v))) : NaN);
+      const snapCoord = (v) => {
+        const parsed = num(v);
+        return Number.isFinite(parsed) ? Math.round(parsed / GRID_SIZE) * GRID_SIZE : 0;
+      };
       const kind = m.kind === 'ic' ? 'ic' : 'macro';
 
       if (kind === 'ic') {
-        const inputs = Array.isArray(m.inputs) ? m.inputs.map((p, i) => ({
+        const sub = (m.subcircuit && typeof m.subcircuit === 'object') ? m.subcircuit : {};
+        const rawSubComps = Array.isArray(sub.components) ? sub.components.slice(0, CUSTOM_MODULE_MAX_PARTS) : [];
+        const subComps = [];
+        for (const c of rawSubComps) {
+          if (!c || typeof c !== 'object') continue;
+          subComps.push({
+            type: CUSTOM_MODULE_TYPES.includes(c.type) ? c.type : 'BUFFER',
+            dx: snapCoord(c.dx ?? 0),
+            dy: snapCoord(c.dy ?? 0),
+            params: (c.params && typeof c.params === 'object' && !Array.isArray(c.params)) ? sanitizeParams(c.params) : {}
+          });
+        }
+        const rawInputs = Array.isArray(m.inputs) ? m.inputs.slice(0, 64) : [];
+        const inputs = rawInputs.length > 0 ? rawInputs.map((p, i) => ({
           name: String(p?.name || `IN${i}`).slice(0, 16),
-          targets: Array.isArray(p?.targets) ? p.targets.map(t => ({
-            targetCompIdx: Number(t?.targetCompIdx ?? 0),
-            targetPin: Number(t?.targetPin ?? 0)
-          })) : [{
-            targetCompIdx: Number(p?.targetCompIdx ?? 0),
-            targetPin: Number(p?.targetPin ?? 0)
-          }]
+          targets: (Array.isArray(p?.targets) ? p.targets.slice(0, CUSTOM_MODULE_MAX_PARTS) : [{
+            targetCompIdx: p?.targetCompIdx ?? 0,
+            targetPin: p?.targetPin ?? 0
+          }]).map(t => ({
+            targetCompIdx: Math.max(0, Math.trunc(Number(t?.targetCompIdx) || 0)),
+            targetPin: Math.max(0, Math.trunc(Number(t?.targetPin) || 0))
+          }))
         })) : [{ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] }];
-        const outputs = Array.isArray(m.outputs) ? m.outputs.map((p, i) => ({
+        const rawOutputs = Array.isArray(m.outputs) ? m.outputs.slice(0, 64) : [];
+        const outputs = rawOutputs.length > 0 ? rawOutputs.map((p, i) => ({
           name: String(p?.name || `OUT${i}`).slice(0, 16),
-          sourceCompIdx: Number(p?.sourceCompIdx ?? 0),
-          sourcePin: Number(p?.sourcePin ?? 0)
+          sourceCompIdx: Math.max(0, Math.trunc(Number(p?.sourceCompIdx) || 0)),
+          sourcePin: Math.max(0, Math.trunc(Number(p?.sourcePin) || 0))
         })) : [{ name: 'OUT', sourceCompIdx: 0, sourcePin: 0 }];
-        const sub = m.subcircuit || {};
-        const subComps = (Array.isArray(sub.components) ? sub.components : []).map(c => ({
-          type: CUSTOM_MODULE_TYPES.includes(c.type) ? c.type : 'BUFFER',
-          dx: Math.round(num(c.dx || 0) / GRID_SIZE) * GRID_SIZE,
-          dy: Math.round(num(c.dy || 0) / GRID_SIZE) * GRID_SIZE,
-          params: c.params && typeof c.params === 'object' ? c.params : {}
-        }));
-        const subWires = (Array.isArray(sub.wires) ? sub.wires : []).map(w => ({
-          from: Number(w.from || 0),
-          fp: Number(w.fp || 0),
-          to: Number(w.to || 0),
-          tp: Number(w.tp || 0),
-          wp: (Array.isArray(w.wp) ? w.wp : []).map(p => ({ dx: Math.round(num(p.dx || 0) / GRID_SIZE) * GRID_SIZE, dy: Math.round(num(p.dy || 0) / GRID_SIZE) * GRID_SIZE }))
-        }));
+        const rawSubWires = Array.isArray(sub.wires) ? sub.wires.slice(0, CUSTOM_MODULE_MAX_PARTS * 4) : [];
+        const subWires = [];
+        for (const w of rawSubWires) {
+          if (!w || typeof w !== 'object') continue;
+          const from = Number(w.from ?? 0), fp = Number(w.fp ?? 0), to = Number(w.to ?? 0), tp = Number(w.tp ?? 0);
+          if (![from, fp, to, tp].every(Number.isInteger)) continue;
+          if (from < 0 || to < 0 || fp < 0 || tp < 0 || (subComps.length > 0 && (from >= subComps.length || to >= subComps.length))) continue;
+          subWires.push({
+            from,
+            fp,
+            to,
+            tp,
+            wp: (Array.isArray(w.wp) ? w.wp.slice(0, 64) : [])
+              .filter(p => p && typeof p === 'object' && Number.isFinite(num(p.dx)) && Number.isFinite(num(p.dy)))
+              .map(p => ({ dx: snapCoord(p.dx), dy: snapCoord(p.dy) }))
+          });
+        }
         return {
           id: m.id,
           name,
@@ -6320,7 +6377,7 @@
         if (!c || typeof c !== 'object' || !CUSTOM_MODULE_TYPES.includes(c.type)) return null;
         const dx = num(c.dx), dy = num(c.dy);
         if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
-        const params = c.params && typeof c.params === 'object' && !Array.isArray(c.params) ? c.params : {};
+        const params = c.params && typeof c.params === 'object' && !Array.isArray(c.params) ? sanitizeParams(c.params) : {};
         components.push({ type: c.type, dx: Math.round(dx / GRID_SIZE) * GRID_SIZE, dy: Math.round(dy / GRID_SIZE) * GRID_SIZE, params });
       }
       const wires = [];
@@ -6454,13 +6511,34 @@
      * - Prevents event propagation so parent canvas/window drag handlers never interfere.
      */
     function attachSliderHoldRepeat(slider, onUpdate) {
-      if (!slider) return;
+      if (!slider || slider._holdRepeatAttached) return;
+      slider._holdRepeatAttached = true;
 
       let holdTimeout = null;
       let holdInterval = null;
       let isPointerDown = false;
       let activePointerId = null;
       let targetVal = null;
+      let winListenersBound = false;
+
+      const onWinMouseMove = (e) => {
+        if (isPointerDown && activePointerId === null) {
+          onPointerMove(e);
+        }
+      };
+      const onWinMouseUp = (e) => {
+        if (isPointerDown && activePointerId === null) {
+          stopHold(e);
+        }
+      };
+
+      const unbindWinListeners = () => {
+        if (winListenersBound && typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+          window.removeEventListener('mousemove', onWinMouseMove);
+          window.removeEventListener('mouseup', onWinMouseUp);
+          winListenersBound = false;
+        }
+      };
 
       const clearHold = () => {
         if (holdTimeout) { clearTimeout(holdTimeout); holdTimeout = null; }
@@ -6468,6 +6546,7 @@
         isPointerDown = false;
         activePointerId = null;
         targetVal = null;
+        unbindWinListeners();
       };
 
       const computeRatioFromEvent = (e) => {
@@ -6493,6 +6572,13 @@
         return Math.max(0, Math.min(1, (val - min) / (max - min)));
       };
 
+      const fireSliderEvents = () => {
+        if (typeof slider.dispatchEvent === 'function') {
+          slider.dispatchEvent(typeof Event === 'function' ? new Event('input', { bubbles: true }) : { type: 'input', target: slider });
+          slider.dispatchEvent(typeof Event === 'function' ? new Event('change', { bubbles: true }) : { type: 'change', target: slider });
+        }
+      };
+
       const stepSliderTowards = (target) => {
         const curr = parseFloat(slider.value);
         const min = parseFloat(slider.min !== '' ? slider.min : '0') || 0;
@@ -6510,8 +6596,7 @@
         next = Math.max(min, Math.min(max, next));
         if (next !== curr) {
           slider.value = next;
-          slider.dispatchEvent(new Event('input', { bubbles: true }));
-          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          fireSliderEvents();
           if (typeof onUpdate === 'function') onUpdate(next);
           return true;
         }
@@ -6520,6 +6605,7 @@
 
       const startHold = (e) => {
         if (slider.disabled) return;
+        if (e.type === 'mousedown' && isPointerDown) return;
         if (e.type === 'mousedown' && e.button !== 0) return;
         if (e.type === 'pointerdown' && e.button !== 0) return;
 
@@ -6529,6 +6615,10 @@
         activePointerId = e.pointerId !== undefined ? e.pointerId : null;
         if (activePointerId !== null && typeof slider.setPointerCapture === 'function') {
           try { slider.setPointerCapture(activePointerId); } catch (_) {}
+        } else if (activePointerId === null && !winListenersBound && typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+          window.addEventListener('mousemove', onWinMouseMove);
+          window.addEventListener('mouseup', onWinMouseUp);
+          winListenersBound = true;
         }
 
         const ratio = computeRatioFromEvent(e);
@@ -6546,12 +6636,13 @@
           holdTimeout = setTimeout(() => {
             if (!isPointerDown) return;
             holdInterval = setInterval(() => {
-              if (!isPointerDown) {
+              if (!isPointerDown || slider.isConnected === false) {
                 clearHold();
                 return;
               }
-              if (targetVal !== null) {
-                stepSliderTowards(targetVal);
+              if (targetVal === null || !stepSliderTowards(targetVal)) {
+                clearInterval(holdInterval);
+                holdInterval = null;
               }
             }, 40);
           }, 200);
@@ -6560,13 +6651,14 @@
 
       const onPointerMove = (e) => {
         if (!isPointerDown) return;
+        if (holdTimeout) { clearTimeout(holdTimeout); holdTimeout = null; }
+        if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
         if (typeof e.stopPropagation === 'function') e.stopPropagation();
         const ratio = computeRatioFromEvent(e);
         targetVal = ratioToSliderVal(ratio);
         if (parseFloat(slider.value) !== targetVal) {
           slider.value = targetVal;
-          slider.dispatchEvent(new Event('input', { bubbles: true }));
-          slider.dispatchEvent(new Event('change', { bubbles: true }));
+          fireSliderEvents();
           if (typeof onUpdate === 'function') onUpdate(targetVal);
         }
       };
@@ -6589,20 +6681,7 @@
       slider.addEventListener('pointerup', stopHold);
       slider.addEventListener('pointercancel', stopHold);
       slider.addEventListener('lostpointercapture', stopHold);
-
       slider.addEventListener('mousedown', startHold);
-      if (typeof window !== 'undefined') {
-        window.addEventListener('mousemove', (e) => {
-          if (isPointerDown && activePointerId === null) {
-            onPointerMove(e);
-          }
-        });
-        window.addEventListener('mouseup', (e) => {
-          if (isPointerDown && activePointerId === null) {
-            stopHold(e);
-          }
-        });
-      }
     }
 
 
@@ -6707,16 +6786,18 @@
         const writeIdx = this.head;
         this.ticks[writeIdx] = tickNumber;
 
-        for (const [probeId, val] of probeSamples) {
-          this.ensureChannel(probeId);
-          this.channels.get(probeId)[writeIdx] = val ? 1 : 0;
+        for (const arr of this.channels.values()) {
+          arr[writeIdx] = 0;
         }
 
-        this.channels.forEach((arr, probeId) => {
-          if (!probeSamples.has(probeId)) {
-            arr[writeIdx] = 0;
+        for (const [probeId, val] of probeSamples) {
+          let arr = this.channels.get(probeId);
+          if (!arr) {
+            arr = new Uint8Array(this.capacity);
+            this.channels.set(probeId, arr);
           }
-        });
+          arr[writeIdx] = val ? 1 : 0;
+        }
 
         this.head = (this.head + 1) % this.capacity;
         if (this.count < this.capacity) {
@@ -6729,16 +6810,18 @@
       }
 
       getTickAtOffset(offset) {
-        if (offset < 0 || offset >= this.count) return 0;
-        const idx = (this.getOldestIndex() + offset) % this.capacity;
+        const off = Math.trunc(offset);
+        if (!(off >= 0 && off < this.count)) return 0;
+        const idx = (this.getOldestIndex() + off) % this.capacity;
         return this.ticks[idx];
       }
 
       getValueAtOffset(probeId, offset) {
-        if (offset < 0 || offset >= this.count) return 0;
+        const off = Math.trunc(offset);
+        if (!(off >= 0 && off < this.count)) return 0;
         const arr = this.channels.get(probeId);
         if (!arr) return 0;
-        const idx = (this.getOldestIndex() + offset) % this.capacity;
+        const idx = (this.getOldestIndex() + off) % this.capacity;
         return arr[idx];
       }
 
@@ -6785,12 +6868,18 @@
         this.fromWireId = extra.fromWireId ? String(extra.fromWireId) : null;
         this.toWireId = extra.toWireId ? String(extra.toWireId) : null;
         this.fromPoint = (extra.fromPoint && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
-          ? { x: Math.round(Number(extra.fromPoint.x)), y: Math.round(Number(extra.fromPoint.y)) }
+          ? {
+              x: Math.round(Math.max(-100000, Math.min(100000, Number(extra.fromPoint.x)))),
+              y: Math.round(Math.max(-100000, Math.min(100000, Number(extra.fromPoint.y))))
+            }
           : null;
         this.toPoint = (extra.toPoint && Number.isFinite(Number(extra.toPoint.x)) && Number.isFinite(Number(extra.toPoint.y)))
-          ? { x: Math.round(Number(extra.toPoint.x)), y: Math.round(Number(extra.toPoint.y)) }
+          ? {
+              x: Math.round(Math.max(-100000, Math.min(100000, Number(extra.toPoint.x)))),
+              y: Math.round(Math.max(-100000, Math.min(100000, Number(extra.toPoint.y))))
+            }
           : null;
-        this.style = extra.style === 'diagonal' ? 'diagonal' : (extra.style || 'orthogonal');
+        this.style = extra.style === 'diagonal' ? 'diagonal' : 'orthogonal';
       }
 
       toJSON() {
@@ -6803,6 +6892,7 @@
           waypoints: this.waypoints
         };
         if (this.autoRouted && this.waypoints.length > 0) json.auto = true;
+        if (this.channelOffset) json.channelOffset = this.channelOffset;
         if (this.fromWireId) json.fromWireId = this.fromWireId;
         if (this.toWireId) json.toWireId = this.toWireId;
         if (this.fromPoint) json.fromPoint = this.fromPoint;
@@ -6948,7 +7038,8 @@
           case 'NOR':
           case 'XOR':
           case 'XNOR': {
-            const n = Math.max(2, Math.min(8, parseInt(customParams.numInputs ?? 2, 10)));
+            const rawN = parseInt(customParams.numInputs ?? 2, 10);
+            const n = Number.isFinite(rawN) ? Math.max(2, Math.min(8, rawN)) : 2;
             const isDefaultInvertedOut = this.type === 'NAND' || this.type === 'NOR' || this.type === 'XNOR';
             this.params = {
               label: customParams.label ?? this.type,
@@ -7061,7 +7152,12 @@
         }
 
         if (Array.isArray(customParams.invertedInputs)) {
-          this.params.invertedInputs = [...customParams.invertedInputs];
+          if (Array.isArray(this.params.invertedInputs)) {
+            const expectedLen = this.params.invertedInputs.length;
+            this.params.invertedInputs = Array.from({ length: expectedLen }, (_, i) => Boolean(customParams.invertedInputs[i]));
+          } else {
+            this.params.invertedInputs = customParams.invertedInputs.slice(0, 64).map(Boolean);
+          }
         }
         if (customParams.invertedOutput !== undefined) {
           this.params.invertedOutput = Boolean(customParams.invertedOutput);
@@ -7141,7 +7237,8 @@
           case 'NOR':
           case 'XOR':
           case 'XNOR': {
-            const n = Math.max(2, Math.min(8, parseInt(this.params.numInputs ?? 2, 10)));
+            const rawN = parseInt(this.params.numInputs ?? 2, 10);
+            const n = Number.isFinite(rawN) ? Math.max(2, Math.min(8, rawN)) : 2;
             this.width = 80;
             for (let i = 1; i <= n; i++) {
               inNames.push(`X${i}`);
@@ -7408,11 +7505,13 @@
             this.outputs[0].value = 0;
             this.nextOutputs[0] = 0;
             break;
-          case 'CLOCK':
+          case 'CLOCK': {
+            const initOut = this.params.invertedOutput ? 1 : 0;
             this.state = { counter: 0, value: 0 };
-            this.outputs[0].value = 0;
-            this.nextOutputs[0] = 0;
+            this.outputs[0].value = initOut;
+            this.nextOutputs[0] = initOut;
             break;
+          }
           case 'CONST':
             this.state = {};
             this.outputs[0].value = this.params.value ? 1 : 0;
@@ -7432,29 +7531,64 @@
             break;
           case 'COUNTER':
             this.state = { count: 0, prevClk: 0, committedCount: 0 };
+            if (this.params.invertedOutput) {
+              for (let i = 0; i < this.outputs.length; i++) {
+                this.outputs[i].value = 1;
+                this.nextOutputs[i] = 1;
+              }
+            }
             break;
           case 'SHIFT_REG':
             this.state = { bits: [0, 0, 0, 0], prevClk: 0, committedBits: [0, 0, 0, 0] };
+            if (this.params.invertedOutput) {
+              for (let i = 0; i < this.outputs.length; i++) {
+                this.outputs[i].value = 1;
+                this.nextOutputs[i] = 1;
+              }
+            }
             break;
           case 'SR_FF':
           case 'D_FF':
           case 'JK_FF':
           case 'T_FF': {
             const initQ = this.params.initialValue ? 1 : 0;
+            const outQ = this.params.invertedOutput ? (initQ ? 0 : 1) : initQ;
             this.state = { q: initQ, committedQ: initQ, lastClk: 0 };
-            this.outputs[0].value = initQ;
+            this.outputs[0].value = outQ;
             this.outputs[1].value = initQ === 1 ? 0 : 1;
-            this.nextOutputs[0] = initQ;
+            this.nextOutputs[0] = outQ;
             this.nextOutputs[1] = initQ === 1 ? 0 : 1;
             break;
           }
           case 'D_LATCH': {
             const initQ = this.params.initialValue ? 1 : 0;
+            const outQ = this.params.invertedOutput ? (initQ ? 0 : 1) : initQ;
             this.state = { q: initQ, committedQ: initQ };
-            this.outputs[0].value = initQ;
+            this.outputs[0].value = outQ;
             this.outputs[1].value = initQ === 1 ? 0 : 1;
-            this.nextOutputs[0] = initQ;
+            this.nextOutputs[0] = outQ;
             this.nextOutputs[1] = initQ === 1 ? 0 : 1;
+            break;
+          }
+          case 'CUSTOM_IC': {
+            this.state = {};
+            if (Array.isArray(this._internalComps)) {
+              for (const ic of this._internalComps) ic.resetState();
+              const outs = Array.isArray(this.params.outputs) ? this.params.outputs : [];
+              for (let o = 0; o < this.outputs.length; o++) {
+                const outDef = outs[o];
+                const src = outDef ? this._internalComps[outDef.sourceCompIdx] : null;
+                const raw = (src && src.outputs[outDef.sourcePin]) ? (src.outputs[outDef.sourcePin].value ? 1 : 0) : 0;
+                const val = this.params.invertedOutput ? (raw ^ 1) : raw;
+                this.outputs[o].value = val;
+                this.nextOutputs[o] = val;
+              }
+            } else if (this.params.invertedOutput) {
+              for (let i = 0; i < this.outputs.length; i++) {
+                this.outputs[i].value = 1;
+                this.nextOutputs[i] = 1;
+              }
+            }
             break;
           }
           default:
@@ -7651,6 +7785,7 @@
             let c = sum >> 1;
             if (this.params.invertedOutput) {
               s = s ? 0 : 1;
+              c = c ? 0 : 1;
             }
             this.nextOutputs[0] = s;
             this.nextOutputs[1] = c;
@@ -7724,7 +7859,7 @@
             const clk = this.getEffectiveInputValue(1);
             const rst = this.getEffectiveInputValue(2);
 
-            let nextBits = [...this.state.bits];
+            let nextBits = this.state.bits;
             if (rst === 1) {
               nextBits = [0, 0, 0, 0];
             } else if (this.state.prevClk === 0 && clk === 1) {
@@ -7829,49 +7964,78 @@
           }
           case 'CUSTOM_IC': {
             if (this.params && this.params.subcircuit) {
-              if (!this._internalCircuit) {
-                const sub = this.params.subcircuit;
-                this._internalComps = (sub.components || []).map((c, i) => new Component(`ic_sub_${i}`, c.type, c.dx || 0, c.dy || 0, c.params || {}));
-                this._internalWires = sub.wires || [];
-                this._internalCircuit = true;
-              }
-              const ins = this.params.inputs || [];
-              for (let i = 0; i < ins.length; i++) {
-                const port = ins[i];
-                const inVal = this.inputs[i]?.value ? 1 : 0;
-                if (!port) continue;
-                const targets = Array.isArray(port.targets) ? port.targets : (port.targetCompIdx !== undefined ? [port] : []);
-                for (const t of targets) {
-                  const comp = this._internalComps[t.targetCompIdx];
-                  if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
-                    comp.inputs[t.targetPin].value = inVal;
+              Component._icDepth = (Component._icDepth || 0) + 1;
+              try {
+                if (Component._icDepth <= 8) {
+                  if (!this._internalCircuit) {
+                    const sub = this.params.subcircuit;
+                    this._internalComps = (sub.components || []).slice(0, CUSTOM_MODULE_MAX_PARTS).map((c, i) => new Component(`ic_sub_${i}`, c.type, c.dx || 0, c.dy || 0, c.params || {}));
+                    this._internalWires = (sub.wires || []).slice(0, CUSTOM_MODULE_MAX_PARTS * 4);
+                    this._internalCircuit = true;
+                  }
+                  const ins = this.params.inputs || [];
+                  for (let i = 0; i < ins.length; i++) {
+                    const port = ins[i];
+                    const inVal = this.getEffectiveInputValue(i);
+                    if (!port) continue;
+                    const targets = Array.isArray(port.targets) ? port.targets : (port.targetCompIdx !== undefined ? [port] : []);
+                    for (const t of targets) {
+                      const comp = this._internalComps[t.targetCompIdx];
+                      if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                        comp.inputs[t.targetPin].value = inVal;
+                      }
+                    }
+                  }
+                  const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
+                  const propagateInternalWires = () => {
+                    for (const w of this._internalWires) {
+                      const fromC = this._internalComps[w.from];
+                      const toC = this._internalComps[w.to];
+                      if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
+                        toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
+                      }
+                    }
+                  };
+                  propagateInternalWires();
+                  const maxPasses = Math.max(4, Math.min(32, this._internalComps.length + 2));
+                  for (let iter = 0; iter < maxPasses; iter++) {
+                    let anyChanged = false;
+                    for (const c of this._internalComps) {
+                      if (iter > 0 && seqTypes[c.type]) continue;
+                      c.compute();
+                    }
+                    for (const c of this._internalComps) {
+                      if (iter > 0 && seqTypes[c.type]) continue;
+                      for (let o = 0; o < c.outputs.length; o++) {
+                        if (c.nextOutputs[o] !== c.outputs[o].value) {
+                          anyChanged = true;
+                          break;
+                        }
+                      }
+                      c.commit(true);
+                    }
+                    propagateInternalWires();
+                    if (iter > 0 && !anyChanged) break;
+                  }
+                  const outs = this.params.outputs || [];
+                  const invOut = Boolean(this.params.invertedOutput);
+                  for (let j = 0; j < outs.length; j++) {
+                    const port = outs[j];
+                    let outVal = 0;
+                    if (port && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
+                      const oc = this._internalComps[port.sourceCompIdx];
+                      outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
+                    }
+                    this.nextOutputs[j] = invOut ? (outVal ? 0 : 1) : outVal;
                   }
                 }
-              }
-              for (let iter = 0; iter < 4; iter++) {
-                for (const c of this._internalComps) c.compute();
-                for (const c of this._internalComps) c.commit(true);
-                for (const w of this._internalWires) {
-                  const fromC = this._internalComps[w.from];
-                  const toC = this._internalComps[w.to];
-                  if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
-                    toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
-                  }
-                }
-              }
-              const outs = this.params.outputs || [];
-              for (let j = 0; j < outs.length; j++) {
-                const port = outs[j];
-                let outVal = 0;
-                if (port && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
-                  const oc = this._internalComps[port.sourceCompIdx];
-                  outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
-                }
-                this.nextOutputs[j] = outVal;
+              } finally {
+                Component._icDepth--;
               }
               break;
             }
-            this.nextOutputs[0] = this.inputs[0]?.value ? 1 : 0;
+            const rawIn = this.getEffectiveInputValue(0);
+            this.nextOutputs[0] = this.params.invertedOutput ? (rawIn ? 0 : 1) : rawIn;
             break;
           }
         }
@@ -7984,12 +8148,16 @@
       }
 
       toJSON() {
+        const clonedParams = { ...this.params };
+        if (Array.isArray(this.params.invertedInputs)) clonedParams.invertedInputs = [...this.params.invertedInputs];
+        if (Array.isArray(this.params.inputLabels)) clonedParams.inputLabels = [...this.params.inputLabels];
+        if (Array.isArray(this.params.outputLabels)) clonedParams.outputLabels = [...this.params.outputLabels];
         return {
           id: this.id,
           type: this.type,
           x: this.x,
           y: this.y,
-          params: { ...this.params }
+          params: clonedParams
         };
       }
     }
@@ -8011,11 +8179,28 @@
       }
 
       generateId(prefix = 'c') {
-        return `${prefix}_${this.nextId++}`;
+        let id = `${prefix}_${this.nextId++}`;
+        while (this.compMap.has(id) || this.wireMap.has(id) || this.probeMap.has(id)) {
+          id = `${prefix}_${this.nextId++}`;
+        }
+        return id;
+      }
+
+      _bumpNextIdFrom(id) {
+        if (!id) return;
+        const m = String(id).match(/(\d+)$/);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (Number.isFinite(n) && n >= this.nextId) this.nextId = n + 1;
+        }
       }
 
       addComponent(type, x, y, customParams = {}, forcedId = null) {
-        const id = forcedId || this.generateId('comp');
+        const cleanForced = (forcedId && forcedId !== '__proto__' && forcedId !== 'constructor' && forcedId !== 'prototype' && !this.compMap.has(String(forcedId)))
+          ? String(forcedId)
+          : null;
+        if (cleanForced) this._bumpNextIdFrom(cleanForced);
+        const id = cleanForced || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
         comp.circuit = this;
         this.components.push(comp);
@@ -8280,6 +8465,7 @@
             items.push({ wire: g.wire, pts: fullPts, cum, total: cum[cum.length - 1], origIndex: g.origIndex });
           }
           if (items.length === 0) continue;
+          if (items.length < leafEntries.length) continue;
           if (items.length === 1 && oldTrunks.length === 0) continue;
 
           const oldTrunkIds = new Set(oldTrunks.map(g => g.wire.id));
@@ -8568,7 +8754,11 @@
           }
         }
 
-        const id = forcedId || this.generateId('wire');
+        const cleanForced = (forcedId && forcedId !== '__proto__' && forcedId !== 'constructor' && forcedId !== 'prototype' && !this.wireMap.has(String(forcedId)))
+          ? String(forcedId)
+          : null;
+        if (cleanForced) this._bumpNextIdFrom(cleanForced);
+        const id = cleanForced || this.generateId('wire');
         const wire = new Wire(id, fromCompId || '', fromPin || 0, toCompId || '', toPin || 0, waypoints, extra);
         wire._fromComp = fromComp;
         wire._toComp = toComp;
@@ -8616,7 +8806,6 @@
               const primary = ranked[0];
               if (primary.proj.distSq <= 16) {
                 const prefixPts = this._extractPrefixPoints(pPts, primary.proj.point);
-                const primaryEnd = primary.cPts[primary.cPts.length - 1];
                 primary.ch.fromCompId = wire.fromCompId;
                 primary.ch.fromPin = wire.fromPin;
                 primary.ch._fromComp = wire.fromCompId ? (this.compMap.get(wire.fromCompId) || null) : null;
@@ -8625,8 +8814,7 @@
 
                 const combined = this._simplifyOrthoPts([
                   ...prefixPts,
-                  ...(primary.ch.waypoints || []),
-                  ...(primaryEnd ? [primaryEnd] : [])
+                  ...primary.cPts.slice(1)
                 ]);
                 let corners = combined.length >= 2 ? combined.slice(1, -1).map(p => ({ x: p.x, y: p.y })) : [];
                 if (corners.length === 0 && combined.length === 2) {
@@ -8647,6 +8835,10 @@
           const toComp = wire._toComp || this.getComponent(wire.toCompId);
           if (toComp && toComp.inputs[wire.toPin]) {
             toComp.inputs[wire.toPin].value = 0;
+          }
+          for (const other of this.wires) {
+            if (other.toWireId === wireId) other.toWireId = null;
+            if (other.fromWireId === wireId && other.fromPoint) other.fromWireId = null;
           }
           this.wireMap.delete(wireId);
           const idx = this.wires.findIndex(w => w.id === wireId);
@@ -8735,7 +8927,11 @@
       addProbe(wireId, params = {}) {
         const wire = this.wireMap.get(wireId) || this.wires.find(w => w.id === wireId);
         if (!wire) return null;
-        const id = params.id || this.generateId('prb');
+        const cleanForced = (params.id && params.id !== '__proto__' && params.id !== 'constructor' && params.id !== 'prototype' && !this.probeMap.has(String(params.id)))
+          ? String(params.id)
+          : null;
+        if (cleanForced) this._bumpNextIdFrom(cleanForced);
+        const id = cleanForced || this.generateId('prb');
         const count = this.probes.length;
         const color = params.color || PROBE_PALETTE[count % PROBE_PALETTE.length];
         const name = params.name || `CH${count + 1}`;
@@ -8780,7 +8976,8 @@
       updateGateInputCount(compId, newCount) {
         const comp = this.getComponent(compId);
         if (!comp) return;
-        const n = Math.max(2, Math.min(8, parseInt(newCount, 10)));
+        const rawN = parseInt(newCount, 10);
+        const n = Number.isFinite(rawN) ? Math.max(2, Math.min(8, rawN)) : 2;
         comp.params.numInputs = n;
         if (Array.isArray(comp.params.invertedInputs)) {
           const old = comp.params.invertedInputs;
@@ -8897,7 +9094,10 @@
                 w1.waypoints = combined;
 
                 for (const other of this.wires) {
-                  if (other.fromWireId === w2.id) other.fromWireId = w1.id;
+                  if (other.fromWireId === w2.id) {
+                    if (!other.fromPoint) other.fromPoint = { x: P.x, y: P.y };
+                    other.fromWireId = w1.id;
+                  }
                   if (other.toWireId === w2.id) other.toWireId = w1.id;
                 }
                 if (this.probes) {
@@ -8937,7 +9137,10 @@
                 w1.waypoints = combined;
 
                 for (const other of this.wires) {
-                  if (other.fromWireId === w2.id) other.fromWireId = w1.id;
+                  if (other.fromWireId === w2.id) {
+                    if (!other.fromPoint) other.fromPoint = { x: P.x, y: P.y };
+                    other.fromWireId = w1.id;
+                  }
                   if (other.toWireId === w2.id) other.toWireId = w1.id;
                 }
                 if (this.probes) {
@@ -8973,14 +9176,44 @@
                 const w1HasDriver = Boolean(w1.fromCompId || w1.fromWireId);
                 const w2HasDriver = Boolean(w2.fromCompId || w2.fromWireId);
                 if (w1HasDriver && !w2HasDriver) {
-                  w2.fromWireId = w1.id;
-                  w2.fromPoint = null;
+                  if (w2.fromPoint && !w2.toCompId) {
+                    const P = { x: Math.round(w1.toPoint.x / GRID_SIZE) * GRID_SIZE, y: Math.round(w1.toPoint.y / GRID_SIZE) * GRID_SIZE };
+                    w1.toPoint = { ...w2.fromPoint };
+                    const revWps = (w2.waypoints || []).slice().reverse();
+                    w1.waypoints = [...(w1.waypoints || []), P, ...revWps];
+                    for (const other of this.wires) {
+                      if (other.fromWireId === w2.id) other.fromWireId = w1.id;
+                      if (other.toWireId === w2.id) other.toWireId = w1.id;
+                    }
+                    if (this.probes) {
+                      for (const pr of this.probes) { if (pr.wireId === w2.id) pr.wireId = w1.id; }
+                    }
+                    this.removeWire(w2.id);
+                  } else {
+                    w2.fromWireId = w1.id;
+                    w2.fromPoint = null;
+                  }
                   mergesCount++;
                   changed = true;
                   break;
                 } else if (!w1HasDriver && w2HasDriver) {
-                  w1.fromWireId = w2.id;
-                  w1.fromPoint = null;
+                  if (w1.fromPoint && !w1.toCompId) {
+                    const P = { x: Math.round(w2.toPoint.x / GRID_SIZE) * GRID_SIZE, y: Math.round(w2.toPoint.y / GRID_SIZE) * GRID_SIZE };
+                    w2.toPoint = { ...w1.fromPoint };
+                    const revWps = (w1.waypoints || []).slice().reverse();
+                    w2.waypoints = [...(w2.waypoints || []), P, ...revWps];
+                    for (const other of this.wires) {
+                      if (other.fromWireId === w1.id) other.fromWireId = w2.id;
+                      if (other.toWireId === w1.id) other.toWireId = w2.id;
+                    }
+                    if (this.probes) {
+                      for (const pr of this.probes) { if (pr.wireId === w1.id) pr.wireId = w2.id; }
+                    }
+                    this.removeWire(w1.id);
+                  } else {
+                    w1.fromWireId = w2.id;
+                    w1.fromPoint = null;
+                  }
                   mergesCount++;
                   changed = true;
                   break;
@@ -9001,6 +9234,15 @@
         if (!wire || !this.wireMap.has(wire.id)) return null;
         const gate = this.addComponent(gateType, x, y, customParams);
         if (!gate) return null;
+
+        const origPts = this._getFallbackWirePolyline(wire);
+        let origLen = 0;
+        for (let k = 0; k + 1 < origPts.length; k++) {
+          origLen += Math.hypot(origPts[k + 1].x - origPts[k].x, origPts[k + 1].y - origPts[k].y);
+        }
+        const splitCenter = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
+        const splitProj = origPts.length >= 2 ? this._projectPointOnPoints(origPts, splitCenter) : { distAlong: origLen / 2 };
+        const wasForkTrunk = !wire.toCompId && !wire.toWireId && Boolean(wire.toPoint);
 
         const origToCompId = wire.toCompId;
         const origToPin = wire.toPin;
@@ -9023,6 +9265,29 @@
           [],
           { toWireId: origToWireId, toPoint: origToPoint }
         );
+
+        if (newWire) {
+          for (const cw of this.wires) {
+            if (cw.id === wire.id || cw.id === newWire.id || cw.fromWireId !== wire.id) continue;
+            if (wasForkTrunk) {
+              cw.fromWireId = newWire.id;
+            } else if (cw.fromPoint && origPts.length >= 2) {
+              const cwProj = this._projectPointOnPoints(origPts, cw.fromPoint);
+              if (cwProj.distAlong >= splitProj.distAlong - 1) {
+                cw.fromWireId = newWire.id;
+              }
+            }
+          }
+          if (this.probes && origLen > 0) {
+            for (const pr of this.probes) {
+              if (pr.wireId === wire.id && (pr.offsetRatio * origLen) > splitProj.distAlong) {
+                pr.wireId = newWire.id;
+                const remLen = Math.max(1, origLen - splitProj.distAlong);
+                pr.offsetRatio = Math.max(0.05, Math.min(0.95, ((pr.offsetRatio * origLen) - splitProj.distAlong) / remLen));
+              }
+            }
+          }
+        }
 
         this.snapOpenWiresToComponent(gate);
         this.syncImmediateWireLevels();
@@ -9051,6 +9316,8 @@
         const comps = this.components;
         const compMap = this.compMap;
         const isComb = { AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1, BCD_DEC: 1, FULL_ADDER: 1, MUX: 1, DECODER: 1, CONST: 1 };
+        const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
+        const isCombComp = (c) => Boolean(isComb[c.type]) || (c.type === 'CUSTOM_IC' && (!c.params?.subcircuit?.components || !c.params.subcircuit.components.some(sc => sc && seqTypes[sc.type])));
 
         const incoming = new Map();
         for (let i = 0; i < wires.length; i++) {
@@ -9063,23 +9330,34 @@
         }
 
         const syncAllWireLevels = () => {
+          let hasWireLinks = false;
           for (let i = 0; i < wires.length; i++) {
             const w = wires[i];
             if (w.fromCompId) {
               const src = compMap.get(w.fromCompId);
               w.level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
+            } else {
+              w.level = 0;
             }
+            if (w.fromWireId || w.toWireId) hasWireLinks = true;
           }
+          if (!hasWireLinks) return;
           const maxWireHops = Math.min(64, wires.length + 2);
           for (let pass = 0; pass < maxWireHops; pass++) {
             let wireChanged = false;
             for (let i = 0; i < wires.length; i++) {
               const w = wires[i];
               if (!w.fromCompId && w.fromWireId) {
-                const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
-                const nextLvl = srcWire ? srcWire.level : 0;
-                if (w.level !== nextLvl) {
-                  w.level = nextLvl;
+                const srcWire = this.wireMap.get(w.fromWireId);
+                if (srcWire && srcWire.level === 1 && w.level !== 1) {
+                  w.level = 1;
+                  wireChanged = true;
+                }
+              }
+              if (w.toWireId && w.level === 1) {
+                const dstWire = this.wireMap.get(w.toWireId);
+                if (dstWire && !dstWire.fromCompId && dstWire.level !== 1) {
+                  dstWire.level = 1;
                   wireChanged = true;
                 }
               }
@@ -9095,20 +9373,12 @@
           if (!list) return;
           for (let i = 0; i < list.length; i++) {
             const w = list[i];
-            let level = 0;
-            if (w.fromCompId) {
-              const src = compMap.get(w.fromCompId);
-              level = (src && src.outputs[w.fromPin] && src.outputs[w.fromPin].value) ? 1 : 0;
-            } else if (w.fromWireId) {
-              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
-              level = srcWire ? srcWire.level : 0;
+            if (w.level === 1 && inp[w.toPin]) {
+              inp[w.toPin].value = 1;
             }
-            w.level = level;
-            if (inp[w.toPin]) inp[w.toPin].value = level;
           }
         };
 
-        syncAllWireLevels();
         const maxPasses = Math.max(4, Math.min(64, comps.length + 2));
         for (let pass = 0; pass < maxPasses; pass++) {
           let changed = false;
@@ -9116,7 +9386,7 @@
           for (let i = 0; i < comps.length; i++) {
             const comp = comps[i];
             refreshInputs(comp);
-            if (isComb[comp.type]) {
+            if (isCombComp(comp)) {
               comp.compute();
               for (let o = 0; o < comp.outputs.length; o++) {
                 if (comp.nextOutputs[o] !== comp.outputs[o].value) {
@@ -9149,8 +9419,8 @@
         if (!data || !Array.isArray(data.components) || !Array.isArray(data.wires)) {
           throw new Error('Ungültiges JSON-Schaltungsformat.');
         }
-        if (data.components.length > 5000 || data.wires.length > 10000) {
-          throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen).');
+        if (data.components.length > 5000 || data.wires.length > 10000 || (Array.isArray(data.probes) && data.probes.length > 2000)) {
+          throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen, 2000 Messpunkte).');
         }
         this.clear(ringBuffer);
         if (data && data.globalGateDelay !== undefined && Number.isFinite(Number(data.globalGateDelay))) {
@@ -9185,6 +9455,7 @@
 
         for (const wData of data.wires) {
           if (!wData || typeof wData !== 'object') continue;
+          if (wData.id === '__proto__' || wData.id === 'constructor' || wData.id === 'prototype') continue;
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
           const hasStart = Boolean(this.getComponent(wData.fromCompId) || wData.fromWireId || wData.fromPoint);
           const hasEnd = Boolean(this.getComponent(wData.toCompId) || wData.toWireId || wData.toPoint);
@@ -9208,12 +9479,28 @@
               style: wData.style
             }
           );
-          if (loadedWire && wData.auto === true) loadedWire.autoRouted = true;
+          if (loadedWire) {
+            if (wData.auto === true) loadedWire.autoRouted = true;
+            if (Number.isFinite(Number(wData.channelOffset))) loadedWire.channelOffset = Number(wData.channelOffset);
+          }
+        }
+
+        for (let i = this.wires.length - 1; i >= 0; i--) {
+          const w = this.wires[i];
+          if (w.fromWireId && !this.wireMap.has(w.fromWireId)) w.fromWireId = null;
+          if (w.toWireId && !this.wireMap.has(w.toWireId)) w.toWireId = null;
+          const okStart = Boolean(this.compMap.has(w.fromCompId) || w.fromWireId || w.fromPoint);
+          const okEnd = Boolean(this.compMap.has(w.toCompId) || w.toWireId || w.toPoint);
+          if (!okStart && !okEnd) {
+            this.wireMap.delete(w.id);
+            this.wires.splice(i, 1);
+          }
         }
 
         if (data.probes && Array.isArray(data.probes)) {
           for (const pData of data.probes) {
             if (!pData || typeof pData !== 'object') continue;
+            if (pData.id === '__proto__' || pData.id === 'constructor' || pData.id === 'prototype') continue;
             maxNum = Math.max(maxNum, extractNum(pData.id) + 1);
             this.addProbe(pData.wireId, {
               id: pData.id,
@@ -9224,7 +9511,7 @@
           }
         }
 
-        this.nextId = maxNum + 1;
+        this.nextId = Math.max(this.nextId, maxNum + 1);
         this.syncWirePointers();
         this.syncImmediateWireLevels();
       }
@@ -9232,30 +9519,42 @@
       updateWireLevelsFromDrivers() {
         const comps = this.components;
         const wires = this.wires;
+        let hasWireLinks = false;
 
         for (let i = 0; i < wires.length; i++) {
           const w = wires[i];
           if (w.fromCompId) {
             const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
             w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
+          } else {
+            w.level = 0;
           }
+          if (w.fromWireId || w.toWireId) hasWireLinks = true;
         }
 
-        const maxWireHops = Math.min(64, wires.length + 2);
-        for (let pass = 0; pass < maxWireHops; pass++) {
-          let wireChanged = false;
-          for (let i = 0; i < wires.length; i++) {
-            const w = wires[i];
-            if (!w.fromCompId && w.fromWireId) {
-              const srcWire = this.wireMap.get(w.fromWireId) || this.wires.find(sw => sw.id === w.fromWireId);
-              const nextLvl = srcWire ? srcWire.level : 0;
-              if (w.level !== nextLvl) {
-                w.level = nextLvl;
-                wireChanged = true;
+        if (hasWireLinks) {
+          const maxWireHops = Math.min(64, wires.length + 2);
+          for (let pass = 0; pass < maxWireHops; pass++) {
+            let wireChanged = false;
+            for (let i = 0; i < wires.length; i++) {
+              const w = wires[i];
+              if (!w.fromCompId && w.fromWireId) {
+                const srcWire = this.wireMap.get(w.fromWireId);
+                if (srcWire && srcWire.level === 1 && w.level !== 1) {
+                  w.level = 1;
+                  wireChanged = true;
+                }
+              }
+              if (w.toWireId && w.level === 1) {
+                const dstWire = this.wireMap.get(w.toWireId);
+                if (dstWire && !dstWire.fromCompId && dstWire.level !== 1) {
+                  dstWire.level = 1;
+                  wireChanged = true;
+                }
               }
             }
+            if (!wireChanged) break;
           }
-          if (!wireChanged) break;
         }
 
         for (let i = 0; i < comps.length; i++) {
@@ -9362,7 +9661,8 @@
         for (let i = 0; i < comps.length; i++) {
           const c = comps[i];
           if (isComb[c.type] || GATE_DELAY_TYPES[c.type]) {
-            prevOutputs[i] = c.outputs.map(o => o.value);
+            const outLen = c.outputs.length;
+            prevOutputs[i] = outLen === 1 ? c.outputs[0].value : (outLen > 1 ? c.outputs.map(o => o.value) : null);
             c.compute();
           }
         }
@@ -9380,7 +9680,9 @@
             hasPending = true;
           }
           const prev = prevOutputs[i];
-          if (prev) {
+          if (typeof prev === 'number') {
+            if (c.outputs[0].value !== prev) hasPending = true;
+          } else if (prev) {
             for (let o = 0; o < c.outputs.length; o++) {
               if (c.outputs[o].value !== prev[o]) {
                 hasPending = true;
@@ -9559,9 +9861,21 @@
 
         let minPx = Infinity, minPy = Infinity;
         for (const p of positions.values()) { if (p.x < minPx) minPx = p.x; if (p.y < minPy) minPy = p.y; }
-        for (const p of positions.values()) {
-          p.x = snap(p.x - minPx + anchorX);
-          p.y = snap(p.y - minPy + anchorY);
+        let maxRelRight = 0, maxRelBottom = 0;
+        for (const n of nodes) {
+          const p = positions.get(n.id);
+          if (!p) continue;
+          const rx = p.x - minPx, ry = p.y - minPy;
+          if (rx + n.w > maxRelRight) maxRelRight = rx + n.w;
+          if (ry + n.h > maxRelBottom) maxRelBottom = ry + n.h;
+        }
+        const safeAnchorX = snap(Math.max(-5000, Math.min(Math.max(-5000, 5000 - maxRelRight), anchorX)));
+        const safeAnchorY = snap(Math.max(-5000 + opt.labelPad, Math.min(Math.max(-5000, 5000 - maxRelBottom), anchorY)));
+        for (const n of nodes) {
+          const p = positions.get(n.id);
+          if (!p) continue;
+          p.x = Math.max(-5000, Math.min(5000 - n.w, snap(p.x - minPx + safeAnchorX)));
+          p.y = Math.max(-5000, Math.min(5000 - n.h, snap(p.y - minPy + safeAnchorY)));
         }
         return { positions, info };
       }
@@ -9610,23 +9924,52 @@
       static countCrossings(segList) {
         const m = segList.length;
         if (m < 2) return 0;
-        const frac = (it, relY) => (it.dummy || !it.h) ? 0.5 : Math.max(0.04, Math.min(0.96, relY / it.h));
-        const arr = new Array(m);
+        if (!AutoLayoutEngine._crossCap || AutoLayoutEngine._crossCap < m) {
+          const cap = Math.max(128, m * 2);
+          AutoLayoutEngine._crossCap = cap;
+          AutoLayoutEngine._crossU = new Float64Array(cap);
+          AutoLayoutEngine._crossV = new Float64Array(cap);
+          AutoLayoutEngine._crossIdx = new Int32Array(cap);
+          AutoLayoutEngine._crossVals = new Float64Array(cap);
+          AutoLayoutEngine._crossTmp = new Float64Array(cap);
+        }
+        const uArr = AutoLayoutEngine._crossU;
+        const vArr = AutoLayoutEngine._crossV;
+        const idxArr = AutoLayoutEngine._crossIdx;
         for (let i = 0; i < m; i++) {
           const s = segList[i];
-          arr[i] = [s.u.pos + frac(s.u, s.uy), s.v.pos + frac(s.v, s.vy)];
+          const u = s.u, v = s.v;
+          uArr[i] = u.pos + ((u.dummy || !u.h) ? 0.5 : Math.max(0.04, Math.min(0.96, s.uy / u.h)));
+          vArr[i] = v.pos + ((v.dummy || !v.h) ? 0.5 : Math.max(0.04, Math.min(0.96, s.vy / v.h)));
+          idxArr[i] = i;
         }
-        arr.sort((p, q) => (p[0] - q[0]) || (p[1] - q[1]));
+        for (let i = 1; i < m; i++) {
+          const id = idxArr[i];
+          const uk = uArr[id], vk = vArr[id];
+          let j = i - 1;
+          while (j >= 0) {
+            const jd = idxArr[j];
+            const uj = uArr[jd];
+            if (uj > uk || (uj === uk && vArr[jd] > vk)) {
+              idxArr[j + 1] = jd;
+              j--;
+            } else {
+              break;
+            }
+          }
+          idxArr[j + 1] = id;
+        }
         if (m <= 64) {
           let c = 0;
           for (let i = 0; i < m; i++) {
-            const bi = arr[i][1];
-            for (let j = i + 1; j < m; j++) if (bi > arr[j][1]) c++;
+            const bi = vArr[idxArr[i]];
+            for (let j = i + 1; j < m; j++) if (bi > vArr[idxArr[j]]) c++;
           }
           return c;
         }
-        let vals = arr.map(p => p[1]);
-        let tmp = new Array(m);
+        let vals = AutoLayoutEngine._crossVals;
+        let tmp = AutoLayoutEngine._crossTmp;
+        for (let i = 0; i < m; i++) vals[i] = vArr[idxArr[i]];
         let inv = 0;
         for (let width = 1; width < m; width *= 2) {
           for (let lo = 0; lo < m; lo += 2 * width) {
@@ -10205,10 +10548,15 @@
         const todo = [];
         const fixed = [];
         for (const w of (circuit.wires || [])) {
+          const isTarget = !targetIds || targetIds.has(w.id);
+          if (!isTarget) {
+            fixed.push(w);
+            continue;
+          }
           const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
           const fc = compMap.get(root.compId), tc = compMap.get(w.toCompId);
           if (!fc || !tc || !fc.outputs[root.pin] || !tc.inputs[w.toPin]) continue;
-          if (!targetIds || targetIds.has(w.id)) todo.push(w); else fixed.push(w);
+          todo.push(w);
         }
         for (const w of todo) result.set(w.id, null);
         if (todo.length === 0 || comps.length === 0) return result;
@@ -10280,14 +10628,15 @@
         const netList = [];
         const getNet = (w) => {
           const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
-          const key = root.compId + '\u0000' + root.pin;
+          const fc = root.compId ? compMap.get(root.compId) : null;
+          const hasPin = Boolean(fc && fc.outputs && fc.outputs[root.pin]);
+          const key = hasPin ? (root.compId + '\u0000' + root.pin) : ('~float\u0000' + (root.rootWire ? root.rootWire.id : w.id));
           let net = nets.get(key);
           if (!net) {
-            const fc = compMap.get(root.compId);
-            const p = fc.getPinWorldPos(true, root.pin);
+            const p = hasPin ? fc.getPinWorldPos(true, root.pin) : (fixedPts.get(w.id)?.[0] || { x: 0, y: 0 });
             net = {
-              id: netList.length + 1, key, sx: p.x, sy: p.y, src: nodeOf(p.x, p.y),
-              wires: [], parent: new Map(), base: null, edges: [], ok: true,
+              id: netList.length + 1, key, sx: p.x, sy: p.y, src: hasPin ? nodeOf(p.x, p.y) : -1,
+              wires: [], parent: new Map(), base: null, edges: [], ok: hasPin,
               bx0: 0, bx1: 0, by0: 0, by1: 0
             };
             nets.set(key, net);
@@ -10589,7 +10938,7 @@
             if (pts.length === 2 && pts[0].y === pts[1].y) res.straightWires++;
           }
           const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
-          const net = (root.compId ? root.compId : w.fromCompId) + '\u0000' + (root.compId ? root.pin : w.fromPin);
+          const net = root.compId ? (root.compId + '\u0000' + root.pin) : (w.fromCompId ? (w.fromCompId + '\u0000' + w.fromPin) : ('~' + (root.rootWire ? root.rootWire.id : w.id)));
           res.bends += Math.max(0, pts.length - 2);
           const hit = new Set();
           for (let i = 0; i + 1 < pts.length; i++) {
@@ -10669,6 +11018,8 @@
 
         this.history = [];
         this.maxHistory = 512;
+        this._headSnapshot = null;
+        this._isScrubbed = false;
         this._probeSamplesCache = new Map();
       }
 
@@ -10679,19 +11030,38 @@
         if (this.mode === 'edit') {
           this.pause();
           this.history = [];
+          this._headSnapshot = null;
+          this._isScrubbed = false;
+          for (const comp of this.circuit.components) {
+            if (!comp || !comp.state) continue;
+            comp.state.delayTimer = 0;
+            comp.state.pendingOutput = null;
+            comp.state.pendingOutputs = null;
+            if (comp.state.currentVal !== undefined) comp.state.committedVal = comp.state.currentVal;
+            if (comp.state.count !== undefined) comp.state.committedCount = comp.state.count;
+            if (Array.isArray(comp.state.bits)) comp.state.committedBits = [...comp.state.bits];
+            if (comp.state.q !== undefined) comp.state.committedQ = comp.state.q;
+          }
         } else {
           this.circuit.syncImmediateWireLevels();
+          if (this.secondaryCircuit && this.secondaryCircuit !== this.circuit) {
+            this.secondaryCircuit.syncImmediateWireLevels();
+          }
         }
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       start() {
         if (this.mode !== 'sim' || this.running) return;
+        if (this._isScrubbed && this._headSnapshot) {
+          this.restoreSnapshot(this._headSnapshot);
+          this._isScrubbed = false;
+        }
         this.running = true;
         this.lastFrameTime = performance.now();
         this.accumulator = 0;
         this.loop(this.lastFrameTime);
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       pause() {
@@ -10700,7 +11070,7 @@
           cancelAnimationFrame(this.rafId);
           this.rafId = null;
         }
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       toggleRun() {
@@ -10726,12 +11096,20 @@
         this.pause();
         this.tickCount = 0;
         this.history = [];
+        this._headSnapshot = null;
+        this._isScrubbed = false;
         for (const comp of this.circuit.components) {
           comp.resetState();
         }
         this.circuit.syncImmediateWireLevels();
+        if (this.secondaryCircuit && this.secondaryCircuit !== this.circuit) {
+          for (const comp of this.secondaryCircuit.components) {
+            comp.resetState();
+          }
+          this.secondaryCircuit.syncImmediateWireLevels();
+        }
         this.ringBuffer.clear();
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       cloneState(state) {
@@ -10745,23 +11123,47 @@
         return copy;
       }
 
+      _snapshotComponent(comp) {
+        const inVals = new Array(comp.inputs.length);
+        for (let p = 0; p < comp.inputs.length; p++) inVals[p] = comp.inputs[p].value;
+        const outVals = new Array(comp.outputs.length);
+        for (let p = 0; p < comp.outputs.length; p++) outVals[p] = comp.outputs[p].value;
+        const snap = {
+          id: comp.id,
+          state: this.cloneState(comp.state),
+          inputs: inVals,
+          outputs: outVals,
+          nextOutputs: comp.nextOutputs ? [...comp.nextOutputs] : []
+        };
+        if (Array.isArray(comp._internalComps)) {
+          snap.internalComps = comp._internalComps.map(ic => this._snapshotComponent(ic));
+        }
+        return snap;
+      }
+
+      _restoreComponentSnapshot(comp, cs) {
+        comp.state = this.cloneState(cs.state);
+        for (let i = 0; i < cs.inputs.length && i < comp.inputs.length; i++) {
+          comp.inputs[i].value = cs.inputs[i];
+        }
+        for (let i = 0; i < cs.outputs.length && i < comp.outputs.length; i++) {
+          comp.outputs[i].value = cs.outputs[i];
+        }
+        for (let i = 0; i < cs.nextOutputs.length && i < comp.nextOutputs.length; i++) {
+          comp.nextOutputs[i] = cs.nextOutputs[i];
+        }
+        if (Array.isArray(cs.internalComps) && Array.isArray(comp._internalComps)) {
+          for (let k = 0; k < cs.internalComps.length && k < comp._internalComps.length; k++) {
+            this._restoreComponentSnapshot(comp._internalComps[k], cs.internalComps[k]);
+          }
+        }
+      }
+
       createSnapshot() {
         const comps = this.circuit.components;
         const compSnapshots = new Array(comps.length);
         for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          const inVals = new Array(comp.inputs.length);
-          for (let p = 0; p < comp.inputs.length; p++) inVals[p] = comp.inputs[p].value;
-          const outVals = new Array(comp.outputs.length);
-          for (let p = 0; p < comp.outputs.length; p++) outVals[p] = comp.outputs[p].value;
-
-          compSnapshots[i] = {
-            id: comp.id,
-            state: this.cloneState(comp.state),
-            inputs: inVals,
-            outputs: outVals,
-            nextOutputs: comp.nextOutputs ? [...comp.nextOutputs] : []
-          };
+          compSnapshots[i] = this._snapshotComponent(comps[i]);
         }
         const wires = this.circuit.wires;
         const wireLevels = new Uint8Array(wires.length);
@@ -10782,16 +11184,7 @@
           const cs = snap.comps[s];
           const comp = this.circuit.getComponent(cs.id);
           if (comp) {
-            comp.state = this.cloneState(cs.state);
-            for (let i = 0; i < cs.inputs.length && i < comp.inputs.length; i++) {
-              comp.inputs[i].value = cs.inputs[i];
-            }
-            for (let i = 0; i < cs.outputs.length && i < comp.outputs.length; i++) {
-              comp.outputs[i].value = cs.outputs[i];
-            }
-            for (let i = 0; i < cs.nextOutputs.length && i < comp.nextOutputs.length; i++) {
-              comp.nextOutputs[i] = cs.nextOutputs[i];
-            }
+            this._restoreComponentSnapshot(comp, cs);
           }
         }
         if (snap.wireLevels) {
@@ -10810,12 +11203,34 @@
         }
       }
 
+      scrubToTick(targetTick) {
+        if (this._headSnapshot && this._headSnapshot.tickCount === targetTick) {
+          this.restoreSnapshot(this._headSnapshot);
+          this._isScrubbed = false;
+          return true;
+        }
+        if (!this.history || this.history.length === 0) return false;
+        const snap = this.history.find(s => s.tickCount === targetTick);
+        if (!snap) return false;
+        if (!this._isScrubbed) {
+          this._headSnapshot = this.createSnapshot();
+        }
+        this.restoreSnapshot(snap);
+        this._isScrubbed = true;
+        return true;
+      }
+
       stepBackTick() {
         if (this.mode !== 'sim' || this.running || this.history.length === 0) return;
+        if (this._isScrubbed && this._headSnapshot) {
+          this.restoreSnapshot(this._headSnapshot);
+          this._isScrubbed = false;
+        }
         const snap = this.history.pop();
         this.restoreSnapshot(snap);
+        this._headSnapshot = this.createSnapshot();
         this.ringBuffer.rewind();
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       stepCircuit(circuit) {
@@ -10824,17 +11239,22 @@
       }
 
       stepTick() {
+        if (this._isScrubbed && this._headSnapshot) {
+          this.restoreSnapshot(this._headSnapshot);
+          this._isScrubbed = false;
+        }
         if (this.history.length >= this.maxHistory) {
           this.history.shift();
         }
         this.history.push(this.createSnapshot());
 
         this.stepCircuit(this.circuit);
-        if (this.secondaryCircuit) {
+        if (this.secondaryCircuit && this.secondaryCircuit !== this.circuit) {
           this.stepCircuit(this.secondaryCircuit);
         }
 
         this.tickCount++;
+        this._headSnapshot = this.createSnapshot();
 
         const probeSamples = this._probeSamplesCache || new Map();
         probeSamples.clear();
@@ -10853,12 +11273,12 @@
         }
         this.ringBuffer.record(this.tickCount, probeSamples);
 
-        this.onUpdate();
+        if (typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       loop(now) {
         if (!this.running) return;
-        const dt = Math.min(250, now - this.lastFrameTime);
+        const dt = Math.max(0, Math.min(250, now - this.lastFrameTime));
         this.lastFrameTime = now;
         this.accumulator += dt;
 
@@ -10923,7 +11343,7 @@
           { id: 'l_din',  type: 'SWITCH',    x: 60,  y: 80,  params: { label: 'Seed (DIN)', initialValue: 1 } },
           { id: 'l_clk',  type: 'CLOCK',     x: 60,  y: 180, params: { label: 'System-Takt', halfPeriod: 2 } },
           { id: 'l_rst',  type: 'SWITCH',    x: 60,  y: 260, params: { label: 'Reset (RST)', initialValue: 0 } },
-          { id: 'l_xor',  type: 'XOR',       x: 220, y: 80,  params: { label: 'LFSR-XOR', numInputs: 3 } },
+          { id: 'l_xor',  type: 'XOR',       x: 220, y: 80,  params: { label: 'LFSR-XOR', numInputs: 3, xorMode: 'parity' } },
           { id: 'l_sipo', type: 'SHIFT_REG', x: 400, y: 140, params: { label: '4-Bit SIPO' } },
           { id: 'l_led0', type: 'LED',       x: 640, y: 140, params: { label: 'Lampe Q0', color: 'green' } },
           { id: 'l_led1', type: 'LED',       x: 640, y: 180, params: { label: 'Lampe Q1', color: 'yellow' } },
@@ -11960,7 +12380,7 @@
       }
 
       get selectedWireId() {
-        return this.selectedWireIds.size === 1 ? Array.from(this.selectedWireIds)[0] : (this._primaryWireId || null);
+        return this.selectedWireIds.size === 1 ? this.selectedWireIds.values().next().value : (this._primaryWireId || null);
       }
 
       set selectedWireId(id) {
@@ -12240,6 +12660,22 @@
             if (p1.x >= minX && p1.x <= maxX && segMaxY >= minY && segMinY <= maxY) {
               return true;
             }
+          } else {
+            let t0 = 0, t1 = 1;
+            const dx = p2.x - p1.x, dy = p2.y - p1.y;
+            const checks = [[-dx, p1.x - minX], [dx, maxX - p1.x], [-dy, p1.y - minY], [dy, maxY - p1.y]];
+            let hit = true;
+            for (let k = 0; k < 4; k++) {
+              const p = checks[k][0], q = checks[k][1];
+              if (Math.abs(p) < 1e-9) {
+                if (q < 0) { hit = false; break; }
+              } else {
+                const r = q / p;
+                if (p < 0) { if (r > t1) { hit = false; break; } if (r > t0) t0 = r; }
+                else { if (r < t0) { hit = false; break; } if (r < t1) t1 = r; }
+              }
+            }
+            if (hit && t0 <= t1) return true;
           }
         }
         return false;
@@ -12733,7 +13169,7 @@
 
       getProbeBadgeRect(probe) {
         if (!probe) return null;
-        const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+        const wire = this.circuit.getWire ? this.circuit.getWire(probe.wireId) : this.circuit.wires.find(w => w.id === probe.wireId);
         if (!wire) return null;
         const pts = this.getWirePolyline(wire);
         const pos = this.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
@@ -12882,7 +13318,7 @@
         this.drawDotGrid(ctx, width, height);
         this.drawWires(ctx);
         this.drawActiveWireDrag(ctx);
-        this.drawComponents(ctx);
+        this.drawComponents(ctx, width, height);
         this.drawProbes(ctx);
         this.drawSelectionBox(ctx);
         this.drawPaletteDragGhost(ctx);
@@ -12975,17 +13411,26 @@
 
         const pal = this.getThemePalette();
         const dotSize = 1.6 / Math.sqrt(this.zoom);
+        const majorStep = step * 5;
+        const minorHalf = dotSize * 0.6;
+        const minorFull = dotSize * 1.2;
+        const majorFull = dotSize * 2;
 
+        ctx.fillStyle = pal.gridDot;
         for (let x = startX; x <= endX; x += step) {
+          const isMajorX = (x % majorStep === 0);
           for (let y = startY; y <= endY; y += step) {
-            const isMajor = (x % (step * 5) === 0) && (y % (step * 5) === 0);
-            if (isMajor) {
-              ctx.fillStyle = pal.gridMajor;
-              ctx.fillRect(x - dotSize, y - dotSize, dotSize * 2, dotSize * 2);
-            } else {
-              ctx.fillStyle = pal.gridDot;
-              ctx.fillRect(x - dotSize * 0.6, y - dotSize * 0.6, dotSize * 1.2, dotSize * 1.2);
-            }
+            if (isMajorX && (y % majorStep === 0)) continue;
+            ctx.fillRect(x - minorHalf, y - minorHalf, minorFull, minorFull);
+          }
+        }
+
+        ctx.fillStyle = pal.gridMajor;
+        const majorStartX = Math.ceil(startX / majorStep) * majorStep;
+        const majorStartY = Math.ceil(startY / majorStep) * majorStep;
+        for (let x = majorStartX; x <= endX; x += majorStep) {
+          for (let y = majorStartY; y <= endY; y += majorStep) {
+            ctx.fillRect(x - dotSize, y - dotSize, majorFull, majorFull);
           }
         }
 
@@ -13333,12 +13778,15 @@
           }
 
           const dotRadius = (isJuncHovered || isJuncDragging) ? 6 : (isSel ? 4.8 : 4.0);
-          const fillColor = (isJuncHovered || isJuncDragging) ? '#00e676' : (isSel ? '#00b0ff' : (isHigh ? '#00e676' : '#475569'));
+          const juncHighColor = this.highSignalColor || '#00ff66';
+          const juncLowColor = this.lowSignalColor || pal.wireLow;
+          const fillColor = (isJuncHovered || isJuncDragging) ? '#00e676' : (isSel ? accentBlue : (isHigh ? juncHighColor : juncLowColor));
+          const noGlowTheme = this.appTheme === 'java_swing' || this.appTheme === 'pitch_black';
 
-          if (isHigh || isSel || isJuncHovered || isJuncDragging) {
+          if (!noGlowTheme && (isHigh || isSel || isJuncHovered || isJuncDragging)) {
             ctx.shadowColor = (isJuncHovered || isJuncDragging)
               ? 'rgba(0, 230, 118, 0.7)'
-              : (isSel ? 'rgba(0, 176, 255, 0.6)' : 'rgba(0, 230, 118, 0.6)');
+              : (isSel ? 'rgba(0, 176, 255, 0.6)' : (this.highSignalGlow || 'rgba(0, 255, 102, 0.6)'));
             ctx.shadowBlur = 6;
           }
 
@@ -13427,9 +13875,12 @@
         ctx.restore();
       }
 
-      drawComponents(ctx) {
-        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (this.canvas ? this.canvas.width : 100000);
-        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (this.canvas ? this.canvas.height : 100000);
+      drawComponents(ctx, screenW = null, screenH = null) {
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        const rawW = (ctx && ctx.canvas) ? ctx.canvas.width : (this.canvas ? this.canvas.width : 100000);
+        const rawH = (ctx && ctx.canvas) ? ctx.canvas.height : (this.canvas ? this.canvas.height : 100000);
+        const canvasW = screenW !== null ? screenW : (rawW / dpr);
+        const canvasH = screenH !== null ? screenH : (rawH / dpr);
         const margin = 100;
         const viewLeft = -this.panX / this.zoom - margin;
         const viewTop = -this.panY / this.zoom - margin;
@@ -13448,7 +13899,7 @@
       }
 
       isGate(type) {
-        return ['NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR'].includes(type);
+        return Boolean(ONLY_GATE_TYPES[type]);
       }
 
       drawSingleComponent(ctx, comp) {
@@ -13840,7 +14291,7 @@
         ctx.font = '700 14px monospace';
         ctx.textAlign = 'center';
         const sym = GATE_IEC_SYMBOLS[type] || (type.startsWith('X') ? (comp.params.xorMode === 'parity' ? '≠' : '=1') : '&');
-        ctx.fillText(sym, cx, cy + 5);
+        ctx.fillText(sym, (gx1 + gx2) / 2, cy + 5);
 
         // Output Bubble & Lead Line
         const outPinStub = GATE_PIN_STUB;
@@ -14565,6 +15016,7 @@
       if (!container || !probe || typeof document.createElement !== 'function') return null;
       if (typeof container.querySelectorAll === 'function') {
         container.querySelectorAll('.probe-inline-rename-input').forEach(el => {
+          if (typeof el._cancelInlineRename === 'function') el._cancelInlineRename();
           if (typeof el.remove === 'function') el.remove();
         });
       }
@@ -14596,6 +15048,7 @@
           onCommit(val);
         }
       };
+      input._cancelInlineRename = () => finish(false);
 
       input.addEventListener('keydown', (ke) => {
         if (ke && ke.stopPropagation) ke.stopPropagation();
@@ -15025,6 +15478,8 @@
         });
 
         window.addEventListener('mouseup', () => {
+          const hadActive = Boolean(this.channelDrag || this.isScrubbing || this.isPanningTimeline || this.activeBracketDrag || this.autoscrollTimer);
+          if (!hadActive) return;
           if (this.channelDrag) {
             const wasActive = this.channelDrag.active;
             const draggedId = this.channelDrag.probeId;
@@ -15038,7 +15493,6 @@
               }
             }
             this.canvas.style.cursor = 'default';
-            this.render();
           }
           if (this.isPanningTimeline && !this.panHasMoved && this.panClickTargetOffset !== undefined) {
             this.setPlayheadOffset(this.panClickTargetOffset);
@@ -15239,21 +15693,22 @@
         const total = this.ringBuffer.count;
         if (total === 0) return;
         const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
-        const effective = target !== null ? target : Math.max(0, total - 1);
+        const effective = Math.max(0, Math.min(total - 1, target !== null ? target : total - 1));
         const inTick = this.ringBuffer.getTickAtOffset(effective);
 
-        let outOffset = this.loopRange ? this.loopRange.outOffset : Math.min(total - 1, effective + (this.simFrequency || 10));
+        let outOffset = this.loopRange ? Math.min(total - 1, this.loopRange.outOffset) : Math.min(total - 1, effective + (this.simFrequency || 10));
         let outTick = this.loopRange ? (this.loopRange.outTick ?? this.ringBuffer.getTickAtOffset(outOffset)) : (inTick + (this.simFrequency || 10));
 
         if (effective >= outOffset) {
           outOffset = Math.min(total - 1, effective + 1);
-          outTick = inTick + 1;
+          outTick = this.ringBuffer.getTickAtOffset(outOffset);
         }
 
+        const clampedIn = total <= 1 ? 0 : Math.max(0, Math.min(effective, outOffset - 1));
         this.loopRange = {
-          inOffset: Math.min(effective, outOffset - 1),
+          inOffset: clampedIn,
           outOffset: outOffset,
-          inTick: inTick,
+          inTick: this.ringBuffer.getTickAtOffset(clampedIn),
           outTick: outTick
         };
         this.updateLoopUi();
@@ -15265,22 +15720,23 @@
         const total = this.ringBuffer.count;
         if (total === 0) return;
         const target = offset !== null ? offset : (this.playheadOffset !== null ? this.playheadOffset : this.getHoveredOffset());
-        const effective = target !== null ? target : Math.max(0, total - 1);
+        const effective = Math.max(0, Math.min(total - 1, target !== null ? target : total - 1));
         const outTick = this.ringBuffer.getTickAtOffset(effective);
 
-        let inOffset = this.loopRange ? this.loopRange.inOffset : Math.max(0, effective - (this.simFrequency || 10));
+        let inOffset = this.loopRange ? Math.max(0, Math.min(total - 1, this.loopRange.inOffset)) : Math.max(0, effective - (this.simFrequency || 10));
         let inTick = this.loopRange ? (this.loopRange.inTick ?? this.ringBuffer.getTickAtOffset(inOffset)) : Math.max(0, outTick - (this.simFrequency || 10));
 
         if (effective <= inOffset) {
           inOffset = Math.max(0, effective - 1);
-          inTick = Math.max(0, outTick - 1);
+          inTick = this.ringBuffer.getTickAtOffset(inOffset);
         }
 
+        const clampedOut = total <= 1 ? 0 : Math.min(total - 1, Math.max(inOffset + 1, effective));
         this.loopRange = {
           inOffset: inOffset,
-          outOffset: Math.max(inOffset + 1, effective),
+          outOffset: clampedOut,
           inTick: inTick,
-          outTick: outTick
+          outTick: this.ringBuffer.getTickAtOffset(clampedOut)
         };
         this.updateLoopUi();
         this.render();
@@ -15371,9 +15827,11 @@
         }
 
         if (this.loopRange && this.ringBuffer && this.ringBuffer.count > 0 && oldFreq !== newFreq) {
-          const inOffset = this.loopRange.inOffset;
+          const inOffset = Math.max(0, Math.min(this.ringBuffer.count - 1, this.loopRange.inOffset));
           const oldSpan = Math.max(1, this.loopRange.outOffset - inOffset);
-          const scaledSpan = Math.max(1, Math.min(this.ringBuffer.count - 1 - inOffset, Math.round(oldSpan * (newFreq / oldFreq))));
+          const maxSpan = Math.max(0, this.ringBuffer.count - 1 - inOffset);
+          const scaledSpan = maxSpan === 0 ? 0 : Math.max(1, Math.min(maxSpan, Math.round(oldSpan * (newFreq / oldFreq))));
+          this.loopRange.inOffset = inOffset;
           this.loopRange.outOffset = inOffset + scaledSpan;
           this.loopRange.inTick = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           this.loopRange.outTick = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
@@ -15452,6 +15910,11 @@
         if (!badge) return;
 
         const totalSamples = this.ringBuffer ? this.ringBuffer.count : 0;
+        if (totalSamples === 0) {
+          this.playheadOffset = null;
+        } else if (this.playheadOffset !== null && this.playheadOffset >= totalSamples) {
+          this.playheadOffset = totalSamples - 1;
+        }
         const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
         const plotW = Math.max(50, ((this.canvas ? this.canvas.width : 1200) / dpr) - this.gutterWidth - 12);
         const visibleTicks = Math.max(1, Math.floor(plotW / this.pixelsPerTick));
@@ -15469,7 +15932,7 @@
           const tEnd = this.ringBuffer.getTickAtOffset(Math.max(0, endOffset - 1));
           parts.push(`Zeitrahmen: ${tStart}..${tEnd} (${endOffset - startOffset} Ticks)`);
         }
-        if (this.loopRange) {
+        if (this.loopRange && totalSamples > 0) {
           const tIn = this.ringBuffer.getTickAtOffset(this.loopRange.inOffset);
           const tOut = this.ringBuffer.getTickAtOffset(this.loopRange.outOffset);
           const span = Math.max(1, tOut - tIn);
@@ -15979,7 +16442,7 @@
             this.renderEmpty();
             return;
           }
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const wire = this.circuit.getWire ? this.circuit.getWire(probe.wireId) : this.circuit.wires.find(w => w.id === probe.wireId);
           const rootInfo = wire && this.circuit.resolveWireRoot ? this.circuit.resolveWireRoot(wire) : null;
           const fromComp = wire ? this.circuit.getComponent((rootInfo && rootInfo.compId) || wire.fromCompId) : null;
           const toComp = wire ? this.circuit.getComponent(wire.toCompId) : null;
@@ -16017,7 +16480,7 @@
             chip.style.borderRadius = '50%';
             chip.style.backgroundColor = hex;
             chip.style.cursor = 'pointer';
-            chip.style.border = probe.color === hex ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.2)';
+            chip.style.border = probe.color === hex ? '2px solid var(--text-main)' : '1px solid var(--border-bright)';
             chip.addEventListener('click', () => {
               probe.color = hex;
               this.render(null, null, probe.id);
@@ -16033,7 +16496,7 @@
           const orderWrap = document.createElement('div');
           orderWrap.className = 'prop-group';
           const orderLabel = document.createElement('label');
-          orderLabel.textContent = I18N.phrase('Kanal-Reihenfolge:');
+          orderLabel.textContent = 'Kanal-Reihenfolge:';
           orderWrap.appendChild(orderLabel);
 
           const orderRow = document.createElement('div');
@@ -16045,7 +16508,7 @@
           upBtn.className = 'btn';
           upBtn.style.flex = '1';
           upBtn.disabled = probeIdx <= 0;
-          upBtn.textContent = I18N.phrase('▲ Nach oben');
+          upBtn.textContent = '▲ Nach oben';
           upBtn.addEventListener('click', () => {
             if (this.circuit.moveProbeBy(probe.id, -1)) {
               this.render(null, null, probe.id);
@@ -16057,7 +16520,7 @@
           downBtn.className = 'btn';
           downBtn.style.flex = '1';
           downBtn.disabled = probeIdx === -1 || probeIdx >= probesList.length - 1;
-          downBtn.textContent = I18N.phrase('▼ Nach unten');
+          downBtn.textContent = '▼ Nach unten';
           downBtn.addEventListener('click', () => {
             if (this.circuit.moveProbeBy(probe.id, 1)) {
               this.render(null, null, probe.id);
@@ -16086,7 +16549,7 @@
         }
 
         if (selectedWireId) {
-          const wire = this.circuit.wires.find(w => w.id === selectedWireId);
+          const wire = this.circuit.getWire ? this.circuit.getWire(selectedWireId) : this.circuit.wires.find(w => w.id === selectedWireId);
           if (!wire) {
             this.renderEmpty();
             return;
@@ -16135,12 +16598,14 @@
           styleSelect.className = 'inspector-select';
           styleSelect.style.padding = '3px 6px';
           styleSelect.style.fontSize = '11px';
+          styleSelect.disabled = isSim;
           const diagAllowed = !window.logicSimApp || window.logicSimApp.allowDiagonalWires !== false;
           styleSelect.innerHTML = `
             <option value="orthogonal"${wire.style !== 'diagonal' ? ' selected' : ''}>Rechtwinklig</option>
             <option value="diagonal"${wire.style === 'diagonal' ? ' selected' : ''}${diagAllowed ? '' : ' disabled'}>Diagonal${diagAllowed ? '' : ' (in Einstellungen deaktiviert)'}</option>
           `;
           styleSelect.addEventListener('change', () => {
+            if (this.engine.mode === 'sim') return;
             wire.style = styleSelect.value;
             this.onChange(false);
             if (window.logicSimApp) {
@@ -16160,9 +16625,9 @@
             if (this.engine.mode === 'sim') return;
             if (window.logicSimApp) {
               window.logicSimApp.cleanWireWaypoints(wire);
-              this.render(null, wire.id);
-              window.logicSimApp.renderer.render();
             }
+            this.render(null, wire.id);
+            this.onChange(false);
           });
           wpSection.appendChild(cleanBtn);
 
@@ -16177,7 +16642,7 @@
             wire.waypoints = [];
             wire.channelOffset = 0;
             this.render(null, wire.id);
-            if (window.logicSimApp) window.logicSimApp.renderer.render();
+            this.onChange(false);
           });
           wpSection.appendChild(autoBtn);
 
@@ -16214,7 +16679,7 @@
                 if (this.engine.mode === 'sim') return;
                 wire.waypoints.splice(idx, 1);
                 this.render(null, wire.id);
-                if (window.logicSimApp) window.logicSimApp.renderer.render();
+                this.onChange(false);
               });
               row.appendChild(delWpBtn);
               list.appendChild(row);
@@ -16240,7 +16705,7 @@
           delBtn.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
           delBtn.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
-            this.circuit.removeWire(wire.id);
+            this.circuit.removeWire(wire.id, this.ringBuffer);
             this.onChange(true);
           });
           this.container.appendChild(delBtn);
@@ -16358,13 +16823,16 @@
           }
 
           case 'NOT':
+          case 'BUFFER':
+          case 'TRI_STATE':
+          case 'MAJORITY':
           case 'AND':
           case 'OR':
           case 'NAND':
           case 'NOR':
           case 'XOR':
           case 'XNOR': {
-            if (comp.type !== 'NOT') {
+            if (!['NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY'].includes(comp.type)) {
               this.addRangeControl(
                 'Eingänge (2–8)',
                 comp.params.numInputs,
@@ -16529,7 +16997,11 @@
                 comp.params.mode = val;
                 if (val === 'bcd' && comp.state.count >= 10) {
                   comp.state.count = 0;
+                  comp.state.committedCount = 0;
                 }
+                comp.compute();
+                comp.commit(true);
+                this.circuit.syncImmediateWireLevels();
                 this.onChange(false);
               }
             );
@@ -16567,11 +17039,16 @@
               isSim,
               (val) => {
                 const bit = parseInt(val, 10) ? 1 : 0;
+                const outQ = comp.params.invertedOutput ? (bit ? 0 : 1) : bit;
                 comp.params.initialValue = bit;
                 comp.state.q = bit;
-                comp.outputs[0].value = bit;
+                comp.state.committedQ = bit;
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
+                comp.outputs[0].value = outQ;
                 comp.outputs[1].value = bit === 1 ? 0 : 1;
-                comp.nextOutputs[0] = bit;
+                comp.nextOutputs[0] = outQ;
                 comp.nextOutputs[1] = bit === 1 ? 0 : 1;
                 this.circuit.syncImmediateWireLevels();
                 this.onChange(false);
@@ -16591,11 +17068,16 @@
               isSim,
               (val) => {
                 const bit = parseInt(val, 10) ? 1 : 0;
+                const outQ = comp.params.invertedOutput ? (bit ? 0 : 1) : bit;
                 comp.params.initialValue = bit;
                 comp.state.q = bit;
-                comp.outputs[0].value = bit;
+                comp.state.committedQ = bit;
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
+                comp.outputs[0].value = outQ;
                 comp.outputs[1].value = bit === 1 ? 0 : 1;
-                comp.nextOutputs[0] = bit;
+                comp.nextOutputs[0] = outQ;
                 comp.nextOutputs[1] = bit === 1 ? 0 : 1;
                 this.circuit.syncImmediateWireLevels();
                 this.onChange(false);
@@ -16657,7 +17139,7 @@
               if (typeof list[pinIdx] === 'string') list[pinIdx] = nextVal;
               else if (list[pinIdx] && typeof list[pinIdx] === 'object') list[pinIdx] = { ...list[pinIdx], name: nextVal };
             }
-            const appRef = typeof window !== 'undefined' ? window.app : null;
+            const appRef = this.app || (typeof window !== 'undefined' ? (window.logicSimApp || window.app) : null);
             if (appRef && comp.params.moduleId && typeof appRef.getCustomModules === 'function' && typeof appRef.storeCustomModules === 'function') {
               const mods = appRef.getCustomModules();
               const modIdx = mods.findIndex(m => m.id === comp.params.moduleId);
@@ -16741,7 +17223,7 @@
         this.container.innerHTML = '';
         const isSim = this.engine.mode === 'sim';
         const comps = Array.from(selectedCompIds).map(id => this.circuit.getComponent(id)).filter(Boolean);
-        const wires = Array.from(selectedWireIds).map(id => this.circuit.wires.find(w => w.id === id)).filter(Boolean);
+        const wires = Array.from(selectedWireIds).map(id => this.circuit.getWire ? this.circuit.getWire(id) : this.circuit.wires.find(w => w.id === id)).filter(Boolean);
 
         const info = document.createElement('div');
         info.className = 'prop-info-box';
@@ -16874,10 +17356,7 @@
           valSpan.textContent = formatText(e.target.value);
           onChange(e.target.value);
         });
-        attachSliderHoldRepeat(slider, (val) => {
-          valSpan.textContent = formatText(val);
-          onChange(val);
-        });
+        attachSliderHoldRepeat(slider);
 
         group.appendChild(lbl);
         group.appendChild(slider);
@@ -17168,6 +17647,9 @@
 
           if (peek().type === 'SEMI') {
             consume('SEMI');
+          } else if (peek().type !== 'EOF') {
+            const stray = peek();
+            throw new Error(`Unerwartetes Zeichen '${stray.val || stray.type}', ';' erwartet.`);
           }
         }
 
@@ -17296,7 +17778,7 @@
         }
         switch (node.type) {
           case 'CONST': return node.value;
-          case 'VAR': return (varMap && varMap[node.name] !== undefined) ? varMap[node.name] : 0;
+          case 'VAR': return (varMap && Object.prototype.hasOwnProperty.call(varMap, node.name)) ? (varMap[node.name] ? 1 : 0) : 0;
           case 'NOT': return BooleanParser.evaluateAST(node.child, varMap, depth + 1) === 1 ? 0 : 1;
           case 'AND': return node.children.every(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
           case 'OR': return node.children.some(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
@@ -17401,9 +17883,48 @@
 
         equations.forEach((eq, eqIdx) => {
           const targetName = eq.target || `Y${eqIdx + 1}`;
+          const treeDepth = Math.max(1, getNodeDepth(eq.ast));
           let gateYCounter = currentEqY;
 
-          function buildNode(node, depth) {
+          function buildMultiInputTree(baseType, finalType, sources, col) {
+            if (sources.length === 1) {
+              if (finalType === 'NAND' || finalType === 'NOR' || finalType === 'XNOR') {
+                const invGate = circuit.addComponent('NOT', startX + col * 180, gateYCounter, { label: '' });
+                gateYCounter += 80;
+                circuit.addWire(sources[0].compId, sources[0].pin, invGate.id, 0);
+                return { compId: invGate.id, pin: 0 };
+              }
+              return sources[0];
+            }
+            if (sources.length <= 8) {
+              const gateInputsCount = Math.max(2, sources.length);
+              const gateX = startX + col * 180;
+              const extraParams = (finalType === 'XOR' || finalType === 'XNOR') ? { xorMode: 'parity' } : {};
+              const gateComp = circuit.addComponent(finalType, gateX, gateYCounter, {
+                numInputs: gateInputsCount,
+                label: '',
+                ...extraParams
+              });
+              gateYCounter += Math.max(80, Math.ceil((gateInputsCount * 25) / GRID_SIZE) * GRID_SIZE);
+              for (let i = 0; i < sources.length && i < gateComp.inputs.length; i++) {
+                circuit.addWire(sources[i].compId, sources[i].pin, gateComp.id, i);
+              }
+              return { compId: gateComp.id, pin: 0 };
+            }
+            const nextStage = [];
+            const subCol = Math.max(1, col - 1);
+            for (let i = 0; i < sources.length; i += 8) {
+              const chunk = sources.slice(i, i + 8);
+              if (chunk.length === 1) {
+                nextStage.push(chunk[0]);
+              } else {
+                nextStage.push(buildMultiInputTree(baseType, baseType, chunk, subCol));
+              }
+            }
+            return buildMultiInputTree(baseType, finalType, nextStage, col);
+          }
+
+          function buildNode(node, col) {
             if (!node) return null;
             if (node.type === 'VAR') {
               const sw = varMap.get(node.name);
@@ -17414,52 +17935,40 @@
                 label: `Konstante ${node.value}`,
                 value: node.value === 1 ? 1 : 0
               });
-              gateYCounter += 70;
+              gateYCounter += 80;
               return { compId: cSw.id, pin: 0 };
             }
             if (node.type === 'NOT') {
-              const childSource = buildNode(node.child, depth + 1);
+              const childSource = buildNode(node.child, Math.max(1, col - 1));
               if (!childSource) return null;
-              const gateX = startX + depth * 180;
+              const gateX = startX + col * 180;
               const gateComp = circuit.addComponent('NOT', gateX, gateYCounter, { label: '' });
-              gateYCounter += 70;
+              gateYCounter += 80;
               circuit.addWire(childSource.compId, childSource.pin, gateComp.id, 0);
               return { compId: gateComp.id, pin: 0 };
             }
             if (node.type === 'IMPLY') {
-              const childA = buildNode(node.children[0], depth + 2);
-              const childB = buildNode(node.children[1], depth + 1);
+              const childA = buildNode(node.children[0], Math.max(1, col - 2));
+              const childB = buildNode(node.children[1], Math.max(1, col - 1));
               if (!childA || !childB) return null;
-              const notComp = circuit.addComponent('NOT', startX + (depth + 1) * 180, gateYCounter, { label: '' });
+              const notComp = circuit.addComponent('NOT', startX + Math.max(1, col - 1) * 180, gateYCounter, { label: '' });
               circuit.addWire(childA.compId, childA.pin, notComp.id, 0);
-              gateYCounter += 70;
-              const orComp = circuit.addComponent('OR', startX + depth * 180, gateYCounter, { numInputs: 2, label: '' });
+              gateYCounter += 80;
+              const orComp = circuit.addComponent('OR', startX + col * 180, gateYCounter, { numInputs: 2, label: '' });
               circuit.addWire(notComp.id, 0, orComp.id, 0);
               circuit.addWire(childB.compId, childB.pin, orComp.id, 1);
-              gateYCounter += 70;
+              gateYCounter += 80;
               return { compId: orComp.id, pin: 0 };
             }
             if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'XNOR'].includes(node.type)) {
-              const childSources = node.children.map(c => buildNode(c, depth + 1)).filter(Boolean);
+              const childSources = node.children.map(c => buildNode(c, Math.max(1, col - 1))).filter(Boolean);
               if (childSources.length === 0) return null;
-
-              const gateInputsCount = Math.max(2, Math.min(8, childSources.length));
-              const gateX = startX + depth * 180;
-              const gateComp = circuit.addComponent(node.type, gateX, gateYCounter, {
-                numInputs: gateInputsCount,
-                label: ''
-              });
-              gateYCounter += Math.max(70, gateInputsCount * 25);
-
-              for (let i = 0; i < childSources.length && i < gateComp.inputs.length; i++) {
-                circuit.addWire(childSources[i].compId, childSources[i].pin, gateComp.id, i);
-              }
-              return { compId: gateComp.id, pin: 0 };
+              const baseMap = { AND: 'AND', NAND: 'AND', OR: 'OR', NOR: 'OR', XOR: 'XOR', XNOR: 'XOR' };
+              return buildMultiInputTree(baseMap[node.type], node.type, childSources, col);
             }
             return null;
           }
 
-          const treeDepth = getNodeDepth(eq.ast);
           const topSource = buildNode(eq.ast, treeDepth);
 
           const outX = startX + (treeDepth + 1) * 180;
@@ -17472,7 +17981,7 @@
             circuit.addWire(topSource.compId, topSource.pin, outComp.id, 0);
           }
 
-          currentEqY = Math.max(currentEqY + 90, gateYCounter + 30);
+          currentEqY = Math.max(currentEqY + 100, Math.ceil((gateYCounter + 40) / GRID_SIZE) * GRID_SIZE);
         });
       }
     }
@@ -17495,9 +18004,14 @@
           c.type === 'LED' || c.type === 'PROBE'
         );
 
-        if (outputs.length === 0) {
+        let wireProbes = [];
+        if (outputs.length === 0 && Array.isArray(circuit.probes) && circuit.probes.length > 0) {
+          wireProbes = circuit.probes.filter(p => p && p.wireId && (circuit.getWire ? circuit.getWire(p.wireId) : circuit.wires.some(w => w.id === p.wireId)));
+        }
+
+        if (outputs.length === 0 && wireProbes.length === 0) {
           outputs = circuit.components.filter(c =>
-            ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC', 'FULL_ADDER', 'MUX', 'DECODER'].includes(c.type)
+            ['AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'NOT', 'BUFFER', 'TRI_STATE', 'MAJORITY', 'BCD_DEC', 'FULL_ADDER', 'MUX', 'DECODER', 'CUSTOM_IC'].includes(c.type)
           );
         }
 
@@ -17506,11 +18020,11 @@
           return a.y - b.y;
         });
 
-        return { inputs, outputs };
+        return { inputs, outputs, wireProbes };
       }
 
       static generate(circuit, engine) {
-        const { inputs, outputs } = TruthTableGenerator.analyzeCircuit(circuit);
+        const { inputs, outputs, wireProbes = [] } = TruthTableGenerator.analyzeCircuit(circuit);
 
         if (inputs.length === 0) {
           return {
@@ -17518,7 +18032,7 @@
           };
         }
 
-        if (outputs.length === 0) {
+        if (outputs.length === 0 && wireProbes.length === 0) {
           return {
             error: 'Keine Ausgänge oder Signalindikatoren (LEDs, Messpunkte) gefunden. Bitte schließen Sie eine LED oder einen Messpunkt an Ihre Schaltung an.'
           };
@@ -17529,17 +18043,18 @@
           ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten 8 Eingänge (256 Zeilen) analysiert.`
           : null;
 
-        const seenInNames = new Map();
+        const usedInNames = new Set();
+        const seenInCounts = new Map();
         const inputMeta = cappedInputs.map((comp, idx) => {
           const raw = (comp.params.label || comp.params.name || `IN_${idx + 1}`).trim() || `IN_${idx + 1}`;
           let name = raw;
-          if (seenInNames.has(raw)) {
-            const count = seenInNames.get(raw) + 1;
-            seenInNames.set(raw, count);
+          let count = seenInCounts.get(raw) || 1;
+          while (usedInNames.has(name)) {
+            count++;
             name = `${raw}_${count}`;
-          } else {
-            seenInNames.set(raw, 1);
           }
+          seenInCounts.set(raw, count);
+          usedInNames.add(name);
           return {
             id: comp.id,
             name,
@@ -17548,23 +18063,58 @@
           };
         });
 
-        const seenOutNames = new Map();
-        const outputMeta = outputs.map((comp, idx) => {
-          const raw = (comp.params.label || comp.params.name || (comp.type === 'LED' ? `LED_${idx + 1}` : `OUT_${idx + 1}`)).trim() || `OUT_${idx + 1}`;
-          let name = raw;
-          if (seenOutNames.has(raw)) {
-            const count = seenOutNames.get(raw) + 1;
-            seenOutNames.set(raw, count);
-            name = `${raw}_${count}`;
-          } else {
-            seenOutNames.set(raw, 1);
+        const usedOutNames = new Set();
+        const seenOutCounts = new Map();
+        const allocOutName = (rawFallback) => {
+          let name = rawFallback;
+          let count = seenOutCounts.get(rawFallback) || 1;
+          while (usedOutNames.has(name)) {
+            count++;
+            name = `${rawFallback}_${count}`;
           }
-          return {
-            id: comp.id,
-            name,
-            type: comp.type
-          };
+          seenOutCounts.set(rawFallback, count);
+          usedOutNames.add(name);
+          return name;
+        };
+
+        const outputTargets = [];
+        outputs.forEach((comp, idx) => {
+          const baseRaw = (comp.params.label || comp.params.name || (comp.type === 'LED' ? `LED_${idx + 1}` : `OUT_${idx + 1}`)).trim() || `OUT_${idx + 1}`;
+          if (comp.type === 'LED' || comp.type === 'PROBE' || !comp.outputs || comp.outputs.length <= 1) {
+            outputTargets.push({
+              id: comp.id,
+              name: allocOutName(baseRaw),
+              type: comp.type,
+              comp,
+              outPin: 0,
+              wireProbe: null
+            });
+          } else {
+            for (let p = 0; p < comp.outputs.length; p++) {
+              const pinLabel = comp.outputs[p]?.name || `${p}`;
+              outputTargets.push({
+                id: `${comp.id}:${p}`,
+                name: allocOutName(`${baseRaw}.${pinLabel}`),
+                type: comp.type,
+                comp,
+                outPin: p,
+                wireProbe: null
+              });
+            }
+          }
         });
+        wireProbes.forEach((pr, idx) => {
+          const baseRaw = (pr.name || `CH${idx + 1}`).trim() || `CH${idx + 1}`;
+          outputTargets.push({
+            id: pr.id,
+            name: allocOutName(baseRaw),
+            type: 'PROBE',
+            comp: null,
+            outPin: 0,
+            wireProbe: pr
+          });
+        });
+        const outputMeta = outputTargets.map(t => ({ id: t.id, name: t.name, type: t.type }));
 
         let currentRowIndex = 0;
         for (let i = 0; i < inputMeta.length; i++) {
@@ -17576,7 +18126,8 @@
         const snapshot = engine ? engine.createSnapshot() : null;
         const origSwStates = cappedInputs.map(c => ({
           id: c.id,
-          closed: c.state ? Boolean(c.state.closed) : false,
+          value: c.state ? (c.state.value ? 1 : 0) : 0,
+          pressed: c.state ? (c.state.pressed ? 1 : 0) : 0,
           outVal: c.outputs[0]?.value || 0
         }));
 
@@ -17591,13 +18142,16 @@
             const comp = cappedInputs[i];
             if (comp) {
               if (comp.type === 'SWITCH' && comp.state) {
-                comp.state.closed = (bit === 1);
+                comp.state.value = bit;
+              } else if (comp.type === 'BUTTON' && comp.state) {
+                comp.state.pressed = bit;
               }
+              const effOut = comp.params && comp.params.invertedOutput ? (bit ^ 1) : bit;
               if (comp.outputs && comp.outputs[0]) {
-                comp.outputs[0].value = bit;
+                comp.outputs[0].value = effOut;
               }
               if (comp.nextOutputs) {
-                comp.nextOutputs[0] = bit;
+                comp.nextOutputs[0] = effOut;
               }
             }
           }
@@ -17605,15 +18159,18 @@
           circuit.syncImmediateWireLevels();
 
           const outputValues = {};
-          for (let o = 0; o < outputMeta.length; o++) {
-            const comp = outputs[o];
+          for (let o = 0; o < outputTargets.length; o++) {
+            const target = outputTargets[o];
             let val = 0;
-            if (comp.type === 'LED' || comp.type === 'PROBE') {
-              val = comp.inputs[0]?.value || 0;
-            } else if (comp.outputs && comp.outputs[0]) {
-              val = comp.outputs[0].value || 0;
+            if (target.wireProbe) {
+              const w = circuit.getWire ? circuit.getWire(target.wireProbe.wireId) : circuit.wires.find(x => x.id === target.wireProbe.wireId);
+              val = w && w.level ? 1 : 0;
+            } else if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
+              val = target.comp.getEffectiveInputValue ? target.comp.getEffectiveInputValue(0) : (target.comp.inputs[0]?.value || 0);
+            } else if (target.comp.outputs && target.comp.outputs[target.outPin]) {
+              val = target.comp.outputs[target.outPin].value || 0;
             }
-            outputValues[outputMeta[o].name] = val;
+            outputValues[target.name] = val;
           }
 
           rows.push({
@@ -17687,7 +18244,8 @@
           for (const orig of origSwStates) {
             const c = circuit.getComponent(orig.id);
             if (c) {
-              if (c.state) c.state.closed = orig.closed;
+              if (c.type === 'SWITCH' && c.state) c.state.value = orig.value;
+              else if (c.type === 'BUTTON' && c.state) c.state.pressed = orig.pressed;
               if (c.outputs && c.outputs[0]) c.outputs[0].value = orig.outVal;
               if (c.nextOutputs) c.nextOutputs[0] = orig.outVal;
             }
@@ -17708,8 +18266,9 @@
 
       static toCSV(tableData) {
         if (!tableData || !tableData.rows) return '';
-        const inHeaders = tableData.inputs.map(i => `"${i.name}"`);
-        const outHeaders = tableData.outputs.map(o => `"${o.name}"`);
+        const escCsv = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
+        const inHeaders = tableData.inputs.map(i => escCsv(i.name));
+        const outHeaders = tableData.outputs.map(o => escCsv(o.name));
         const lines = [`"Nr",${inHeaders.join(',')},${outHeaders.join(',')}`];
 
         for (const row of tableData.rows) {
@@ -17722,8 +18281,9 @@
 
       static toMarkdown(tableData) {
         if (!tableData || !tableData.rows) return '';
-        const inHeaders = tableData.inputs.map(i => i.name);
-        const outHeaders = tableData.outputs.map(o => o.name);
+        const escMd = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+        const inHeaders = tableData.inputs.map(i => escMd(i.name));
+        const outHeaders = tableData.outputs.map(o => escMd(o.name));
         const headers = ['#', ...inHeaders, ...outHeaders];
         const sep = headers.map(() => '---');
 
@@ -17845,7 +18405,7 @@
               this.highlightInspector();
               const probe = this.circuit.getProbe(probeId);
               if (probe) {
-                const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+                const wire = this.circuit.getWire(probe.wireId);
                 if (wire) {
                   const pts = this.renderer.getWirePolyline(wire);
                   const pos = this.renderer.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
@@ -17873,21 +18433,18 @@
             onPlayheadChange: (offset) => {
               if (offset !== null) {
                 const targetTick = this.ringBuffer.getTickAtOffset(offset);
-                if (this.engine.history && this.engine.history.length > 0) {
-                  const snap = this.engine.history.find(s => s.tickCount === targetTick);
-                  if (snap) {
-                    this.engine.restoreSnapshot(snap);
-                  }
-                }
+                const restored = typeof this.engine.scrubToTick === 'function' ? this.engine.scrubToTick(targetTick) : false;
                 const probes = this.circuit.getProbes();
                 for (const probe of probes) {
                   const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
-                  const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+                  const wire = this.circuit.getWire(probe.wireId);
                   if (wire) {
                     wire.level = val;
                   }
                 }
-                this.circuit.syncImmediateWireLevels();
+                if (!restored) {
+                  this.circuit.syncImmediateWireLevels();
+                }
                 this.renderer.render();
                 this.updateHUDAndToolbar();
               }
@@ -17931,6 +18488,7 @@
             this.refreshAll();
           }
         );
+        this.inspector.app = this;
 
         this.isPanning = false;
         this.spacePressed = false;
@@ -17967,15 +18525,16 @@
         this.lowSignalColor = null;
         this.canvasTheme = 'tech_dots';
         this.appTheme = 'modern';
+        this.symbolStandard = 'DIN_40700';
         this.autoSaveCircuit = true;
 
         this.loadSettings();
 
-        const savedNorm = localStorage.getItem('logicsim_symbol_norm') || 'DIN_40700';
+        const savedNorm = localStorage.getItem('logicsim_symbol_norm') || this.symbolStandard || 'DIN_40700';
         this.setSymbolStandard(savedNorm);
 
         const savedTheme = localStorage.getItem('logicsim_theme') || this.appTheme || 'modern';
-        this.setAppTheme(savedTheme);
+        this.setAppTheme(savedTheme, false);
 
         this.currentTruthTableData = null;
 
@@ -18023,7 +18582,9 @@
         let lang = null;
         try { lang = localStorage.getItem('logicsim_language'); } catch (e) { lang = null; }
         if (lang !== 'de' && lang !== 'en') {
-          const nav = typeof navigator !== 'undefined' && navigator.language ? String(navigator.language).toLowerCase() : 'de';
+          const nav = (typeof window !== 'undefined' && window.navigator && window.navigator.language)
+            ? String(window.navigator.language).toLowerCase()
+            : 'de';
           lang = nav.startsWith('de') ? 'de' : 'en';
         }
         this.setLanguage(lang);
@@ -18109,6 +18670,8 @@
         this.activeTabId = tabId;
         this.circuit = nextTab.circuit;
         this.ringBuffer = nextTab.ringBuffer;
+        this.globalGateDelay = Number.isFinite(this.circuit.globalGateDelay) ? this.circuit.globalGateDelay : 1;
+        this.moduleGateDelays = { ...(this.circuit.moduleGateDelays || {}) };
         this.engine.circuit = this.circuit;
         this.engine.ringBuffer = this.ringBuffer;
         this.renderer.circuit = this.circuit;
@@ -18136,6 +18699,7 @@
 
         this.renderTabsBar();
         this.updateSplitSelectOptions();
+        if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
         this.refreshAll();
         this.updateUndoRedoUI();
         if (typeof this.updateScenarioGuide === 'function' && this.visitedScenarios) this.updateScenarioGuide();
@@ -18498,15 +19062,29 @@
         tab.circuit.fromJSON(JSON.parse(snapshot), tab.ringBuffer);
         tab.lastSnapshot = JSON.stringify(tab.circuit.toJSON());
         tab.lastCommitCoalesced = false;
-        if (tab === this.getActiveTab()) this.selectItem(null, null);
+        if (tab === this.getActiveTab()) {
+          this.globalGateDelay = Number.isFinite(tab.circuit.globalGateDelay) ? tab.circuit.globalGateDelay : 1;
+          this.moduleGateDelays = { ...(tab.circuit.moduleGateDelays || {}) };
+          if (typeof this.syncPaletteDelayUi === 'function') this.syncPaletteDelayUi();
+          this.selectItem(null, null);
+        }
+        if (this.splitScreenMode && this.rendererRight && this.rightTabId === tab.id) {
+          this.rendererRight.selectedCompId = null;
+          this.rendererRight.selectedWireId = null;
+          this.rendererRight.selectedCompIds.clear();
+          this.rendererRight.selectedWireIds.clear();
+          this.rendererRight.selectedProbeId = null;
+        }
         this.refreshAll();
         if (this.splitScreenMode && this.rendererRight) {
           this.rendererRight.render();
         }
+        this.saveTabsToStorage();
         this.updateUndoRedoUI();
       }
 
       undo(targetTab = null) {
+        if (this.engine.mode === 'sim') return;
         const tab = this.resolveHistoryTab(targetTab);
         if (!tab) return;
         this.commitHistory(tab);
@@ -18518,6 +19096,7 @@
       }
 
       redo(targetTab = null) {
+        if (this.engine.mode === 'sim') return;
         const tab = this.resolveHistoryTab(targetTab);
         if (!tab) return;
         if (this.commitHistory(tab)) return; // a fresh edit invalidated the redo stack
@@ -19032,13 +19611,14 @@
         }
       }
 
-      addWaypointToWire(wire, worldPos) {
+      addWaypointToWire(wire, worldPos, renderer = this.renderer) {
         if (!wire) return;
+        const rend = renderer || this.renderer;
         this.ensureWireWaypoints(wire);
         const snapX = Math.round(worldPos.x / GRID_SIZE) * GRID_SIZE;
         const snapY = Math.round(worldPos.y / GRID_SIZE) * GRID_SIZE;
 
-        const pts = this.renderer.getWirePolyline(wire);
+        const pts = rend.getWirePolyline(wire);
         if (!pts || pts.length < 2) return;
         const p1 = pts[0];
         const p2 = pts[pts.length - 1];
@@ -19047,7 +19627,7 @@
         let bestSeg = 0;
         let minDistSq = Infinity;
         for (let i = 0; i < fullList.length - 1; i++) {
-          const dSq = this.renderer.distToSegmentSq(worldPos.x, worldPos.y, fullList[i].x, fullList[i].y, fullList[i + 1].x, fullList[i + 1].y);
+          const dSq = rend.distToSegmentSq(worldPos.x, worldPos.y, fullList[i].x, fullList[i].y, fullList[i + 1].x, fullList[i + 1].y);
           if (dSq < minDistSq) {
             minDistSq = dSq;
             bestSeg = i;
@@ -19088,7 +19668,7 @@
 
         if (selectedWireIds.size > 0 && selectedCompIds.size === 0) {
           for (const wid of selectedWireIds) {
-            const w = this.circuit.wires.find(wire => wire.id === wid);
+            const w = this.circuit.getWire(wid);
             if (w) {
               const root = this.circuit.resolveWireRoot(w);
               if (root.compId) selectedCompIds.add(root.compId);
@@ -19105,32 +19685,76 @@
           if (c) comps.push(c.toJSON());
         }
 
-        const wires = [];
         const addedWireIds = new Set();
         for (const w of this.circuit.wires) {
           const root = this.circuit.resolveWireRoot(w);
           const effectiveFrom = w.fromCompId || root.compId;
-          if (
-            (selectedCompIds.has(effectiveFrom) && selectedCompIds.has(w.toCompId)) ||
-            (selectedWireIds.has(w.id) && selectedCompIds.has(effectiveFrom) && selectedCompIds.has(w.toCompId))
-          ) {
-            if (!addedWireIds.has(w.id)) {
-              addedWireIds.add(w.id);
-              wires.push(w.toJSON());
+          if (w.toCompId && selectedCompIds.has(effectiveFrom) && selectedCompIds.has(w.toCompId)) {
+            addedWireIds.add(w.id);
+          } else if (selectedWireIds.has(w.id) && (!effectiveFrom || selectedCompIds.has(effectiveFrom)) && (!w.toCompId || selectedCompIds.has(w.toCompId))) {
+            addedWireIds.add(w.id);
+          }
+        }
+
+        // Walk upstream fromWireId ancestors so Steiner fork trunk wires are included cleanly
+        let expanded = true;
+        let guard = 0;
+        while (expanded && guard++ < 32) {
+          expanded = false;
+          for (const wid of Array.from(addedWireIds)) {
+            const w = this.circuit.getWire(wid);
+            if (w && w.fromWireId && !addedWireIds.has(w.fromWireId)) {
+              const pw = this.circuit.getWire(w.fromWireId);
+              if (pw) {
+                const pRoot = this.circuit.resolveWireRoot(pw);
+                if (!pRoot.compId || selectedCompIds.has(pRoot.compId)) {
+                  addedWireIds.add(pw.id);
+                  expanded = true;
+                }
+              }
             }
+            if (w && w.toWireId && !addedWireIds.has(w.toWireId)) {
+              const tw = this.circuit.getWire(w.toWireId);
+              if (tw && (!tw.toCompId || selectedCompIds.has(tw.toCompId))) {
+                addedWireIds.add(tw.id);
+                expanded = true;
+              }
+            }
+          }
+        }
+
+        const wires = [];
+        for (const w of this.circuit.wires) {
+          if (!addedWireIds.has(w.id)) continue;
+          const root = this.circuit.resolveWireRoot(w);
+          const wJson = w.toJSON();
+          if (root.compId) {
+            wJson._rootCompId = root.compId;
+            wJson._rootPin = root.pin || 0;
+          }
+          wires.push(wJson);
+        }
+
+        const probes = [];
+        for (const p of (this.circuit.probes || [])) {
+          if (addedWireIds.has(p.wireId)) {
+            probes.push(p.toJSON());
           }
         }
 
         this.clipboard = {
           components: comps,
-          wires: wires
+          wires,
+          probes
         };
       }
 
       pasteClipboard() {
+        if (this.engine.mode === 'sim') return;
         if (!this.clipboard || !this.clipboard.components || this.clipboard.components.length === 0) {
           return;
         }
+        this.checkpointHistory();
 
         let minX = Infinity;
         let minY = Infinity;
@@ -19167,29 +19791,48 @@
         const newWireIds = [];
         const wireIdMap = new Map();
         const deferredChildren = [];
-        const createCopiedWire = (wData, allowFork = false) => {
-          const newFromId = wData.fromCompId ? idMap.get(wData.fromCompId) : null;
+        const createCopiedWire = (wData, fallbackToRoot = false) => {
+          let newFromId = wData.fromCompId ? idMap.get(wData.fromCompId) : null;
+          let newFromPin = wData.fromPin || 0;
           const newFromWireId = (!newFromId && wData.fromWireId) ? wireIdMap.get(wData.fromWireId) : null;
-          const newToId = idMap.get(wData.toCompId);
-          if (!newToId) return;
-          if (!newFromId && !newFromWireId) {
-            if (allowFork && wData.fromWireId) {
-              // Parent wire wasn't copied: fallback to resolving copied root if possible
+          const newToId = wData.toCompId ? idMap.get(wData.toCompId) : null;
+          const newToWireId = (!newToId && wData.toWireId) ? wireIdMap.get(wData.toWireId) : null;
+          const hasToPoint = Boolean(!wData.toCompId && !wData.toWireId && wData.toPoint);
+          const hasFromPointOnly = Boolean(!wData.fromCompId && !wData.fromWireId && wData.fromPoint);
+
+          if (!newToId && !newToWireId && !hasToPoint) {
+            if (wData.toWireId && !fallbackToRoot) deferredChildren.push(wData);
+            return;
+          }
+          if (!newFromId && !newFromWireId && !hasFromPointOnly) {
+            if (!fallbackToRoot && wData.fromWireId) {
+              deferredChildren.push(wData);
               return;
             }
-            if (!allowFork && wData.fromWireId) {
-              deferredChildren.push(wData);
+            if (fallbackToRoot && wData._rootCompId && idMap.has(wData._rootCompId)) {
+              newFromId = idMap.get(wData._rootCompId);
+              newFromPin = wData._rootPin || 0;
+            } else {
+              return;
             }
-            return;
           }
           const waypoints = (wData.waypoints || []).map(p => ({
             x: p.x + offsetX,
             y: p.y + offsetY
           }));
+          if (fallbackToRoot && newFromId && !wData.fromCompId && wData.fromPoint) {
+            waypoints.unshift({ x: wData.fromPoint.x + offsetX, y: wData.fromPoint.y + offsetY });
+          }
           const extra = { style: wData.style };
           if (newFromWireId) extra.fromWireId = newFromWireId;
-          if (wData.fromPoint) extra.fromPoint = { x: wData.fromPoint.x + offsetX, y: wData.fromPoint.y + offsetY };
-          const newWire = this.circuit.addWire(newFromId, wData.fromPin, newToId, wData.toPin, null, waypoints, extra);
+          if (newToWireId) extra.toWireId = newToWireId;
+          if (wData.fromPoint && (!newFromId || newFromWireId)) {
+            extra.fromPoint = { x: wData.fromPoint.x + offsetX, y: wData.fromPoint.y + offsetY };
+          }
+          if (wData.toPoint && !newToId) {
+            extra.toPoint = { x: wData.toPoint.x + offsetX, y: wData.toPoint.y + offsetY };
+          }
+          const newWire = this.circuit.addWire(newFromId, newFromPin, newToId, wData.toPin, null, waypoints, extra);
           if (newWire) {
             newWire.channelOffset = wData.channelOffset || 0;
             if (wData.auto) newWire.autoRouted = true;
@@ -19198,13 +19841,45 @@
           }
         };
         for (const wData of this.clipboard.wires) createCopiedWire(wData, false);
-        for (let pass = 0; pass < 8 && deferredChildren.length > 0; pass++) {
+        for (let pass = 0; pass < 16 && deferredChildren.length > 0; pass++) {
           const pending = deferredChildren.splice(0, deferredChildren.length);
+          let progressed = false;
           for (const wData of pending) {
             const prevLen = newWireIds.length;
             createCopiedWire(wData, false);
-            if (newWireIds.length === prevLen && wData.fromWireId && !wireIdMap.has(wData.fromWireId)) {
+            if (newWireIds.length > prevLen) {
+              progressed = true;
+            } else {
               deferredChildren.push(wData);
+            }
+          }
+          if (!progressed) break;
+        }
+        if (deferredChildren.length > 0) {
+          const remaining = deferredChildren.splice(0, deferredChildren.length);
+          for (const wData of remaining) createCopiedWire(wData, true);
+        }
+
+        // Collapse any copied fork trunk that ended up with fewer than 2 children (partial selection)
+        for (const wid of newWireIds.slice()) {
+          const w = this.circuit.getWire(wid);
+          if (w && !w.toCompId && !w.toWireId && w.toPoint) {
+            const kids = this.circuit.wires.filter(ch => ch.fromWireId === w.id && !ch.fromCompId);
+            if (kids.length === 0) {
+              this.circuit.removeWire(w.id);
+            }
+          }
+        }
+
+        if (Array.isArray(this.clipboard.probes)) {
+          for (const pData of this.clipboard.probes) {
+            const mappedWireId = wireIdMap.get(pData.wireId);
+            if (mappedWireId) {
+              this.circuit.addProbe(mappedWireId, {
+                name: pData.name,
+                color: pData.color,
+                offsetRatio: pData.offsetRatio
+              });
             }
           }
         }
@@ -19244,6 +19919,7 @@
 
       setSymbolStandard(norm) {
         if (!SYMBOL_STANDARDS[norm]) norm = 'DIN_40700';
+        this.symbolStandard = norm;
         this.renderer.symbolStandard = norm;
         localStorage.setItem('logicsim_symbol_norm', norm);
 
@@ -19307,10 +19983,14 @@
 
       onSimulationUpdate() {
         this.refreshAll();
-        if (this.renderer.selectedWireId) {
-          this.inspector.render(null, this.renderer.selectedWireId);
-        } else if (this.renderer.selectedProbeId) {
-          this.inspector.render(null, null, this.renderer.selectedProbeId);
+        const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+        const editingInspector = Boolean(activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT') && this.inspectorContainer && typeof this.inspectorContainer.contains === 'function' && this.inspectorContainer.contains(activeEl));
+        if (!editingInspector) {
+          if (this.renderer.selectedWireId) {
+            this.inspector.render(null, this.renderer.selectedWireId);
+          } else if (this.renderer.selectedProbeId) {
+            this.inspector.render(null, null, this.renderer.selectedProbeId);
+          }
         }
       }
 
@@ -19627,10 +20307,17 @@
         }
         this.groupWireStartWaypoints = new Map();
         this.groupWireStartFromPoints = new Map();
+        this.groupWireStartToPoints = new Map();
+        const areAllTrunkChildrenSelected = (trunkId, depth = 0) => {
+          if (depth > 16) return false;
+          const kids = this.circuit.wires.filter(cw => cw.fromWireId === trunkId && !cw.fromCompId);
+          if (kids.length === 0) return false;
+          return kids.every(cw => cw.toCompId ? this.renderer.selectedCompIds.has(cw.toCompId) : areAllTrunkChildrenSelected(cw.id, depth + 1));
+        };
         for (const wire of this.circuit.wires) {
           const root = this.circuit.resolveWireRoot(wire);
           const fromSel = this.renderer.selectedCompIds.has(wire.fromCompId || root.compId);
-          const toSel = this.renderer.selectedCompIds.has(wire.toCompId);
+          const toSel = wire.toCompId ? this.renderer.selectedCompIds.has(wire.toCompId) : (this.circuit.isForkTrunkWire(wire) && areAllTrunkChildrenSelected(wire.id));
           const wireSel = this.renderer.selectedWireIds.has(wire.id);
           if ((fromSel && toSel) || wireSel) {
             if (wire.waypoints && wire.waypoints.length > 0) {
@@ -19638,6 +20325,9 @@
             }
             if (wire.fromPoint && !wire.fromCompId) {
               this.groupWireStartFromPoints.set(wire.id, { x: wire.fromPoint.x, y: wire.fromPoint.y });
+            }
+            if (wire.toPoint && !wire.toCompId) {
+              this.groupWireStartToPoints.set(wire.id, { x: wire.toPoint.x, y: wire.toPoint.y });
             }
           }
         }
@@ -20485,6 +21175,9 @@
           const tab = getTargetTab();
           const renderer = getRenderer();
           if (!tab || !renderer || !type) return;
+          if (this.splitScreenMode) {
+            this.setActivePane(renderer === this.rendererRight ? 'right' : 'left');
+          }
 
           this.pushHistory(tab);
 
@@ -20492,6 +21185,17 @@
           const screenX = clientX - rect.left;
           const screenY = clientY - rect.top;
           const worldPos = renderer.screenToWorld(screenX, screenY);
+
+          const finalizeDrop = () => {
+            if (tab !== this.getActiveTab()) {
+              this.commitHistory(tab);
+              this.saveTabsToStorage();
+            }
+            if (renderer !== this.renderer) {
+              renderer.render();
+            }
+            this.refreshAll();
+          };
 
           if (type === 'PROBE') {
             const hitWire = renderer.findWireAt(worldPos.x, worldPos.y, 25);
@@ -20521,7 +21225,7 @@
               const probe = tab.circuit.addProbe(targetWire.id, params);
               if (probe) {
                 renderer.selectedProbeId = probe.id;
-                this.refreshAll();
+                finalizeDrop();
               }
               return;
             }
@@ -20547,8 +21251,7 @@
                   this.showToast(`○ Eingang ${pinHit.name || ('X' + (pinHit.pinIndex + 1))} von ${comp.params.label || comp.type} ${comp.params.invertedInputs[pinHit.pinIndex] ? 'negiert (○)' : 'normal'}`);
                 }
                 tab.circuit.syncImmediateWireLevels();
-                this.commitHistory(tab);
-                this.refreshAll();
+                finalizeDrop();
                 return;
               }
             }
@@ -20563,10 +21266,11 @@
                   this.selectItem(res.gate.id, null);
                   this.highlightInspector();
                 }
-                this.cleanWireWaypoints(res.wireIn);
-                this.cleanWireWaypoints(res.wireOut);
-                this.commitHistory(tab);
-                this.refreshAll();
+                if (renderer === this.renderer) {
+                  this.cleanWireWaypoints(res.wireIn);
+                  this.cleanWireWaypoints(res.wireOut);
+                }
+                finalizeDrop();
                 this.showToast('Invertierer (NOT-Gatter) in Leitung eingefügt');
                 return;
               }
@@ -20581,7 +21285,7 @@
               this.getDefaultParamsForNewComponent('NOT')
             );
             if (comp) {
-              const snapped = this.snapOpenWiresToComponent(comp);
+              const snapped = this.snapOpenWiresToComponent(comp, 24, tab.circuit);
               if (snapped > 0) {
                 this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
               } else {
@@ -20592,16 +21296,14 @@
                 this.highlightInspector();
               }
             }
-            this.commitHistory(tab);
-            this.refreshAll();
+            finalizeDrop();
             return;
           }
 
           if (type.startsWith('MODULE:')) {
             const placed = this.placeCustomModule(tab.circuit, renderer, type.slice(7), worldPos.x, worldPos.y);
             if (placed) {
-              renderer.render();
-              this.refreshAll();
+              finalizeDrop();
             }
             return;
           }
@@ -20614,27 +21316,25 @@
             customParams
           );
           if (comp) {
-            comp.x = Math.round((worldPos.x - comp.width / 2) / GRID_SIZE) * GRID_SIZE;
-            comp.y = Math.round((worldPos.y - comp.height / 2) / GRID_SIZE) * GRID_SIZE;
-            const snapped = this.snapOpenWiresToComponent(comp);
+            comp.x = Math.max(-5000, Math.min(5000 - (comp.width || 80), Math.round((worldPos.x - comp.width / 2) / GRID_SIZE) * GRID_SIZE));
+            comp.y = Math.max(-5000, Math.min(5000 - (comp.height || 40), Math.round((worldPos.y - comp.height / 2) / GRID_SIZE) * GRID_SIZE));
+            const snapped = this.snapOpenWiresToComponent(comp, 24, tab.circuit);
             if (snapped > 0) {
               this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
             }
           }
-          renderer.render();
           if (canvas === this.gridCanvas && comp) {
             this.selectItem(comp.id, null);
             this.highlightInspector();
           }
-          this.commitHistory(tab);
-          this.refreshAll();
+          finalizeDrop();
       }
 
-      snapOpenWiresToComponent(comp, snapRadius = 24) {
-        if (!comp || !this.circuit) return 0;
-        const count = this.circuit.snapOpenWiresToComponent(comp, snapRadius);
-        if (count > 0) {
-          for (const w of this.circuit.wires) {
+      snapOpenWiresToComponent(comp, snapRadius = 24, targetCircuit = this.circuit) {
+        if (!comp || !targetCircuit) return 0;
+        const count = targetCircuit.snapOpenWiresToComponent(comp, snapRadius);
+        if (count > 0 && targetCircuit === this.circuit) {
+          for (const w of targetCircuit.wires) {
             if (w.toCompId === comp.id || w.fromCompId === comp.id) {
               this.cleanWireWaypoints(w);
             }
@@ -20674,6 +21374,9 @@
         const canvas = this.gridCanvas;
 
         canvas.addEventListener('mousedown', (e) => {
+          if (this.splitScreenMode && this.activePane !== 'left') {
+            this.setActivePane('left');
+          }
           this.hideContextMenu();
           if (this._layoutAnim) this.finishLayoutAnimation();
 
@@ -21098,7 +21801,7 @@
             }
             if (this.groupWireStartWaypoints) {
               for (const [wid, origWps] of this.groupWireStartWaypoints.entries()) {
-                const wire = this.circuit.wires.find(w => w.id === wid);
+                const wire = this.circuit.getWire(wid);
                 if (wire && origWps) {
                   wire.waypoints = origWps.map(p => ({
                     x: p.x + snapDx,
@@ -21109,9 +21812,17 @@
             }
             if (this.groupWireStartFromPoints) {
               for (const [wid, origFp] of this.groupWireStartFromPoints.entries()) {
-                const wire = this.circuit.wires.find(w => w.id === wid);
+                const wire = this.circuit.getWire(wid);
                 if (wire && origFp) {
                   wire.fromPoint = { x: origFp.x + snapDx, y: origFp.y + snapDy };
+                }
+              }
+            }
+            if (this.groupWireStartToPoints) {
+              for (const [wid, origTp] of this.groupWireStartToPoints.entries()) {
+                const wire = this.circuit.getWire(wid);
+                if (wire && origTp) {
+                  wire.toPoint = { x: origTp.x + snapDx, y: origTp.y + snapDy };
                 }
               }
             }
@@ -21189,7 +21900,6 @@
             }
 
             this.renderer.render();
-            if (this.inspector) this.inspector.render(null, wire.id);
             canvas.style.cursor = 'grabbing';
             return;
           }
@@ -21204,7 +21914,6 @@
               wpWire.waypoints[idx].x = nx;
               wpWire.waypoints[idx].y = ny;
               this.renderer.render();
-              if (this.inspector) this.inspector.render(null, wpWire.id);
             }
             canvas.style.cursor = 'crosshair';
             return;
@@ -21389,13 +22098,12 @@
               }
             }
             this.renderer.render();
-            if (this.inspector) this.inspector.render(null, wire.id);
             canvas.style.cursor = isHorizontal ? 'row-resize' : 'col-resize';
             return;
           }
 
           if (this.draggingProbe && this.engine.mode === 'edit') {
-            const wire = this.circuit.wires.find(w => w.id === this.draggingProbe.wireId);
+            const wire = this.circuit.getWire(this.draggingProbe.wireId);
             if (wire) {
               const pts = this.renderer.getWirePolyline(wire);
               this.draggingProbe.offsetRatio = this.renderer.getProjectedRatioOnPolyline(pts, world);
@@ -21432,7 +22140,6 @@
             }
             this.draggingComp.x = nextX;
             this.draggingComp.y = nextY;
-            this.inspector.render(this.draggingComp.id, null);
             this.renderer.render();
             return;
           }
@@ -21548,7 +22255,6 @@
               this.cleanWireWaypoints(w);
             }
             this.circuit.syncImmediateWireLevels();
-            this.commitHistory(this.getActiveTab());
             this.refreshAll();
           }
 
@@ -21577,9 +22283,11 @@
             if (wire) {
               this.cleanWireWaypoints(wire);
               this.circuit.syncImmediateWireLevels();
+              if (this.inspector && this.renderer.selectedWireId === wire.id) {
+                this.inspector.render(null, wire.id);
+              }
             }
             this.mergeOpenWireTermini(16);
-            this.commitHistory(this.getActiveTab());
             this.refreshAll();
           }
 
@@ -21587,7 +22295,12 @@
             const w = this.draggingWaypoint.wire;
             this.draggingWaypoint = null;
             this.renderer.activeWaypointDrag = null;
-            if (w) this.cleanWireWaypoints(w);
+            if (w) {
+              this.cleanWireWaypoints(w);
+              if (this.inspector && this.renderer.selectedWireId === w.id) {
+                this.inspector.render(null, w.id);
+              }
+            }
             this.refreshAll();
           }
 
@@ -21595,7 +22308,12 @@
             const dragSeg = this.draggingSegment;
             const w = dragSeg.wire;
             this.draggingSegment = null;
-            if (w) this.cleanWireWaypoints(w);
+            if (w) {
+              this.cleanWireWaypoints(w);
+              if (this.inspector && this.renderer.selectedWireId === w.id) {
+                this.inspector.render(null, w.id);
+              }
+            }
             if (dragSeg.startJunctionDrag && dragSeg.startJunctionDrag.allWires) {
               for (const aw of dragSeg.startJunctionDrag.allWires) this.cleanWireWaypoints(aw);
             }
@@ -21632,6 +22350,9 @@
             this.activeButtonComp = null;
             if (this.engine.mode === 'sim') {
               this.circuit.updateWireLevelsFromDrivers();
+              if (typeof this.circuit.settleZeroDelayGates === 'function') {
+                this.circuit.settleZeroDelayGates(false);
+              }
             } else {
               this.triggerEditPropagation(this.circuit);
             }
@@ -21667,6 +22388,8 @@
             }
             this.groupStartPositions = null;
             this.groupWireStartWaypoints = null;
+            this.groupWireStartFromPoints = null;
+            this.groupWireStartToPoints = null;
             this.gridCanvas.style.cursor = 'default';
             this.endDragPreview(groupIds, groupMoved);
             if (groupMoved) this.refreshAll(); else this.renderer.render();
@@ -21725,6 +22448,9 @@
         });
 
         canvas.addEventListener('dblclick', (e) => {
+          if (this.splitScreenMode && this.activePane !== 'left') {
+            this.setActivePane('left');
+          }
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
@@ -21761,6 +22487,13 @@
             if (comp && (this.renderer.isGate(comp.type) || (pinHit.isOutput ? comp.outputs.length > 0 : comp.inputs.length > 0))) {
               if (pinHit.isOutput) {
                 comp.params.invertedOutput = !comp.params.invertedOutput;
+                if (ONLY_GATE_TYPES[comp.type]) {
+                  comp.compute();
+                  comp.commit(true);
+                } else if (comp.outputs[0]) {
+                  comp.outputs[0].value = comp.outputs[0].value ? 0 : 1;
+                  comp.nextOutputs[0] = comp.outputs[0].value;
+                }
               } else {
                 if (!Array.isArray(comp.params.invertedInputs)) {
                   comp.params.invertedInputs = new Array(comp.inputs.length).fill(false);
@@ -21785,6 +22518,9 @@
 
         canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
+          if (this.splitScreenMode && this.activePane !== 'left') {
+            this.setActivePane('left');
+          }
           this.hideContextMenu();
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
@@ -21838,6 +22574,7 @@
                 clickedComp.outputs[0].value = clickedComp.state.value;
                 clickedComp.nextOutputs[0] = clickedComp.state.value;
                 rTab.circuit.updateWireLevelsFromDrivers();
+                if (typeof rTab.circuit.settleZeroDelayGates === 'function') rTab.circuit.settleZeroDelayGates(false);
                 this.rendererRight.render();
                 return;
               }
@@ -21847,6 +22584,7 @@
                 clickedComp.nextOutputs[0] = 1;
                 activeButtonCompRight = clickedComp;
                 rTab.circuit.updateWireLevelsFromDrivers();
+                if (typeof rTab.circuit.settleZeroDelayGates === 'function') rTab.circuit.settleZeroDelayGates(false);
                 this.rendererRight.render();
                 return;
               }
@@ -21874,7 +22612,6 @@
 
           const hitComp = this.rendererRight.findComponentAt(world.x, world.y);
           if (hitComp) {
-            this.pushHistory(rTab);
             this.rendererRight.selectedCompId = hitComp.id;
             this.rendererRight.selectedWireId = null;
             draggingCompRight = hitComp;
@@ -21943,16 +22680,17 @@
             }
             const rawX = world.x - dragOffsetWorldRight.x;
             const rawY = world.y - dragOffsetWorldRight.y;
-            const nextX = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
-            const nextY = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+            const nextX = Math.max(-5000, Math.min(5000 - (draggingCompRight.width || 80), Math.round(rawX / GRID_SIZE) * GRID_SIZE));
+            const nextY = Math.max(-5000, Math.min(5000 - (draggingCompRight.height || 40), Math.round(rawY / GRID_SIZE) * GRID_SIZE));
             if (compMouseDownPosRight && !compMouseDownPosRight.hasMoved) {
               if (nextX === compMouseDownPosRight.origX && nextY === compMouseDownPosRight.origY) return;
+              const rTab = this.getRightTab();
+              if (rTab) this.pushHistory(rTab);
               compMouseDownPosRight.hasMoved = true;
               if (activeButtonCompRight === draggingCompRight) {
                 activeButtonCompRight.state.pressed = 0;
                 activeButtonCompRight.outputs[0].value = 0;
                 activeButtonCompRight.nextOutputs[0] = 0;
-                const rTab = this.getRightTab();
                 if (rTab) rTab.circuit.syncImmediateWireLevels();
                 activeButtonCompRight = null;
               }
@@ -21977,6 +22715,7 @@
             if (rTab) {
               if (this.engine.mode === 'sim') {
                 rTab.circuit.updateWireLevelsFromDrivers();
+                if (typeof rTab.circuit.settleZeroDelayGates === 'function') rTab.circuit.settleZeroDelayGates(false);
               } else {
                 this.triggerEditPropagation(rTab.circuit);
               }
@@ -21986,14 +22725,22 @@
           }
           if (draggingCompRight) {
             const rTab = this.getRightTab();
-            if (compMouseDownPosRight && (compMouseDownPosRight.origX !== draggingCompRight.x || compMouseDownPosRight.origY !== draggingCompRight.y)) {
-              if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
+            const movedRight = Boolean(compMouseDownPosRight && (compMouseDownPosRight.origX !== draggingCompRight.x || compMouseDownPosRight.origY !== draggingCompRight.y));
+            if (movedRight) {
+              if (rTab) {
+                this.commitHistory(rTab);
+                this.saveTabsToStorage();
               }
             } else if (this.allowEditModeInteraction && draggingCompRight.type === 'SWITCH') {
+              if (rTab) this.pushHistory(rTab);
               draggingCompRight.state.value = draggingCompRight.state.value === 1 ? 0 : 1;
               draggingCompRight.outputs[0].value = draggingCompRight.state.value;
               draggingCompRight.nextOutputs[0] = draggingCompRight.state.value;
-              if (rTab) this.triggerEditPropagation(rTab.circuit);
+              if (rTab) {
+                this.triggerEditPropagation(rTab.circuit);
+                this.commitHistory(rTab);
+                this.saveTabsToStorage();
+              }
             }
             draggingCompRight = null;
             compMouseDownPosRight = null;
@@ -22018,7 +22765,9 @@
           const hitWire = this.rendererRight.findWireAt(world.x, world.y, 16);
           if (hitWire) {
             this.pushHistory(rTab);
-            this.addWaypointToWire(hitWire, world, this.rendererRight, rTab.circuit);
+            this.addWaypointToWire(hitWire, world, this.rendererRight);
+            this.commitHistory(rTab);
+            this.saveTabsToStorage();
             this.rendererRight.render();
           }
         });
@@ -22034,6 +22783,9 @@
 
         canvas.addEventListener('contextmenu', (e) => {
           e.preventDefault();
+          if (this.splitScreenMode && this.activePane !== 'left') {
+            this.setActivePane('left');
+          }
           const rect = canvas.getBoundingClientRect();
           const sx = e.clientX - rect.left;
           const sy = e.clientY - rect.top;
@@ -22059,7 +22811,7 @@
           if (hitTerminus) {
             this.selectItem(null, hitTerminus.wire.id);
             this.highlightInspector();
-            this.showWireContextMenu(e.clientX, e.clientY, hitTerminus.wire, world);
+            this.showContextMenu(e.clientX, e.clientY, null, hitTerminus.wire, world);
             return;
           }
 
@@ -22567,9 +23319,11 @@
           } else {
             styleItem.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Verlegungsart: ${isDiag ? 'Zu Rechtwinklig' : 'Zu Diagonal'}</span>`;
             styleItem.addEventListener('click', () => {
+              if (this.engine.mode === 'sim') return;
+              this.checkpointHistory();
               wire.style = isDiag ? 'orthogonal' : 'diagonal';
-              this.renderer.render();
               this.inspector.render(null, wire.id);
+              this.refreshAll();
               this.hideContextMenu();
             });
           }
@@ -22580,9 +23334,10 @@
           addWpItem.innerHTML = `<span>${ICONS.plus}</span> <span>Eckpunkt hier hinzufügen</span>`;
           addWpItem.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
+            this.checkpointHistory();
             this.addWaypointToWire(wire, worldPos);
-            this.renderer.render();
             this.inspector.render(null, wire.id);
+            this.refreshAll();
             this.hideContextMenu();
           });
           menu.appendChild(addWpItem);
@@ -22592,9 +23347,10 @@
           cleanBendsWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Begradigen</span>`;
           cleanBendsWire.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
+            this.checkpointHistory();
             this.cleanWireWaypoints(wire);
-            this.renderer.render();
             this.inspector.render(null, wire.id);
+            this.refreshAll();
             this.hideContextMenu();
             this.showToast('Leitung begradigt');
           });
@@ -22604,10 +23360,12 @@
           autoRouteWire.className = 'ctx-item';
           autoRouteWire.innerHTML = `<span>${ICONS.autoRoute}</span> <span>Neu verlegen (Auto)</span>`;
           autoRouteWire.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.checkpointHistory();
             wire.waypoints = [];
             wire.channelOffset = 0;
-            this.renderer.render();
             this.inspector.render(null, wire.id);
+            this.refreshAll();
             this.hideContextMenu();
           });
           menu.appendChild(autoRouteWire);
@@ -22616,6 +23374,7 @@
           addProbeItem.className = 'ctx-item';
           addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt setzen</span>`;
           addProbeItem.addEventListener('click', () => {
+            this.checkpointHistory();
             const pts = this.renderer.getWirePolyline(wire);
             const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
             const probe = this.circuit.addProbe(wire.id, {
@@ -22636,7 +23395,8 @@
           delWire.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
           delWire.addEventListener('click', () => {
             if (this.engine.mode === 'sim') return;
-            this.circuit.removeWire(wire.id);
+            this.checkpointHistory();
+            this.circuit.removeWire(wire.id, this.ringBuffer);
             this.selectItem(null, null);
             this.refreshAll();
             this.hideContextMenu();
@@ -24642,7 +25402,7 @@
         }
         if (isCompress === null) {
           const hasInputs = comps.some(c => c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK');
-          const hasOutputs = comps.some(c => c.type === 'LED' || c.type === 'HEX_DISPLAY');
+          const hasOutputs = comps.some(c => c.type === 'LED' || c.type === 'HEX_DISPLAY' || c.type === 'SEVEN_SEG');
           if (hasInputs || hasOutputs) {
             isCompress = window.confirm(
               'Möchtest du das Modul in ein einzelnes Bauteil (Black-Box IC) komprimieren?\n\n' +
@@ -24657,8 +25417,12 @@
         let modData = null;
 
         if (isCompress) {
-          const inputComps = comps.filter(c => c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK');
-          const outputComps = comps.filter(c => c.type === 'LED' || c.type === 'HEX_DISPLAY');
+          const inputComps = comps
+            .filter(c => c.type === 'SWITCH' || c.type === 'BUTTON' || c.type === 'CLOCK')
+            .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+          const outputComps = comps
+            .filter(c => c.type === 'LED' || c.type === 'HEX_DISPLAY' || c.type === 'SEVEN_SEG')
+            .sort((a, b) => (a.y - b.y) || (a.x - b.x));
           const internalComps = comps.filter(c => !inputComps.includes(c) && !outputComps.includes(c));
 
           const gates = internalComps.length > 0 ? internalComps : comps;
@@ -24686,19 +25450,22 @@
 
           const outputs = [];
           for (const outC of outputComps) {
-            const incoming = circuit.wires.filter(w => {
-              const root = circuit.resolveWireRoot(w);
-              return w.toCompId === outC.id && gateIndex.has(w.fromCompId || root.compId);
-            });
             const label = outC.params.label || outC.type || 'OUT';
-            if (incoming.length > 0) {
-              const w = incoming[0];
-              const root = circuit.resolveWireRoot(w);
-              outputs.push({
-                name: label,
-                sourceCompIdx: gateIndex.get(w.fromCompId || root.compId),
-                sourcePin: w.fromCompId ? w.fromPin : root.pin
+            const pinCount = Array.isArray(outC.inputs) && outC.inputs.length > 0 ? outC.inputs.length : 1;
+            for (let p = 0; p < pinCount; p++) {
+              const incoming = circuit.wires.find(w => {
+                const root = circuit.resolveWireRoot(w);
+                return w.toCompId === outC.id && w.toPin === p && gateIndex.has(w.fromCompId || root.compId);
               });
+              if (incoming) {
+                const root = circuit.resolveWireRoot(incoming);
+                const pinLabel = pinCount > 1 ? `${label}.${outC.inputs[p]?.name || p}` : label;
+                outputs.push({
+                  name: pinLabel,
+                  sourceCompIdx: gateIndex.get(incoming.fromCompId || root.compId),
+                  sourcePin: incoming.fromCompId ? incoming.fromPin : root.pin
+                });
+              }
             }
           }
           if (outputs.length === 0) outputs.push({ name: 'OUT', sourceCompIdx: Math.max(0, gates.length - 1), sourcePin: 0 });
@@ -24739,6 +25506,42 @@
           const minX = Math.min(...comps.map(c => c.x));
           const minY = Math.min(...comps.map(c => c.y));
           const index = new Map(comps.map((c, i) => [c.id, i]));
+          const buildMacroWaypoints = (w) => {
+            if (w.fromCompId || !w.fromWireId || !this.renderer) {
+              return (w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }));
+            }
+            const chain = [];
+            const seen = new Set();
+            let cur = w;
+            while (cur && !seen.has(cur.id)) {
+              seen.add(cur.id);
+              chain.unshift(cur);
+              if (cur.fromCompId || !cur.fromWireId) break;
+              cur = circuit.getWire(cur.fromWireId);
+            }
+            const fullPts = [];
+            for (let ci = 0; ci < chain.length; ci++) {
+              const segWire = chain[ci];
+              const pts = this.renderer.getWirePolyline(segWire);
+              const nextBranch = chain[ci + 1];
+              if (nextBranch && nextBranch.fromPoint && pts.length >= 2) {
+                let cutIdx = pts.length - 2;
+                const jx = nextBranch.fromPoint.x, jy = nextBranch.fromPoint.y;
+                for (let s = 0; s + 1 < pts.length; s++) {
+                  const ax = pts[s].x, ay = pts[s].y, bx = pts[s + 1].x, by = pts[s + 1].y;
+                  if (jx >= Math.min(ax, bx) - 1 && jx <= Math.max(ax, bx) + 1 && jy >= Math.min(ay, by) - 1 && jy <= Math.max(ay, by) + 1) {
+                    cutIdx = s;
+                    break;
+                  }
+                }
+                for (let k = (ci === 0 ? 0 : 1); k <= cutIdx; k++) fullPts.push(pts[k]);
+                fullPts.push({ x: jx, y: jy });
+              } else {
+                for (let k = (ci === 0 ? 0 : 1); k < pts.length; k++) fullPts.push(pts[k]);
+              }
+            }
+            return fullPts.slice(1, -1).map(p => ({ dx: p.x - minX, dy: p.y - minY }));
+          };
           modData = {
             id: `mod_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
             name,
@@ -24762,7 +25565,7 @@
                 fp: item.fp,
                 to: index.get(item.w.toCompId),
                 tp: item.w.toPin,
-                wp: (item.w.waypoints || []).map(p => ({ dx: p.x - minX, dy: p.y - minY }))
+                wp: buildMacroWaypoints(item.w)
               }))
           };
         }
@@ -24818,6 +25621,7 @@
           const waypoints = (w.wp || []).map(p => ({ x: ox + p.dx, y: oy + p.dy }));
           circuit.addWire(a.id, w.fp, b2.id, w.tp, null, waypoints);
         }
+        if (typeof circuit.normalizeForkWires === 'function') circuit.normalizeForkWires();
         renderer.selectedCompIds.clear();
         for (const c of created) renderer.selectedCompIds.add(c.id);
         renderer.selectedWireId = null;
@@ -25098,20 +25902,28 @@
           const targetX = Math.max(-5000, Math.min(5000, Math.round((Number.isFinite(rawX) ? rawX : 0) / GRID_SIZE) * GRID_SIZE));
           const targetY = Math.max(-5000, Math.min(5000, Math.round((Number.isFinite(rawY) ? rawY : 0) / GRID_SIZE) * GRID_SIZE));
 
-          if (this.renderer.selectedCompId) {
+          let movedComp = null;
+          if (this.engine.mode === 'edit' && this.renderer.selectedCompId) {
             const comp = this.circuit.getComponent(this.renderer.selectedCompId);
             if (comp) {
-              const dx = targetX - comp.x;
-              const dy = targetY - comp.y;
-              comp.x = Math.max(-5000, Math.min(5000 - (comp.width || 80), targetX));
-              comp.y = Math.max(-5000, Math.min(5000 - (comp.height || 40), targetY));
-              for (const w of this.circuit.wires) {
-                if ((w.fromCompId === comp.id || w.toCompId === comp.id) && w.waypoints && w.waypoints.length > 0) {
-                  w.waypoints = w.waypoints.map(p => ({
-                    x: Math.max(-5000, Math.min(5000, p.x + dx)),
-                    y: Math.max(-5000, Math.min(5000, p.y + dy))
-                  }));
+              const clampedX = Math.max(-5000, Math.min(5000 - (comp.width || 80), targetX));
+              const clampedY = Math.max(-5000, Math.min(5000 - (comp.height || 40), targetY));
+              const dx = clampedX - comp.x;
+              const dy = clampedY - comp.y;
+              if (dx !== 0 || dy !== 0) {
+                this.checkpointHistory();
+                comp.x = clampedX;
+                comp.y = clampedY;
+                for (const w of this.circuit.wires) {
+                  if ((w.fromCompId === comp.id || w.toCompId === comp.id) && w.waypoints && w.waypoints.length > 0) {
+                    w.waypoints = w.waypoints.map(p => ({
+                      x: Math.max(-5000, Math.min(5000, p.x + dx)),
+                      y: Math.max(-5000, Math.min(5000, p.y + dy))
+                    }));
+                  }
                 }
+                this.rerouteWiresAround([comp.id]);
+                movedComp = comp;
               }
               if (this.inspector) this.inspector.render(comp.id, null);
             }
@@ -25122,7 +25934,11 @@
           const ch = this.gridCanvas.height / dpr;
           this.renderer.panX = Math.round(cw / 2 - targetX * this.renderer.zoom);
           this.renderer.panY = Math.round(ch / 2 - targetY * this.renderer.zoom);
-          this.renderer.render();
+          if (movedComp) {
+            this.refreshAll();
+          } else {
+            this.renderer.render();
+          }
 
           this.updateStatusCoords({ x: targetX, y: targetY });
           this.showToast(`Viewport auf X: ${targetX} px, Y: ${targetY} px zentriert`);
@@ -25162,20 +25978,65 @@
         if (this.engine.mode !== 'edit') return false;
         const ids = Array.from(this.renderer.selectedCompIds || []);
         if (ids.length === 0) return false;
+        let stepX = dx * GRID_SIZE;
+        let stepY = dy * GRID_SIZE;
         for (const id of ids) {
           const c = this.circuit.getComponent(id);
-          if (c) { c.x += dx * GRID_SIZE; c.y += dy * GRID_SIZE; }
+          if (!c) continue;
+          const minDx = -5000 - c.x;
+          const maxDx = (5000 - (c.width || 80)) - c.x;
+          const minDy = -5000 - c.y;
+          const maxDy = (5000 - (c.height || 40)) - c.y;
+          stepX = Math.max(minDx, Math.min(maxDx, stepX));
+          stepY = Math.max(minDy, Math.min(maxDy, stepY));
+        }
+        if (stepX === 0 && stepY === 0) return false;
+        for (const id of ids) {
+          const c = this.circuit.getComponent(id);
+          if (c) { c.x += stepX; c.y += stepY; }
         }
         const moved = new Set(ids);
+        const allTargetsMoved = (trunkId, seen = new Set()) => {
+          if (seen.has(trunkId)) return true;
+          seen.add(trunkId);
+          let hasChild = false;
+          for (const ch of this.circuit.wires) {
+            if (ch.fromWireId !== trunkId) continue;
+            hasChild = true;
+            if (ch.toCompId) {
+              if (!moved.has(ch.toCompId)) return false;
+            } else if (this.circuit.isForkTrunkWire(ch)) {
+              if (!allTargetsMoved(ch.id, seen)) return false;
+            } else {
+              return false;
+            }
+          }
+          return hasChild;
+        };
         for (const w of this.circuit.wires) {
           const root = this.circuit.resolveWireRoot(w);
           const fromId = w.fromCompId || root.compId;
-          if (moved.has(fromId) && moved.has(w.toCompId)) {
+          const targetInside = w.toCompId
+            ? moved.has(w.toCompId)
+            : (this.circuit.isForkTrunkWire(w) && allTargetsMoved(w.id));
+          if (moved.has(fromId) && targetInside) {
             if (w.waypoints && w.waypoints.length > 0) {
-              w.waypoints = w.waypoints.map(p => ({ x: p.x + dx * GRID_SIZE, y: p.y + dy * GRID_SIZE }));
+              w.waypoints = w.waypoints.map(p => ({
+                x: Math.max(-5000, Math.min(5000, p.x + stepX)),
+                y: Math.max(-5000, Math.min(5000, p.y + stepY))
+              }));
             }
             if (!w.fromCompId && w.fromPoint) {
-              w.fromPoint = { x: w.fromPoint.x + dx * GRID_SIZE, y: w.fromPoint.y + dy * GRID_SIZE };
+              w.fromPoint = {
+                x: Math.max(-5000, Math.min(5000, w.fromPoint.x + stepX)),
+                y: Math.max(-5000, Math.min(5000, w.fromPoint.y + stepY))
+              };
+            }
+            if (!w.toCompId && w.toPoint) {
+              w.toPoint = {
+                x: Math.max(-5000, Math.min(5000, w.toPoint.x + stepX)),
+                y: Math.max(-5000, Math.min(5000, w.toPoint.y + stepY))
+              };
             }
           }
         }
@@ -25198,11 +26059,42 @@
         this._previewWires = [];
         if (!this.smartWires) return;
         const ids = new Set(compIds);
+        const anyTargetMoved = (trunkId, seen = new Set()) => {
+          if (seen.has(trunkId)) return false;
+          seen.add(trunkId);
+          let all = true, any = false, hasChild = false;
+          for (const ch of this.circuit.wires) {
+            if (ch.fromWireId !== trunkId) continue;
+            hasChild = true;
+            if (ch.toCompId) {
+              const m = ids.has(ch.toCompId);
+              if (m) any = true; else all = false;
+            } else if (this.circuit.isForkTrunkWire(ch)) {
+              const sub = anyTargetMoved(ch.id, seen);
+              if (sub && sub.any) any = true;
+              if (!sub || !sub.all) all = false;
+            } else {
+              all = false;
+            }
+          }
+          return { any, all: hasChild && all };
+        };
         for (const w of this.circuit.wires) {
           const root = this.circuit.resolveWireRoot(w);
           const fromId = w.fromCompId || root.compId;
-          const inside = ids.has(fromId) && ids.has(w.toCompId);
-          if (inside || !(ids.has(fromId) || ids.has(w.toCompId))) continue;
+          let inside = false;
+          let touches = false;
+          if (w.toCompId) {
+            inside = ids.has(fromId) && ids.has(w.toCompId);
+            touches = ids.has(fromId) || ids.has(w.toCompId);
+          } else if (this.circuit.isForkTrunkWire(w)) {
+            const sub = anyTargetMoved(w.id);
+            inside = ids.has(fromId) && Boolean(sub && sub.all);
+            touches = ids.has(fromId) || Boolean(sub && sub.any);
+          } else {
+            touches = ids.has(fromId);
+          }
+          if (inside || !touches) continue;
           if (w.autoRouted && w.waypoints && w.waypoints.length > 0) {
             w._preview = true;
             this._previewWires.push(w);
@@ -25400,14 +26292,14 @@
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">DNF (Minterme):</span>
-                  <span class="tt-formula-text" style="color: #6ee7b7; margin-left: 6px;">${escapeHtml(dnf.formula)}</span>
+                  <span class="tt-formula-text" style="color: var(--accent-green); margin-left: 6px;">${escapeHtml(dnf.formula)}</span>
                 </div>
                 <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(dnf.formula)}" title="DNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
               </div>
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">KNF (Maxterme):</span>
-                  <span class="tt-formula-text" style="color: #93c5fd; margin-left: 6px;">${escapeHtml(knf.formula)}</span>
+                  <span class="tt-formula-text" style="color: var(--accent-blue); margin-left: 6px;">${escapeHtml(knf.formula)}</span>
                 </div>
                 <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(knf.formula)}" title="KNF kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
               </div>
@@ -25444,22 +26336,44 @@
       applyInputCombination(inputsMap, rowIdx = null) {
         if (!this.circuit || !inputsMap) return;
 
-        for (const comp of this.circuit.components) {
-          const name = comp.params.label || comp.params.name;
-          if (inputsMap[name] !== undefined) {
-            const val = inputsMap[name];
-            if (comp.type === 'SWITCH') {
-              if (comp.state) comp.state.closed = (val === 1);
-              if (comp.outputs && comp.outputs[0]) comp.outputs[0].value = val;
-              if (comp.nextOutputs) comp.nextOutputs[0] = val;
-            } else if (comp.type === 'BUTTON' || comp.type === 'CLOCK') {
-              if (comp.outputs && comp.outputs[0]) comp.outputs[0].value = val;
-              if (comp.nextOutputs) comp.nextOutputs[0] = val;
+        const applyToComp = (comp, rawVal) => {
+          if (!comp || rawVal === undefined) return;
+          const bit = rawVal ? 1 : 0;
+          const outBit = (comp.params && comp.params.invertedOutput) ? (bit ^ 1) : bit;
+          if (comp.type === 'SWITCH') {
+            if (comp.state) comp.state.value = bit;
+            if (comp.outputs && comp.outputs[0]) comp.outputs[0].value = outBit;
+            if (comp.nextOutputs) comp.nextOutputs[0] = outBit;
+          } else if (comp.type === 'BUTTON') {
+            if (comp.state) comp.state.pressed = bit;
+            if (comp.outputs && comp.outputs[0]) comp.outputs[0].value = outBit;
+            if (comp.nextOutputs) comp.nextOutputs[0] = outBit;
+          } else if (comp.type === 'CLOCK') {
+            if (comp.state) comp.state.tickState = bit;
+            if (comp.outputs && comp.outputs[0]) comp.outputs[0].value = outBit;
+            if (comp.nextOutputs) comp.nextOutputs[0] = outBit;
+          }
+        };
+
+        if (this.currentTruthTableData && Array.isArray(this.currentTruthTableData.inputs) && this.currentTruthTableData.inputs.length > 0) {
+          for (const inp of this.currentTruthTableData.inputs) {
+            if (inputsMap[inp.name] !== undefined) {
+              applyToComp(this.circuit.getComponent(inp.id), inputsMap[inp.name]);
+            }
+          }
+        } else {
+          for (const comp of this.circuit.components) {
+            const name = comp.params.label || comp.params.name || comp.id;
+            if (inputsMap[name] !== undefined) {
+              applyToComp(comp, inputsMap[name]);
             }
           }
         }
 
         this.circuit.syncImmediateWireLevels();
+        if (this.engine && this.engine.mode === 'edit') {
+          this.triggerEditPropagation(this.circuit);
+        }
         this.refreshAll();
 
         if (rowIdx !== null) {
@@ -26167,24 +27081,32 @@
         const btnReset = document.getElementById('btn-reset-settings');
         if (btnReset) {
           btnReset.addEventListener('click', () => {
+            this.moduleGateDelays = {};
+            if (this.circuit) this.circuit.moduleGateDelays = {};
+            if (Array.isArray(this.tabs)) {
+              for (const t of this.tabs) {
+                if (t && t.circuit) t.circuit.moduleGateDelays = {};
+              }
+            }
             this.setSignalColors('#00ff66', null);
             this.setSymbolStandard('DIN_40700');
-            this.setAppTheme('modern');
-            this.setShowWireBridges(false);
+            this.setAppTheme('modern', false);
+            this.setShowWireBridges(true);
             this.setAllowDiagonalWires(true);
             this.setShowGateDelay(false);
             this.setGlobalGateDelay(1, true);
-            this.setUiScale(1);
+            this.setUiScale(1, { save: false });
             this.allowEditModeInteraction = true;
             this.autoSaveCircuit = true;
             if (chkInteractive) chkInteractive.checked = true;
             if (chkAutoSave) chkAutoSave.checked = true;
-            if (chkWireBridges) chkWireBridges.checked = false;
+            if (chkWireBridges) chkWireBridges.checked = true;
             const chkAllowDiagonal = document.getElementById('settings-allow-diagonal-wires');
             if (chkAllowDiagonal) chkAllowDiagonal.checked = true;
             if (chkGateDelay) chkGateDelay.checked = false;
             if (delaySlider) delaySlider.value = '1';
-            if (delayVal) delayVal.textContent = '1 Tick';
+            if (delayVal) delayVal.textContent = formatDelayWithHz(1, this.engine ? this.engine.frequency : 10);
+            this.syncPaletteDelayUi();
             this.saveSettings();
             this.showToast('Einstellungen auf Standard zurückgesetzt.');
           });
@@ -26405,7 +27327,7 @@
         } catch (_) {}
       }
 
-      setAppTheme(theme) {
+      setAppTheme(theme, save = true) {
         const themeKeys = ['modern', 'pitch_black', 'java_swing', 'blueprint', 'light_cad'];
         if (!themeKeys.includes(theme)) theme = 'modern';
         this.appTheme = theme;
@@ -26435,7 +27357,7 @@
         }
         if (this.paletteView === 'preview') this.renderPalettePreviews();
 
-        this.saveSettings();
+        if (save) this.saveSettings();
       }
 
       setCanvasTheme(theme) {
@@ -26684,40 +27606,39 @@
             if (s.symbolStandard) this.setSymbolStandard(s.symbolStandard);
             if (typeof s.uiScale === 'number') this.setUiScale(s.uiScale, { save: false });
             if (['labels', 'preview'].includes(s.paletteView)) this.paletteView = s.paletteView;
-            if (s.appTheme) this.setAppTheme(s.appTheme);
+            if (s.appTheme) this.setAppTheme(s.appTheme, false);
             else if (s.canvasTheme) {
-              if (s.canvasTheme === 'deep_black') this.setAppTheme('pitch_black');
-              else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint');
-              else this.setAppTheme('modern');
+              if (s.canvasTheme === 'deep_black') this.setAppTheme('pitch_black', false);
+              else if (s.canvasTheme === 'blueprint') this.setAppTheme('blueprint', false);
+              else this.setAppTheme('modern', false);
             }
           }
           const storedBridges = localStorage.getItem('logicsim_wire_bridges');
-          if (storedBridges === 'false') {
-            this.setShowWireBridges(true);
-            try { localStorage.setItem('logicsim_wire_bridges', 'true'); } catch (_) {}
-          } else if (storedBridges === 'true' || storedBridges === null) {
+          if (storedBridges !== null) {
+            this.setShowWireBridges(storedBridges === 'true');
+          } else if (!raw) {
             this.setShowWireBridges(true);
           }
           const storedDiagonal = localStorage.getItem('logicsim_allow_diagonal_wires');
           if (storedDiagonal !== null) {
             this.setAllowDiagonalWires(storedDiagonal === 'true');
-          } else {
+          } else if (!raw) {
             this.setAllowDiagonalWires(true);
           }
           const storedDelay = localStorage.getItem('logicsim_global_delay');
           if (storedDelay !== null) {
             this.setGlobalGateDelay(parseInt(storedDelay, 10), false);
-          } else {
+          } else if (!raw) {
             this.setGlobalGateDelay(1, false);
           }
           const storedShowGateDelay = localStorage.getItem('logicsim_show_gate_delay');
           if (storedShowGateDelay !== null) {
             this.setShowGateDelay(storedShowGateDelay === 'true');
-          } else {
+          } else if (!raw) {
             this.setShowGateDelay(false);
           }
           const storedTheme = localStorage.getItem('logicsim_theme');
-          if (storedTheme) this.setAppTheme(storedTheme);
+          if (storedTheme) this.setAppTheme(storedTheme, false);
         } catch (e) {
           console.warn('Could not load settings:', e);
         }
@@ -26776,13 +27697,21 @@
       saveCircuitToStorage() {
         if (!this.autoSaveCircuit) return;
         try {
-          localStorage.setItem('logicsim_autosave', JSON.stringify(this.circuit.toJSON()));
+          const activeTab = this.getActiveTab();
+          const payload = (activeTab && activeTab.circuit === this.circuit && activeTab.lastSnapshot)
+            ? activeTab.lastSnapshot
+            : JSON.stringify(this.circuit.toJSON());
+          localStorage.setItem('logicsim_autosave', payload);
         } catch (e) {}
       }
 
       exportCanvasAsPNG() {
         try {
-          const comps = this.circuit.components;
+          const targetRenderer = (this.splitScreenMode && this.activePane === 'right' && this.rendererRight && this.rendererRight.circuit)
+            ? this.rendererRight
+            : this.renderer;
+          const targetCircuit = targetRenderer ? targetRenderer.circuit : this.circuit;
+          const comps = targetCircuit ? targetCircuit.components : [];
           if (comps.length === 0) {
             this.showToast('Die Schaltung ist leer.');
             return;
@@ -26790,13 +27719,14 @@
 
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
           comps.forEach(c => {
-            minX = Math.min(minX, c.x);
-            minY = Math.min(minY, c.y);
-            maxX = Math.max(maxX, c.x + c.width);
-            maxY = Math.max(maxY, c.y + c.height);
+            const stub = ONLY_GATE_TYPES[c.type] ? GATE_PIN_STUB : 0;
+            minX = Math.min(minX, c.x - stub);
+            minY = Math.min(minY, c.y - 22);
+            maxX = Math.max(maxX, c.x + c.width + stub);
+            maxY = Math.max(maxY, c.y + c.height + (this.showGateDelay ? 16 : 0));
           });
-          this.circuit.wires.forEach(w => {
-            const pts = this.renderer.getWirePolyline(w);
+          targetCircuit.wires.forEach(w => {
+            const pts = targetRenderer.getWirePolyline(w);
             pts.forEach(p => {
               minX = Math.min(minX, p.x);
               minY = Math.min(minY, p.y);
@@ -26804,6 +27734,17 @@
               maxY = Math.max(maxY, p.y);
             });
           });
+          if (typeof targetCircuit.getProbes === 'function') {
+            for (const p of targetCircuit.getProbes()) {
+              const rect = targetRenderer.getProbeBadgeRect(p);
+              if (rect) {
+                minX = Math.min(minX, rect.x);
+                minY = Math.min(minY, rect.y);
+                maxX = Math.max(maxX, rect.x + rect.w);
+                maxY = Math.max(maxY, rect.y + rect.h);
+              }
+            }
+          }
 
           const pad = 50;
           const boxW = Math.max(200, (maxX - minX) + pad * 2);
@@ -26814,45 +27755,50 @@
           offCanvas.width = boxW * dpr;
           offCanvas.height = boxH * dpr;
           const offCtx = offCanvas.getContext('2d');
+          if (!offCtx) {
+            this.showToast('PNG-Export wird in dieser Umgebung nicht unterstützt.');
+            return;
+          }
           offCtx.scale(dpr, dpr);
 
-          if (this.canvasTheme === 'deep_black') {
-            offCtx.fillStyle = '#020406';
-          } else if (this.canvasTheme === 'blueprint') {
-            offCtx.fillStyle = '#07111e';
-          } else {
-            offCtx.fillStyle = '#0b0d10';
-          }
+          const pal = targetRenderer.getThemePalette();
+          offCtx.fillStyle = pal.bg;
           offCtx.fillRect(0, 0, boxW, boxH);
 
-          const origCtx = this.renderer.ctx;
-          const origPanX = this.renderer.panX;
-          const origPanY = this.renderer.panY;
-          const origZoom = this.renderer.zoom;
+          const origCtx = targetRenderer.ctx;
+          const origPanX = targetRenderer.panX;
+          const origPanY = targetRenderer.panY;
+          const origZoom = targetRenderer.zoom;
 
-          this.renderer.ctx = offCtx;
-          this.renderer.panX = pad - minX;
-          this.renderer.panY = pad - minY;
-          this.renderer.zoom = 1.0;
+          targetRenderer.ctx = offCtx;
+          targetRenderer.panX = pad - minX;
+          targetRenderer.panY = pad - minY;
+          targetRenderer.zoom = 1.0;
 
-          this.renderer.drawDotGrid(offCtx, boxW, boxH);
-          this.renderer.drawWires(offCtx);
-          this.renderer.drawComponents(offCtx);
-          this.renderer.drawProbes(offCtx);
+          try {
+            if (typeof offCtx.save === 'function') offCtx.save();
+            if (typeof offCtx.translate === 'function') offCtx.translate(targetRenderer.panX, targetRenderer.panY);
+            if (typeof offCtx.scale === 'function') offCtx.scale(targetRenderer.zoom, targetRenderer.zoom);
+            targetRenderer.drawDotGrid(offCtx, boxW, boxH);
+            targetRenderer.drawWires(offCtx);
+            targetRenderer.drawComponents(offCtx, boxW, boxH);
+            targetRenderer.drawProbes(offCtx);
+            if (typeof offCtx.restore === 'function') offCtx.restore();
+          } finally {
+            targetRenderer.ctx = origCtx;
+            targetRenderer.panX = origPanX;
+            targetRenderer.panY = origPanY;
+            targetRenderer.zoom = origZoom;
+            targetRenderer.render();
+          }
 
-          this.renderer.ctx = origCtx;
-          this.renderer.panX = origPanX;
-          this.renderer.panY = origPanY;
-          this.renderer.zoom = origZoom;
-          this.renderer.render();
-
-          const dataUrl = offCanvas.toDataURL('image/png');
+          const dataUrl = typeof offCanvas.toDataURL === 'function' ? offCanvas.toDataURL('image/png') : '';
           const a = document.createElement('a');
           a.href = dataUrl;
           a.download = `logicsim_schaltung_${Date.now()}.png`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          if (document.body && typeof document.body.appendChild === 'function') document.body.appendChild(a);
+          if (typeof a.click === 'function') a.click();
+          if (document.body && typeof document.body.removeChild === 'function') document.body.removeChild(a);
           this.showToast('📸 Als PNG exportiert');
         } catch (err) {
           console.error('PNG export error:', err);

@@ -269,7 +269,7 @@ checkVulnerability('DOS', 'ReDoS resistance in BooleanParser on repeated operato
 checkVulnerability('INPUT_VALIDATION', 'Validation & hardening of settings color and theme inputs', () => {
   const app = new exported.LogicSimApp();
   app.setHighSignalColor('javascript:alert(1);/*');
-  if (app.highSignalColor !== '#00e676') {
+  if (app.highSignalColor !== '#00ff66') {
     return { vulnerable: true, severity: 'MEDIUM', details: `Malicious color was accepted: ${app.highSignalColor}` };
   }
   app.setAppTheme('<script>evil()</script>');
@@ -337,3 +337,6 @@ checkVulnerability('DOS', 'Protection against oversized circuit component flood 
 console.log('================================================================');
 console.log(`AUDIT COMPLETE: Found ${findings.length} vulnerabilities/issues.`);
 console.log('================================================================');
+if (findings.length > 0) {
+  process.exit(1);
+}
