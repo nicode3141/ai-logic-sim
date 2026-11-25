@@ -156,6 +156,41 @@ if (BooleanParser) {
   });
 }
 
+// TEST 5: Deeply Nested CUSTOM_IC & Corrupted Parameter Fuzzing
+assertTest('Resilience against nested CUSTOM_IC bombs and malformed component params', () => {
+  const app = new LogicSimApp();
+  const c = app.circuit;
+  c.clear();
+
+  // NaN numInputs, huge waypoint array, invalid wire style, nested CUSTOM_IC bomb
+  const g = c.addComponent('AND', 40, 40, { numInputs: 'NaN_FUZZ', label: '<script>alert(1)</script>'.repeat(20) });
+  if (g.inputs.length !== 2) throw new Error(`Expected 2 inputs fallback on NaN numInputs, got ${g.inputs.length}`);
+  if (g.params.label.length > 120) throw new Error(`Label exceeded 120-char bound: ${g.params.label.length}`);
+
+  let nestedSub = { components: [{ type: 'NOT', dx: 0, dy: 0, params: {} }], wires: [] };
+  for (let i = 0; i < 10; i++) {
+    nestedSub = {
+      components: [{
+        type: 'CUSTOM_IC',
+        dx: 0,
+        dy: 0,
+        params: {
+          inputs: [{ name: 'I', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+          outputs: [{ name: 'O', sourceCompIdx: 0, sourcePin: 0 }],
+          subcircuit: nestedSub
+        }
+      }],
+      wires: []
+    };
+  }
+  c.addComponent('CUSTOM_IC', 200, 40, {
+    inputs: [{ name: 'I', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+    outputs: [{ name: 'O', sourceCompIdx: 0, sourcePin: 0 }],
+    subcircuit: nestedSub
+  });
+  for (let s = 0; s < 50; s++) c.step();
+});
+
 console.log('------------------------------------------------------');
 console.log(`STRESS TEST SUMMARY: ${passedTests} / ${totalTests} PASSED`);
 console.log('======================================================\n');

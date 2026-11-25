@@ -334,6 +334,151 @@ checkVulnerability('DOS', 'Protection against oversized circuit component flood 
   }
 });
 
+// 16. Nested prototype pollution in sanitizeParams & CUSTOM_IC subcircuit
+checkVulnerability('PROTOTYPE_POLLUTION', 'Recursive sanitization strips nested __proto__ in params and CUSTOM_IC subcircuits', () => {
+  const payload = JSON.parse(`{
+    "components": [{
+      "id": "ic1",
+      "type": "CUSTOM_IC",
+      "params": {
+        "label": "EvilIC",
+        "subcircuit": {
+          "__proto__": { "pollutedNested": "YES" },
+          "components": [{ "type": "NOT", "params": { "__proto__": { "pollutedSub": "YES" } } }],
+          "wires": []
+        }
+      }
+    }],
+    "wires": []
+  }`);
+  const circuit = new exported.Circuit();
+  circuit.fromJSON(payload);
+  circuit.step();
+  const t = {};
+  if (t.pollutedNested || t.pollutedSub || Object.prototype.pollutedNested || Object.prototype.pollutedSub) {
+    delete Object.prototype.pollutedNested;
+    delete Object.prototype.pollutedSub;
+    return { vulnerable: true, severity: 'CRITICAL', details: 'Nested prototype pollution succeeded' };
+  }
+  return { vulnerable: false };
+});
+
+// 17. CUSTOM_IC recursive nesting DoS bomb protection
+checkVulnerability('DOS', 'CUSTOM_IC bounded nesting depth and internal component count protection', () => {
+  let sub = { components: [{ type: 'NOT', dx: 0, dy: 0, params: {} }], wires: [] };
+  for (let d = 0; d < 12; d++) {
+    sub = {
+      components: [{
+        type: 'CUSTOM_IC',
+        dx: 0,
+        dy: 0,
+        params: {
+          inputs: [{ name: 'A', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+          outputs: [{ name: 'Y', sourceCompIdx: 0, sourcePin: 0 }],
+          subcircuit: sub
+        }
+      }],
+      wires: []
+    };
+  }
+  const circuit = new exported.Circuit();
+  circuit.addComponent('CUSTOM_IC', 0, 0, {
+    inputs: [{ name: 'A', targets: [{ targetCompIdx: 0, targetPin: 0 }] }],
+    outputs: [{ name: 'Y', sourceCompIdx: 0, sourcePin: 0 }],
+    subcircuit: sub
+  });
+  const t0 = Date.now();
+  circuit.step();
+  const dt = Date.now() - t0;
+  if (dt > 500) {
+    return { vulnerable: true, severity: 'HIGH', details: `Nested CUSTOM_IC took ${dt}ms (exponential recursion not bounded)` };
+  }
+  return { vulnerable: false };
+});
+
+// 18. BooleanParser postfix prime and chained NAND stack overflow & prototype lookup defense
+checkVulnerability('DOS', 'BooleanParser postfix prime chains, chained NAND, and prototype property lookup hardening', () => {
+  let caughtPrime = false;
+  try {
+    exported.BooleanParser.parse('A' + "'".repeat(500));
+  } catch (err) {
+    if (err.name === 'RangeError') {
+      return { vulnerable: true, severity: 'HIGH', details: `Stack overflow on postfix primes: ${err.message}` };
+    }
+    caughtPrime = true;
+  }
+  if (!caughtPrime) {
+    return { vulnerable: true, severity: 'HIGH', details: 'Unbounded postfix prime chain was accepted without depth error' };
+  }
+  let caughtNand = false;
+  try {
+    exported.BooleanParser.parse('A' + ' !& A'.repeat(200));
+  } catch (err) {
+    if (err.name === 'RangeError') {
+      return { vulnerable: true, severity: 'HIGH', details: `Stack overflow on chained NAND: ${err.message}` };
+    }
+    caughtNand = true;
+  }
+  if (!caughtNand) {
+    return { vulnerable: true, severity: 'HIGH', details: 'Unbounded chained NAND was accepted without depth error' };
+  }
+  const ast = exported.BooleanParser.parse('toString')[0].ast;
+  const val = exported.BooleanParser.evaluateAST(ast, {});
+  if (val !== 0) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Prototype property leaked through evaluateAST: got ${typeof val}` };
+  }
+  return { vulnerable: false };
+});
+
+// 19. Wire style injection, waypoint flood, and NaN numInputs crash defense
+checkVulnerability('INPUT_VALIDATION', 'Wire style whitelist, waypoint cap, probe flood cap, and NaN numInputs resilience', () => {
+  const wire = new exported.Wire('w1', 'c1', 0, 'c2', 0, Array.from({ length: 2000 }, (_, i) => ({ x: i * 20, y: 0 })), {
+    style: '"><script>alert(1)</script>',
+    fromPoint: { x: 1e300, y: -1e300 }
+  });
+  if (wire.style !== 'orthogonal') {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Arbitrary wire style accepted: ${wire.style}` };
+  }
+  if (wire.waypoints.length > 500) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Wire accepted ${wire.waypoints.length} waypoints (> 500)` };
+  }
+  if (Math.abs(wire.fromPoint.x) > 100000) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Wire fromPoint not clamped: ${wire.fromPoint.x}` };
+  }
+  const c = new exported.Circuit();
+  const g = c.addComponent('AND', 0, 0, { numInputs: 'not_a_number' });
+  if (!g || g.inputs.length !== 2) {
+    return { vulnerable: true, severity: 'HIGH', details: 'AND gate failed on NaN numInputs' };
+  }
+  let probeFloodRejected = false;
+  try {
+    c.fromJSON({ components: [], wires: [], probes: Array.from({ length: 600 }, (_, i) => ({ id: `p${i}`, wireId: 'w1' })) });
+  } catch (err) {
+    probeFloodRejected = true;
+  }
+  if (!probeFloodRejected) {
+    return { vulnerable: true, severity: 'MEDIUM', details: 'Circuit accepted > 500 probes in fromJSON' };
+  }
+  return { vulnerable: false };
+});
+
+// 20. TruthTableGenerator prototype label safety & CSV formula injection defense
+checkVulnerability('XSS', 'TruthTableGenerator __proto__ label safety and CSV formula injection neutralization', () => {
+  const c = new exported.Circuit();
+  const sw = c.addComponent('SWITCH', 0, 0, { label: '=CMD("calc")' });
+  const led = c.addComponent('LED', 100, 0, { label: '__proto__' });
+  c.addWire(sw.id, 0, led.id, 0);
+  const tt = exported.TruthTableGenerator.generate(c, null);
+  if (tt.error || !tt.dnfMap['__proto__'] || typeof tt.dnfMap['__proto__'].formula !== 'string') {
+    return { vulnerable: true, severity: 'HIGH', details: 'TruthTableGenerator broke on __proto__ output label' };
+  }
+  const csv = exported.TruthTableGenerator.toCSV(tt);
+  if (csv.includes('"=CMD')) {
+    return { vulnerable: true, severity: 'MEDIUM', details: `Unescaped CSV formula injection in header: ${csv.split('\n')[0]}` };
+  }
+  return { vulnerable: false };
+});
+
 console.log('================================================================');
 console.log(`AUDIT COMPLETE: Found ${findings.length} vulnerabilities/issues.`);
 console.log('================================================================');

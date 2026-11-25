@@ -6322,13 +6322,13 @@
             type: CUSTOM_MODULE_TYPES.includes(c.type) ? c.type : 'BUFFER',
             dx: snapCoord(c.dx ?? 0),
             dy: snapCoord(c.dy ?? 0),
-            params: (c.params && typeof c.params === 'object' && !Array.isArray(c.params)) ? sanitizeParams(c.params) : {}
+            params: sanitizeParams(c.params)
           });
         }
         const rawInputs = Array.isArray(m.inputs) ? m.inputs.slice(0, 64) : [];
         const inputs = rawInputs.length > 0 ? rawInputs.map((p, i) => ({
-          name: String(p?.name || `IN${i}`).slice(0, 16),
-          targets: (Array.isArray(p?.targets) ? p.targets.slice(0, CUSTOM_MODULE_MAX_PARTS) : [{
+          name: String(p?.name || `IN${i}`).replace(/[\u0000-\u001f]/g, '').slice(0, 16),
+          targets: (Array.isArray(p?.targets) ? p.targets.slice(0, 64) : [{
             targetCompIdx: p?.targetCompIdx ?? 0,
             targetPin: p?.targetPin ?? 0
           }]).map(t => ({
@@ -6338,7 +6338,7 @@
         })) : [{ name: 'IN', targets: [{ targetCompIdx: 0, targetPin: 0 }] }];
         const rawOutputs = Array.isArray(m.outputs) ? m.outputs.slice(0, 64) : [];
         const outputs = rawOutputs.length > 0 ? rawOutputs.map((p, i) => ({
-          name: String(p?.name || `OUT${i}`).slice(0, 16),
+          name: String(p?.name || `OUT${i}`).replace(/[\u0000-\u001f]/g, '').slice(0, 16),
           sourceCompIdx: Math.max(0, Math.trunc(Number(p?.sourceCompIdx) || 0)),
           sourcePin: Math.max(0, Math.trunc(Number(p?.sourcePin) || 0))
         })) : [{ name: 'OUT', sourceCompIdx: 0, sourcePin: 0 }];
@@ -6377,7 +6377,7 @@
         if (!c || typeof c !== 'object' || !CUSTOM_MODULE_TYPES.includes(c.type)) return null;
         const dx = num(c.dx), dy = num(c.dy);
         if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
-        const params = c.params && typeof c.params === 'object' && !Array.isArray(c.params) ? sanitizeParams(c.params) : {};
+        const params = sanitizeParams(c.params);
         components.push({ type: c.type, dx: Math.round(dx / GRID_SIZE) * GRID_SIZE, dy: Math.round(dy / GRID_SIZE) * GRID_SIZE, params });
       }
       const wires = [];
@@ -6494,12 +6494,31 @@
         .replace(/'/g, '&#39;');
     }
 
-    function sanitizeParams(rawParams) {
-      if (!rawParams || typeof rawParams !== 'object') return {};
+    function sanitizeParams(rawParams, depth = 0, seen = null) {
+      if (!rawParams || typeof rawParams !== 'object' || Array.isArray(rawParams) || depth > 16) return {};
+      const visited = seen || new WeakSet();
+      if (visited.has(rawParams)) return {};
+      visited.add(rawParams);
+      const sanitizeValue = (val, d) => {
+        if (val === null || typeof val !== 'object') return val;
+        if (d > 16) return null;
+        if (visited.has(val)) return null;
+        if (Array.isArray(val)) {
+          visited.add(val);
+          const limit = Math.min(val.length, 1000);
+          const arr = new Array(limit);
+          for (let i = 0; i < limit; i++) arr[i] = sanitizeValue(val[i], d + 1);
+          return arr;
+        }
+        return sanitizeParams(val, d + 1, visited);
+      };
       const clean = {};
-      for (const key of Object.keys(rawParams)) {
+      const keys = Object.keys(rawParams);
+      const keyLimit = Math.min(keys.length, 256);
+      for (let i = 0; i < keyLimit; i++) {
+        const key = keys[i];
         if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-        clean[key] = rawParams[key];
+        clean[key] = sanitizeValue(rawParams[key], depth + 1);
       }
       return clean;
     }
@@ -6786,20 +6805,22 @@
         const writeIdx = this.head;
         this.ticks[writeIdx] = tickNumber;
 
-        for (const arr of this.channels.values()) {
-          arr[writeIdx] = 0;
-        }
-
-        for (const [probeId, val] of probeSamples) {
-          let arr = this.channels.get(probeId);
-          if (!arr) {
-            arr = new Uint8Array(this.capacity);
-            this.channels.set(probeId, arr);
+        if (probeSamples.size > 0 || this.channels.size > 0) {
+          for (const arr of this.channels.values()) {
+            arr[writeIdx] = 0;
           }
-          arr[writeIdx] = val ? 1 : 0;
+          for (const [probeId, val] of probeSamples) {
+            let arr = this.channels.get(probeId);
+            if (!arr) {
+              arr = new Uint8Array(this.capacity);
+              this.channels.set(probeId, arr);
+            }
+            arr[writeIdx] = val ? 1 : 0;
+          }
         }
 
-        this.head = (this.head + 1) % this.capacity;
+        const nextHead = writeIdx + 1;
+        this.head = nextHead < this.capacity ? nextHead : 0;
         if (this.count < this.capacity) {
           this.count++;
         }
@@ -6853,6 +6874,7 @@
         this.level = 0;
         this.waypoints = Array.isArray(waypoints)
           ? waypoints
+              .slice(0, 500)
               .filter(p => p && typeof p === 'object' && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)))
               .map(p => ({
                 x: Math.round(Math.max(-100000, Math.min(100000, Number(p.x))) / GRID_SIZE) * GRID_SIZE,
@@ -6864,22 +6886,23 @@
         this._preview = false;
         this._fromComp = null;
         this._toComp = null;
+        this._fromWire = null;
 
-        this.fromWireId = extra.fromWireId ? String(extra.fromWireId) : null;
-        this.toWireId = extra.toWireId ? String(extra.toWireId) : null;
-        this.fromPoint = (extra.fromPoint && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
+        this.fromWireId = (extra && extra.fromWireId && String(extra.fromWireId) !== this.id) ? String(extra.fromWireId) : null;
+        this.toWireId = (extra && extra.toWireId && String(extra.toWireId) !== this.id) ? String(extra.toWireId) : null;
+        this.fromPoint = (extra && extra.fromPoint && typeof extra.fromPoint === 'object' && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
           ? {
               x: Math.round(Math.max(-100000, Math.min(100000, Number(extra.fromPoint.x)))),
               y: Math.round(Math.max(-100000, Math.min(100000, Number(extra.fromPoint.y))))
             }
           : null;
-        this.toPoint = (extra.toPoint && Number.isFinite(Number(extra.toPoint.x)) && Number.isFinite(Number(extra.toPoint.y)))
+        this.toPoint = (extra && extra.toPoint && typeof extra.toPoint === 'object' && Number.isFinite(Number(extra.toPoint.x)) && Number.isFinite(Number(extra.toPoint.y)))
           ? {
               x: Math.round(Math.max(-100000, Math.min(100000, Number(extra.toPoint.x)))),
               y: Math.round(Math.max(-100000, Math.min(100000, Number(extra.toPoint.y))))
             }
           : null;
-        this.style = extra.style === 'diagonal' ? 'diagonal' : 'orthogonal';
+        this.style = (extra && extra.style === 'diagonal') ? 'diagonal' : 'orthogonal';
       }
 
       toJSON() {
@@ -6950,8 +6973,12 @@
         this.state = {};
 
         const cleanParams = sanitizeParams(customParams);
+        this._isDelayType = Boolean(GATE_DELAY_TYPES[this.type]);
         this.initDefaults(cleanParams);
-        if (GATE_DELAY_TYPES[this.type]) {
+        if (this.params && typeof this.params.label === 'string' && this.params.label.length > 120) {
+          this.params.label = this.params.label.replace(/[\u0000-\u001f]/g, '').slice(0, 120);
+        }
+        if (this._isDelayType) {
           if (cleanParams.delay !== undefined && cleanParams.delay !== null) {
             const d = parseInt(cleanParams.delay, 10);
             this.params.delay = Number.isFinite(d) ? Math.max(GATE_DELAY_MIN, Math.min(GATE_DELAY_MAX, d)) : null;
@@ -6964,15 +6991,24 @@
       }
 
       getEffectiveDelay() {
-        if (!GATE_DELAY_TYPES[this.type]) return 1;
-        if (this.params.delay !== undefined && this.params.delay !== null && Number.isFinite(this.params.delay)) {
-          return Math.max(GATE_DELAY_MIN, Math.min(GATE_DELAY_MAX, this.params.delay));
+        if (!this._isDelayType) return 1;
+        const d = this.params.delay;
+        if (d !== undefined && d !== null && Number.isFinite(d)) {
+          return d < GATE_DELAY_MIN ? GATE_DELAY_MIN : (d > GATE_DELAY_MAX ? GATE_DELAY_MAX : d);
         }
-        if (this.circuit && this.circuit.moduleGateDelays && Number.isFinite(this.circuit.moduleGateDelays[this.type])) {
-          return Math.max(GATE_DELAY_MIN, Math.min(GATE_DELAY_MAX, this.circuit.moduleGateDelays[this.type]));
-        }
-        if (this.circuit && Number.isFinite(this.circuit.globalGateDelay)) {
-          return Math.max(GATE_DELAY_MIN, Math.min(GATE_DELAY_MAX, this.circuit.globalGateDelay));
+        const circ = this.circuit;
+        if (circ) {
+          const modDelays = circ.moduleGateDelays;
+          if (modDelays) {
+            const md = modDelays[this.type];
+            if (md !== undefined && Number.isFinite(md)) {
+              return md < GATE_DELAY_MIN ? GATE_DELAY_MIN : (md > GATE_DELAY_MAX ? GATE_DELAY_MAX : md);
+            }
+          }
+          const gd = circ.globalGateDelay;
+          if (Number.isFinite(gd)) {
+            return gd < GATE_DELAY_MIN ? GATE_DELAY_MIN : (gd > GATE_DELAY_MAX ? GATE_DELAY_MAX : gd);
+          }
         }
         return 1;
       }
@@ -7136,17 +7172,17 @@
             break;
           case 'PROBE':
             this.params = {
-              name: customParams.name ?? 'PRB',
-              color: customParams.color ?? PROBE_PALETTE[0]
+              name: String(customParams.name ?? 'PRB').replace(/[\u0000-\u001f]/g, '').slice(0, 50) || 'PRB',
+              color: (typeof customParams.color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(customParams.color)) ? customParams.color : PROBE_PALETTE[0]
             };
             break;
           case 'CUSTOM_IC':
             this.params = {
               label: customParams.label ?? 'IC',
-              moduleId: customParams.moduleId ?? null,
-              inputs: Array.isArray(customParams.inputs) ? customParams.inputs : ['IN'],
-              outputs: Array.isArray(customParams.outputs) ? customParams.outputs : ['OUT'],
-              subcircuit: customParams.subcircuit ?? null
+              moduleId: typeof customParams.moduleId === 'string' ? customParams.moduleId.slice(0, 64) : null,
+              inputs: Array.isArray(customParams.inputs) ? customParams.inputs.slice(0, 64) : ['IN'],
+              outputs: Array.isArray(customParams.outputs) ? customParams.outputs.slice(0, 64) : ['OUT'],
+              subcircuit: (customParams.subcircuit && typeof customParams.subcircuit === 'object') ? customParams.subcircuit : null
             };
             break;
         }
@@ -7163,10 +7199,10 @@
           this.params.invertedOutput = Boolean(customParams.invertedOutput);
         }
         if (Array.isArray(customParams.inputLabels)) {
-          this.params.inputLabels = customParams.inputLabels.map(v => (v == null ? '' : String(v)));
+          this.params.inputLabels = customParams.inputLabels.slice(0, 64).map(v => (v == null ? '' : String(v).replace(/[\u0000-\u001f]/g, '').slice(0, 32)));
         }
         if (Array.isArray(customParams.outputLabels)) {
-          this.params.outputLabels = customParams.outputLabels.map(v => (v == null ? '' : String(v)));
+          this.params.outputLabels = customParams.outputLabels.slice(0, 64).map(v => (v == null ? '' : String(v).replace(/[\u0000-\u001f]/g, '').slice(0, 32)));
         }
       }
 
@@ -7598,10 +7634,13 @@
       }
 
       getEffectiveInputValue(idx) {
-        if (!this.inputs || !this.inputs[idx]) return 0;
-        const raw = this.inputs[idx].value ? 1 : 0;
-        const isInv = Boolean(this.params?.invertedInputs?.[idx]);
-        return isInv ? (raw ? 0 : 1) : raw;
+        const inputs = this.inputs;
+        if (!inputs) return 0;
+        const pin = inputs[idx];
+        if (!pin) return 0;
+        const raw = pin.value ? 1 : 0;
+        const inv = this.params && this.params.invertedInputs;
+        return (inv && inv[idx]) ? (raw ^ 1) : raw;
       }
 
       /**
@@ -7619,6 +7658,10 @@
           }
         }
 
+        const params = this.params;
+        const inputs = this.inputs;
+        const inv = params && params.invertedInputs;
+
         switch (this.type) {
           case 'SWITCH': {
             this.nextOutputs[0] = this.state.value ? 1 : 0;
@@ -7631,9 +7674,9 @@
           case 'CLOCK': {
             let nextCnt = this.state.counter + 1;
             let nextVal = this.state.value;
-            const fallbackHp = Number.isFinite(this.params.halfPeriod) ? Math.max(1, Math.min(50, this.params.halfPeriod)) : 5;
-            const highT = Number.isFinite(this.params.highTicks) ? Math.max(1, Math.min(50, this.params.highTicks)) : fallbackHp;
-            const lowT = Number.isFinite(this.params.lowTicks) ? Math.max(1, Math.min(50, this.params.lowTicks)) : fallbackHp;
+            const fallbackHp = Number.isFinite(params.halfPeriod) ? Math.max(1, Math.min(50, params.halfPeriod)) : 5;
+            const highT = Number.isFinite(params.highTicks) ? Math.max(1, Math.min(50, params.highTicks)) : fallbackHp;
+            const lowT = Number.isFinite(params.lowTicks) ? Math.max(1, Math.min(50, params.lowTicks)) : fallbackHp;
             const limit = nextVal === 1 ? highT : lowT;
             if (nextCnt >= limit) {
               nextCnt = 0;
@@ -7641,138 +7684,144 @@
             }
             this.state.nextCounter = nextCnt;
             this.state.nextValue = nextVal;
-            this.nextOutputs[0] = this.params.invertedOutput ? (nextVal ? 0 : 1) : nextVal;
+            this.nextOutputs[0] = params.invertedOutput ? (nextVal ^ 1) : nextVal;
             break;
           }
           case 'NOT': {
-            const in0 = this.getEffectiveInputValue(0);
-            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
+            const p0 = inputs[0];
+            let in0 = (p0 && p0.value) ? 1 : 0;
+            if (inv && inv[0]) in0 ^= 1;
+            const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (in0 ^ 1) : in0;
             break;
           }
           case 'BUFFER': {
-            const in0 = this.getEffectiveInputValue(0);
-            const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (in0 ? 0 : 1) : in0;
+            const p0 = inputs[0];
+            let in0 = (p0 && p0.value) ? 1 : 0;
+            if (inv && inv[0]) in0 ^= 1;
+            this.nextOutputs[0] = params.invertedOutput ? (in0 ^ 1) : in0;
             break;
           }
           case 'TRI_STATE': {
             const effIn = this.getEffectiveInputValue(0);
             const effEn = this.getEffectiveInputValue(1);
-            const isOutInv = Boolean(this.params.invertedOutput);
             const base = effEn === 1 ? effIn : 0;
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            this.nextOutputs[0] = params.invertedOutput ? (base ^ 1) : base;
             break;
           }
           case 'MAJORITY': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let ones = 0;
             for (let i = 0; i < inCount; i++) {
-              if (this.getEffectiveInputValue(i) === 1) ones++;
+              let v = inputs[i].value ? 1 : 0;
+              if (inv && inv[i]) v ^= 1;
+              if (v === 1) ones++;
             }
             const base = ones >= Math.ceil(inCount / 2) ? 1 : 0;
-            const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            this.nextOutputs[0] = params.invertedOutput ? (base ^ 1) : base;
             break;
           }
           case 'AND': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let all = 1;
             for (let i = 0; i < inCount; i++) {
-              if (this.getEffectiveInputValue(i) !== 1) {
-                all = 0;
-                break;
-              }
+              let v = inputs[i].value ? 1 : 0;
+              if (inv && inv[i]) v ^= 1;
+              if (v !== 1) { all = 0; break; }
             }
-            const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (all ? 0 : 1) : all;
+            this.nextOutputs[0] = params.invertedOutput ? (all ^ 1) : all;
             break;
           }
           case 'OR': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let any = 0;
             for (let i = 0; i < inCount; i++) {
-              if (this.getEffectiveInputValue(i) === 1) {
-                any = 1;
-                break;
-              }
+              let v = inputs[i].value ? 1 : 0;
+              if (inv && inv[i]) v ^= 1;
+              if (v === 1) { any = 1; break; }
             }
-            const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (any ? 0 : 1) : any;
+            this.nextOutputs[0] = params.invertedOutput ? (any ^ 1) : any;
             break;
           }
           case 'NAND': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let all = 1;
             for (let i = 0; i < inCount; i++) {
-              if (this.getEffectiveInputValue(i) !== 1) {
-                all = 0;
-                break;
-              }
+              let v = inputs[i].value ? 1 : 0;
+              if (inv && inv[i]) v ^= 1;
+              if (v !== 1) { all = 0; break; }
             }
-            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (all ? 0 : 1) : all;
+            const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (all ^ 1) : all;
             break;
           }
           case 'NOR': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let any = 0;
             for (let i = 0; i < inCount; i++) {
-              if (this.getEffectiveInputValue(i) === 1) {
-                any = 1;
-                break;
-              }
+              let v = inputs[i].value ? 1 : 0;
+              if (inv && inv[i]) v ^= 1;
+              if (v === 1) { any = 1; break; }
             }
-            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (any ? 0 : 1) : any;
+            const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (any ^ 1) : any;
             break;
           }
           case 'XOR': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let base = 0;
-            if (this.params.xorMode === 'parity') {
+            if (params.xorMode === 'parity') {
               let sum = 0;
               for (let i = 0; i < inCount; i++) {
-                sum += this.getEffectiveInputValue(i);
+                let v = inputs[i].value ? 1 : 0;
+                if (inv && inv[i]) v ^= 1;
+                sum += v;
               }
-              base = sum % 2;
+              base = sum & 1;
             } else if (inCount === 2) {
-              const v0 = this.getEffectiveInputValue(0);
-              const v1 = this.getEffectiveInputValue(1);
+              let v0 = inputs[0].value ? 1 : 0;
+              let v1 = inputs[1].value ? 1 : 0;
+              if (inv) { if (inv[0]) v0 ^= 1; if (inv[1]) v1 ^= 1; }
               base = v0 ^ v1;
             } else {
               let ones = 0;
               for (let i = 0; i < inCount; i++) {
-                if (this.getEffectiveInputValue(i) === 1) ones++;
+                let v = inputs[i].value ? 1 : 0;
+                if (inv && inv[i]) v ^= 1;
+                if (v === 1) ones++;
               }
               base = ones === 1 ? 1 : 0;
             }
-            const isOutInv = Boolean(this.params.invertedOutput);
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : base;
+            this.nextOutputs[0] = params.invertedOutput ? (base ^ 1) : base;
             break;
           }
           case 'XNOR': {
-            const inCount = this.inputs.length;
+            const inCount = inputs.length;
             let base = 0;
-            if (this.params.xorMode === 'parity') {
+            if (params.xorMode === 'parity') {
               let sum = 0;
               for (let i = 0; i < inCount; i++) {
-                sum += this.getEffectiveInputValue(i);
+                let v = inputs[i].value ? 1 : 0;
+                if (inv && inv[i]) v ^= 1;
+                sum += v;
               }
-              base = sum % 2;
+              base = sum & 1;
             } else if (inCount === 2) {
-              const v0 = this.getEffectiveInputValue(0);
-              const v1 = this.getEffectiveInputValue(1);
+              let v0 = inputs[0].value ? 1 : 0;
+              let v1 = inputs[1].value ? 1 : 0;
+              if (inv) { if (inv[0]) v0 ^= 1; if (inv[1]) v1 ^= 1; }
               base = v0 ^ v1;
             } else {
               let ones = 0;
               for (let i = 0; i < inCount; i++) {
-                if (this.getEffectiveInputValue(i) === 1) ones++;
+                let v = inputs[i].value ? 1 : 0;
+                if (inv && inv[i]) v ^= 1;
+                if (v === 1) ones++;
               }
               base = ones === 1 ? 1 : 0;
             }
-            const isOutInv = this.params.invertedOutput !== undefined ? Boolean(this.params.invertedOutput) : true;
-            this.nextOutputs[0] = isOutInv ? (base ? 0 : 1) : (base ? 1 : 0);
+            const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+            this.nextOutputs[0] = isOutInv ? (base ^ 1) : base;
             break;
           }
           case 'CONST': {
@@ -7963,74 +8012,93 @@
             break;
           }
           case 'CUSTOM_IC': {
-            if (this.params && this.params.subcircuit) {
-              Component._icDepth = (Component._icDepth || 0) + 1;
+            if (this.params && this.params.subcircuit && typeof this.params.subcircuit === 'object') {
+              const depth = Component._icDepth || 0;
+              if (depth >= 4) {
+                for (let j = 0; j < this.nextOutputs.length; j++) this.nextOutputs[j] = 0;
+                break;
+              }
+              Component._icDepth = depth + 1;
               try {
-                if (Component._icDepth <= 8) {
-                  if (!this._internalCircuit) {
-                    const sub = this.params.subcircuit;
-                    this._internalComps = (sub.components || []).slice(0, CUSTOM_MODULE_MAX_PARTS).map((c, i) => new Component(`ic_sub_${i}`, c.type, c.dx || 0, c.dy || 0, c.params || {}));
-                    this._internalWires = (sub.wires || []).slice(0, CUSTOM_MODULE_MAX_PARTS * 4);
-                    this._internalCircuit = true;
+                if (!this._internalCircuit) {
+                  const sub = this.params.subcircuit;
+                  const rawComps = Array.isArray(sub.components) ? sub.components.slice(0, CUSTOM_MODULE_MAX_PARTS) : [];
+                  this._internalComps = [];
+                  for (let i = 0; i < rawComps.length; i++) {
+                    const c = rawComps[i];
+                    if (!c || typeof c !== 'object') {
+                      this._internalComps.push(new Component(`ic_sub_${i}`, 'BUFFER', 0, 0, {}));
+                      continue;
+                    }
+                    const subType = (c.type === 'CUSTOM_IC' && depth + 1 >= 4) ? 'BUFFER' : c.type;
+                    this._internalComps.push(new Component(`ic_sub_${i}`, subType, c.dx || 0, c.dy || 0, sanitizeParams(c.params)));
                   }
-                  const ins = this.params.inputs || [];
-                  for (let i = 0; i < ins.length; i++) {
-                    const port = ins[i];
-                    const inVal = this.getEffectiveInputValue(i);
-                    if (!port) continue;
-                    const targets = Array.isArray(port.targets) ? port.targets : (port.targetCompIdx !== undefined ? [port] : []);
-                    for (const t of targets) {
-                      const comp = this._internalComps[t.targetCompIdx];
-                      if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
-                        comp.inputs[t.targetPin].value = inVal;
-                      }
+                  const rawWires = Array.isArray(sub.wires) ? sub.wires.slice(0, CUSTOM_MODULE_MAX_PARTS * 4) : [];
+                  this._internalWires = rawWires.filter(w => w && typeof w === 'object');
+                  this._internalCircuit = true;
+                }
+                const ins = Array.isArray(this.params.inputs) ? this.params.inputs : [];
+                for (let i = 0; i < ins.length && i < this.inputs.length; i++) {
+                  const port = ins[i];
+                  const inVal = this.getEffectiveInputValue(i);
+                  if (!port || typeof port !== 'object') continue;
+                  const targets = Array.isArray(port.targets) ? port.targets.slice(0, 64) : (port.targetCompIdx !== undefined ? [port] : []);
+                  for (let ti = 0; ti < targets.length; ti++) {
+                    const t = targets[ti];
+                    if (!t || typeof t !== 'object') continue;
+                    const comp = this._internalComps[t.targetCompIdx];
+                    if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                      comp.inputs[t.targetPin].value = inVal;
                     }
-                  }
-                  const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
-                  const propagateInternalWires = () => {
-                    for (const w of this._internalWires) {
-                      const fromC = this._internalComps[w.from];
-                      const toC = this._internalComps[w.to];
-                      if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
-                        toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
-                      }
-                    }
-                  };
-                  propagateInternalWires();
-                  const maxPasses = Math.max(4, Math.min(32, this._internalComps.length + 2));
-                  for (let iter = 0; iter < maxPasses; iter++) {
-                    let anyChanged = false;
-                    for (const c of this._internalComps) {
-                      if (iter > 0 && seqTypes[c.type]) continue;
-                      c.compute();
-                    }
-                    for (const c of this._internalComps) {
-                      if (iter > 0 && seqTypes[c.type]) continue;
-                      for (let o = 0; o < c.outputs.length; o++) {
-                        if (c.nextOutputs[o] !== c.outputs[o].value) {
-                          anyChanged = true;
-                          break;
-                        }
-                      }
-                      c.commit(true);
-                    }
-                    propagateInternalWires();
-                    if (iter > 0 && !anyChanged) break;
-                  }
-                  const outs = this.params.outputs || [];
-                  const invOut = Boolean(this.params.invertedOutput);
-                  for (let j = 0; j < outs.length; j++) {
-                    const port = outs[j];
-                    let outVal = 0;
-                    if (port && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
-                      const oc = this._internalComps[port.sourceCompIdx];
-                      outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
-                    }
-                    this.nextOutputs[j] = invOut ? (outVal ? 0 : 1) : outVal;
                   }
                 }
+                const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
+                const propagateInternalWires = () => {
+                  for (let wi = 0; wi < this._internalWires.length; wi++) {
+                    const w = this._internalWires[wi];
+                    const fromC = this._internalComps[w.from];
+                    const toC = this._internalComps[w.to];
+                    if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
+                      toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
+                    }
+                  }
+                };
+                propagateInternalWires();
+                const maxPasses = Math.max(4, Math.min(32, this._internalComps.length + 2));
+                for (let iter = 0; iter < maxPasses; iter++) {
+                  let anyChanged = false;
+                  for (let ci = 0; ci < this._internalComps.length; ci++) {
+                    const c = this._internalComps[ci];
+                    if (iter > 0 && seqTypes[c.type]) continue;
+                    c.compute();
+                  }
+                  for (let ci = 0; ci < this._internalComps.length; ci++) {
+                    const c = this._internalComps[ci];
+                    if (iter > 0 && seqTypes[c.type]) continue;
+                    for (let o = 0; o < c.outputs.length; o++) {
+                      if (c.nextOutputs[o] !== c.outputs[o].value) {
+                        anyChanged = true;
+                        break;
+                      }
+                    }
+                    c.commit(true);
+                  }
+                  propagateInternalWires();
+                  if (iter > 0 && !anyChanged) break;
+                }
+                const outs = Array.isArray(this.params.outputs) ? this.params.outputs : [];
+                const invOut = Boolean(this.params.invertedOutput);
+                for (let j = 0; j < outs.length && j < this.nextOutputs.length; j++) {
+                  const port = outs[j];
+                  let outVal = 0;
+                  if (port && typeof port === 'object' && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
+                    const oc = this._internalComps[port.sourceCompIdx];
+                    outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
+                  }
+                  this.nextOutputs[j] = invOut ? (outVal ? 0 : 1) : outVal;
+                }
               } finally {
-                Component._icDepth--;
+                Component._icDepth = depth;
               }
               break;
             }
@@ -8051,22 +8119,27 @@
       commit(immediate = false) {
         let committedNow = false;
         const nOut = this.outputs.length;
-        if (!GATE_DELAY_TYPES[this.type] || immediate) {
-          this.state.delayTimer = 0;
-          this.state.pendingOutput = null;
-          this.state.pendingOutputs = null;
-          this.state.delayLine = null;
-          for (let i = 0; i < nOut; i++) {
-            this.outputs[i].value = this.nextOutputs[i];
+        const state = this.state;
+        if (!this._isDelayType || immediate) {
+          state.delayTimer = 0;
+          state.pendingOutput = null;
+          state.pendingOutputs = null;
+          state.delayLine = null;
+          if (nOut === 1) {
+            this.outputs[0].value = this.nextOutputs[0];
+          } else {
+            for (let i = 0; i < nOut; i++) {
+              this.outputs[i].value = this.nextOutputs[i];
+            }
           }
           committedNow = true;
         } else {
-          const delay = typeof this.getEffectiveDelay === 'function' ? this.getEffectiveDelay() : (this.params.delay || 1);
+          const delay = this.getEffectiveDelay();
           if (delay <= 1) {
-            this.state.delayTimer = 0;
-            this.state.pendingOutput = null;
-            this.state.pendingOutputs = null;
-            this.state.delayLine = null;
+            state.delayTimer = 0;
+            state.pendingOutput = null;
+            state.pendingOutputs = null;
+            state.delayLine = null;
             if (nOut === 1) {
               this.outputs[0].value = this.nextOutputs[0];
             } else {
@@ -8084,12 +8157,12 @@
               }
             }
             if (!hasDiff) {
-              this.state.delayTimer = 0;
-              this.state.pendingOutput = null;
-              this.state.pendingOutputs = null;
+              state.delayTimer = 0;
+              state.pendingOutput = null;
+              state.pendingOutputs = null;
               committedNow = true;
             } else {
-              const prevPending = this.state.pendingOutputs;
+              const prevPending = state.pendingOutputs;
               let matchesPending = Array.isArray(prevPending) && prevPending.length === nOut;
               if (matchesPending) {
                 for (let i = 0; i < nOut; i++) {
@@ -8100,18 +8173,18 @@
                 }
               }
               if (!matchesPending) {
-                this.state.pendingOutputs = this.nextOutputs.slice(0, nOut);
-                this.state.pendingOutput = nOut > 0 ? this.nextOutputs[0] : null;
-                this.state.delayTimer = delay - 1;
-              } else if (this.state.delayTimer > 1) {
-                this.state.delayTimer--;
+                state.pendingOutputs = this.nextOutputs.slice(0, nOut);
+                state.pendingOutput = nOut > 0 ? this.nextOutputs[0] : null;
+                state.delayTimer = delay - 1;
+              } else if (state.delayTimer > 1) {
+                state.delayTimer--;
               } else {
                 for (let i = 0; i < nOut; i++) {
                   this.outputs[i].value = this.nextOutputs[i];
                 }
-                this.state.pendingOutput = null;
-                this.state.pendingOutputs = null;
-                this.state.delayTimer = 0;
+                state.pendingOutput = null;
+                state.pendingOutputs = null;
+                state.delayTimer = 0;
                 committedNow = true;
               }
             }
@@ -8176,6 +8249,8 @@
         this.globalGateDelay = 1;
         this.moduleGateDelays = {};
         this.nextId = 1;
+        this._probeCompCount = 0;
+        this._topoVersion = 0;
       }
 
       generateId(prefix = 'c') {
@@ -8205,6 +8280,8 @@
         comp.circuit = this;
         this.components.push(comp);
         this.compMap.set(comp.id, comp);
+        if (comp.type === 'PROBE') this._probeCompCount++;
+        this._topoVersion++;
         return comp;
       }
 
@@ -8708,6 +8785,10 @@
           w._toComp = this.compMap.get(w.toCompId) || null;
           this.wireMap.set(w.id, w);
         }
+        for (let i = 0; i < this.wires.length; i++) {
+          const w = this.wires[i];
+          w._fromWire = w.fromWireId ? (this.wireMap.get(w.fromWireId) || null) : null;
+        }
         this.probeMap.clear();
         for (let i = 0; i < this.probes.length; i++) {
           const p = this.probes[i];
@@ -8719,11 +8800,13 @@
         const idx = this.components.findIndex(c => c.id === compId);
         if (idx === -1) return;
         const comp = this.components[idx];
-        if (comp.type === 'PROBE' && ringBuffer) {
-          ringBuffer.removeChannel(comp.id);
+        if (comp.type === 'PROBE') {
+          this._probeCompCount = Math.max(0, (this._probeCompCount || 0) - 1);
+          if (ringBuffer) ringBuffer.removeChannel(comp.id);
         }
         this.components.splice(idx, 1);
         this.compMap.delete(compId);
+        this._topoVersion++;
         const removedWires = this.wires.filter(
           w => w.fromCompId === compId || w.toCompId === compId || this.resolveWireRoot(w).compId === compId
         );
@@ -8766,8 +8849,9 @@
         let lvl = 0;
         if (fromComp && fromComp.outputs[fromPin]) {
           lvl = fromComp.outputs[fromPin].value || 0;
-        } else if (extra.fromWireId) {
+        } else if (extra && extra.fromWireId) {
           const parentW = this.wireMap ? this.wireMap.get(extra.fromWireId) : this.getWire(extra.fromWireId);
+          wire._fromWire = parentW || null;
           if (parentW) lvl = parentW.level || 0;
         }
         wire.level = lvl;
@@ -9305,6 +9389,8 @@
         this.wireMap.clear();
         this.probes = [];
         this.probeMap.clear();
+        this._probeCompCount = 0;
+        this._topoVersion++;
         this.globalGateDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
         this.moduleGateDelays = this.moduleGateDelays || {};
         this.nextId = 1;
@@ -9419,8 +9505,8 @@
         if (!data || !Array.isArray(data.components) || !Array.isArray(data.wires)) {
           throw new Error('Ungültiges JSON-Schaltungsformat.');
         }
-        if (data.components.length > 5000 || data.wires.length > 10000 || (Array.isArray(data.probes) && data.probes.length > 2000)) {
-          throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen, 2000 Messpunkte).');
+        if (data.components.length > 5000 || data.wires.length > 10000 || (Array.isArray(data.probes) && data.probes.length > 500)) {
+          throw new Error('Schaltung überschreitet das Sicherheitslimit (max. 5000 Bauteile, 10000 Leitungen, 500 Messpunkte).');
         }
         this.clear(ringBuffer);
         if (data && data.globalGateDelay !== undefined && Number.isFinite(Number(data.globalGateDelay))) {
@@ -9442,10 +9528,11 @@
           const m = String(str).match(/(\d+)$/);
           return m ? parseInt(m[1], 10) : 0;
         };
+        const isForbiddenId = (id) => id === '__proto__' || id === 'constructor' || id === 'prototype';
 
         for (const cData of data.components) {
           if (!cData || typeof cData !== 'object') continue;
-          if (cData.id === '__proto__' || cData.id === 'constructor' || cData.id === 'prototype') continue;
+          if (isForbiddenId(cData.id)) continue;
           maxNum = Math.max(maxNum, extractNum(cData.id) + 1);
           if (cData.type === 'PROBE') continue; // Handled as wire tap
           const safeX = Number.isFinite(Number(cData.x)) ? Number(cData.x) : 0;
@@ -9455,7 +9542,7 @@
 
         for (const wData of data.wires) {
           if (!wData || typeof wData !== 'object') continue;
-          if (wData.id === '__proto__' || wData.id === 'constructor' || wData.id === 'prototype') continue;
+          if (isForbiddenId(wData.id)) continue;
           maxNum = Math.max(maxNum, extractNum(wData.id) + 1);
           const hasStart = Boolean(this.getComponent(wData.fromCompId) || wData.fromWireId || wData.fromPoint);
           const hasEnd = Boolean(this.getComponent(wData.toCompId) || wData.toWireId || wData.toPoint);
@@ -9500,7 +9587,7 @@
         if (data.probes && Array.isArray(data.probes)) {
           for (const pData of data.probes) {
             if (!pData || typeof pData !== 'object') continue;
-            if (pData.id === '__proto__' || pData.id === 'constructor' || pData.id === 'prototype') continue;
+            if (isForbiddenId(pData.id)) continue;
             maxNum = Math.max(maxNum, extractNum(pData.id) + 1);
             this.addProbe(pData.wireId, {
               id: pData.id,
@@ -9519,13 +9606,34 @@
       updateWireLevelsFromDrivers() {
         const comps = this.components;
         const wires = this.wires;
-        let hasWireLinks = false;
+        const compMap = this.compMap;
+        const wireMap = this.wireMap;
+        const wireLen = wires.length;
+        const compLen = comps.length;
 
-        for (let i = 0; i < wires.length; i++) {
+        for (let i = 0; i < compLen; i++) {
+          const inp = comps[i].inputs;
+          const inCount = inp.length;
+          for (let p = 0; p < inCount; p++) {
+            inp[p].value = 0;
+          }
+        }
+
+        let hasWireLinks = false;
+        for (let i = 0; i < wireLen; i++) {
           const w = wires[i];
           if (w.fromCompId) {
-            const srcComp = w._fromComp || this.compMap.get(w.fromCompId);
-            w.level = (srcComp && srcComp.outputs[w.fromPin]) ? srcComp.outputs[w.fromPin].value : 0;
+            const srcComp = w._fromComp || compMap.get(w.fromCompId);
+            const pin = srcComp ? srcComp.outputs[w.fromPin] : null;
+            const lvl = pin ? pin.value : 0;
+            w.level = lvl;
+            if (lvl === 1) {
+              const dstComp = w._toComp || compMap.get(w.toCompId);
+              if (dstComp) {
+                const dstPin = dstComp.inputs[w.toPin];
+                if (dstPin) dstPin.value = 1;
+              }
+            }
           } else {
             w.level = 0;
           }
@@ -9533,20 +9641,24 @@
         }
 
         if (hasWireLinks) {
-          const maxWireHops = Math.min(64, wires.length + 2);
+          const maxWireHops = Math.min(64, wireLen + 2);
           for (let pass = 0; pass < maxWireHops; pass++) {
             let wireChanged = false;
-            for (let i = 0; i < wires.length; i++) {
+            for (let i = 0; i < wireLen; i++) {
               const w = wires[i];
               if (!w.fromCompId && w.fromWireId) {
-                const srcWire = this.wireMap.get(w.fromWireId);
+                let srcWire = w._fromWire;
+                if (!srcWire || srcWire.id !== w.fromWireId) {
+                  srcWire = wireMap.get(w.fromWireId) || null;
+                  w._fromWire = srcWire;
+                }
                 if (srcWire && srcWire.level === 1 && w.level !== 1) {
                   w.level = 1;
                   wireChanged = true;
                 }
               }
               if (w.toWireId && w.level === 1) {
-                const dstWire = this.wireMap.get(w.toWireId);
+                const dstWire = wireMap.get(w.toWireId);
                 if (dstWire && !dstWire.fromCompId && dstWire.level !== 1) {
                   dstWire.level = 1;
                   wireChanged = true;
@@ -9555,21 +9667,14 @@
             }
             if (!wireChanged) break;
           }
-        }
-
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          const inCount = comp.inputs.length;
-          for (let p = 0; p < inCount; p++) {
-            comp.inputs[p].value = 0;
-          }
-        }
-        for (let i = 0; i < wires.length; i++) {
-          const w = wires[i];
-          const dstComp = w._toComp || this.compMap.get(w.toCompId);
-          if (dstComp && dstComp.inputs[w.toPin]) {
-            if (w.level === 1) {
-              dstComp.inputs[w.toPin].value = 1;
+          for (let i = 0; i < wireLen; i++) {
+            const w = wires[i];
+            if (!w.fromCompId && w.level === 1) {
+              const dstComp = w._toComp || compMap.get(w.toCompId);
+              if (dstComp) {
+                const dstPin = dstComp.inputs[w.toPin];
+                if (dstPin) dstPin.value = 1;
+              }
             }
           }
         }
@@ -9628,22 +9733,27 @@
 
       step() {
         const comps = this.components;
+        const len = comps.length;
 
-        for (let i = 0; i < comps.length; i++) {
+        for (let i = 0; i < len; i++) {
           comps[i].compute();
         }
 
-        let hasZeroDelay = false;
-        for (let i = 0; i < comps.length; i++) {
+        const modDelays = this.moduleGateDelays;
+        const hasModDelays = modDelays && Object.keys(modDelays).length > 0;
+        let hasZeroDelay = this.globalGateDelay === 0;
+        for (let i = 0; i < len; i++) {
           const c = comps[i];
           c.commit();
-          if (GATE_DELAY_TYPES[c.type] && c.getEffectiveDelay() === 0) {
-            hasZeroDelay = true;
+          if (!hasZeroDelay && c._isDelayType) {
+            if (c.params.delay === 0 || (hasModDelays && c.params.delay == null && modDelays[c.type] === 0)) {
+              hasZeroDelay = true;
+            }
           }
         }
 
         this.updateWireLevelsFromDrivers();
-        if (hasZeroDelay || this.globalGateDelay === 0) {
+        if (hasZeroDelay) {
           this.settleZeroDelayGates(false);
         }
       }
@@ -10528,7 +10638,7 @@
     class WireRouter {
       constructor(circuit, options = {}) {
         this.circuit = circuit;
-        this.opt = Object.assign({ bend: 3, cross: 5, margin: 6, maxCells: 700000, passes: 2 }, options || {});
+        this.opt = Object.assign({ bend: 3, cross: 24, margin: 6, maxCells: 700000, passes: 2 }, options || {});
       }
 
       /**
@@ -10700,6 +10810,7 @@
 
         const dist = new Float64Array(N * 4);
         const seen = new Int32Array(N * 4);
+        const closed = new Int32Array(N * 4);
         const prevState = new Int32Array(N * 4);
         const inTree = new Uint8Array(N);
         let stamp = 0;
@@ -10756,6 +10867,8 @@
           const limit = N * 6;
           while (heap.length > 0) {
             const s = pop();
+            if (closed[s] === stamp) continue;
+            closed[s] = stamp;
             const nd = s >> 2, d = s & 3;
             const base = dist[s];
             if (inTree[nd]) {
@@ -11159,20 +11272,105 @@
         }
       }
 
+      _getSnapshotTopology() {
+        const circuit = this.circuit;
+        const comps = circuit.components;
+        const compCount = comps.length;
+        const ver = circuit._topoVersion || 0;
+        const cached = this._snapTopo;
+        if (cached && cached.circuit === circuit && cached.ver === ver && cached.compCount === compCount) {
+          let sumIn = 0;
+          for (let i = 0; i < compCount; i++) sumIn += comps[i].inputs.length;
+          if (sumIn === cached.totalIn) return cached;
+        }
+        let totalIn = 0;
+        let totalOut = 0;
+        let totalNext = 0;
+        const compIds = new Array(compCount);
+        const inCounts = new Uint16Array(compCount);
+        const outCounts = new Uint16Array(compCount);
+        const nextCounts = new Uint16Array(compCount);
+        const isStatefulType = new Uint8Array(compCount);
+        for (let i = 0; i < compCount; i++) {
+          const c = comps[i];
+          compIds[i] = c.id;
+          const ic = c.inputs.length;
+          const oc = c.outputs.length;
+          const nc = c.nextOutputs ? c.nextOutputs.length : 0;
+          inCounts[i] = ic;
+          outCounts[i] = oc;
+          nextCounts[i] = nc;
+          totalIn += ic;
+          totalOut += oc;
+          totalNext += nc;
+          const t = c.type;
+          if (t === 'SWITCH' || t === 'BUTTON' || t === 'CLOCK' || t === 'COUNTER' || t === 'SHIFT_REG' ||
+              t === 'SR_FF' || t === 'D_FF' || t === 'JK_FF' || t === 'T_FF' || t === 'D_LATCH' || t === 'BCD_DEC' || t === 'CUSTOM_IC') {
+            isStatefulType[i] = 1;
+          }
+        }
+        const topo = { circuit, ver, compCount, compIds, inCounts, outCounts, nextCounts, isStatefulType, totalIn, totalOut, totalNext };
+        this._snapTopo = topo;
+        return topo;
+      }
+
       createSnapshot() {
         const comps = this.circuit.components;
-        const compSnapshots = new Array(comps.length);
-        for (let i = 0; i < comps.length; i++) {
-          compSnapshots[i] = this._snapshotComponent(comps[i]);
+        const topo = this._getSnapshotTopology();
+        const compCount = topo.compCount;
+        const inVals = new Uint8Array(topo.totalIn);
+        const outVals = new Uint8Array(topo.totalOut);
+        const nextVals = new Uint8Array(topo.totalNext);
+        const statefulEntries = [];
+        const isStatefulType = topo.isStatefulType;
+
+        let inOff = 0;
+        let outOff = 0;
+        let nextOff = 0;
+        for (let i = 0; i < compCount; i++) {
+          const comp = comps[i];
+          const ins = comp.inputs;
+          const ic = ins.length;
+          for (let p = 0; p < ic; p++) inVals[inOff++] = ins[p].value ? 1 : 0;
+
+          const outs = comp.outputs;
+          const oc = outs.length;
+          for (let p = 0; p < oc; p++) outVals[outOff++] = outs[p].value ? 1 : 0;
+
+          const nexts = comp.nextOutputs;
+          if (nexts) {
+            const nc = nexts.length;
+            for (let p = 0; p < nc; p++) nextVals[nextOff++] = nexts[p] ? 1 : 0;
+          }
+
+          const st = comp.state;
+          const hasInternal = Array.isArray(comp._internalComps);
+          if (hasInternal || (st && (isStatefulType[i] || st.delayTimer > 0 || (st.pendingOutput !== null && st.pendingOutput !== undefined) || (st.pendingOutputs !== null && st.pendingOutputs !== undefined) || st.delayLine))) {
+            const entry = { idx: i, id: comp.id, state: this.cloneState(st) };
+            if (hasInternal) {
+              entry.internalComps = comp._internalComps.map(ic => this._snapshotComponent(ic));
+            }
+            statefulEntries.push(entry);
+          }
         }
+
         const wires = this.circuit.wires;
-        const wireLevels = new Uint8Array(wires.length);
-        for (let i = 0; i < wires.length; i++) {
+        const wireLen = wires.length;
+        const wireLevels = new Uint8Array(wireLen);
+        for (let i = 0; i < wireLen; i++) {
           wireLevels[i] = wires[i].level ? 1 : 0;
         }
         return {
           tickCount: this.tickCount,
-          comps: compSnapshots,
+          compact: true,
+          compIds: topo.compIds,
+          inCounts: topo.inCounts,
+          outCounts: topo.outCounts,
+          nextCounts: topo.nextCounts,
+          inVals,
+          outVals,
+          nextVals,
+          statefulEntries,
           wireLevels
         };
       }
@@ -11180,11 +11378,69 @@
       restoreSnapshot(snap) {
         if (!snap) return;
         this.tickCount = snap.tickCount;
-        for (let s = 0; s < snap.comps.length; s++) {
-          const cs = snap.comps[s];
-          const comp = this.circuit.getComponent(cs.id);
-          if (comp) {
-            this._restoreComponentSnapshot(comp, cs);
+        if (snap.compact) {
+          const comps = this.circuit.components;
+          const compIds = snap.compIds;
+          const count = compIds.length;
+          const sameOrder = comps.length === count;
+          let inOff = 0;
+          let outOff = 0;
+          let nextOff = 0;
+          for (let i = 0; i < count; i++) {
+            const ic = snap.inCounts[i];
+            const oc = snap.outCounts[i];
+            const nc = snap.nextCounts[i];
+            const comp = (sameOrder && comps[i] && comps[i].id === compIds[i])
+              ? comps[i]
+              : this.circuit.getComponent(compIds[i]);
+            if (comp) {
+              const ins = comp.inputs;
+              const inLimit = Math.min(ic, ins.length);
+              for (let p = 0; p < inLimit; p++) ins[p].value = snap.inVals[inOff + p];
+
+              const outs = comp.outputs;
+              const outLimit = Math.min(oc, outs.length);
+              for (let p = 0; p < outLimit; p++) outs[p].value = snap.outVals[outOff + p];
+
+              const nexts = comp.nextOutputs;
+              if (nexts) {
+                const nextLimit = Math.min(nc, nexts.length);
+                for (let p = 0; p < nextLimit; p++) nexts[p] = snap.nextVals[nextOff + p];
+              }
+
+              if (comp.state) {
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
+                comp.state.delayLine = null;
+              }
+            }
+            inOff += ic;
+            outOff += oc;
+            nextOff += nc;
+          }
+          const entries = snap.statefulEntries;
+          for (let k = 0; k < entries.length; k++) {
+            const e = entries[k];
+            const comp = (sameOrder && comps[e.idx] && comps[e.idx].id === e.id)
+              ? comps[e.idx]
+              : this.circuit.getComponent(e.id);
+            if (comp) {
+              comp.state = this.cloneState(e.state);
+              if (Array.isArray(e.internalComps) && Array.isArray(comp._internalComps)) {
+                for (let m = 0; m < e.internalComps.length && m < comp._internalComps.length; m++) {
+                  this._restoreComponentSnapshot(comp._internalComps[m], e.internalComps[m]);
+                }
+              }
+            }
+          }
+        } else if (snap.comps) {
+          for (let s = 0; s < snap.comps.length; s++) {
+            const cs = snap.comps[s];
+            const comp = this.circuit.getComponent(cs.id);
+            if (comp) {
+              this._restoreComponentSnapshot(comp, cs);
+            }
           }
         }
         if (snap.wireLevels) {
@@ -11264,11 +11520,13 @@
           const wire = this.circuit.getWire(probe.wireId);
           probeSamples.set(probe.id, wire ? wire.level : 0);
         }
-        const comps = this.circuit.components;
-        for (let i = 0; i < comps.length; i++) {
-          const comp = comps[i];
-          if (comp.type === 'PROBE') {
-            probeSamples.set(comp.id, comp.inputs[0]?.value || 0);
+        if (this.circuit._probeCompCount > 0) {
+          const comps = this.circuit.components;
+          for (let i = 0; i < comps.length; i++) {
+            const comp = comps[i];
+            if (comp.type === 'PROBE') {
+              probeSamples.set(comp.id, comp.inputs[0]?.value || 0);
+            }
           }
         }
         this.ringBuffer.record(this.tickCount, probeSamples);
@@ -16458,7 +16716,7 @@
           this.container.appendChild(info);
 
           this.addTextControl('Kanalname', probe.name, isSim, (val) => {
-            probe.name = val.trim() || 'PRB';
+            probe.name = String(val || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 50) || 'PRB';
             this.onChange(false);
           });
 
@@ -16734,12 +16992,12 @@
 
         if (comp.type === 'PROBE') {
           this.addTextControl('Kanalname', comp.params.name, isSim, (val) => {
-            comp.params.name = val.trim() || 'PRB';
+            comp.params.name = String(val || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 50) || 'PRB';
             this.onChange(false);
           });
         } else {
           this.addTextControl('Beschriftung', comp.params.label, isSim, (val) => {
-            comp.params.label = val;
+            comp.params.label = String(val || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
             this.onChange(false);
           });
         }
@@ -17655,7 +17913,11 @@
 
         function parseEquiv() {
           let node = parseImply();
+          let chain = 0;
           while (peek().type === 'OP_EQUIV') {
+            if (++chain + depth > MAX_PARSE_DEPTH) {
+              throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+            }
             consume('OP_EQUIV');
             const right = parseImply();
             node = { type: 'XNOR', children: [node, right] };
@@ -17665,7 +17927,11 @@
 
         function parseImply() {
           let node = parseOr();
+          let chain = 0;
           while (peek().type === 'OP_IMPLY') {
+            if (++chain + depth > MAX_PARSE_DEPTH) {
+              throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+            }
             consume('OP_IMPLY');
             const right = parseOr();
             node = { type: 'IMPLY', children: [node, right] };
@@ -17675,6 +17941,7 @@
 
         function parseOr() {
           let node = parseXor();
+          let norChain = 0;
           while (peek().type === 'OP_OR' || peek().type === 'OP_NOR') {
             const op = consume().type;
             const right = parseXor();
@@ -17685,6 +17952,9 @@
                 node = { type: 'OR', children: [node, right] };
               }
             } else {
+              if (++norChain + depth > MAX_PARSE_DEPTH) {
+                throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+              }
               node = { type: 'NOR', children: [node, right] };
             }
           }
@@ -17693,6 +17963,7 @@
 
         function parseXor() {
           let node = parseAnd();
+          let xnorChain = 0;
           while (peek().type === 'OP_XOR' || peek().type === 'OP_XNOR') {
             const op = consume().type;
             const right = parseAnd();
@@ -17703,6 +17974,9 @@
                 node = { type: 'XOR', children: [node, right] };
               }
             } else {
+              if (++xnorChain + depth > MAX_PARSE_DEPTH) {
+                throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+              }
               node = { type: 'XNOR', children: [node, right] };
             }
           }
@@ -17711,6 +17985,7 @@
 
         function parseAnd() {
           let node = parseUnary();
+          let nandChain = 0;
           while (peek().type === 'OP_AND' || peek().type === 'OP_NAND') {
             const op = consume().type;
             const right = parseUnary();
@@ -17721,6 +17996,9 @@
                 node = { type: 'AND', children: [node, right] };
               }
             } else {
+              if (++nandChain + depth > MAX_PARSE_DEPTH) {
+                throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+              }
               node = { type: 'NAND', children: [node, right] };
             }
           }
@@ -17740,7 +18018,11 @@
 
         function parsePostfix() {
           let node = parsePrimary();
+          let primeCount = 0;
           while (peek().type === 'PRIME') {
+            if (++primeCount + depth > MAX_PARSE_DEPTH) {
+              throw new Error('Maximale Verschachtelungstiefe überschritten (max. 100 Ebenen).');
+            }
             consume('PRIME');
             node = { type: 'NOT', child: node };
           }
@@ -17777,16 +18059,18 @@
           throw new Error('Maximale Auswertungstiefe überschritten (max. 150 Ebenen).');
         }
         switch (node.type) {
-          case 'CONST': return node.value;
-          case 'VAR': return (varMap && Object.prototype.hasOwnProperty.call(varMap, node.name)) ? (varMap[node.name] ? 1 : 0) : 0;
+          case 'CONST': return node.value ? 1 : 0;
+          case 'VAR': return (varMap && Object.prototype.hasOwnProperty.call(varMap, node.name) && varMap[node.name]) ? 1 : 0;
           case 'NOT': return BooleanParser.evaluateAST(node.child, varMap, depth + 1) === 1 ? 0 : 1;
-          case 'AND': return node.children.every(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
-          case 'OR': return node.children.some(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
+          case 'AND': return Array.isArray(node.children) && node.children.every(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
+          case 'OR': return Array.isArray(node.children) && node.children.some(c => BooleanParser.evaluateAST(c, varMap, depth + 1) === 1) ? 1 : 0;
           case 'XOR': {
+            if (!Array.isArray(node.children)) return 0;
             const sum = node.children.reduce((acc, c) => acc + BooleanParser.evaluateAST(c, varMap, depth + 1), 0);
             return sum % 2 === 1 ? 1 : 0;
           }
           case 'IMPLY': {
+            if (!Array.isArray(node.children) || node.children.length < 2) return 0;
             const left = BooleanParser.evaluateAST(node.children[0], varMap, depth + 1);
             const right = BooleanParser.evaluateAST(node.children[1], varMap, depth + 1);
             return (left === 1 && right === 0) ? 0 : 1;
@@ -17805,7 +18089,7 @@
           if (!n || d > 150) return;
           if (n.type === 'VAR') vars.add(n.name);
           if (n.child) walk(n.child, d + 1);
-          if (n.children) n.children.forEach(c => walk(c, d + 1));
+          if (Array.isArray(n.children)) n.children.forEach(c => walk(c, d + 1));
         }
         walk(node);
         return Array.from(vars);
@@ -17814,20 +18098,23 @@
       static formatMath(node, depth = 0) {
         if (!node || depth > 150) return '';
         switch (node.type) {
-          case 'CONST': return String(node.value);
+          case 'CONST': return String(node.value ? 1 : 0);
           case 'VAR': return escapeHtml(node.name);
           case 'NOT': {
+            if (!node.child) return '¬()';
             if (node.child.type === 'VAR') return `¬${escapeHtml(node.child.name)}`;
             return `¬(${BooleanParser.formatMath(node.child, depth + 1)})`;
           }
-          case 'AND': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
-          case 'OR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
-          case 'XOR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ⊕ ')})`;
-          case 'IMPLY': return `(${BooleanParser.formatMath(node.children[0], depth + 1)} → ${BooleanParser.formatMath(node.children[1], depth + 1)})`;
-          case 'NAND': return `¬(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
-          case 'NOR': return `¬(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
+          case 'AND': return `(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
+          case 'OR': return `(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
+          case 'XOR': return `(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ⊕ ')})`;
+          case 'IMPLY': return Array.isArray(node.children) && node.children.length >= 2
+            ? `(${BooleanParser.formatMath(node.children[0], depth + 1)} → ${BooleanParser.formatMath(node.children[1], depth + 1)})`
+            : '';
+          case 'NAND': return `¬(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∧ ')})`;
+          case 'NOR': return `¬(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ∨ ')})`;
           case 'EQUIV':
-          case 'XNOR': return `(${node.children.map(c => BooleanParser.formatMath(c, depth + 1)).join(' ↔ ')})`;
+          case 'XNOR': return `(${(Array.isArray(node.children) ? node.children : []).map(c => BooleanParser.formatMath(c, depth + 1)).join(' ↔ ')})`;
           default: return '';
         }
       }
@@ -17868,27 +18155,36 @@
           varMap.set(name, comp);
         });
 
-        function getNodeDepth(node) {
-          if (!node) return 0;
+        function getNodeDepth(node, d = 0) {
+          if (!node || d > 150) return 0;
           if (node.type === 'VAR' || node.type === 'CONST') return 0;
-          if (node.type === 'NOT') return 1 + getNodeDepth(node.child);
-          if (node.type === 'IMPLY') return 1 + Math.max(getNodeDepth(node.children[0]), getNodeDepth(node.children[1]));
-          if (node.children) {
-            return 1 + Math.max(...node.children.map(getNodeDepth));
+          if (node.type === 'NOT') return 1 + getNodeDepth(node.child, d + 1);
+          if (node.type === 'IMPLY' && Array.isArray(node.children)) {
+            return 1 + Math.max(getNodeDepth(node.children[0], d + 1), getNodeDepth(node.children[1], d + 1));
+          }
+          if (Array.isArray(node.children) && node.children.length > 0) {
+            return 1 + Math.max(...node.children.map(c => getNodeDepth(c, d + 1)));
           }
           return 1;
         }
 
         let currentEqY = startY;
+        const MAX_SYNTH_COMPONENTS = 2000;
+        let synthCompCount = 0;
 
         equations.forEach((eq, eqIdx) => {
           const targetName = eq.target || `Y${eqIdx + 1}`;
           const treeDepth = Math.max(1, getNodeDepth(eq.ast));
           let gateYCounter = currentEqY;
 
-          function buildMultiInputTree(baseType, finalType, sources, col) {
+          function buildMultiInputTree(baseType, finalType, sources, col, recDepth = 0) {
+            if (recDepth > 150) return null;
+            if (synthCompCount >= MAX_SYNTH_COMPONENTS || circuit.components.length >= 5000) {
+              throw new Error('Synthese überschreitet das Sicherheitslimit (max. 2000 erzeugte Bauteile).');
+            }
             if (sources.length === 1) {
               if (finalType === 'NAND' || finalType === 'NOR' || finalType === 'XNOR') {
+                synthCompCount++;
                 const invGate = circuit.addComponent('NOT', startX + col * 180, gateYCounter, { label: '' });
                 gateYCounter += 80;
                 circuit.addWire(sources[0].compId, sources[0].pin, invGate.id, 0);
@@ -17897,6 +18193,7 @@
               return sources[0];
             }
             if (sources.length <= 8) {
+              synthCompCount++;
               const gateInputsCount = Math.max(2, sources.length);
               const gateX = startX + col * 180;
               const extraParams = (finalType === 'XOR' || finalType === 'XNOR') ? { xorMode: 'parity' } : {};
@@ -17918,19 +18215,23 @@
               if (chunk.length === 1) {
                 nextStage.push(chunk[0]);
               } else {
-                nextStage.push(buildMultiInputTree(baseType, baseType, chunk, subCol));
+                nextStage.push(buildMultiInputTree(baseType, baseType, chunk, subCol, recDepth + 1));
               }
             }
-            return buildMultiInputTree(baseType, finalType, nextStage, col);
+            return buildMultiInputTree(baseType, finalType, nextStage, col, recDepth + 1);
           }
 
-          function buildNode(node, col) {
-            if (!node) return null;
+          function buildNode(node, col, recDepth = 0) {
+            if (!node || recDepth > 150) return null;
+            if (synthCompCount >= MAX_SYNTH_COMPONENTS || circuit.components.length >= 5000) {
+              throw new Error('Synthese überschreitet das Sicherheitslimit (max. 2000 erzeugte Bauteile).');
+            }
             if (node.type === 'VAR') {
               const sw = varMap.get(node.name);
               return sw ? { compId: sw.id, pin: 0 } : null;
             }
             if (node.type === 'CONST') {
+              synthCompCount++;
               const cSw = circuit.addComponent('CONST', startX, gateYCounter, {
                 label: `Konstante ${node.value}`,
                 value: node.value === 1 ? 1 : 0
@@ -17939,18 +18240,20 @@
               return { compId: cSw.id, pin: 0 };
             }
             if (node.type === 'NOT') {
-              const childSource = buildNode(node.child, Math.max(1, col - 1));
+              const childSource = buildNode(node.child, Math.max(1, col - 1), recDepth + 1);
               if (!childSource) return null;
+              synthCompCount++;
               const gateX = startX + col * 180;
               const gateComp = circuit.addComponent('NOT', gateX, gateYCounter, { label: '' });
               gateYCounter += 80;
               circuit.addWire(childSource.compId, childSource.pin, gateComp.id, 0);
               return { compId: gateComp.id, pin: 0 };
             }
-            if (node.type === 'IMPLY') {
-              const childA = buildNode(node.children[0], Math.max(1, col - 2));
-              const childB = buildNode(node.children[1], Math.max(1, col - 1));
+            if (node.type === 'IMPLY' && Array.isArray(node.children)) {
+              const childA = buildNode(node.children[0], Math.max(1, col - 2), recDepth + 1);
+              const childB = buildNode(node.children[1], Math.max(1, col - 1), recDepth + 1);
               if (!childA || !childB) return null;
+              synthCompCount += 2;
               const notComp = circuit.addComponent('NOT', startX + Math.max(1, col - 1) * 180, gateYCounter, { label: '' });
               circuit.addWire(childA.compId, childA.pin, notComp.id, 0);
               gateYCounter += 80;
@@ -17960,11 +18263,11 @@
               gateYCounter += 80;
               return { compId: orComp.id, pin: 0 };
             }
-            if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'XNOR'].includes(node.type)) {
-              const childSources = node.children.map(c => buildNode(c, Math.max(1, col - 1))).filter(Boolean);
+            if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'XNOR'].includes(node.type) && Array.isArray(node.children)) {
+              const childSources = node.children.map(c => buildNode(c, Math.max(1, col - 1), recDepth + 1)).filter(Boolean);
               if (childSources.length === 0) return null;
               const baseMap = { AND: 'AND', NAND: 'AND', OR: 'OR', NOR: 'OR', XOR: 'XOR', XNOR: 'XOR' };
-              return buildMultiInputTree(baseMap[node.type], node.type, childSources, col);
+              return buildMultiInputTree(baseMap[node.type], node.type, childSources, col, recDepth + 1);
             }
             return null;
           }
@@ -18135,7 +18438,7 @@
         const rows = [];
 
         for (let r = 0; r < numCombinations; r++) {
-          const inputValues = {};
+          const inputValues = Object.create(null);
           for (let i = 0; i < inputMeta.length; i++) {
             const bit = (r >> (inputMeta.length - 1 - i)) & 1;
             inputValues[inputMeta[i].name] = bit;
@@ -18158,7 +18461,7 @@
 
           circuit.syncImmediateWireLevels();
 
-          const outputValues = {};
+          const outputValues = Object.create(null);
           for (let o = 0; o < outputTargets.length; o++) {
             const target = outputTargets[o];
             let val = 0;
@@ -18181,8 +18484,8 @@
           });
         }
 
-        const dnfMap = {};
-        const knfMap = {};
+        const dnfMap = Object.create(null);
+        const knfMap = Object.create(null);
 
         for (const out of outputMeta) {
           const outName = out.name;
@@ -18266,9 +18569,13 @@
 
       static toCSV(tableData) {
         if (!tableData || !tableData.rows) return '';
-        const escCsv = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
-        const inHeaders = tableData.inputs.map(i => escCsv(i.name));
-        const outHeaders = tableData.outputs.map(o => escCsv(o.name));
+        const csvCell = (raw) => {
+          let s = String(raw ?? '').replace(/[\r\n]+/g, ' ');
+          if (/^[=+\-@\t]/.test(s)) s = `'${s}`;
+          return `"${s.replace(/"/g, '""')}"`;
+        };
+        const inHeaders = tableData.inputs.map(i => csvCell(i.name));
+        const outHeaders = tableData.outputs.map(o => csvCell(o.name));
         const lines = [`"Nr",${inHeaders.join(',')},${outHeaders.join(',')}`];
 
         for (const row of tableData.rows) {
@@ -19195,17 +19502,23 @@
           if (!data || !Array.isArray(data.tabs) || data.tabs.length === 0) return false;
 
           this.tabs = [];
-          data.tabs.forEach((td, idx) => {
-            const tab = new TabSession(td.id || `tab_${idx + 1}`, td.title || `Schaltung ${idx + 1}`);
+          data.tabs.slice(0, 50).forEach((td, idx) => {
+            if (!td || typeof td !== 'object') return;
+            const tabId = (typeof td.id === 'string' && td.id.length <= 64 && td.id !== '__proto__' && td.id !== 'constructor' && td.id !== 'prototype')
+              ? td.id
+              : `tab_${idx + 1}`;
+            const tabTitle = String(td.title || `Schaltung ${idx + 1}`).replace(/[\u0000-\u001f]/g, '').slice(0, 80) || `Schaltung ${idx + 1}`;
+            const tab = new TabSession(tabId, tabTitle);
             if (td.circuit) {
               tab.circuit.fromJSON(td.circuit, tab.ringBuffer);
             }
-            tab.panX = td.panX ?? 40;
-            tab.panY = td.panY ?? 40;
-            tab.zoom = td.zoom ?? 1.0;
+            tab.panX = Number.isFinite(Number(td.panX)) ? Math.max(-50000, Math.min(50000, Number(td.panX))) : 40;
+            tab.panY = Number.isFinite(Number(td.panY)) ? Math.max(-50000, Math.min(50000, Number(td.panY))) : 40;
+            tab.zoom = Number.isFinite(Number(td.zoom)) ? Math.max(0.1, Math.min(5.0, Number(td.zoom))) : 1.0;
             tab.scenarioKey = (typeof td.scenarioKey === 'string' && SCENARIO_MAP.has(td.scenarioKey)) ? td.scenarioKey : null;
             this.tabs.push(tab);
           });
+          if (this.tabs.length === 0) return false;
 
           this.tabCounter = this.tabs.length;
           const targetActiveId = data.activeTabId && this.tabs.some(t => t.id === data.activeTabId) ? data.activeTabId : this.tabs[0].id;
@@ -26376,7 +26689,7 @@
         }
         this.refreshAll();
 
-        if (rowIdx !== null) {
+        if (Number.isInteger(rowIdx) && rowIdx >= 0) {
           const modalBody = document.getElementById('tt-modal-body');
           if (modalBody) {
             modalBody.querySelectorAll('.tt-row').forEach(r => {
