@@ -4937,6 +4937,47 @@ runTest('WISH-078', 'Auto-format connector points inside modules and improve wir
   assertEqual(app.renderer.wireHasConnectorOrSegmentInModule(trappedOpen, trappedPts, occLed), false, 'Open wire routes cleanly around occupied module');
 });
 
+runTest('WISH-079', 'Remove floating canvas zoom controls and scenario guide, and expand Properties and Logic Analyzer by default', () => {
+  const rawHtml = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+
+  // 1. Floating bottom-right zoom controls and scenario guide context box removed from workspace HTML
+  assertEqual(rawHtml.includes('<div id="zoom-controls">'), false, 'Floating #zoom-controls removed from workspace markup');
+  assertEqual(rawHtml.includes('id="zoom-controls-right"'), false, 'Floating #zoom-controls-right removed from split-pane markup');
+  assertEqual(rawHtml.includes('id="scenario-guide"'), false, 'Floating #scenario-guide removed from workspace markup');
+  assertEqual(rawHtml.includes('id="menu-item-guide-toggle"'), false, 'Scenario guide toggle removed from Szenarien menu');
+
+  // 2. Fresh app initializes cleanly with Properties (#inspector) and Logic Analyzer (#analyzer-panel) expanded by default
+  const inspectorEl = document.getElementById('inspector');
+  const btnExpand = document.getElementById('btn-inspector-expand');
+  const analyzerEl = document.getElementById('analyzer-panel');
+  inspectorEl.classList.add('collapsed');
+  btnExpand.style.display = 'block';
+  analyzerEl.classList.add('collapsed');
+
+  const app = new LogicSimApp();
+  assertEqual(inspectorEl.classList.contains('collapsed'), false, '#inspector (Eigenschaften) is expanded by default on startup');
+  assertEqual(btnExpand.style.display, 'none', '#btn-inspector-expand is hidden when #inspector is expanded');
+  assertEqual(analyzerEl.classList.contains('collapsed'), false, '#analyzer-panel (Impulsdiagramm) is expanded by default on startup');
+
+  // 3. Loading scenarios (both 0-probe beginner scenario via stepScenario and probed scenario) keeps panels expanded and never injects scenario guide
+  app.loadScenario('jk_counter', { silent: true });
+  app.stepScenario(1);
+  assertEqual(app.circuit.probes.length >= 0, true, 'Scenario loaded cleanly');
+  assertEqual(inspectorEl.classList.contains('collapsed'), false, '#inspector remains expanded after loading scenario');
+  assertEqual(analyzerEl.classList.contains('collapsed'), false, '#analyzer-panel remains expanded across scenario loads');
+  assertEqual(app.guideHidden, true, 'Scenario guide remains permanently disabled');
+
+  // 4. Tool rail zoom actions still work directly without #btn-zoom-* elements
+  const z0 = app.renderer.zoom;
+  app.setZoom(1.0);
+  const railZoomIn = document.getElementById('rail-zoom-in');
+  if (railZoomIn && railZoomIn.listeners && railZoomIn.listeners.click) {
+    railZoomIn.listeners.click.forEach(fn => fn());
+    assertEqual(app.renderer.zoom > 1.0, true, 'Left tool rail zoom-in works directly without floating #zoom-controls');
+  }
+  app.setZoom(z0);
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

@@ -4615,10 +4615,6 @@
               <span data-i18n="menu.demos.gallery">Szenario-Galerie öffnen…</span>
               <span class="menu-shortcut">G</span>
             </button>
-            <button class="app-menu-item" id="menu-item-guide-toggle">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-              <span data-i18n="menu.demos.guide">Szenario-Guide ein-/ausblenden</span>
-            </button>
             <div class="app-menu-divider"></div>
             <div class="app-menu-header">Direkt zu einer Stufe</div>
             <div id="menu-scenario-levels"></div>
@@ -5029,36 +5025,6 @@
               <span class="pane-badge" id="pane-badge-left">Fokus</span>
             </div>
             <canvas id="grid-canvas"></canvas>
-
-            <div id="scenario-guide" class="scenario-guide" style="display: none;">
-              <div class="guide-head">
-                <span class="guide-level" id="guide-level">Stufe 1</span>
-                <span class="guide-title" id="guide-title">Szenario</span>
-                <button class="guide-icon-btn" id="guide-collapse" title="Guide ein-/ausklappen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
-                <button class="guide-icon-btn" id="guide-close" title="Guide schließen">&times;</button>
-              </div>
-              <div class="guide-body" id="guide-body">
-                <p class="guide-summary" id="guide-summary"></p>
-                <div class="guide-try-title">Ausprobieren</div>
-                <ul class="guide-try" id="guide-try"></ul>
-                <div class="guide-actions">
-                  <button class="btn btn-primary" id="guide-primary">Simulation starten</button>
-                  <button class="btn" id="guide-truth" title="Wahrheitstabelle der Schaltung anzeigen">Wahrheitstabelle</button>
-                </div>
-                <div class="guide-nav">
-                  <button class="btn" id="guide-prev" title="Vorheriges Szenario">‹ Zurück</button>
-                  <span id="guide-position">1 / 37</span>
-                  <button class="btn" id="guide-next" title="Nächstes Szenario">Weiter ›</button>
-                </div>
-              </div>
-            </div>
-
-            <div id="zoom-controls">
-              <button class="zoom-btn" id="btn-zoom-fit" title="Ganze Schaltung einpassen (F)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-              <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            </div>
           </div>
 
           <div id="canvas-splitter" class="canvas-splitter" style="display: none;">
@@ -5077,12 +5043,6 @@
               </div>
             </div>
             <canvas id="grid-canvas-right"></canvas>
-
-            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: var(--bg-panel); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); padding: 4px; border-radius: 6px; border: 1px solid var(--border-bright);">
-              <button class="zoom-btn" id="btn-zoom-out-right" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-reset-right" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-              <button class="zoom-btn" id="btn-zoom-in-right" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            </div>
           </div>
         </div>
 
@@ -6094,7 +6054,7 @@
       'Alle Eingangskombinationen der Schaltung': 'All input combinations of the circuit', 'Schließen': 'Close',
       'Tipp: Klick auf eine Zeile setzt die Schalter entsprechend.': 'Tip: click a row to set the switches accordingly.',
       'Als CSV kopieren': 'Copy as CSV', 'CSV kopieren': 'Copy CSV', 'Als Markdown kopieren': 'Copy as Markdown', 'Markdown kopieren': 'Copy Markdown',
-      '● AKTUELLER ZUSTAND': '● CURRENT STATE', 'Normalformen:': 'Normal forms:', 'DNF (Minterme):': 'DNF (minterms):', 'KNF (Maxterme):': 'CNF (maxterms):',
+      '● AKTUELLER ZUSTAND': '● CURRENT STATE', 'Normalformen:': 'Normal forms:', 'Minimalform (Quine-McCluskey):': 'Minimal form (Quine-McCluskey):', 'Minimalform kopieren': 'Copy minimal form', 'DNF (Minterme):': 'DNF (minterms):', 'KNF (Maxterme):': 'CNF (maxterms):',
       '0 (Kontradiktion / immer 0)': '0 (always 0)', '1 (Tautologie / immer 1)': '1 (always 1)', 'DNF kopieren': 'Copy DNF', 'KNF kopieren': 'Copy CNF', 'Kopieren': 'Copy',
       'Keine Auswertung möglich': 'Nothing to evaluate', 'Keine Eingänge gefunden. Füge mindestens einen Schalter hinzu.': 'No inputs found. Add at least one switch.',
       // --- Boolean synthesis ---
@@ -6455,6 +6415,8 @@
       [/^Verlegungsart: Zu (.*)$/, (m, tr) => `Style: switch to ${tr(m[1]).toLowerCase()}`],
       [/^(\d+) manuell$/, (m) => `${m[1]} manual`],
       [/^Gültige Formel \((\d+) Gleichung(?:en)?\)$/, (m) => `Valid formula (${I18N_PLURAL(m[1], 'equation', 'equations')})`],
+      [/^Die Schaltung besitzt (\d+) Eingänge\. Zur Vermeidung von Performanceproblemen werden die ersten (\d+) Eingänge \((\d+) Zeilen\) analysiert\.$/, (m) => `The circuit has ${m[1]} inputs. To avoid performance issues, the first ${m[2]} inputs (${m[3]} rows) are analyzed.`],
+      [/^Erweitern auf (\d+) Eingänge \((\d+) Zeilen\)$/, (m) => `Expand to ${m[1]} inputs (${m[2]} rows)`],
       [/^(\d+) Kanäle$/, (m) => I18N_PLURAL(m[1], 'channel', 'channels')],
       [/^Eingang (\d+) \((.+)\)$/, (m) => `Input ${m[1]} (${m[2]})`],
       [/^Ausgang (\d+) \((.+)\)$/, (m) => `Output ${m[1]} (${m[2]})`],
@@ -11228,36 +11190,145 @@
         }
         const gid = nodes.map((_, i) => gfind(i));
 
-        const scoreBackEdge = (e, sccOf) => {
-          let s = 0;
-          if (e.a.seq && !e.b.seq) s += 8;          // register output -> logic: natural loop closing wire
-          else if (!e.a.seq && e.b.seq) s -= 4;     // logic -> register is the natural forward direction
-          if (e.a.ox > e.b.ox) s += 2;              // already drawn right-to-left by the user
-          else if (e.a.ox < e.b.ox) s -= 1;
+        // Linear-time Weighted Eades-Lin-Smyth (ELS) Greedy Feedback Arc Set per nontrivial SCC (O(V + E))
+        const sccAdj = nodes.map(() => []);
+        for (const e of edges) {
+          if (e.kind === 'fwd') sccAdj[gid[e.a.li]].push(gid[e.b.li]);
+        }
+        const { comp: sccOf, nComp } = AutoLayoutEngine.stronglyConnected(n, sccAdj);
+        const sccGroups = Array.from({ length: nComp }, () => []);
+        for (let i = 0; i < n; i++) {
+          if (gid[i] === i) sccGroups[sccOf[i]].push(i);
+        }
+
+        const forwardPrefWeight = (e) => {
+          let w = 10;
+          if (!e.a.seq && e.b.seq) w += 12;          // logic -> register: natural forward path
+          else if (e.a.seq && !e.b.seq) w -= 8;      // register output -> logic: natural feedback loop closure
+          if (e.a.ox < e.b.ox) w += 2;
+          else if (e.a.ox > e.b.ox) w -= 1;
           let extIn = 0;
-          for (const ie of e.b.in) if (sccOf[gid[ie.a.li]] !== sccOf[gid[e.b.li]]) extIn++;
-          if (extIn > 0) s += 1;                    // loop is entered at the target
-          return s * 100000 + (e.a.idx - e.b.idx);
+          for (const ie of e.b.in) {
+            if (sccOf[gid[ie.a.li]] !== sccOf[gid[e.b.li]]) extIn++;
+          }
+          if (extIn > 0) w -= 1;
+          return Math.max(1, w);
         };
-        for (let guard = 0; guard < edges.length + 2; guard++) {
-          const adj = nodes.map(() => []);
-          for (const e of edges) if (e.kind === 'fwd') adj[gid[e.a.li]].push(gid[e.b.li]);
-          const { comp: sccOf, nComp } = AutoLayoutEngine.stronglyConnected(n, adj);
-          const size = new Int32Array(nComp);
-          for (let i = 0; i < n; i++) if (gid[i] === i) size[sccOf[i]]++;
-          const best = new Map();
+
+        const hasCyclicScc = sccGroups.some(grp => grp.length >= 2);
+        if (hasCyclicScc) {
+          const inSccEdges = Array.from({ length: nComp }, () => []);
           for (const e of edges) {
             if (e.kind !== 'fwd') continue;
-            const ca = sccOf[gid[e.a.li]], cb = sccOf[gid[e.b.li]];
-            if (ca !== cb || size[ca] < 2) continue;
-            const sc = scoreBackEdge(e, sccOf);
-            const cur = best.get(ca);
-            if (!cur || sc > cur.sc) best.set(ca, { e, sc });
+            const u = gid[e.a.li], v = gid[e.b.li];
+            if (u === v) { e.kind = 'lat'; continue; }
+            const cu = sccOf[u];
+            if (cu === sccOf[v] && sccGroups[cu].length >= 2) {
+              inSccEdges[cu].push(e);
+            }
           }
-          if (best.size === 0) break;
-          for (const { e } of best.values()) {
-            for (const p of edges) {
-              if (p.kind === 'fwd' && gid[p.a.li] === gid[e.a.li] && gid[p.b.li] === gid[e.b.li]) p.kind = 'back';
+
+          const ordPos = new Int32Array(n);
+          for (let cId = 0; cId < nComp; cId++) {
+            const members = sccGroups[cId];
+            if (members.length < 2) continue;
+            const mLen = members.length;
+            const localIdx = new Map();
+            for (let i = 0; i < mLen; i++) localIdx.set(members[i], i);
+
+            const outList = Array.from({ length: mLen }, () => []);
+            const inList = Array.from({ length: mLen }, () => []);
+            const outDeg = new Int32Array(mLen);
+            const inDeg = new Int32Array(mLen);
+            const outW = new Float64Array(mLen);
+            const inW = new Float64Array(mLen);
+            const alive = new Uint8Array(mLen);
+            alive.fill(1);
+
+            for (const e of inSccEdges[cId]) {
+              const ui = localIdx.get(gid[e.a.li]);
+              const vi = localIdx.get(gid[e.b.li]);
+              const w = forwardPrefWeight(e);
+              outList[ui].push({ to: vi, w });
+              inList[vi].push({ from: ui, w });
+              outDeg[ui]++;
+              inDeg[vi]++;
+              outW[ui] += w;
+              inW[vi] += w;
+            }
+
+            const sL = [];
+            const sR = [];
+            const srcQ = [];
+            const snkQ = [];
+            for (let i = 0; i < mLen; i++) {
+              if (inDeg[i] === 0) srcQ.push(i);
+              else if (outDeg[i] === 0) snkQ.push(i);
+            }
+
+            const removeVertex = (ui) => {
+              alive[ui] = 0;
+              for (const arc of outList[ui]) {
+                const vi = arc.to;
+                if (!alive[vi]) continue;
+                inW[vi] -= arc.w;
+                if (--inDeg[vi] === 0) srcQ.push(vi);
+              }
+              for (const arc of inList[ui]) {
+                const pi = arc.from;
+                if (!alive[pi]) continue;
+                outW[pi] -= arc.w;
+                if (--outDeg[pi] === 0) snkQ.push(pi);
+              }
+            };
+
+            let rem = mLen;
+            while (rem > 0) {
+              while (srcQ.length > 0) {
+                const ui = srcQ.pop();
+                if (!alive[ui]) continue;
+                sL.push(members[ui]);
+                removeVertex(ui);
+                rem--;
+              }
+              while (snkQ.length > 0) {
+                const ui = snkQ.pop();
+                if (!alive[ui]) continue;
+                sR.push(members[ui]);
+                removeVertex(ui);
+                rem--;
+              }
+              if (rem <= 0) break;
+
+              let bestUi = -1;
+              let bestDelta = -Infinity;
+              for (let i = 0; i < mLen; i++) {
+                if (!alive[i]) continue;
+                const d = outW[i] - inW[i];
+                if (
+                  bestUi === -1 ||
+                  d > bestDelta ||
+                  (d === bestDelta && (nodes[members[i]].ox < nodes[members[bestUi]].ox ||
+                    (nodes[members[i]].ox === nodes[members[bestUi]].ox && nodes[members[i]].idx < nodes[members[bestUi]].idx)))
+                ) {
+                  bestDelta = d;
+                  bestUi = i;
+                }
+              }
+              if (bestUi === -1) break;
+              sL.push(members[bestUi]);
+              removeVertex(bestUi);
+              rem--;
+            }
+
+            for (let i = sR.length - 1; i >= 0; i--) sL.push(sR[i]);
+            for (let rank = 0; rank < sL.length; rank++) {
+              ordPos[sL[rank]] = rank + 1;
+            }
+            for (const e of inSccEdges[cId]) {
+              if (ordPos[gid[e.a.li]] > ordPos[gid[e.b.li]]) {
+                e.kind = 'back';
+              }
             }
           }
         }
@@ -11281,19 +11352,46 @@
             if (--indeg[v] === 0) topo.push(v);
           }
         }
-        for (let qi = topo.length - 1; qi >= 0; qi--) {
-          const g = topo[qi];
-          if (gIn[g].length === 0) continue;
-          let hi = Infinity, wOut = 0;
-          for (const v of gOut[g]) {
-            if (gOut[v].length === 0) continue; // pure displays follow their driver
-            wOut++;
-            if (gLayer[v] - 1 < hi) hi = gLayer[v] - 1;
+        // Network-Simplex-style cut-value rank tightening across internal DAG chains
+        for (let sweep = 0; sweep < 3; sweep++) {
+          let moved = false;
+          for (let qi = topo.length - 1; qi >= 0; qi--) {
+            const g = topo[qi];
+            if (gIn[g].length === 0) continue;
+            let hi = Infinity, wOut = 0;
+            for (const v of gOut[g]) {
+              if (gOut[v].length === 0) continue; // pure displays follow their driver
+              wOut++;
+              if (gLayer[v] - 1 < hi) hi = gLayer[v] - 1;
+            }
+            if (wOut === 0 || hi <= gLayer[g]) continue;
+            let wIn = 0;
+            for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.5 : 1;
+            if (wOut > wIn && gLayer[g] !== hi) {
+              gLayer[g] = hi;
+              moved = true;
+            }
           }
-          if (wOut === 0 || hi <= gLayer[g]) continue;
-          let wIn = 0;
-          for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.5 : 1;
-          if (wOut > wIn) gLayer[g] = hi;
+          if (sweep > 0) {
+            for (let qi = 0; qi < topo.length; qi++) {
+              const g = topo[qi];
+              if (gIn[g].length === 0 || gOut[g].length === 0) continue;
+              let lo = 0, wIn = 0;
+              for (const u of gIn[g]) {
+                wIn += gIn[u].length === 0 ? 0.5 : 1;
+                if (gLayer[u] + 1 > lo) lo = gLayer[u] + 1;
+              }
+              let wOut = 0;
+              for (const v of gOut[g]) {
+                if (gOut[v].length > 0) wOut++;
+              }
+              if (wIn > wOut && gLayer[g] > lo) {
+                gLayer[g] = lo;
+                moved = true;
+              }
+            }
+          }
+          if (!moved) break;
         }
         for (let i = 0; i < n; i++) {
           if (gid[i] !== i || gIn[i].length > 0 || gOut[i].length === 0) continue;
@@ -11746,6 +11844,55 @@
      *  - cost = length + bends + crossings + closeness to components
      */
     class WireRouter {
+      static _acquirePool(N) {
+        let pool = WireRouter._pool;
+        if (!pool || pool.cap < N) {
+          let cap = pool ? pool.cap : 4096;
+          while (cap < N) cap *= 2;
+          pool = {
+            cap,
+            blocked: new Uint8Array(cap),
+            cost: new Float32Array(cap),
+            hist: new Float32Array(cap),
+            hNet: new Int32Array(cap),
+            vNet: new Int32Array(cap),
+            inTree: new Uint8Array(cap),
+            dist: new Float64Array(cap * 4),
+            seen: new Int32Array(cap * 4),
+            closed: new Int32Array(cap * 4),
+            prevState: new Int32Array(cap * 4),
+            qCap: Math.max(8192, cap * 4),
+            heapState: new Int32Array(Math.max(8192, cap * 4)),
+            heapKey: new Float64Array(Math.max(8192, cap * 4)),
+            stamp: 0
+          };
+          WireRouter._pool = pool;
+        }
+        if (pool.stamp > 0x70000000) {
+          pool.seen.fill(0);
+          pool.closed.fill(0);
+          pool.stamp = 0;
+        }
+        pool.blocked.fill(0, 0, N);
+        pool.cost.fill(0, 0, N);
+        pool.hist.fill(0, 0, N);
+        pool.hNet.fill(0, 0, N);
+        pool.vNet.fill(0, 0, N);
+        pool.inTree.fill(0, 0, N);
+        return pool;
+      }
+
+      static _growQueueArena(pool) {
+        const nextCap = pool.qCap * 2;
+        const ns = new Int32Array(nextCap);
+        const nk = new Float64Array(nextCap);
+        ns.set(pool.heapState);
+        nk.set(pool.heapKey);
+        pool.heapState = ns;
+        pool.heapKey = nk;
+        pool.qCap = nextCap;
+      }
+
       constructor(circuit, options = {}) {
         this.circuit = circuit;
         this.opt = Object.assign({ bend: 3, cross: 24, margin: 6, maxCells: 700000, passes: 2 }, options || {});
@@ -11827,10 +11974,12 @@
         const N = W * H;
         if (!(N > 0) || N > this.opt.maxCells) return result;
 
-        const blocked = new Uint8Array(N);
-        const cost = new Float32Array(N);
-        const hNet = new Int32Array(N); // edge n -> n+1
-        const vNet = new Int32Array(N); // edge n -> n+W
+        const pool = WireRouter._acquirePool(N);
+        const blocked = pool.blocked;
+        const cost = pool.cost;
+        const hist = pool.hist;
+        const hNet = pool.hNet; // edge n -> n+1
+        const vNet = pool.vNet; // edge n -> n+W
         const nodeOf = (x, y) => {
           const ix = (x - x0) / G, iy = (y - y0) / G;
           if (ix < 0 || iy < 0 || ix >= W || iy >= H || ix !== Math.floor(ix) || iy !== Math.floor(iy)) return -1;
@@ -11952,45 +12101,56 @@
           net.base = new Map(net.parent);
         }
 
-        const dist = new Float64Array(N * 4);
-        const seen = new Int32Array(N * 4);
-        const closed = new Int32Array(N * 4);
-        const prevState = new Int32Array(N * 4);
-        const inTree = new Uint8Array(N);
-        let stamp = 0;
+        const dist = pool.dist;
+        const seen = pool.seen;
+        const closed = pool.closed;
+        const prevState = pool.prevState;
+        const inTree = pool.inTree;
         const DELTA = [1, W, -1, -W];
         const BEND = this.opt.bend, CROSS = this.opt.cross;
-        const heap = [];
-        const heapKey = [];
+        let heapLen = 0;
+
+        // Zero-allocation Pooled TypedArray Binary Min-Heap (exact under non-monotonic trunk reuse costs)
         const push = (key, s) => {
-          let i = heap.length;
-          heap.push(s); heapKey.push(key);
+          if (heapLen >= pool.qCap) WireRouter._growQueueArena(pool);
+          const hs = pool.heapState;
+          const hk = pool.heapKey;
+          let i = heapLen++;
           while (i > 0) {
             const p = (i - 1) >> 1;
-            if (heapKey[p] <= key) break;
-            heap[i] = heap[p]; heapKey[i] = heapKey[p];
+            if (hk[p] <= key) break;
+            hs[i] = hs[p];
+            hk[i] = hk[p];
             i = p;
           }
-          heap[i] = s; heapKey[i] = key;
+          hs[i] = s;
+          hk[i] = key;
         };
+
         const pop = () => {
-          const top = heap[0];
-          const lastS = heap.pop(), lastK = heapKey.pop();
-          const len = heap.length;
+          const hs = pool.heapState;
+          const hk = pool.heapKey;
+          const top = hs[0];
+          const len = --heapLen;
           if (len > 0) {
+            const lastS = hs[len];
+            const lastK = hk[len];
             let i = 0;
             for (;;) {
-              let c = 2 * i + 1;
+              let c = (i << 1) + 1;
               if (c >= len) break;
-              if (c + 1 < len && heapKey[c + 1] < heapKey[c]) c++;
-              if (heapKey[c] >= lastK) break;
-              heap[i] = heap[c]; heapKey[i] = heapKey[c];
+              if (c + 1 < len && hk[c + 1] < hk[c]) c++;
+              if (hk[c] >= lastK) break;
+              hs[i] = hs[c];
+              hk[i] = hk[c];
               i = c;
             }
-            heap[i] = lastS; heapKey[i] = lastK;
+            hs[i] = lastS;
+            hk[i] = lastK;
           }
           return top;
         };
+
         const edgeAt = (nd, dir) => {
           const ix = nd % W;
           if (dir === 0) return ix + 1 < W ? hNet[nd] : 0;
@@ -12000,16 +12160,18 @@
         };
 
         const search = (net, start) => {
+          if (start < 0 || start >= N) return null;
           if (inTree[start]) return [start];
-          stamp++;
-          heap.length = 0; heapKey.length = 0;
+          const stamp = ++pool.stamp;
+          heapLen = 0;
           const id = net.id;
           const s0 = start * 4 + 2;
           dist[s0] = 0; seen[s0] = stamp; prevState[s0] = -1;
           push(0, s0);
           let expansions = 0;
           const limit = N * 6;
-          while (heap.length > 0) {
+          const hasBox = net.bx0 <= net.bx1 && net.by0 <= net.by1;
+          while (heapLen > 0) {
             const s = pop();
             if (closed[s] === stamp) continue;
             closed[s] = stamp;
@@ -12018,7 +12180,12 @@
             if (inTree[nd]) {
               const path = [];
               let cur = s;
-              while (cur !== -1) { path.push(cur >> 2); cur = prevState[cur]; }
+              let pathGuard = 0;
+              while (cur !== -1 && pathGuard++ <= N * 4) {
+                path.push(cur >> 2);
+                cur = prevState[cur];
+              }
+              if (cur !== -1) return null;
               path.reverse();
               return path; // start ... junction
             }
@@ -12039,19 +12206,24 @@
               const ff = f !== 0 && f !== id, f1 = p1 !== 0 && p1 !== id, f2 = p2 !== 0 && p2 !== id;
               let extra = 0;
               if (ff || f1 || f2) {
-                if (!ff && f1 && f2 && p1 === p2) extra = CROSS; else continue;
+                if (!ff && f1 && f2 && p1 === p2) extra = CROSS + hist[m]; else continue;
               }
-              const stepCost = eo === id ? 0.05 : 1 + cost[m];
+              const stepCost = eo === id ? 0.05 : 1 + cost[m] + (hist[m] * 0.2);
               let c = base + stepCost + extra;
               if (ndir !== d) c += BEND + 2 * cost[nd];
               if (inTree[m] && f !== id) c += BEND;
               const ms = m * 4 + ndir;
+              if (closed[ms] === stamp) continue;
               if (seen[ms] === stamp && dist[ms] <= c) continue;
               seen[ms] = stamp; dist[ms] = c; prevState[ms] = s;
-              const mx = m % W, my = (m - mx) / W;
-              const hx = mx < net.bx0 ? net.bx0 - mx : (mx > net.bx1 ? mx - net.bx1 : 0);
-              const hy = my < net.by0 ? net.by0 - my : (my > net.by1 ? my - net.by1 : 0);
-              push(c + hx + hy, ms);
+              let h = 0;
+              if (hasBox) {
+                const mx = m % W, my = (m - mx) / W;
+                const hx = mx < net.bx0 ? net.bx0 - mx : (mx > net.bx1 ? mx - net.bx1 : 0);
+                const hy = my < net.by0 ? net.by0 - my : (my > net.by1 ? my - net.by1 : 0);
+                h = hx + hy;
+              }
+              push(c + h, ms);
             }
           }
           return null;
@@ -12131,43 +12303,88 @@
           const manhattan = (Math.abs(e.tx - net.sx) + Math.abs(e.ty - net.sy)) / G;
           return hops <= manhattan && bends <= (e.ty === net.sy ? 0 : 2);
         };
+        const extractSolution = () => {
+          const sol = new Map();
+          let routedCnt = 0;
+          let bendSum = 0;
+          let crossCnt = 0;
+          for (const net of active) {
+            for (const code of net.edges) {
+              if (code >= 0) {
+                const rNode = code + 1;
+                if (rNode < N && vNet[rNode] !== 0 && vNet[rNode] !== net.id && rNode >= W && vNet[rNode - W] === vNet[rNode]) {
+                  if (net.id < vNet[rNode]) crossCnt++;
+                }
+              }
+            }
+            for (const e of net.wires) {
+              if (!e.ok || !e.routed) continue;
+              const pts = [];
+              let cur = e.t, guard = 0;
+              while (cur !== -1 && cur !== undefined && guard++ < N) {
+                const ix = cur % W, iy = (cur - ix) / W;
+                pts.push({ x: x0 + ix * G, y: y0 + iy * G });
+                cur = net.parent.get(cur);
+              }
+              if (cur === undefined) continue; // broken chain: keep fallback
+              pts.reverse();
+              const corners = [];
+              for (let i = 1; i + 1 < pts.length; i++) {
+                const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+                if ((a.x === b.x && b.x === c.x) || (a.y === b.y && b.y === c.y)) continue;
+                corners.push(b);
+              }
+              if ((!net.hasPin || !e.hasDst) && corners.length === 0 && pts.length >= 2) {
+                const pA = pts[0], pB = pts[pts.length - 1];
+                if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + G)) {
+                  corners.push({ x: pB.x, y: pB.y });
+                }
+              }
+              routedCnt++;
+              bendSum += corners.length;
+              sol.set(e.wire.id, corners);
+            }
+          }
+          const qualityCost = crossCnt * 100 + bendSum * 4;
+          return { sol, routedCnt, qualityCost, crossCnt };
+        };
+
+        let bestPass = extractSolution();
         const big = N > 150000 || active.length > 400;
         const passes = big ? 0 : (active.length > 120 ? Math.min(1, this.opt.passes) : this.opt.passes);
         for (let pass = 0; pass < passes; pass++) {
+          if (bestPass.crossCnt > 0) {
+            for (const net of active) {
+              for (const code of net.edges) {
+                if (code >= 0) {
+                  const rNode = code + 1;
+                  if (rNode < N && rNode >= W && vNet[rNode] !== 0 && vNet[rNode] !== net.id && vNet[rNode - W] === vNet[rNode]) {
+                    hist[rNode] = Math.min(18, hist[rNode] + 2.0);
+                  }
+                }
+              }
+            }
+          }
           const seq = pass % 2 === 0 ? active.slice().reverse() : active;
+          let changedAny = false;
           for (const nt of seq) {
             if (isIdeal(nt)) continue;
             ripNet(nt);
             routeNet(nt);
+            changedAny = true;
+          }
+          if (!changedAny) break;
+          const cand = extractSolution();
+          if (
+            cand.routedCnt > bestPass.routedCnt ||
+            (cand.routedCnt === bestPass.routedCnt && cand.qualityCost <= bestPass.qualityCost)
+          ) {
+            bestPass = cand;
           }
         }
 
-        for (const net of active) {
-          for (const e of net.wires) {
-            if (!e.ok || !e.routed) continue;
-            const pts = [];
-            let cur = e.t, guard = 0;
-            while (cur !== -1 && cur !== undefined && guard++ < N) {
-              const ix = cur % W, iy = (cur - ix) / W;
-              pts.push({ x: x0 + ix * G, y: y0 + iy * G });
-              cur = net.parent.get(cur);
-            }
-            if (cur === undefined) continue; // broken chain: keep fallback
-            pts.reverse();
-            const corners = [];
-            for (let i = 1; i + 1 < pts.length; i++) {
-              const a = pts[i - 1], b = pts[i], c = pts[i + 1];
-              if ((a.x === b.x && b.x === c.x) || (a.y === b.y && b.y === c.y)) continue;
-              corners.push(b);
-            }
-            if ((!net.hasPin || !e.hasDst) && corners.length === 0 && pts.length >= 2) {
-              const pA = pts[0], pB = pts[pts.length - 1];
-              if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + G)) {
-                corners.push({ x: pB.x, y: pB.y });
-              }
-            }
-            result.set(e.wire.id, corners);
-          }
+        for (const [wid, corners] of bestPass.sol) {
+          result.set(wid, corners);
         }
         return result;
       }
@@ -20596,7 +20813,513 @@
         return { inputs, outputs, wireProbes };
       }
 
-      static generate(circuit, engine) {
+      static minimizeMinterms(numVars, mintermIndices, varNames) {
+        const total = 1 << numVars;
+        if (!Array.isArray(mintermIndices) || mintermIndices.length === 0) {
+          return '0 (Kontradiktion / immer 0)';
+        }
+        if (mintermIndices.length >= total) {
+          return '1 (Tautologie / immer 1)';
+        }
+
+        const popcnt = (v) => {
+          let x = v >>> 0;
+          x = x - ((x >>> 1) & 0x55555555);
+          x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+          return (((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24;
+        };
+
+        let groups = Array.from({ length: numVars + 1 }, () => []);
+        const seenInit = new Set();
+        for (let i = 0; i < mintermIndices.length; i++) {
+          const m = mintermIndices[i] | 0;
+          if (seenInit.has(m)) continue;
+          seenInit.add(m);
+          groups[popcnt(m)].push({ bits: m, dc: 0, used: false });
+        }
+
+        const primes = [];
+        const primeSeen = new Set();
+        const addPrime = (bits, dc) => {
+          const key = (dc * 65536) + bits;
+          if (!primeSeen.has(key)) {
+            primeSeen.add(key);
+            primes.push({ bits, dc });
+          }
+        };
+
+        const MAX_LAYER_TERMS = 2048;
+        while (true) {
+          const nextGroups = Array.from({ length: numVars + 1 }, () => []);
+          const layerSeen = new Set();
+          let mergedCount = 0;
+          let aborted = false;
+
+          for (let g = 0; g < numVars && !aborted; g++) {
+            const gA = groups[g];
+            const gB = groups[g + 1];
+            if (gA.length === 0 || gB.length === 0) continue;
+            for (let i = 0; i < gA.length && !aborted; i++) {
+              const a = gA[i];
+              for (let j = 0; j < gB.length; j++) {
+                const b = gB[j];
+                if (a.dc !== b.dc) continue;
+                const diff = a.bits ^ b.bits;
+                if (diff !== 0 && (diff & (diff - 1)) === 0) {
+                  a.used = true;
+                  b.used = true;
+                  const nb = a.bits & ~diff;
+                  const nd = a.dc | diff;
+                  const key = (nd * 65536) + nb;
+                  if (!layerSeen.has(key)) {
+                    layerSeen.add(key);
+                    nextGroups[popcnt(nb)].push({ bits: nb, dc: nd, used: false });
+                    mergedCount++;
+                    if (mergedCount >= MAX_LAYER_TERMS) {
+                      aborted = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          for (let g = 0; g <= numVars; g++) {
+            const grp = groups[g];
+            for (let i = 0; i < grp.length; i++) {
+              if (!grp[i].used) addPrime(grp[i].bits, grp[i].dc);
+            }
+          }
+
+          if (mergedCount === 0 || aborted) {
+            if (aborted) {
+              for (let g = 0; g <= numVars; g++) {
+                for (let i = 0; i < nextGroups[g].length; i++) {
+                  addPrime(nextGroups[g][i].bits, nextGroups[g][i].dc);
+                }
+              }
+            }
+            break;
+          }
+          groups = nextGroups;
+        }
+
+        const uncovered = new Set(seenInit);
+        const selected = [];
+        const selectedIdx = new Set();
+
+        // 1. Essential prime implicants
+        for (const mt of Array.from(uncovered)) {
+          if (!uncovered.has(mt)) continue;
+          let lastPi = -1;
+          let count = 0;
+          for (let p = 0; p < primes.length; p++) {
+            const pr = primes[p];
+            if ((mt & ~pr.dc) === pr.bits) {
+              lastPi = p;
+              if (++count > 1) break;
+            }
+          }
+          if (count === 1 && !selectedIdx.has(lastPi)) {
+            selectedIdx.add(lastPi);
+            const pr = primes[lastPi];
+            selected.push(pr);
+            for (const m2 of Array.from(uncovered)) {
+              if ((m2 & ~pr.dc) === pr.bits) uncovered.delete(m2);
+            }
+          }
+        }
+
+        // 2. Greedy maximum-coverage selection for remaining cyclic core
+        while (uncovered.size > 0) {
+          let bestP = -1;
+          let bestCov = 0;
+          let bestDc = -1;
+          for (let p = 0; p < primes.length; p++) {
+            if (selectedIdx.has(p)) continue;
+            const pr = primes[p];
+            let cov = 0;
+            for (const mt of uncovered) {
+              if ((mt & ~pr.dc) === pr.bits) cov++;
+            }
+            if (cov === 0) continue;
+            const dcCnt = popcnt(pr.dc);
+            if (cov > bestCov || (cov === bestCov && dcCnt > bestDc)) {
+              bestCov = cov;
+              bestDc = dcCnt;
+              bestP = p;
+            }
+          }
+          if (bestP === -1) break;
+          selectedIdx.add(bestP);
+          const chosen = primes[bestP];
+          selected.push(chosen);
+          for (const mt of Array.from(uncovered)) {
+            if ((mt & ~chosen.dc) === chosen.bits) uncovered.delete(mt);
+          }
+        }
+
+        selected.sort((a, b) => (b.bits - a.bits) || (a.dc - b.dc));
+        const multiTerm = selected.length > 1;
+        const terms = selected.map(pr => {
+          const lits = [];
+          for (let i = 0; i < numVars; i++) {
+            const bitPos = numVars - 1 - i;
+            if ((pr.dc >>> bitPos) & 1) continue;
+            const isOne = (pr.bits >>> bitPos) & 1;
+            lits.push(isOne ? varNames[i] : `${varNames[i]}'`);
+          }
+          if (lits.length === 0) return '1';
+          if (lits.length === 1) return lits[0];
+          return multiTerm ? `(${lits.join(' · ')})` : lits.join(' · ');
+        });
+        return terms.join(' ∨ ');
+      }
+
+      static _tryEvaluateSWAR(circuit, cappedInputs, inputMeta, outputTargets) {
+        const COMB_OK = {
+          SWITCH: 1, BUTTON: 1, CLOCK: 1, CONST: 1,
+          NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1,
+          AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1,
+          FULL_ADDER: 1, MUX: 1, DECODER: 1, BCD_DEC: 1,
+          LED: 1, PROBE: 1, SEVEN_SEG: 1, HEX_DISPLAY: 1, CUSTOM_IC: 1
+        };
+        const SOURCE_ONLY = { SWITCH: 1, BUTTON: 1, CLOCK: 1, CONST: 1 };
+        const comps = circuit.components;
+        const nComps = comps.length;
+        if (nComps === 0) return null;
+
+        const compIdxById = new Map();
+        for (let i = 0; i < nComps; i++) {
+          const c = comps[i];
+          if (!COMB_OK[c.type]) return null;
+          if (c.type === 'CUSTOM_IC') {
+            const icPlan = typeof c._getCompiledIC === 'function' ? c._getCompiledIC() : null;
+            if (!icPlan || !icPlan.lut) return null;
+          }
+          compIdxById.set(c.id, i);
+        }
+
+        // Resolve driver (srcCompIdx, srcOutPin) for every component input pin & every wire
+        const inPinSrcComp = comps.map(c => new Int32Array(c.inputs.length).fill(-1));
+        const inPinSrcPin = comps.map(c => new Int32Array(c.inputs.length));
+        const wireSrcComp = new Map();
+        const wireSrcPin = new Map();
+        const adj = Array.from({ length: nComps }, () => []);
+        const indeg = new Int32Array(nComps);
+
+        for (let wIdx = 0; wIdx < circuit.wires.length; wIdx++) {
+          const w = circuit.wires[wIdx];
+          const root = circuit.resolveWireRoot(w);
+          if (!root.compId) continue;
+          const sIdx = compIdxById.get(root.compId);
+          if (sIdx === undefined) continue;
+          const sComp = comps[sIdx];
+          if (!sComp.outputs || !sComp.outputs[root.pin]) continue;
+          wireSrcComp.set(w.id, sIdx);
+          wireSrcPin.set(w.id, root.pin);
+          if (w.toCompId) {
+            const dIdx = compIdxById.get(w.toCompId);
+            if (dIdx !== undefined && comps[dIdx].inputs && w.toPin >= 0 && w.toPin < comps[dIdx].inputs.length) {
+              if (inPinSrcComp[dIdx][w.toPin] === -1) {
+                inPinSrcComp[dIdx][w.toPin] = sIdx;
+                inPinSrcPin[dIdx][w.toPin] = root.pin;
+                if (!SOURCE_ONLY[comps[dIdx].type]) {
+                  if (sIdx === dIdx) return null; // self-loop feedback
+                  adj[sIdx].push(dIdx);
+                  indeg[dIdx]++;
+                }
+              }
+            }
+          }
+        }
+
+        // Kahn topological sort to guarantee strict DAG acyclicity
+        const topo = [];
+        for (let i = 0; i < nComps; i++) {
+          if (indeg[i] === 0) topo.push(i);
+        }
+        for (let q = 0; q < topo.length; q++) {
+          const u = topo[q];
+          const nexts = adj[u];
+          for (let m = 0; m < nexts.length; m++) {
+            const v = nexts[m];
+            if (--indeg[v] === 0) topo.push(v);
+          }
+        }
+        if (topo.length !== nComps) return null; // combinational cycle -> fall back to iterative solver
+
+        const cappedIdxMap = new Map();
+        for (let i = 0; i < cappedInputs.length; i++) {
+          cappedIdxMap.set(cappedInputs[i].id, i);
+        }
+
+        const outWords = comps.map(c => new Uint32Array(Math.max(1, c.outputs.length)));
+        const kVars = inputMeta.length;
+        const numCombinations = 1 << kVars;
+        const LANE_PATTERNS = [0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000];
+        const targetWords = new Uint32Array(outputTargets.length);
+        const rows = new Array(numCombinations);
+
+        const getEffInWord = (cIdx, pinIdx) => {
+          const c = comps[cIdx];
+          const sIdx = inPinSrcComp[cIdx][pinIdx];
+          let w = sIdx >= 0 ? outWords[sIdx][inPinSrcPin[cIdx][pinIdx]] : 0;
+          const inv = c.params && c.params.invertedInputs;
+          if (inv && inv[pinIdx]) w = (~w) >>> 0;
+          return w >>> 0;
+        };
+
+        for (let baseRow = 0; baseRow < numCombinations; baseRow += 32) {
+          const batchLen = Math.min(32, numCombinations - baseRow);
+
+          for (let q = 0; q < topo.length; q++) {
+            const cIdx = topo[q];
+            const c = comps[cIdx];
+            const params = c.params || {};
+            const cOuts = outWords[cIdx];
+
+            switch (c.type) {
+              case 'SWITCH':
+              case 'BUTTON':
+              case 'CLOCK': {
+                const capPos = cappedIdxMap.get(c.id);
+                let w = 0;
+                if (capPos !== undefined) {
+                  const shift = kVars - 1 - capPos;
+                  w = shift < 5
+                    ? (LANE_PATTERNS[shift] >>> 0)
+                    : (((baseRow >>> shift) & 1) ? 0xFFFFFFFF : 0);
+                  if (params.invertedOutput) w = (~w) >>> 0;
+                } else {
+                  w = (c.outputs[0] && c.outputs[0].value) ? 0xFFFFFFFF : 0;
+                }
+                cOuts[0] = w >>> 0;
+                break;
+              }
+              case 'CONST': {
+                cOuts[0] = params.value ? 0xFFFFFFFF : 0;
+                break;
+              }
+              case 'NOT': {
+                const w0 = getEffInWord(cIdx, 0);
+                const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+                cOuts[0] = (isOutInv ? ~w0 : w0) >>> 0;
+                break;
+              }
+              case 'BUFFER': {
+                const w0 = getEffInWord(cIdx, 0);
+                cOuts[0] = (params.invertedOutput ? ~w0 : w0) >>> 0;
+                break;
+              }
+              case 'TRI_STATE': {
+                const base = (getEffInWord(cIdx, 0) & getEffInWord(cIdx, 1)) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'AND':
+              case 'NAND': {
+                const inCount = c.inputs.length;
+                let acc = 0xFFFFFFFF;
+                for (let p = 0; p < inCount; p++) acc = (acc & getEffInWord(cIdx, p)) >>> 0;
+                const isOutInv = c.type === 'NAND'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~acc : acc) >>> 0;
+                break;
+              }
+              case 'OR':
+              case 'NOR': {
+                const inCount = c.inputs.length;
+                let acc = 0;
+                for (let p = 0; p < inCount; p++) acc = (acc | getEffInWord(cIdx, p)) >>> 0;
+                const isOutInv = c.type === 'NOR'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~acc : acc) >>> 0;
+                break;
+              }
+              case 'XOR':
+              case 'XNOR': {
+                const inCount = c.inputs.length;
+                let base = 0;
+                if (inCount === 2 || params.xorMode === 'parity') {
+                  for (let p = 0; p < inCount; p++) base = (base ^ getEffInWord(cIdx, p)) >>> 0;
+                } else {
+                  let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                  for (let p = 0; p < inCount; p++) {
+                    const w = getEffInWord(cIdx, p);
+                    const c0 = b0 & w; b0 ^= w;
+                    const c1 = b1 & c0; b1 ^= c0;
+                    const c2 = b2 & c1; b2 ^= c1;
+                    b3 ^= c2;
+                  }
+                  base = (b0 & ~(b1 | b2 | b3)) >>> 0;
+                }
+                const isOutInv = c.type === 'XNOR'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~base : base) >>> 0;
+                break;
+              }
+              case 'MAJORITY': {
+                const inCount = c.inputs.length;
+                const th = (inCount + 1) >> 1;
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                for (let p = 0; p < inCount; p++) {
+                  const w = getEffInWord(cIdx, p);
+                  const c0 = b0 & w; b0 ^= w;
+                  const c1 = b1 & c0; b1 ^= c0;
+                  const c2 = b2 & c1; b2 ^= c1;
+                  b3 ^= c2;
+                }
+                let base = 0;
+                if (th <= 1) base = (b0 | b1 | b2 | b3) >>> 0;
+                else if (th === 2) base = (b1 | b2 | b3) >>> 0;
+                else if (th === 3) base = ((b1 & b0) | b2 | b3) >>> 0;
+                else if (th === 4) base = (b2 | b3) >>> 0;
+                else base = ((b2 & (b1 | b0)) | b3) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'FULL_ADDER': {
+                const a = getEffInWord(cIdx, 0);
+                const b = getEffInWord(cIdx, 1);
+                const cin = getEffInWord(cIdx, 2);
+                const abXor = (a ^ b) >>> 0;
+                let s = (abXor ^ cin) >>> 0;
+                let co = ((a & b) | (cin & abXor)) >>> 0;
+                if (params.invertedOutput) {
+                  s = (~s) >>> 0;
+                  co = (~co) >>> 0;
+                }
+                cOuts[0] = s;
+                cOuts[1] = co;
+                break;
+              }
+              case 'MUX': {
+                const d0 = getEffInWord(cIdx, 0);
+                const d1 = getEffInWord(cIdx, 1);
+                const sel = getEffInWord(cIdx, 2);
+                const base = ((~sel & d0) | (sel & d1)) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'DECODER': {
+                const a0 = getEffInWord(cIdx, 0);
+                const a1 = getEffInWord(cIdx, 1);
+                const invOut = Boolean(params.invertedOutput);
+                const y0 = (~a1 & ~a0) >>> 0;
+                const y1 = (~a1 & a0) >>> 0;
+                const y2 = (a1 & ~a0) >>> 0;
+                const y3 = (a1 & a0) >>> 0;
+                cOuts[0] = (invOut ? ~y0 : y0) >>> 0;
+                cOuts[1] = (invOut ? ~y1 : y1) >>> 0;
+                cOuts[2] = (invOut ? ~y2 : y2) >>> 0;
+                cOuts[3] = (invOut ? ~y3 : y3) >>> 0;
+                break;
+              }
+              case 'BCD_DEC': {
+                const d0 = getEffInWord(cIdx, 0);
+                const d1 = getEffInWord(cIdx, 1);
+                const d2 = getEffInWord(cIdx, 2);
+                const d3 = getEffInWord(cIdx, 3);
+                const maxDigit = params.hexMode ? 15 : 9;
+                const segAcc = new Uint32Array(7);
+                for (let m = 0; m <= maxDigit; m++) {
+                  const term = (
+                    ((m & 1) ? d0 : ~d0) &
+                    ((m & 2) ? d1 : ~d1) &
+                    ((m & 4) ? d2 : ~d2) &
+                    ((m & 8) ? d3 : ~d3)
+                  ) >>> 0;
+                  if (term === 0) continue;
+                  const segs = BCD_SEGMENT_TABLE[m];
+                  if (segs) {
+                    for (let s = 0; s < 7; s++) {
+                      if (segs[s]) segAcc[s] = (segAcc[s] | term) >>> 0;
+                    }
+                  }
+                }
+                const invOut = Boolean(params.invertedOutput);
+                for (let s = 0; s < 7; s++) {
+                  cOuts[s] = (invOut ? ~segAcc[s] : segAcc[s]) >>> 0;
+                }
+                break;
+              }
+              case 'CUSTOM_IC': {
+                const icPlan = c._getCompiledIC();
+                const lut = icPlan.lut;
+                const inLen = c.inputs.length;
+                const outLen = c.outputs.length;
+                const inW = new Uint32Array(inLen);
+                for (let p = 0; p < inLen; p++) inW[p] = getEffInWord(cIdx, p);
+                cOuts.fill(0);
+                for (let lane = 0; lane < batchLen; lane++) {
+                  let addr = 0;
+                  for (let p = 0; p < inLen; p++) {
+                    addr |= (((inW[p] >>> lane) & 1) << p);
+                  }
+                  const packed = lut[addr];
+                  for (let o = 0; o < outLen; o++) {
+                    if ((packed >>> o) & 1) cOuts[o] = (cOuts[o] | (1 << lane)) >>> 0;
+                  }
+                }
+                if (params.invertedOutput) {
+                  for (let o = 0; o < outLen; o++) cOuts[o] = (~cOuts[o]) >>> 0;
+                }
+                break;
+              }
+              default:
+                break;
+            }
+          }
+
+          for (let o = 0; o < outputTargets.length; o++) {
+            const target = outputTargets[o];
+            let w = 0;
+            if (target.wireProbe) {
+              const sIdx = wireSrcComp.get(target.wireProbe.wireId);
+              if (sIdx !== undefined) {
+                w = outWords[sIdx][wireSrcPin.get(target.wireProbe.wireId)] >>> 0;
+              }
+            } else {
+              const tIdx = compIdxById.get(target.comp.id);
+              if (tIdx !== undefined) {
+                if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
+                  w = getEffInWord(tIdx, 0);
+                } else {
+                  w = outWords[tIdx][target.outPin] >>> 0;
+                }
+              }
+            }
+            targetWords[o] = w;
+          }
+
+          for (let lane = 0; lane < batchLen; lane++) {
+            const r = baseRow + lane;
+            const inputValues = Object.create(null);
+            for (let i = 0; i < kVars; i++) {
+              inputValues[inputMeta[i].name] = (r >> (kVars - 1 - i)) & 1;
+            }
+            const outputValues = Object.create(null);
+            for (let o = 0; o < outputTargets.length; o++) {
+              outputValues[outputTargets[o].name] = (targetWords[o] >>> lane) & 1;
+            }
+            rows[r] = {
+              index: r,
+              inputs: inputValues,
+              outputs: outputValues,
+              isCurrent: false
+            };
+          }
+        }
+
+        return rows;
+      }
+
+      static generate(circuit, engine, options = {}) {
         const { inputs, outputs, wireProbes = [] } = TruthTableGenerator.analyzeCircuit(circuit);
 
         if (inputs.length === 0) {
@@ -20611,9 +21334,12 @@
           };
         }
 
-        const cappedInputs = inputs.slice(0, 8);
-        const warning = inputs.length > 8
-          ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten 8 Eingänge (256 Zeilen) analysiert.`
+        const maxInputs = (options && Number.isInteger(options.maxInputs))
+          ? Math.max(1, Math.min(12, options.maxInputs))
+          : 8;
+        const cappedInputs = inputs.slice(0, maxInputs);
+        const warning = inputs.length > maxInputs
+          ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten ${maxInputs} Eingänge (${1 << maxInputs} Zeilen) analysiert.`
           : null;
 
         const usedInNames = new Set();
@@ -20696,84 +21422,119 @@
           }
         }
 
-        const snapshot = engine ? engine.createSnapshot() : null;
-        const origSwStates = cappedInputs.map(c => ({
-          id: c.id,
-          value: c.state ? (c.state.value ? 1 : 0) : 0,
-          pressed: c.state ? (c.state.pressed ? 1 : 0) : 0,
-          outVal: c.outputs[0]?.value || 0
-        }));
-
         const numCombinations = 1 << inputMeta.length;
-        const rows = [];
+        let rows = TruthTableGenerator._tryEvaluateSWAR(circuit, cappedInputs, inputMeta, outputTargets);
 
-        for (let r = 0; r < numCombinations; r++) {
-          const inputValues = Object.create(null);
-          for (let i = 0; i < inputMeta.length; i++) {
-            const bit = (r >> (inputMeta.length - 1 - i)) & 1;
-            inputValues[inputMeta[i].name] = bit;
-            const comp = cappedInputs[i];
-            if (comp) {
-              if (comp.type === 'SWITCH' && comp.state) {
-                comp.state.value = bit;
-              } else if (comp.type === 'BUTTON' && comp.state) {
-                comp.state.pressed = bit;
+        if (rows) {
+          if (currentRowIndex >= 0 && currentRowIndex < rows.length) {
+            rows[currentRowIndex].isCurrent = true;
+          }
+        } else {
+          const snapshot = engine ? engine.createSnapshot() : null;
+          const origSwStates = cappedInputs.map(c => ({
+            id: c.id,
+            value: c.state ? (c.state.value ? 1 : 0) : 0,
+            pressed: c.state ? (c.state.pressed ? 1 : 0) : 0,
+            outVal: c.outputs[0]?.value || 0
+          }));
+
+          rows = [];
+          for (let r = 0; r < numCombinations; r++) {
+            const inputValues = Object.create(null);
+            for (let i = 0; i < inputMeta.length; i++) {
+              const bit = (r >> (inputMeta.length - 1 - i)) & 1;
+              inputValues[inputMeta[i].name] = bit;
+              const comp = cappedInputs[i];
+              if (comp) {
+                if (comp.type === 'SWITCH' && comp.state) {
+                  comp.state.value = bit;
+                } else if (comp.type === 'BUTTON' && comp.state) {
+                  comp.state.pressed = bit;
+                }
+                const effOut = comp.params && comp.params.invertedOutput ? (bit ^ 1) : bit;
+                if (comp.outputs && comp.outputs[0]) {
+                  comp.outputs[0].value = effOut;
+                }
+                if (comp.nextOutputs) {
+                  comp.nextOutputs[0] = effOut;
+                }
               }
-              const effOut = comp.params && comp.params.invertedOutput ? (bit ^ 1) : bit;
-              if (comp.outputs && comp.outputs[0]) {
-                comp.outputs[0].value = effOut;
+            }
+
+            circuit.syncImmediateWireLevels();
+
+            const outputValues = Object.create(null);
+            for (let o = 0; o < outputTargets.length; o++) {
+              const target = outputTargets[o];
+              let val = 0;
+              if (target.wireProbe) {
+                const w = circuit.getWire ? circuit.getWire(target.wireProbe.wireId) : circuit.wires.find(x => x.id === target.wireProbe.wireId);
+                val = w && w.level ? 1 : 0;
+              } else if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
+                val = target.comp.getEffectiveInputValue ? target.comp.getEffectiveInputValue(0) : (target.comp.inputs[0]?.value || 0);
+              } else if (target.comp.outputs && target.comp.outputs[target.outPin]) {
+                val = target.comp.outputs[target.outPin].value || 0;
               }
-              if (comp.nextOutputs) {
-                comp.nextOutputs[0] = effOut;
+              outputValues[target.name] = val;
+            }
+
+            rows.push({
+              index: r,
+              inputs: inputValues,
+              outputs: outputValues,
+              isCurrent: (r === currentRowIndex)
+            });
+          }
+
+          if (snapshot && engine) {
+            engine.restoreSnapshot(snapshot);
+          } else {
+            for (const orig of origSwStates) {
+              const c = circuit.getComponent(orig.id);
+              if (c) {
+                if (c.type === 'SWITCH' && c.state) c.state.value = orig.value;
+                else if (c.type === 'BUTTON' && c.state) c.state.pressed = orig.pressed;
+                if (c.outputs && c.outputs[0]) c.outputs[0].value = orig.outVal;
+                if (c.nextOutputs) c.nextOutputs[0] = orig.outVal;
               }
             }
           }
-
           circuit.syncImmediateWireLevels();
-
-          const outputValues = Object.create(null);
-          for (let o = 0; o < outputTargets.length; o++) {
-            const target = outputTargets[o];
-            let val = 0;
-            if (target.wireProbe) {
-              const w = circuit.getWire ? circuit.getWire(target.wireProbe.wireId) : circuit.wires.find(x => x.id === target.wireProbe.wireId);
-              val = w && w.level ? 1 : 0;
-            } else if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
-              val = target.comp.getEffectiveInputValue ? target.comp.getEffectiveInputValue(0) : (target.comp.inputs[0]?.value || 0);
-            } else if (target.comp.outputs && target.comp.outputs[target.outPin]) {
-              val = target.comp.outputs[target.outPin].value || 0;
-            }
-            outputValues[target.name] = val;
-          }
-
-          rows.push({
-            index: r,
-            inputs: inputValues,
-            outputs: outputValues,
-            isCurrent: (r === currentRowIndex)
-          });
         }
 
         const dnfMap = Object.create(null);
         const knfMap = Object.create(null);
+        const minMap = Object.create(null);
+        const inVarNames = inputMeta.map(inp => inp.name);
+        const buildFullNormalForms = numCombinations <= 512;
 
         for (const out of outputMeta) {
           const outName = out.name;
-          const minterms = rows.filter(r => r.outputs[outName] === 1);
-          const maxterms = rows.filter(r => r.outputs[outName] === 0);
+          const mintermIndices = [];
+          const maxtermIndices = [];
+          for (let r = 0; r < rows.length; r++) {
+            if (rows[r].outputs[outName] === 1) mintermIndices.push(r);
+            else maxtermIndices.push(r);
+          }
 
-          if (minterms.length === 0) {
+          minMap[outName] = {
+            indices: mintermIndices,
+            formula: TruthTableGenerator.minimizeMinterms(inputMeta.length, mintermIndices, inVarNames)
+          };
+
+          if (mintermIndices.length === 0) {
             dnfMap[outName] = {
               indices: [],
               formula: '0 (Kontradiktion / immer 0)'
             };
-          } else if (minterms.length === numCombinations) {
+          } else if (mintermIndices.length === numCombinations) {
             dnfMap[outName] = {
-              indices: minterms.map(m => m.index),
+              indices: mintermIndices,
               formula: '1 (Tautologie / immer 1)'
             };
-          } else {
-            const parts = minterms.map(m => {
+          } else if (buildFullNormalForms) {
+            const parts = mintermIndices.map(mIdx => {
+              const m = rows[mIdx];
               const literals = inputMeta.map(inp => {
                 const bit = m.inputs[inp.name];
                 return bit === 1 ? inp.name : `${inp.name}'`;
@@ -20781,23 +21542,29 @@
               return `(${literals.join(' · ')})`;
             });
             dnfMap[outName] = {
-              indices: minterms.map(m => m.index),
+              indices: mintermIndices,
               formula: parts.join(' ∨ ')
+            };
+          } else {
+            dnfMap[outName] = {
+              indices: mintermIndices,
+              formula: `∑m(${mintermIndices.slice(0, 16).join(', ')}${mintermIndices.length > 16 ? ', …' : ''}) [${mintermIndices.length} Minterme]`
             };
           }
 
-          if (maxterms.length === 0) {
+          if (maxtermIndices.length === 0) {
             knfMap[outName] = {
               indices: [],
               formula: '1 (Tautologie / immer 1)'
             };
-          } else if (maxterms.length === numCombinations) {
+          } else if (maxtermIndices.length === numCombinations) {
             knfMap[outName] = {
-              indices: maxterms.map(m => m.index),
+              indices: maxtermIndices,
               formula: '0 (Kontradiktion / immer 0)'
             };
-          } else {
-            const parts = maxterms.map(m => {
+          } else if (buildFullNormalForms) {
+            const parts = maxtermIndices.map(mIdx => {
+              const m = rows[mIdx];
               const literals = inputMeta.map(inp => {
                 const bit = m.inputs[inp.name];
                 return bit === 0 ? inp.name : `${inp.name}'`;
@@ -20805,26 +21572,16 @@
               return `(${literals.join(' + ')})`;
             });
             knfMap[outName] = {
-              indices: maxterms.map(m => m.index),
+              indices: maxtermIndices,
               formula: parts.join(' · ')
+            };
+          } else {
+            knfMap[outName] = {
+              indices: maxtermIndices,
+              formula: `∏M(${maxtermIndices.slice(0, 16).join(', ')}${maxtermIndices.length > 16 ? ', …' : ''}) [${maxtermIndices.length} Maxterme]`
             };
           }
         }
-
-        if (snapshot && engine) {
-          engine.restoreSnapshot(snapshot);
-        } else {
-          for (const orig of origSwStates) {
-            const c = circuit.getComponent(orig.id);
-            if (c) {
-              if (c.type === 'SWITCH' && c.state) c.state.value = orig.value;
-              else if (c.type === 'BUTTON' && c.state) c.state.pressed = orig.pressed;
-              if (c.outputs && c.outputs[0]) c.outputs[0].value = orig.outVal;
-              if (c.nextOutputs) c.nextOutputs[0] = orig.outVal;
-            }
-          }
-        }
-        circuit.syncImmediateWireLevels();
 
         return {
           inputs: inputMeta,
@@ -20832,7 +21589,10 @@
           rows,
           dnfMap,
           knfMap,
+          minMap,
           currentRowIndex,
+          totalInputs: inputs.length,
+          maxInputs,
           warning
         };
       }
@@ -20879,8 +21639,12 @@
         lines.push('');
         lines.push('### Normalformen:');
         for (const out of tableData.outputs) {
+          const minF = tableData.minMap ? tableData.minMap[out.name] : null;
           const dnf = tableData.dnfMap[out.name];
           const knf = tableData.knfMap[out.name];
+          if (minF) {
+            lines.push(`- **${out.name} Minimalform (Quine-McCluskey):** ${minF.formula}`);
+          }
           lines.push(`- **${out.name} DNF (Minterme):** ${dnf.formula}`);
           lines.push(`- **${out.name} KNF (Maxterme):** ${knf.formula}`);
         }
@@ -21163,6 +21927,19 @@
         this.updateSplitSelectOptions();
         this.updateUndoRedoUI();
         this.updateAlignMenuState();
+
+        // Ensure Properties (Eigenschaften) and Logic Analyzer (Impulsdiagramm) start expanded by default
+        const initInsp = document.getElementById('inspector');
+        const initInspExpand = document.getElementById('btn-inspector-expand');
+        if (initInsp && initInsp.classList) initInsp.classList.remove('collapsed');
+        if (initInspExpand && initInspExpand.style) initInspExpand.style.display = 'none';
+        const initAnalyzer = document.getElementById('analyzer-panel');
+        if (initAnalyzer && initAnalyzer.style && initAnalyzer.style.display === 'none') {
+          initAnalyzer.style.display = 'flex';
+        }
+        this.setAnalyzerCollapsed(false);
+        this.inspector.render(this.renderer.selectedCompId, this.renderer.selectedWireId);
+
         this.updateScenarioGuide();
         this.updateStatusBar();
 
@@ -21185,7 +21962,7 @@
         }
 
         setTimeout(() => {
-          this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
+          this.setAnalyzerCollapsed(false);
           this.renderer.resize();
           if (this.splitScreenMode && this.rendererRight) {
             this.rendererRight.resize();
@@ -21602,11 +22379,331 @@
 
 
       /**
-       * Snapshot based history: `tab.lastSnapshot` is the last committed circuit state.
-       * Every edit ends in refreshAll() -> commitHistory(), which moves the previous
-       * state onto the undo stack. This makes *every* edit undoable without having
-       * to remember a pushHistory() call at each mutation site.
+       * Entity-level Structural Delta History (`O(|Δ|)` Undo/Redo):
+       * Computes compact bidirectional diffs (`{ __delta: 1, inverse, forward }`) across
+       * components, wires, probes, and circuit metadata so single-entity edits store ~240 B
+       * instead of full-circuit JSON strings, while remaining backward-compatible with raw JSON snapshots.
        */
+      static _captureHistState(circuit) {
+        const comps = new Map();
+        const compOrder = new Array(circuit.components.length);
+        for (let i = 0; i < circuit.components.length; i++) {
+          const c = circuit.components[i];
+          const data = c.toJSON();
+          comps.set(c.id, { raw: JSON.stringify(data), data });
+          compOrder[i] = c.id;
+        }
+        const wires = new Map();
+        const wireOrder = new Array(circuit.wires.length);
+        for (let i = 0; i < circuit.wires.length; i++) {
+          const w = circuit.wires[i];
+          const data = w.toJSON();
+          wires.set(w.id, { raw: JSON.stringify(data), data });
+          wireOrder[i] = w.id;
+        }
+        const probes = new Map();
+        const probeOrder = new Array(circuit.probes.length);
+        for (let i = 0; i < circuit.probes.length; i++) {
+          const p = circuit.probes[i];
+          const data = p.toJSON();
+          probes.set(p.id, { raw: JSON.stringify(data), data });
+          probeOrder[i] = p.id;
+        }
+        const metaObj = {
+          globalGateDelay: Number.isFinite(circuit.globalGateDelay) ? circuit.globalGateDelay : 1,
+          moduleGateDelays: { ...(circuit.moduleGateDelays || {}) }
+        };
+        return {
+          comps,
+          compOrder,
+          wires,
+          wireOrder,
+          probes,
+          probeOrder,
+          metaRaw: JSON.stringify(metaObj),
+          metaObj
+        };
+      }
+
+      static _sameOrder(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      }
+
+      static _computeHistDelta(prev, next) {
+        const invUpsertComps = [];
+        const invRemoveComps = [];
+        const fwdUpsertComps = [];
+        const fwdRemoveComps = [];
+
+        for (const [id, pEntry] of prev.comps) {
+          const nEntry = next.comps.get(id);
+          if (!nEntry) {
+            invUpsertComps.push(pEntry);
+            fwdRemoveComps.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertComps.push(pEntry);
+            fwdUpsertComps.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.comps) {
+          if (!prev.comps.has(id)) {
+            invRemoveComps.push(id);
+            fwdUpsertComps.push(nEntry);
+          }
+        }
+
+        const invUpsertWires = [];
+        const invRemoveWires = [];
+        const fwdUpsertWires = [];
+        const fwdRemoveWires = [];
+
+        for (const [id, pEntry] of prev.wires) {
+          const nEntry = next.wires.get(id);
+          if (!nEntry) {
+            invUpsertWires.push(pEntry);
+            fwdRemoveWires.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertWires.push(pEntry);
+            fwdUpsertWires.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.wires) {
+          if (!prev.wires.has(id)) {
+            invRemoveWires.push(id);
+            fwdUpsertWires.push(nEntry);
+          }
+        }
+
+        const invUpsertProbes = [];
+        const invRemoveProbes = [];
+        const fwdUpsertProbes = [];
+        const fwdRemoveProbes = [];
+
+        for (const [id, pEntry] of prev.probes) {
+          const nEntry = next.probes.get(id);
+          if (!nEntry) {
+            invUpsertProbes.push(pEntry);
+            fwdRemoveProbes.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertProbes.push(pEntry);
+            fwdUpsertProbes.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.probes) {
+          if (!prev.probes.has(id)) {
+            invRemoveProbes.push(id);
+            fwdUpsertProbes.push(nEntry);
+          }
+        }
+
+        const compOrderChanged = !LogicSimApp._sameOrder(prev.compOrder, next.compOrder);
+        const wireOrderChanged = !LogicSimApp._sameOrder(prev.wireOrder, next.wireOrder);
+        const probeOrderChanged = !LogicSimApp._sameOrder(prev.probeOrder, next.probeOrder);
+        const metaChanged = prev.metaRaw !== next.metaRaw;
+
+        const hasChanges = (
+          invUpsertComps.length > 0 || invRemoveComps.length > 0 ||
+          invUpsertWires.length > 0 || invRemoveWires.length > 0 ||
+          invUpsertProbes.length > 0 || invRemoveProbes.length > 0 ||
+          compOrderChanged || wireOrderChanged || probeOrderChanged || metaChanged
+        );
+        if (!hasChanges) return null;
+
+        return {
+          __delta: 1,
+          inverse: {
+            removeWires: invRemoveWires,
+            removeProbes: invRemoveProbes,
+            removeComps: invRemoveComps,
+            upsertComps: invUpsertComps,
+            upsertWires: invUpsertWires,
+            upsertProbes: invUpsertProbes,
+            compOrder: compOrderChanged ? prev.compOrder : null,
+            wireOrder: wireOrderChanged ? prev.wireOrder : null,
+            probeOrder: probeOrderChanged ? prev.probeOrder : null,
+            metaObj: metaChanged ? prev.metaObj : null,
+            metaRaw: metaChanged ? prev.metaRaw : null
+          },
+          forward: {
+            removeWires: fwdRemoveWires,
+            removeProbes: fwdRemoveProbes,
+            removeComps: fwdRemoveComps,
+            upsertComps: fwdUpsertComps,
+            upsertWires: fwdUpsertWires,
+            upsertProbes: fwdUpsertProbes,
+            compOrder: compOrderChanged ? next.compOrder : null,
+            wireOrder: wireOrderChanged ? next.wireOrder : null,
+            probeOrder: probeOrderChanged ? next.probeOrder : null,
+            metaObj: metaChanged ? next.metaObj : null,
+            metaRaw: metaChanged ? next.metaRaw : null
+          }
+        };
+      }
+
+      _applyHistoryPatch(tab, patch) {
+        const circuit = tab.circuit;
+        const rb = tab.ringBuffer;
+
+        if (patch.removeProbes.length > 0) {
+          const rem = new Set(patch.removeProbes);
+          for (const pid of rem) {
+            circuit.probeMap.delete(pid);
+            if (rb) rb.removeChannel(pid);
+          }
+          circuit.probes = circuit.probes.filter(p => !rem.has(p.id));
+        }
+
+        if (patch.removeWires.length > 0) {
+          const rem = new Set(patch.removeWires);
+          for (const wid of rem) circuit.wireMap.delete(wid);
+          circuit.wires = circuit.wires.filter(w => !rem.has(w.id));
+        }
+
+        if (patch.removeComps.length > 0) {
+          const rem = new Set(patch.removeComps);
+          for (const cid of rem) circuit.compMap.delete(cid);
+          circuit.components = circuit.components.filter(c => !rem.has(c.id));
+        }
+
+        for (let i = 0; i < patch.upsertComps.length; i++) {
+          const cd = patch.upsertComps[i].data;
+          const existing = circuit.compMap.get(cd.id);
+          const cleanParams = sanitizeParams(cd.params || {});
+          if (existing && existing.type === cd.type) {
+            existing.x = Number.isFinite(cd.x) ? Math.max(-5000, Math.min(5000, cd.x)) : 0;
+            existing.y = Number.isFinite(cd.y) ? Math.max(-5000, Math.min(5000, cd.y)) : 0;
+            existing.params = cleanParams;
+            existing._icPlan = null;
+            existing._internalCircuit = false;
+            existing.rebuildPins();
+            existing.initState();
+            existing.compute();
+            existing.commit(true);
+          } else {
+            if (existing) {
+              const idx = circuit.components.indexOf(existing);
+              const fresh = new Component(cd.id, cd.type, cd.x, cd.y, cleanParams);
+              fresh.circuit = circuit;
+              circuit.compMap.set(fresh.id, fresh);
+              if (idx >= 0) circuit.components[idx] = fresh;
+              else circuit.components.push(fresh);
+            } else {
+              const fresh = new Component(cd.id, cd.type, cd.x, cd.y, cleanParams);
+              fresh.circuit = circuit;
+              circuit.compMap.set(fresh.id, fresh);
+              circuit.components.push(fresh);
+            }
+          }
+          const m = /(\d+)$/.exec(cd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.compOrder) {
+          const ordered = [];
+          for (let i = 0; i < patch.compOrder.length; i++) {
+            const c = circuit.compMap.get(patch.compOrder[i]);
+            if (c) ordered.push(c);
+          }
+          circuit.components = ordered;
+        }
+
+        for (let i = 0; i < patch.upsertWires.length; i++) {
+          const wd = patch.upsertWires[i].data;
+          let w = circuit.wireMap.get(wd.id);
+          const cleanWps = Array.isArray(wd.waypoints)
+            ? wd.waypoints.map(p => ({ x: p.x, y: p.y }))
+            : [];
+          if (w) {
+            w.fromCompId = wd.fromCompId ?? null;
+            w.fromPin = wd.fromPin ?? 0;
+            w.toCompId = wd.toCompId ?? null;
+            w.toPin = wd.toPin ?? 0;
+            w.fromWireId = wd.fromWireId ?? null;
+            w.fromPoint = wd.fromPoint ? { x: wd.fromPoint.x, y: wd.fromPoint.y } : null;
+            w.toWireId = wd.toWireId ?? null;
+            w.toPoint = wd.toPoint ? { x: wd.toPoint.x, y: wd.toPoint.y } : null;
+            w.waypoints = cleanWps;
+            w.channelOffset = wd.channelOffset || 0;
+            w.style = wd.style === 'diagonal' ? 'diagonal' : 'orthogonal';
+            w.autoRouted = Boolean(wd.autoRouted);
+          } else {
+            w = new Wire(wd.id, wd.fromCompId ?? null, wd.fromPin ?? 0, wd.toCompId ?? null, wd.toPin ?? 0, cleanWps, {
+              channelOffset: wd.channelOffset || 0,
+              style: wd.style || 'orthogonal',
+              autoRouted: Boolean(wd.autoRouted),
+              fromWireId: wd.fromWireId ?? null,
+              fromPoint: wd.fromPoint ? { x: wd.fromPoint.x, y: wd.fromPoint.y } : null,
+              toWireId: wd.toWireId ?? null,
+              toPoint: wd.toPoint ? { x: wd.toPoint.x, y: wd.toPoint.y } : null
+            });
+            w._circuit = circuit;
+            circuit.wireMap.set(w.id, w);
+            circuit.wires.push(w);
+          }
+          const m = /(\d+)$/.exec(wd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.wireOrder) {
+          const orderedWires = [];
+          for (let i = 0; i < patch.wireOrder.length; i++) {
+            const w = circuit.wireMap.get(patch.wireOrder[i]);
+            if (w) orderedWires.push(w);
+          }
+          circuit.wires = orderedWires;
+        }
+
+        // Refresh cached wire component pointers
+        for (let i = 0; i < circuit.wires.length; i++) {
+          const w = circuit.wires[i];
+          w._circuit = circuit;
+          w._fromComp = w.fromCompId ? (circuit.compMap.get(w.fromCompId) || null) : null;
+          w._toComp = w.toCompId ? (circuit.compMap.get(w.toCompId) || null) : null;
+        }
+
+        for (let i = 0; i < patch.upsertProbes.length; i++) {
+          const pd = patch.upsertProbes[i].data;
+          let pr = circuit.probeMap.get(pd.id);
+          if (pr) {
+            pr.wireId = pd.wireId;
+            pr.name = String(pd.name || pr.name).slice(0, 24);
+            pr.color = pd.color || pr.color;
+            pr.offsetRatio = Number.isFinite(pd.offsetRatio) ? Math.max(0.05, Math.min(0.95, pd.offsetRatio)) : 0.5;
+          } else {
+            pr = new Probe(pd.id, pd.wireId, pd.name, pd.color, pd.offsetRatio);
+            circuit.probeMap.set(pr.id, pr);
+            circuit.probes.push(pr);
+          }
+          if (rb) rb.ensureChannel(pr.id);
+          const m = /(\d+)$/.exec(pd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.probeOrder) {
+          const orderedProbes = [];
+          for (let i = 0; i < patch.probeOrder.length; i++) {
+            const pr = circuit.probeMap.get(patch.probeOrder[i]);
+            if (pr) orderedProbes.push(pr);
+          }
+          circuit.probes = orderedProbes;
+        }
+
+        if (patch.metaObj) {
+          circuit.globalGateDelay = parseGateDelay(patch.metaObj.globalGateDelay, 1);
+          circuit.moduleGateDelays = { ...(patch.metaObj.moduleGateDelays || {}) };
+        }
+
+        circuit._topoVersion = (circuit._topoVersion + 1) | 0;
+        circuit._inputWireMapDirty = true;
+        circuit._forkCountDirty = true;
+        if (typeof circuit._rebuildRefIndex === 'function') circuit._rebuildRefIndex();
+        circuit.syncImmediateWireLevels();
+      }
+
       resolveHistoryTab(targetTab = null) {
         return targetTab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
       }
@@ -21614,20 +22711,43 @@
       commitHistory(targetTab = null, coalesce = false) {
         const tab = this.resolveHistoryTab(targetTab);
         if (!tab || !tab.circuit) return false;
-        const snapshot = JSON.stringify(tab.circuit.toJSON());
-        if (tab.lastSnapshot === null || tab.lastSnapshot === undefined) {
-          tab.lastSnapshot = snapshot;
+        const nextState = LogicSimApp._captureHistState(tab.circuit);
+        if (!tab._histState || tab.lastSnapshot === null || tab.lastSnapshot === undefined) {
+          tab._histState = nextState;
+          tab._cachedJsonStr = null;
+          tab.lastSnapshot = '__DELTA_TRACKED__';
           return false;
         }
-        if (snapshot === tab.lastSnapshot) return false;
+        // Support tests/external code that manually assigned a JSON string to tab.lastSnapshot
+        if (typeof tab.lastSnapshot === 'string' && tab.lastSnapshot.startsWith('{')) {
+          try {
+            const tmp = new Circuit();
+            tmp.fromJSON(JSON.parse(tab.lastSnapshot));
+            tab._histState = LogicSimApp._captureHistState(tmp);
+          } catch (_) {}
+        }
+        const delta = LogicSimApp._computeHistDelta(tab._histState, nextState);
+        if (!delta) return false;
+
         const now = Date.now();
-        const merge = coalesce && tab.lastCommitCoalesced && (now - (tab.lastCommitTime || 0)) < 900;
-        if (!merge) {
-          tab.undoStack.push(tab.lastSnapshot);
+        const merge = coalesce && tab.lastCommitCoalesced && (now - (tab.lastCommitTime || 0)) < 900 && tab.undoStack.length > 0;
+        if (merge && tab._coalesceBaseState) {
+          const mergedDelta = LogicSimApp._computeHistDelta(tab._coalesceBaseState, nextState);
+          if (mergedDelta) {
+            tab.undoStack[tab.undoStack.length - 1] = mergedDelta;
+          } else {
+            tab.undoStack.pop();
+          }
+        } else {
+          if (coalesce) tab._coalesceBaseState = tab._histState;
+          else tab._coalesceBaseState = null;
+          tab.undoStack.push(delta);
           if (tab.undoStack.length > 100) tab.undoStack.shift();
         }
         tab.redoStack = [];
-        tab.lastSnapshot = snapshot;
+        tab._histState = nextState;
+        tab._cachedJsonStr = null;
+        tab.lastSnapshot = '__DELTA_TRACKED__';
         tab.lastCommitTime = now;
         tab.lastCommitCoalesced = Boolean(coalesce);
         this.updateUndoRedoUI();
@@ -21638,18 +22758,29 @@
       checkpointHistory(targetTab = null) {
         this.commitHistory(targetTab);
         const tab = this.resolveHistoryTab(targetTab);
-        if (tab) tab.lastCommitCoalesced = false;
+        if (tab) {
+          tab.lastCommitCoalesced = false;
+          tab._coalesceBaseState = null;
+        }
       }
 
       pushHistory(targetTab = null) {
         this.checkpointHistory(targetTab);
       }
 
-      restoreHistorySnapshot(tab, snapshot) {
+      restoreHistorySnapshot(tab, snapshot, direction = 'inverse') {
         if (this._layoutAnim) this.finishLayoutAnimation();
-        tab.circuit.fromJSON(JSON.parse(snapshot), tab.ringBuffer);
-        tab.lastSnapshot = JSON.stringify(tab.circuit.toJSON());
+        if (snapshot && typeof snapshot === 'object' && snapshot.__delta === 1) {
+          const patch = direction === 'forward' ? snapshot.forward : snapshot.inverse;
+          this._applyHistoryPatch(tab, patch);
+        } else if (typeof snapshot === 'string') {
+          tab.circuit.fromJSON(JSON.parse(snapshot), tab.ringBuffer);
+        }
+        tab._histState = LogicSimApp._captureHistState(tab.circuit);
+        tab._cachedJsonStr = null;
+        tab.lastSnapshot = '__DELTA_TRACKED__';
         tab.lastCommitCoalesced = false;
+        tab._coalesceBaseState = null;
         if (tab === this.getActiveTab()) {
           this.globalGateDelay = Number.isFinite(tab.circuit.globalGateDelay) ? tab.circuit.globalGateDelay : 1;
           this.moduleGateDelays = { ...(tab.circuit.moduleGateDelays || {}) };
@@ -21677,9 +22808,15 @@
         if (!tab) return;
         this.commitHistory(tab);
         if (tab.undoStack.length === 0) return;
-        tab.redoStack.push(tab.lastSnapshot);
-        const prevState = tab.undoStack.pop();
-        this.restoreHistorySnapshot(tab, prevState);
+        const entry = tab.undoStack.pop();
+        if (entry && typeof entry === 'object' && entry.__delta === 1) {
+          tab.redoStack.push(entry);
+          this.restoreHistorySnapshot(tab, entry, 'inverse');
+        } else {
+          const curJson = JSON.stringify(tab.circuit.toJSON());
+          tab.redoStack.push(curJson);
+          this.restoreHistorySnapshot(tab, entry, 'inverse');
+        }
         this.showToast('↶ Rückgängig ausgeführt');
       }
 
@@ -21689,10 +22826,16 @@
         if (!tab) return;
         if (this.commitHistory(tab)) return; // a fresh edit invalidated the redo stack
         if (tab.redoStack.length === 0) return;
-        const nextState = tab.redoStack.pop();
-        tab.undoStack.push(tab.lastSnapshot);
+        const entry = tab.redoStack.pop();
         const keepRedo = tab.redoStack.slice();
-        this.restoreHistorySnapshot(tab, nextState);
+        if (entry && typeof entry === 'object' && entry.__delta === 1) {
+          tab.undoStack.push(entry);
+          this.restoreHistorySnapshot(tab, entry, 'forward');
+        } else {
+          const curJson = JSON.stringify(tab.circuit.toJSON());
+          tab.undoStack.push(curJson);
+          this.restoreHistorySnapshot(tab, entry, 'forward');
+        }
         tab.redoStack = keepRedo;
         this.updateUndoRedoUI();
         this.showToast('↷ Wiederholen ausgeführt');
@@ -23021,7 +24164,8 @@
         this.renderer.panX = Math.round(cw / 2);
         this.renderer.panY = Math.round(ch / 2);
         this.renderer.zoom = 1.0;
-        document.getElementById('btn-zoom-reset').textContent = '100%';
+        const btnZoomReset = document.getElementById('btn-zoom-reset');
+        if (btnZoomReset) btnZoomReset.textContent = '100%';
         this.refreshAll();
       }
 
@@ -23053,11 +24197,26 @@
           'rail-delete': () => this.deleteSelection(),
           'rail-undo': () => this.undo(),
           'rail-redo': () => this.redo(),
-          'rail-fit': () => click('btn-zoom-fit'),
-          'rail-zoom-in': () => click('btn-zoom-in'),
-          'rail-zoom-out': () => click('btn-zoom-out'),
-          'rail-analyzer': () => click('btn-analyzer-toggle'),
-          'rail-inspector': () => click('btn-inspector-toggle'),
+          'rail-fit': () => this.runAlignAction('fit'),
+          'rail-zoom-in': () => this.setZoom(this.renderer.zoom * 1.15),
+          'rail-zoom-out': () => this.setZoom(this.renderer.zoom / 1.15),
+          'rail-analyzer': () => {
+            const p = document.getElementById('analyzer-panel');
+            if (p && p.style && p.style.display === 'none') {
+              p.style.display = 'flex';
+              this.setAnalyzerCollapsed(false);
+            } else {
+              click('btn-analyzer-toggle');
+            }
+          },
+          'rail-inspector': () => {
+            const p = document.getElementById('inspector');
+            if (p && p.classList && p.classList.contains('collapsed')) {
+              click('btn-inspector-expand');
+            } else {
+              click('btn-inspector-toggle');
+            }
+          },
           'rail-shortcuts': () => click('btn-help'),
           'rail-settings': () => click('mbtn-settings')
         };
@@ -23373,13 +24532,13 @@
           });
         }
 
-        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
           this.setZoom(this.renderer.zoom * 1.15);
         });
-        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
           this.setZoom(this.renderer.zoom / 1.15);
         });
-        document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+        document.getElementById('btn-zoom-reset')?.addEventListener('click', () => {
           const dpr = window.devicePixelRatio || 1;
           const cw = (this.gridCanvas ? this.gridCanvas.width / dpr : 1200);
           const ch = (this.gridCanvas ? this.gridCanvas.height / dpr : 800);
@@ -23400,7 +24559,8 @@
         this.renderer.panX = sx - worldBefore.x * clamped;
         this.renderer.panY = sy - worldBefore.y * clamped;
 
-        document.getElementById('btn-zoom-reset').textContent = `${Math.round(clamped * 100)}%`;
+        const btnZoomReset = document.getElementById('btn-zoom-reset');
+        if (btnZoomReset) btnZoomReset.textContent = `${Math.round(clamped * 100)}%`;
         this.renderer.render();
         this.updateStatusBar();
       }
@@ -27435,11 +28595,7 @@
         const b = this.getCircuitBounds();
         if (!b) return { zoom: 1, panX: 40, panY: 40 };
         const { w, h } = this.getViewportSize();
-        const tab = this.getActiveTab();
-        const inspectorEl = document.getElementById('inspector');
-        const floating = Boolean(inspectorEl && inspectorEl.classList && inspectorEl.classList.contains('collapsed'));
-        const guideOpen = floating && Boolean(tab && tab.scenarioKey) && !this.guideHidden && !this.guideCollapsed;
-        const inset = guideOpen && w >= 980 ? 316 : 0;
+        const inset = 0;
         const pad = Math.min(padding, Math.max(24, Math.round((w - inset) * 0.07)));
         const availW = Math.max(120, w - inset - pad * 2);
         const availH = Math.max(120, h - pad * 2);
@@ -27739,7 +28895,7 @@
 
       initExtendedUI() {
         this.scenarioFilterLevel = 0;
-        this.guideHidden = false;
+        this.guideHidden = true;
         this.guideCollapsed = false;
         this.visitedScenarios = new Set();
         this._scenarioPreviewCache = new Map();
@@ -27748,12 +28904,10 @@
         try {
           const seen = JSON.parse(localStorage.getItem('logicsim_scenarios_seen') || '[]');
           if (Array.isArray(seen)) seen.forEach(k => { if (typeof k === 'string' && SCENARIO_MAP.has(k)) this.visitedScenarios.add(k); });
-          this.guideCollapsed = localStorage.getItem('logicsim_guide_collapsed') === '1';
         } catch (e) { /* storage unavailable */ }
 
-        this.guideCardEl = document.getElementById('scenario-guide');
-        this.guideHomeEl = this.guideCardEl ? this.guideCardEl.parentElement : null;
-        if (this.inspector) this.inspector.onEmpty = () => this.updateScenarioGuide();
+        this.guideCardEl = null;
+        this.guideHomeEl = null;
 
         this.initAlignMenuEvents();
         this.initScenarioEvents();
@@ -28211,8 +29365,7 @@
             this.updateSplitSelectOptions();
           }
         }
-        this.guideHidden = false;
-        this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
+        this.guideHidden = true;
         this.autoLayoutCircuit({ silent: true });
         this.visitedScenarios.add(key);
         try { localStorage.setItem('logicsim_scenarios_seen', JSON.stringify(Array.from(this.visitedScenarios))); } catch (e) { /* ignore */ }
@@ -28245,53 +29398,7 @@
 
       updateScenarioGuide() {
         const card = this.guideCardEl || document.getElementById('scenario-guide');
-        if (!card || !card.style) return;
-        const tab = this.getActiveTab();
-        const sc = tab && tab.scenarioKey ? SCENARIO_MAP.get(tab.scenarioKey) : null;
-        if (!sc || this.guideHidden) { card.style.display = 'none'; return; }
-
-        const inspectorEl = document.getElementById('inspector');
-        const inspectorOpen = Boolean(inspectorEl && inspectorEl.classList && !inspectorEl.classList.contains('collapsed'));
-        const nothingSelected = !this.renderer.selectedCompId && !this.renderer.selectedWireId && !this.renderer.selectedProbeId
-          && (!this.renderer.selectedCompIds || this.renderer.selectedCompIds.size === 0)
-          && (!this.renderer.selectedWireIds || this.renderer.selectedWireIds.size === 0);
-        this.guideDocked = inspectorOpen;
-        if (inspectorOpen) {
-          if (!nothingSelected) { card.style.display = 'none'; return; }
-          if (this.inspectorContainer && card.parentElement !== this.inspectorContainer && typeof this.inspectorContainer.appendChild === 'function') {
-            this.inspectorContainer.innerHTML = '';
-            this.inspectorContainer.appendChild(card);
-          }
-          card.classList.add('docked');
-        } else {
-          if (this.guideHomeEl && card.parentElement !== this.guideHomeEl && typeof this.guideHomeEl.appendChild === 'function') {
-            this.guideHomeEl.appendChild(card);
-          }
-          card.classList.remove('docked');
-        }
-
-        const lvl = SCENARIO_LEVELS.find(l => l.id === sc.level) || SCENARIO_LEVELS[0];
-        card.style.display = 'block';
-        card.classList.toggle('collapsed', Boolean(this.guideCollapsed) && !inspectorOpen);
-        const find = (id) => (typeof card.querySelector === 'function' ? card.querySelector('#' + id) : null) || document.getElementById(id);
-        const set = (id, text) => { const el = find(id); if (el) el.textContent = text; };
-        set('guide-title', sc.title);
-        set('guide-summary', sc.summary);
-        const level = find('guide-level');
-        if (level) { level.textContent = `Stufe ${lvl.id} · ${lvl.title}`; if (level.style) level.style.background = lvl.color; }
-        const list = find('guide-try');
-        if (list) list.innerHTML = (sc.tryIt || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
-        set('guide-position', `${SCENARIOS.indexOf(sc) + 1} / ${SCENARIOS.length}`);
-        const primary = find('guide-primary');
-        if (primary) {
-          if (sc.sequential) {
-            const running = this.engine.mode === 'sim' && this.engine.running;
-            primary.textContent = running ? '⏸ Simulation pausieren' : '▶ Simulation starten';
-          } else {
-            primary.textContent = 'Wahrheitstabelle';
-          }
-        }
-        set('guide-truth', '↺ Neu laden');
+        if (card && card.style) card.style.display = 'none';
       }
 
 
@@ -29306,7 +30413,7 @@
         }
       }
 
-      openTruthTableModal() {
+      openTruthTableModal(options = {}) {
         const modalBackdrop = document.getElementById('modal-backdrop');
         const ttModal = document.getElementById('truth-table-modal');
         const synthModal = document.getElementById('bool-synth-modal');
@@ -29317,7 +30424,7 @@
         ttModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
 
-        const data = TruthTableGenerator.generate(this.circuit, this.engine);
+        const data = TruthTableGenerator.generate(this.circuit, this.engine, options);
         this.currentTruthTableData = data;
 
         if (data.error) {
@@ -29333,9 +30440,14 @@
 
         let html = '';
         if (data.warning) {
+          const canExpand = data.totalInputs > data.inputs.length && data.inputs.length < 12;
+          const nextMax = canExpand ? Math.min(12, data.totalInputs) : 0;
+          const expandBtn = canExpand
+            ? `<button id="btn-tt-expand-inputs" class="btn btn-sm" data-max-inputs="${nextMax}" style="margin-left: 10px; padding: 2px 8px; font-size: 10.5px;">Erweitern auf ${nextMax} Eingänge (${1 << nextMax} Zeilen)</button>`
+            : '';
           html += `
-            <div style="padding: 8px 12px; margin-bottom: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 11.5px; color: #fbbf24;">
-              ⚠ ${escapeHtml(data.warning)}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; margin-bottom: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 11.5px; color: #fbbf24;">
+              <span>⚠ ${escapeHtml(data.warning)}</span>${expandBtn}
             </div>
           `;
         }
@@ -29387,6 +30499,7 @@
         `;
 
         data.outputs.forEach(out => {
+          const minF = data.minMap ? data.minMap[out.name] : null;
           const dnf = data.dnfMap[out.name];
           const knf = data.knfMap[out.name];
           html += `
@@ -29394,6 +30507,14 @@
               <div style="font-size: 12px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 3px;">
                 Ausgang: ${escapeHtml(out.name)}
               </div>
+              ${minF ? `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-bright); font-size: 11.5px;">
+                <div>
+                  <span style="color: var(--text-main); font-weight: 700;">Minimalform (Quine-McCluskey):</span>
+                  <span class="tt-formula-text" style="color: var(--accent-cyan); font-weight: 600; margin-left: 6px;">${escapeHtml(minF.formula)}</span>
+                </div>
+                <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(minF.formula)}" title="Minimalform kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
+              </div>` : ''}
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">DNF (Minterme):</span>
@@ -29414,6 +30535,14 @@
 
         html += `</div>`;
         modalBody.innerHTML = html;
+
+        const btnExpand = modalBody.querySelector('#btn-tt-expand-inputs');
+        if (btnExpand) {
+          btnExpand.addEventListener('click', () => {
+            const nextMax = parseInt(btnExpand.getAttribute('data-max-inputs'), 10) || 12;
+            this.openTruthTableModal({ maxInputs: nextMax });
+          });
+        }
 
         const rows = modalBody.querySelectorAll('.tt-row');
         rows.forEach(rEl => {
@@ -29833,9 +30962,14 @@
         document.getElementById('menu-item-toggle-analyzer')?.addEventListener('click', () => {
           closeAllMenus();
           const p = document.getElementById('analyzer-panel');
-          if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
-          this.renderer.resize();
-          this.analyzer.resize();
+          if (p) {
+            if (p.style && p.style.display === 'none') {
+              p.style.display = 'flex';
+              this.setAnalyzerCollapsed(false);
+            } else {
+              this.setAnalyzerCollapsed(!p.classList.contains('collapsed'));
+            }
+          }
         });
         document.getElementById('menu-item-toggle-inspector')?.addEventListener('click', () => {
           closeAllMenus();
@@ -30811,9 +31945,19 @@
         if (!this.autoSaveCircuit) return;
         try {
           const activeTab = this.getActiveTab();
-          const payload = (activeTab && activeTab.circuit === this.circuit && activeTab.lastSnapshot)
-            ? activeTab.lastSnapshot
-            : JSON.stringify(this.circuit.toJSON());
+          let payload;
+          if (activeTab && activeTab.circuit === this.circuit) {
+            if (typeof activeTab.lastSnapshot === 'string' && activeTab.lastSnapshot.startsWith('{')) {
+              payload = activeTab.lastSnapshot;
+            } else {
+              if (!activeTab._cachedJsonStr) {
+                activeTab._cachedJsonStr = JSON.stringify(this.circuit.toJSON());
+              }
+              payload = activeTab._cachedJsonStr;
+            }
+          } else {
+            payload = JSON.stringify(this.circuit.toJSON());
+          }
           localStorage.setItem('logicsim_autosave', payload);
         } catch (e) {}
       }
