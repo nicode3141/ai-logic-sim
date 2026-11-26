@@ -6094,7 +6094,7 @@
       'Alle Eingangskombinationen der Schaltung': 'All input combinations of the circuit', 'Schließen': 'Close',
       'Tipp: Klick auf eine Zeile setzt die Schalter entsprechend.': 'Tip: click a row to set the switches accordingly.',
       'Als CSV kopieren': 'Copy as CSV', 'CSV kopieren': 'Copy CSV', 'Als Markdown kopieren': 'Copy as Markdown', 'Markdown kopieren': 'Copy Markdown',
-      '● AKTUELLER ZUSTAND': '● CURRENT STATE', 'Normalformen:': 'Normal forms:', 'DNF (Minterme):': 'DNF (minterms):', 'KNF (Maxterme):': 'CNF (maxterms):',
+      '● AKTUELLER ZUSTAND': '● CURRENT STATE', 'Normalformen:': 'Normal forms:', 'Minimalform (Quine-McCluskey):': 'Minimal form (Quine-McCluskey):', 'Minimalform kopieren': 'Copy minimal form', 'DNF (Minterme):': 'DNF (minterms):', 'KNF (Maxterme):': 'CNF (maxterms):',
       '0 (Kontradiktion / immer 0)': '0 (always 0)', '1 (Tautologie / immer 1)': '1 (always 1)', 'DNF kopieren': 'Copy DNF', 'KNF kopieren': 'Copy CNF', 'Kopieren': 'Copy',
       'Keine Auswertung möglich': 'Nothing to evaluate', 'Keine Eingänge gefunden. Füge mindestens einen Schalter hinzu.': 'No inputs found. Add at least one switch.',
       // --- Boolean synthesis ---
@@ -6455,6 +6455,8 @@
       [/^Verlegungsart: Zu (.*)$/, (m, tr) => `Style: switch to ${tr(m[1]).toLowerCase()}`],
       [/^(\d+) manuell$/, (m) => `${m[1]} manual`],
       [/^Gültige Formel \((\d+) Gleichung(?:en)?\)$/, (m) => `Valid formula (${I18N_PLURAL(m[1], 'equation', 'equations')})`],
+      [/^Die Schaltung besitzt (\d+) Eingänge\. Zur Vermeidung von Performanceproblemen werden die ersten (\d+) Eingänge \((\d+) Zeilen\) analysiert\.$/, (m) => `The circuit has ${m[1]} inputs. To avoid performance issues, the first ${m[2]} inputs (${m[3]} rows) are analyzed.`],
+      [/^Erweitern auf (\d+) Eingänge \((\d+) Zeilen\)$/, (m) => `Expand to ${m[1]} inputs (${m[2]} rows)`],
       [/^(\d+) Kanäle$/, (m) => I18N_PLURAL(m[1], 'channel', 'channels')],
       [/^Eingang (\d+) \((.+)\)$/, (m) => `Input ${m[1]} (${m[2]})`],
       [/^Ausgang (\d+) \((.+)\)$/, (m) => `Output ${m[1]} (${m[2]})`],
@@ -20596,7 +20598,513 @@
         return { inputs, outputs, wireProbes };
       }
 
-      static generate(circuit, engine) {
+      static minimizeMinterms(numVars, mintermIndices, varNames) {
+        const total = 1 << numVars;
+        if (!Array.isArray(mintermIndices) || mintermIndices.length === 0) {
+          return '0 (Kontradiktion / immer 0)';
+        }
+        if (mintermIndices.length >= total) {
+          return '1 (Tautologie / immer 1)';
+        }
+
+        const popcnt = (v) => {
+          let x = v >>> 0;
+          x = x - ((x >>> 1) & 0x55555555);
+          x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+          return (((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24;
+        };
+
+        let groups = Array.from({ length: numVars + 1 }, () => []);
+        const seenInit = new Set();
+        for (let i = 0; i < mintermIndices.length; i++) {
+          const m = mintermIndices[i] | 0;
+          if (seenInit.has(m)) continue;
+          seenInit.add(m);
+          groups[popcnt(m)].push({ bits: m, dc: 0, used: false });
+        }
+
+        const primes = [];
+        const primeSeen = new Set();
+        const addPrime = (bits, dc) => {
+          const key = (dc * 65536) + bits;
+          if (!primeSeen.has(key)) {
+            primeSeen.add(key);
+            primes.push({ bits, dc });
+          }
+        };
+
+        const MAX_LAYER_TERMS = 2048;
+        while (true) {
+          const nextGroups = Array.from({ length: numVars + 1 }, () => []);
+          const layerSeen = new Set();
+          let mergedCount = 0;
+          let aborted = false;
+
+          for (let g = 0; g < numVars && !aborted; g++) {
+            const gA = groups[g];
+            const gB = groups[g + 1];
+            if (gA.length === 0 || gB.length === 0) continue;
+            for (let i = 0; i < gA.length && !aborted; i++) {
+              const a = gA[i];
+              for (let j = 0; j < gB.length; j++) {
+                const b = gB[j];
+                if (a.dc !== b.dc) continue;
+                const diff = a.bits ^ b.bits;
+                if (diff !== 0 && (diff & (diff - 1)) === 0) {
+                  a.used = true;
+                  b.used = true;
+                  const nb = a.bits & ~diff;
+                  const nd = a.dc | diff;
+                  const key = (nd * 65536) + nb;
+                  if (!layerSeen.has(key)) {
+                    layerSeen.add(key);
+                    nextGroups[popcnt(nb)].push({ bits: nb, dc: nd, used: false });
+                    mergedCount++;
+                    if (mergedCount >= MAX_LAYER_TERMS) {
+                      aborted = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          for (let g = 0; g <= numVars; g++) {
+            const grp = groups[g];
+            for (let i = 0; i < grp.length; i++) {
+              if (!grp[i].used) addPrime(grp[i].bits, grp[i].dc);
+            }
+          }
+
+          if (mergedCount === 0 || aborted) {
+            if (aborted) {
+              for (let g = 0; g <= numVars; g++) {
+                for (let i = 0; i < nextGroups[g].length; i++) {
+                  addPrime(nextGroups[g][i].bits, nextGroups[g][i].dc);
+                }
+              }
+            }
+            break;
+          }
+          groups = nextGroups;
+        }
+
+        const uncovered = new Set(seenInit);
+        const selected = [];
+        const selectedIdx = new Set();
+
+        // 1. Essential prime implicants
+        for (const mt of Array.from(uncovered)) {
+          if (!uncovered.has(mt)) continue;
+          let lastPi = -1;
+          let count = 0;
+          for (let p = 0; p < primes.length; p++) {
+            const pr = primes[p];
+            if ((mt & ~pr.dc) === pr.bits) {
+              lastPi = p;
+              if (++count > 1) break;
+            }
+          }
+          if (count === 1 && !selectedIdx.has(lastPi)) {
+            selectedIdx.add(lastPi);
+            const pr = primes[lastPi];
+            selected.push(pr);
+            for (const m2 of Array.from(uncovered)) {
+              if ((m2 & ~pr.dc) === pr.bits) uncovered.delete(m2);
+            }
+          }
+        }
+
+        // 2. Greedy maximum-coverage selection for remaining cyclic core
+        while (uncovered.size > 0) {
+          let bestP = -1;
+          let bestCov = 0;
+          let bestDc = -1;
+          for (let p = 0; p < primes.length; p++) {
+            if (selectedIdx.has(p)) continue;
+            const pr = primes[p];
+            let cov = 0;
+            for (const mt of uncovered) {
+              if ((mt & ~pr.dc) === pr.bits) cov++;
+            }
+            if (cov === 0) continue;
+            const dcCnt = popcnt(pr.dc);
+            if (cov > bestCov || (cov === bestCov && dcCnt > bestDc)) {
+              bestCov = cov;
+              bestDc = dcCnt;
+              bestP = p;
+            }
+          }
+          if (bestP === -1) break;
+          selectedIdx.add(bestP);
+          const chosen = primes[bestP];
+          selected.push(chosen);
+          for (const mt of Array.from(uncovered)) {
+            if ((mt & ~chosen.dc) === chosen.bits) uncovered.delete(mt);
+          }
+        }
+
+        selected.sort((a, b) => (b.bits - a.bits) || (a.dc - b.dc));
+        const multiTerm = selected.length > 1;
+        const terms = selected.map(pr => {
+          const lits = [];
+          for (let i = 0; i < numVars; i++) {
+            const bitPos = numVars - 1 - i;
+            if ((pr.dc >>> bitPos) & 1) continue;
+            const isOne = (pr.bits >>> bitPos) & 1;
+            lits.push(isOne ? varNames[i] : `${varNames[i]}'`);
+          }
+          if (lits.length === 0) return '1';
+          if (lits.length === 1) return lits[0];
+          return multiTerm ? `(${lits.join(' · ')})` : lits.join(' · ');
+        });
+        return terms.join(' ∨ ');
+      }
+
+      static _tryEvaluateSWAR(circuit, cappedInputs, inputMeta, outputTargets) {
+        const COMB_OK = {
+          SWITCH: 1, BUTTON: 1, CLOCK: 1, CONST: 1,
+          NOT: 1, BUFFER: 1, TRI_STATE: 1, MAJORITY: 1,
+          AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1,
+          FULL_ADDER: 1, MUX: 1, DECODER: 1, BCD_DEC: 1,
+          LED: 1, PROBE: 1, SEVEN_SEG: 1, HEX_DISPLAY: 1, CUSTOM_IC: 1
+        };
+        const SOURCE_ONLY = { SWITCH: 1, BUTTON: 1, CLOCK: 1, CONST: 1 };
+        const comps = circuit.components;
+        const nComps = comps.length;
+        if (nComps === 0) return null;
+
+        const compIdxById = new Map();
+        for (let i = 0; i < nComps; i++) {
+          const c = comps[i];
+          if (!COMB_OK[c.type]) return null;
+          if (c.type === 'CUSTOM_IC') {
+            const icPlan = typeof c._getCompiledIC === 'function' ? c._getCompiledIC() : null;
+            if (!icPlan || !icPlan.lut) return null;
+          }
+          compIdxById.set(c.id, i);
+        }
+
+        // Resolve driver (srcCompIdx, srcOutPin) for every component input pin & every wire
+        const inPinSrcComp = comps.map(c => new Int32Array(c.inputs.length).fill(-1));
+        const inPinSrcPin = comps.map(c => new Int32Array(c.inputs.length));
+        const wireSrcComp = new Map();
+        const wireSrcPin = new Map();
+        const adj = Array.from({ length: nComps }, () => []);
+        const indeg = new Int32Array(nComps);
+
+        for (let wIdx = 0; wIdx < circuit.wires.length; wIdx++) {
+          const w = circuit.wires[wIdx];
+          const root = circuit.resolveWireRoot(w);
+          if (!root.compId) continue;
+          const sIdx = compIdxById.get(root.compId);
+          if (sIdx === undefined) continue;
+          const sComp = comps[sIdx];
+          if (!sComp.outputs || !sComp.outputs[root.pin]) continue;
+          wireSrcComp.set(w.id, sIdx);
+          wireSrcPin.set(w.id, root.pin);
+          if (w.toCompId) {
+            const dIdx = compIdxById.get(w.toCompId);
+            if (dIdx !== undefined && comps[dIdx].inputs && w.toPin >= 0 && w.toPin < comps[dIdx].inputs.length) {
+              if (inPinSrcComp[dIdx][w.toPin] === -1) {
+                inPinSrcComp[dIdx][w.toPin] = sIdx;
+                inPinSrcPin[dIdx][w.toPin] = root.pin;
+                if (!SOURCE_ONLY[comps[dIdx].type]) {
+                  if (sIdx === dIdx) return null; // self-loop feedback
+                  adj[sIdx].push(dIdx);
+                  indeg[dIdx]++;
+                }
+              }
+            }
+          }
+        }
+
+        // Kahn topological sort to guarantee strict DAG acyclicity
+        const topo = [];
+        for (let i = 0; i < nComps; i++) {
+          if (indeg[i] === 0) topo.push(i);
+        }
+        for (let q = 0; q < topo.length; q++) {
+          const u = topo[q];
+          const nexts = adj[u];
+          for (let m = 0; m < nexts.length; m++) {
+            const v = nexts[m];
+            if (--indeg[v] === 0) topo.push(v);
+          }
+        }
+        if (topo.length !== nComps) return null; // combinational cycle -> fall back to iterative solver
+
+        const cappedIdxMap = new Map();
+        for (let i = 0; i < cappedInputs.length; i++) {
+          cappedIdxMap.set(cappedInputs[i].id, i);
+        }
+
+        const outWords = comps.map(c => new Uint32Array(Math.max(1, c.outputs.length)));
+        const kVars = inputMeta.length;
+        const numCombinations = 1 << kVars;
+        const LANE_PATTERNS = [0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000];
+        const targetWords = new Uint32Array(outputTargets.length);
+        const rows = new Array(numCombinations);
+
+        const getEffInWord = (cIdx, pinIdx) => {
+          const c = comps[cIdx];
+          const sIdx = inPinSrcComp[cIdx][pinIdx];
+          let w = sIdx >= 0 ? outWords[sIdx][inPinSrcPin[cIdx][pinIdx]] : 0;
+          const inv = c.params && c.params.invertedInputs;
+          if (inv && inv[pinIdx]) w = (~w) >>> 0;
+          return w >>> 0;
+        };
+
+        for (let baseRow = 0; baseRow < numCombinations; baseRow += 32) {
+          const batchLen = Math.min(32, numCombinations - baseRow);
+
+          for (let q = 0; q < topo.length; q++) {
+            const cIdx = topo[q];
+            const c = comps[cIdx];
+            const params = c.params || {};
+            const cOuts = outWords[cIdx];
+
+            switch (c.type) {
+              case 'SWITCH':
+              case 'BUTTON':
+              case 'CLOCK': {
+                const capPos = cappedIdxMap.get(c.id);
+                let w = 0;
+                if (capPos !== undefined) {
+                  const shift = kVars - 1 - capPos;
+                  w = shift < 5
+                    ? (LANE_PATTERNS[shift] >>> 0)
+                    : (((baseRow >>> shift) & 1) ? 0xFFFFFFFF : 0);
+                  if (params.invertedOutput) w = (~w) >>> 0;
+                } else {
+                  w = (c.outputs[0] && c.outputs[0].value) ? 0xFFFFFFFF : 0;
+                }
+                cOuts[0] = w >>> 0;
+                break;
+              }
+              case 'CONST': {
+                cOuts[0] = params.value ? 0xFFFFFFFF : 0;
+                break;
+              }
+              case 'NOT': {
+                const w0 = getEffInWord(cIdx, 0);
+                const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
+                cOuts[0] = (isOutInv ? ~w0 : w0) >>> 0;
+                break;
+              }
+              case 'BUFFER': {
+                const w0 = getEffInWord(cIdx, 0);
+                cOuts[0] = (params.invertedOutput ? ~w0 : w0) >>> 0;
+                break;
+              }
+              case 'TRI_STATE': {
+                const base = (getEffInWord(cIdx, 0) & getEffInWord(cIdx, 1)) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'AND':
+              case 'NAND': {
+                const inCount = c.inputs.length;
+                let acc = 0xFFFFFFFF;
+                for (let p = 0; p < inCount; p++) acc = (acc & getEffInWord(cIdx, p)) >>> 0;
+                const isOutInv = c.type === 'NAND'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~acc : acc) >>> 0;
+                break;
+              }
+              case 'OR':
+              case 'NOR': {
+                const inCount = c.inputs.length;
+                let acc = 0;
+                for (let p = 0; p < inCount; p++) acc = (acc | getEffInWord(cIdx, p)) >>> 0;
+                const isOutInv = c.type === 'NOR'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~acc : acc) >>> 0;
+                break;
+              }
+              case 'XOR':
+              case 'XNOR': {
+                const inCount = c.inputs.length;
+                let base = 0;
+                if (inCount === 2 || params.xorMode === 'parity') {
+                  for (let p = 0; p < inCount; p++) base = (base ^ getEffInWord(cIdx, p)) >>> 0;
+                } else {
+                  let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                  for (let p = 0; p < inCount; p++) {
+                    const w = getEffInWord(cIdx, p);
+                    const c0 = b0 & w; b0 ^= w;
+                    const c1 = b1 & c0; b1 ^= c0;
+                    const c2 = b2 & c1; b2 ^= c1;
+                    b3 ^= c2;
+                  }
+                  base = (b0 & ~(b1 | b2 | b3)) >>> 0;
+                }
+                const isOutInv = c.type === 'XNOR'
+                  ? (params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true)
+                  : Boolean(params.invertedOutput);
+                cOuts[0] = (isOutInv ? ~base : base) >>> 0;
+                break;
+              }
+              case 'MAJORITY': {
+                const inCount = c.inputs.length;
+                const th = (inCount + 1) >> 1;
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                for (let p = 0; p < inCount; p++) {
+                  const w = getEffInWord(cIdx, p);
+                  const c0 = b0 & w; b0 ^= w;
+                  const c1 = b1 & c0; b1 ^= c0;
+                  const c2 = b2 & c1; b2 ^= c1;
+                  b3 ^= c2;
+                }
+                let base = 0;
+                if (th <= 1) base = (b0 | b1 | b2 | b3) >>> 0;
+                else if (th === 2) base = (b1 | b2 | b3) >>> 0;
+                else if (th === 3) base = ((b1 & b0) | b2 | b3) >>> 0;
+                else if (th === 4) base = (b2 | b3) >>> 0;
+                else base = ((b2 & (b1 | b0)) | b3) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'FULL_ADDER': {
+                const a = getEffInWord(cIdx, 0);
+                const b = getEffInWord(cIdx, 1);
+                const cin = getEffInWord(cIdx, 2);
+                const abXor = (a ^ b) >>> 0;
+                let s = (abXor ^ cin) >>> 0;
+                let co = ((a & b) | (cin & abXor)) >>> 0;
+                if (params.invertedOutput) {
+                  s = (~s) >>> 0;
+                  co = (~co) >>> 0;
+                }
+                cOuts[0] = s;
+                cOuts[1] = co;
+                break;
+              }
+              case 'MUX': {
+                const d0 = getEffInWord(cIdx, 0);
+                const d1 = getEffInWord(cIdx, 1);
+                const sel = getEffInWord(cIdx, 2);
+                const base = ((~sel & d0) | (sel & d1)) >>> 0;
+                cOuts[0] = (params.invertedOutput ? ~base : base) >>> 0;
+                break;
+              }
+              case 'DECODER': {
+                const a0 = getEffInWord(cIdx, 0);
+                const a1 = getEffInWord(cIdx, 1);
+                const invOut = Boolean(params.invertedOutput);
+                const y0 = (~a1 & ~a0) >>> 0;
+                const y1 = (~a1 & a0) >>> 0;
+                const y2 = (a1 & ~a0) >>> 0;
+                const y3 = (a1 & a0) >>> 0;
+                cOuts[0] = (invOut ? ~y0 : y0) >>> 0;
+                cOuts[1] = (invOut ? ~y1 : y1) >>> 0;
+                cOuts[2] = (invOut ? ~y2 : y2) >>> 0;
+                cOuts[3] = (invOut ? ~y3 : y3) >>> 0;
+                break;
+              }
+              case 'BCD_DEC': {
+                const d0 = getEffInWord(cIdx, 0);
+                const d1 = getEffInWord(cIdx, 1);
+                const d2 = getEffInWord(cIdx, 2);
+                const d3 = getEffInWord(cIdx, 3);
+                const maxDigit = params.hexMode ? 15 : 9;
+                const segAcc = new Uint32Array(7);
+                for (let m = 0; m <= maxDigit; m++) {
+                  const term = (
+                    ((m & 1) ? d0 : ~d0) &
+                    ((m & 2) ? d1 : ~d1) &
+                    ((m & 4) ? d2 : ~d2) &
+                    ((m & 8) ? d3 : ~d3)
+                  ) >>> 0;
+                  if (term === 0) continue;
+                  const segs = BCD_SEGMENT_TABLE[m];
+                  if (segs) {
+                    for (let s = 0; s < 7; s++) {
+                      if (segs[s]) segAcc[s] = (segAcc[s] | term) >>> 0;
+                    }
+                  }
+                }
+                const invOut = Boolean(params.invertedOutput);
+                for (let s = 0; s < 7; s++) {
+                  cOuts[s] = (invOut ? ~segAcc[s] : segAcc[s]) >>> 0;
+                }
+                break;
+              }
+              case 'CUSTOM_IC': {
+                const icPlan = c._getCompiledIC();
+                const lut = icPlan.lut;
+                const inLen = c.inputs.length;
+                const outLen = c.outputs.length;
+                const inW = new Uint32Array(inLen);
+                for (let p = 0; p < inLen; p++) inW[p] = getEffInWord(cIdx, p);
+                cOuts.fill(0);
+                for (let lane = 0; lane < batchLen; lane++) {
+                  let addr = 0;
+                  for (let p = 0; p < inLen; p++) {
+                    addr |= (((inW[p] >>> lane) & 1) << p);
+                  }
+                  const packed = lut[addr];
+                  for (let o = 0; o < outLen; o++) {
+                    if ((packed >>> o) & 1) cOuts[o] = (cOuts[o] | (1 << lane)) >>> 0;
+                  }
+                }
+                if (params.invertedOutput) {
+                  for (let o = 0; o < outLen; o++) cOuts[o] = (~cOuts[o]) >>> 0;
+                }
+                break;
+              }
+              default:
+                break;
+            }
+          }
+
+          for (let o = 0; o < outputTargets.length; o++) {
+            const target = outputTargets[o];
+            let w = 0;
+            if (target.wireProbe) {
+              const sIdx = wireSrcComp.get(target.wireProbe.wireId);
+              if (sIdx !== undefined) {
+                w = outWords[sIdx][wireSrcPin.get(target.wireProbe.wireId)] >>> 0;
+              }
+            } else {
+              const tIdx = compIdxById.get(target.comp.id);
+              if (tIdx !== undefined) {
+                if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
+                  w = getEffInWord(tIdx, 0);
+                } else {
+                  w = outWords[tIdx][target.outPin] >>> 0;
+                }
+              }
+            }
+            targetWords[o] = w;
+          }
+
+          for (let lane = 0; lane < batchLen; lane++) {
+            const r = baseRow + lane;
+            const inputValues = Object.create(null);
+            for (let i = 0; i < kVars; i++) {
+              inputValues[inputMeta[i].name] = (r >> (kVars - 1 - i)) & 1;
+            }
+            const outputValues = Object.create(null);
+            for (let o = 0; o < outputTargets.length; o++) {
+              outputValues[outputTargets[o].name] = (targetWords[o] >>> lane) & 1;
+            }
+            rows[r] = {
+              index: r,
+              inputs: inputValues,
+              outputs: outputValues,
+              isCurrent: false
+            };
+          }
+        }
+
+        return rows;
+      }
+
+      static generate(circuit, engine, options = {}) {
         const { inputs, outputs, wireProbes = [] } = TruthTableGenerator.analyzeCircuit(circuit);
 
         if (inputs.length === 0) {
@@ -20611,9 +21119,12 @@
           };
         }
 
-        const cappedInputs = inputs.slice(0, 8);
-        const warning = inputs.length > 8
-          ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten 8 Eingänge (256 Zeilen) analysiert.`
+        const maxInputs = (options && Number.isInteger(options.maxInputs))
+          ? Math.max(1, Math.min(12, options.maxInputs))
+          : 8;
+        const cappedInputs = inputs.slice(0, maxInputs);
+        const warning = inputs.length > maxInputs
+          ? `Die Schaltung besitzt ${inputs.length} Eingänge. Zur Vermeidung von Performanceproblemen werden die ersten ${maxInputs} Eingänge (${1 << maxInputs} Zeilen) analysiert.`
           : null;
 
         const usedInNames = new Set();
@@ -20696,84 +21207,119 @@
           }
         }
 
-        const snapshot = engine ? engine.createSnapshot() : null;
-        const origSwStates = cappedInputs.map(c => ({
-          id: c.id,
-          value: c.state ? (c.state.value ? 1 : 0) : 0,
-          pressed: c.state ? (c.state.pressed ? 1 : 0) : 0,
-          outVal: c.outputs[0]?.value || 0
-        }));
-
         const numCombinations = 1 << inputMeta.length;
-        const rows = [];
+        let rows = TruthTableGenerator._tryEvaluateSWAR(circuit, cappedInputs, inputMeta, outputTargets);
 
-        for (let r = 0; r < numCombinations; r++) {
-          const inputValues = Object.create(null);
-          for (let i = 0; i < inputMeta.length; i++) {
-            const bit = (r >> (inputMeta.length - 1 - i)) & 1;
-            inputValues[inputMeta[i].name] = bit;
-            const comp = cappedInputs[i];
-            if (comp) {
-              if (comp.type === 'SWITCH' && comp.state) {
-                comp.state.value = bit;
-              } else if (comp.type === 'BUTTON' && comp.state) {
-                comp.state.pressed = bit;
+        if (rows) {
+          if (currentRowIndex >= 0 && currentRowIndex < rows.length) {
+            rows[currentRowIndex].isCurrent = true;
+          }
+        } else {
+          const snapshot = engine ? engine.createSnapshot() : null;
+          const origSwStates = cappedInputs.map(c => ({
+            id: c.id,
+            value: c.state ? (c.state.value ? 1 : 0) : 0,
+            pressed: c.state ? (c.state.pressed ? 1 : 0) : 0,
+            outVal: c.outputs[0]?.value || 0
+          }));
+
+          rows = [];
+          for (let r = 0; r < numCombinations; r++) {
+            const inputValues = Object.create(null);
+            for (let i = 0; i < inputMeta.length; i++) {
+              const bit = (r >> (inputMeta.length - 1 - i)) & 1;
+              inputValues[inputMeta[i].name] = bit;
+              const comp = cappedInputs[i];
+              if (comp) {
+                if (comp.type === 'SWITCH' && comp.state) {
+                  comp.state.value = bit;
+                } else if (comp.type === 'BUTTON' && comp.state) {
+                  comp.state.pressed = bit;
+                }
+                const effOut = comp.params && comp.params.invertedOutput ? (bit ^ 1) : bit;
+                if (comp.outputs && comp.outputs[0]) {
+                  comp.outputs[0].value = effOut;
+                }
+                if (comp.nextOutputs) {
+                  comp.nextOutputs[0] = effOut;
+                }
               }
-              const effOut = comp.params && comp.params.invertedOutput ? (bit ^ 1) : bit;
-              if (comp.outputs && comp.outputs[0]) {
-                comp.outputs[0].value = effOut;
+            }
+
+            circuit.syncImmediateWireLevels();
+
+            const outputValues = Object.create(null);
+            for (let o = 0; o < outputTargets.length; o++) {
+              const target = outputTargets[o];
+              let val = 0;
+              if (target.wireProbe) {
+                const w = circuit.getWire ? circuit.getWire(target.wireProbe.wireId) : circuit.wires.find(x => x.id === target.wireProbe.wireId);
+                val = w && w.level ? 1 : 0;
+              } else if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
+                val = target.comp.getEffectiveInputValue ? target.comp.getEffectiveInputValue(0) : (target.comp.inputs[0]?.value || 0);
+              } else if (target.comp.outputs && target.comp.outputs[target.outPin]) {
+                val = target.comp.outputs[target.outPin].value || 0;
               }
-              if (comp.nextOutputs) {
-                comp.nextOutputs[0] = effOut;
+              outputValues[target.name] = val;
+            }
+
+            rows.push({
+              index: r,
+              inputs: inputValues,
+              outputs: outputValues,
+              isCurrent: (r === currentRowIndex)
+            });
+          }
+
+          if (snapshot && engine) {
+            engine.restoreSnapshot(snapshot);
+          } else {
+            for (const orig of origSwStates) {
+              const c = circuit.getComponent(orig.id);
+              if (c) {
+                if (c.type === 'SWITCH' && c.state) c.state.value = orig.value;
+                else if (c.type === 'BUTTON' && c.state) c.state.pressed = orig.pressed;
+                if (c.outputs && c.outputs[0]) c.outputs[0].value = orig.outVal;
+                if (c.nextOutputs) c.nextOutputs[0] = orig.outVal;
               }
             }
           }
-
           circuit.syncImmediateWireLevels();
-
-          const outputValues = Object.create(null);
-          for (let o = 0; o < outputTargets.length; o++) {
-            const target = outputTargets[o];
-            let val = 0;
-            if (target.wireProbe) {
-              const w = circuit.getWire ? circuit.getWire(target.wireProbe.wireId) : circuit.wires.find(x => x.id === target.wireProbe.wireId);
-              val = w && w.level ? 1 : 0;
-            } else if (target.comp.type === 'LED' || target.comp.type === 'PROBE') {
-              val = target.comp.getEffectiveInputValue ? target.comp.getEffectiveInputValue(0) : (target.comp.inputs[0]?.value || 0);
-            } else if (target.comp.outputs && target.comp.outputs[target.outPin]) {
-              val = target.comp.outputs[target.outPin].value || 0;
-            }
-            outputValues[target.name] = val;
-          }
-
-          rows.push({
-            index: r,
-            inputs: inputValues,
-            outputs: outputValues,
-            isCurrent: (r === currentRowIndex)
-          });
         }
 
         const dnfMap = Object.create(null);
         const knfMap = Object.create(null);
+        const minMap = Object.create(null);
+        const inVarNames = inputMeta.map(inp => inp.name);
+        const buildFullNormalForms = numCombinations <= 512;
 
         for (const out of outputMeta) {
           const outName = out.name;
-          const minterms = rows.filter(r => r.outputs[outName] === 1);
-          const maxterms = rows.filter(r => r.outputs[outName] === 0);
+          const mintermIndices = [];
+          const maxtermIndices = [];
+          for (let r = 0; r < rows.length; r++) {
+            if (rows[r].outputs[outName] === 1) mintermIndices.push(r);
+            else maxtermIndices.push(r);
+          }
 
-          if (minterms.length === 0) {
+          minMap[outName] = {
+            indices: mintermIndices,
+            formula: TruthTableGenerator.minimizeMinterms(inputMeta.length, mintermIndices, inVarNames)
+          };
+
+          if (mintermIndices.length === 0) {
             dnfMap[outName] = {
               indices: [],
               formula: '0 (Kontradiktion / immer 0)'
             };
-          } else if (minterms.length === numCombinations) {
+          } else if (mintermIndices.length === numCombinations) {
             dnfMap[outName] = {
-              indices: minterms.map(m => m.index),
+              indices: mintermIndices,
               formula: '1 (Tautologie / immer 1)'
             };
-          } else {
-            const parts = minterms.map(m => {
+          } else if (buildFullNormalForms) {
+            const parts = mintermIndices.map(mIdx => {
+              const m = rows[mIdx];
               const literals = inputMeta.map(inp => {
                 const bit = m.inputs[inp.name];
                 return bit === 1 ? inp.name : `${inp.name}'`;
@@ -20781,23 +21327,29 @@
               return `(${literals.join(' · ')})`;
             });
             dnfMap[outName] = {
-              indices: minterms.map(m => m.index),
+              indices: mintermIndices,
               formula: parts.join(' ∨ ')
+            };
+          } else {
+            dnfMap[outName] = {
+              indices: mintermIndices,
+              formula: `∑m(${mintermIndices.slice(0, 16).join(', ')}${mintermIndices.length > 16 ? ', …' : ''}) [${mintermIndices.length} Minterme]`
             };
           }
 
-          if (maxterms.length === 0) {
+          if (maxtermIndices.length === 0) {
             knfMap[outName] = {
               indices: [],
               formula: '1 (Tautologie / immer 1)'
             };
-          } else if (maxterms.length === numCombinations) {
+          } else if (maxtermIndices.length === numCombinations) {
             knfMap[outName] = {
-              indices: maxterms.map(m => m.index),
+              indices: maxtermIndices,
               formula: '0 (Kontradiktion / immer 0)'
             };
-          } else {
-            const parts = maxterms.map(m => {
+          } else if (buildFullNormalForms) {
+            const parts = maxtermIndices.map(mIdx => {
+              const m = rows[mIdx];
               const literals = inputMeta.map(inp => {
                 const bit = m.inputs[inp.name];
                 return bit === 0 ? inp.name : `${inp.name}'`;
@@ -20805,26 +21357,16 @@
               return `(${literals.join(' + ')})`;
             });
             knfMap[outName] = {
-              indices: maxterms.map(m => m.index),
+              indices: maxtermIndices,
               formula: parts.join(' · ')
+            };
+          } else {
+            knfMap[outName] = {
+              indices: maxtermIndices,
+              formula: `∏M(${maxtermIndices.slice(0, 16).join(', ')}${maxtermIndices.length > 16 ? ', …' : ''}) [${maxtermIndices.length} Maxterme]`
             };
           }
         }
-
-        if (snapshot && engine) {
-          engine.restoreSnapshot(snapshot);
-        } else {
-          for (const orig of origSwStates) {
-            const c = circuit.getComponent(orig.id);
-            if (c) {
-              if (c.type === 'SWITCH' && c.state) c.state.value = orig.value;
-              else if (c.type === 'BUTTON' && c.state) c.state.pressed = orig.pressed;
-              if (c.outputs && c.outputs[0]) c.outputs[0].value = orig.outVal;
-              if (c.nextOutputs) c.nextOutputs[0] = orig.outVal;
-            }
-          }
-        }
-        circuit.syncImmediateWireLevels();
 
         return {
           inputs: inputMeta,
@@ -20832,7 +21374,10 @@
           rows,
           dnfMap,
           knfMap,
+          minMap,
           currentRowIndex,
+          totalInputs: inputs.length,
+          maxInputs,
           warning
         };
       }
@@ -20879,8 +21424,12 @@
         lines.push('');
         lines.push('### Normalformen:');
         for (const out of tableData.outputs) {
+          const minF = tableData.minMap ? tableData.minMap[out.name] : null;
           const dnf = tableData.dnfMap[out.name];
           const knf = tableData.knfMap[out.name];
+          if (minF) {
+            lines.push(`- **${out.name} Minimalform (Quine-McCluskey):** ${minF.formula}`);
+          }
           lines.push(`- **${out.name} DNF (Minterme):** ${dnf.formula}`);
           lines.push(`- **${out.name} KNF (Maxterme):** ${knf.formula}`);
         }
@@ -29306,7 +29855,7 @@
         }
       }
 
-      openTruthTableModal() {
+      openTruthTableModal(options = {}) {
         const modalBackdrop = document.getElementById('modal-backdrop');
         const ttModal = document.getElementById('truth-table-modal');
         const synthModal = document.getElementById('bool-synth-modal');
@@ -29317,7 +29866,7 @@
         ttModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
 
-        const data = TruthTableGenerator.generate(this.circuit, this.engine);
+        const data = TruthTableGenerator.generate(this.circuit, this.engine, options);
         this.currentTruthTableData = data;
 
         if (data.error) {
@@ -29333,9 +29882,14 @@
 
         let html = '';
         if (data.warning) {
+          const canExpand = data.totalInputs > data.inputs.length && data.inputs.length < 12;
+          const nextMax = canExpand ? Math.min(12, data.totalInputs) : 0;
+          const expandBtn = canExpand
+            ? `<button id="btn-tt-expand-inputs" class="btn btn-sm" data-max-inputs="${nextMax}" style="margin-left: 10px; padding: 2px 8px; font-size: 10.5px;">Erweitern auf ${nextMax} Eingänge (${1 << nextMax} Zeilen)</button>`
+            : '';
           html += `
-            <div style="padding: 8px 12px; margin-bottom: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 11.5px; color: #fbbf24;">
-              ⚠ ${escapeHtml(data.warning)}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; margin-bottom: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 11.5px; color: #fbbf24;">
+              <span>⚠ ${escapeHtml(data.warning)}</span>${expandBtn}
             </div>
           `;
         }
@@ -29387,6 +29941,7 @@
         `;
 
         data.outputs.forEach(out => {
+          const minF = data.minMap ? data.minMap[out.name] : null;
           const dnf = data.dnfMap[out.name];
           const knf = data.knfMap[out.name];
           html += `
@@ -29394,6 +29949,14 @@
               <div style="font-size: 12px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 3px;">
                 Ausgang: ${escapeHtml(out.name)}
               </div>
+              ${minF ? `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-bright); font-size: 11.5px;">
+                <div>
+                  <span style="color: var(--text-main); font-weight: 700;">Minimalform (Quine-McCluskey):</span>
+                  <span class="tt-formula-text" style="color: var(--accent-cyan); font-weight: 600; margin-left: 6px;">${escapeHtml(minF.formula)}</span>
+                </div>
+                <button class="btn btn-sm btn-copy-sub" data-copy="${escapeHtml(minF.formula)}" title="Minimalform kopieren" style="padding: 2px 6px; font-size: 10px;">Kopieren</button>
+              </div>` : ''}
               <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--border-dim); font-size: 11.5px;">
                 <div>
                   <span style="color: var(--text-muted); font-weight: 600;">DNF (Minterme):</span>
@@ -29414,6 +29977,14 @@
 
         html += `</div>`;
         modalBody.innerHTML = html;
+
+        const btnExpand = modalBody.querySelector('#btn-tt-expand-inputs');
+        if (btnExpand) {
+          btnExpand.addEventListener('click', () => {
+            const nextMax = parseInt(btnExpand.getAttribute('data-max-inputs'), 10) || 12;
+            this.openTruthTableModal({ maxInputs: nextMax });
+          });
+        }
 
         const rows = modalBody.querySelectorAll('.tt-row');
         rows.forEach(rEl => {
