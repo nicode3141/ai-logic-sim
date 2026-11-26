@@ -13249,6 +13249,7 @@
         this._headSnapshot = null;
         this._isScrubbed = false;
         this._probeSamplesCache = new Map();
+        this._deferTickUpdate = false;
       }
 
       get maxHistory() { return this._maxHistory; }
@@ -13784,7 +13785,7 @@
         }
         this.ringBuffer.record(this.tickCount, probeSamples);
 
-        if (typeof this.onUpdate === 'function') this.onUpdate();
+        if (!this._deferTickUpdate && typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       loop(now) {
@@ -13795,11 +13796,18 @@
 
         const interval = 1000 / this.frequency;
         let ticksThisFrame = 0;
-        while (this.accumulator >= interval && ticksThisFrame < 5) {
-          this.stepTick();
-          this.accumulator -= interval;
-          ticksThisFrame++;
+        // Catch-up ticks of one frame share a single UI refresh: intermediate states are never painted anyway.
+        this._deferTickUpdate = true;
+        try {
+          while (this.accumulator >= interval && ticksThisFrame < 5) {
+            this.stepTick();
+            this.accumulator -= interval;
+            ticksThisFrame++;
+          }
+        } finally {
+          this._deferTickUpdate = false;
         }
+        if (ticksThisFrame > 0 && typeof this.onUpdate === 'function') this.onUpdate();
         if (this.accumulator > interval * 2) {
           this.accumulator = interval;
         }

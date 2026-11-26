@@ -545,3 +545,14 @@ commits.
 > unten rechts sind bedienelemente zum zoomen und so entferne die das der workspace schöner ist und auch diese kontextanzeige zum ausgewählten szenario ist nerven und mache das eigenschaften und impulsdiagramm standartmäßig ausgeklappt sind
 
 
+
+---
+
+## 2026-11-26 — Projektweite Optimierung ohne Funktionsverlust
+
+- **Author:** Leegende
+- **Branch:** `chore/wish-081-perf-optimization`
+- **Related:** WISH-081
+- **Prompt:**
+
+> optimiere das ganze projekt ohne auch ein tropfen funktion zu verlieren. Suche nach sämtlichen optimieren
