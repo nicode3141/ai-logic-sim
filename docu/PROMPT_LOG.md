@@ -533,3 +533,15 @@ commits.
 
 > mache es so das wenn konnektorpunkte in modulen sind es automatisch formatiert wird und verbessere nochmal das endpunkte von verbindugen besser in offene module reinkommen
 
+---
+
+## 2026-11-26 — Zoom-Bedienelemente & Szenario-Kontextanzeige entfernen, Eigenschaften & Impulsdiagramm standardmäßig ausklappen
+
+- **Author:** Leegende
+- **Branch:** `feat/wish-079-clean-workspace-default-panels`
+- **Related:** WISH-079
+- **Prompt:**
+
+> unten rechts sind bedienelemente zum zoomen und so entferne die das der workspace schöner ist und auch diese kontextanzeige zum ausgewählten szenario ist nerven und mache das eigenschaften und impulsdiagramm standartmäßig ausgeklappt sind
+
+

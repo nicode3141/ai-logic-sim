@@ -4615,10 +4615,6 @@
               <span data-i18n="menu.demos.gallery">Szenario-Galerie öffnen…</span>
               <span class="menu-shortcut">G</span>
             </button>
-            <button class="app-menu-item" id="menu-item-guide-toggle">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-              <span data-i18n="menu.demos.guide">Szenario-Guide ein-/ausblenden</span>
-            </button>
             <div class="app-menu-divider"></div>
             <div class="app-menu-header">Direkt zu einer Stufe</div>
             <div id="menu-scenario-levels"></div>
@@ -5029,36 +5025,6 @@
               <span class="pane-badge" id="pane-badge-left">Fokus</span>
             </div>
             <canvas id="grid-canvas"></canvas>
-
-            <div id="scenario-guide" class="scenario-guide" style="display: none;">
-              <div class="guide-head">
-                <span class="guide-level" id="guide-level">Stufe 1</span>
-                <span class="guide-title" id="guide-title">Szenario</span>
-                <button class="guide-icon-btn" id="guide-collapse" title="Guide ein-/ausklappen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
-                <button class="guide-icon-btn" id="guide-close" title="Guide schließen">&times;</button>
-              </div>
-              <div class="guide-body" id="guide-body">
-                <p class="guide-summary" id="guide-summary"></p>
-                <div class="guide-try-title">Ausprobieren</div>
-                <ul class="guide-try" id="guide-try"></ul>
-                <div class="guide-actions">
-                  <button class="btn btn-primary" id="guide-primary">Simulation starten</button>
-                  <button class="btn" id="guide-truth" title="Wahrheitstabelle der Schaltung anzeigen">Wahrheitstabelle</button>
-                </div>
-                <div class="guide-nav">
-                  <button class="btn" id="guide-prev" title="Vorheriges Szenario">‹ Zurück</button>
-                  <span id="guide-position">1 / 37</span>
-                  <button class="btn" id="guide-next" title="Nächstes Szenario">Weiter ›</button>
-                </div>
-              </div>
-            </div>
-
-            <div id="zoom-controls">
-              <button class="zoom-btn" id="btn-zoom-fit" title="Ganze Schaltung einpassen (F)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-out" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-reset" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-              <button class="zoom-btn" id="btn-zoom-in" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            </div>
           </div>
 
           <div id="canvas-splitter" class="canvas-splitter" style="display: none;">
@@ -5077,12 +5043,6 @@
               </div>
             </div>
             <canvas id="grid-canvas-right"></canvas>
-
-            <div id="zoom-controls-right" style="position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; gap: 4px; background: var(--bg-panel); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); padding: 4px; border-radius: 6px; border: 1px solid var(--border-bright);">
-              <button class="zoom-btn" id="btn-zoom-out-right" title="Herauszoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-              <button class="zoom-btn" id="btn-zoom-reset-right" style="width: auto; padding: 0 8px; font-size: 11px;" title="Ansicht zentrieren (100%)">100%</button>
-              <button class="zoom-btn" id="btn-zoom-in-right" title="Hineinzoomen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            </div>
           </div>
         </div>
 
@@ -21967,6 +21927,19 @@
         this.updateSplitSelectOptions();
         this.updateUndoRedoUI();
         this.updateAlignMenuState();
+
+        // Ensure Properties (Eigenschaften) and Logic Analyzer (Impulsdiagramm) start expanded by default
+        const initInsp = document.getElementById('inspector');
+        const initInspExpand = document.getElementById('btn-inspector-expand');
+        if (initInsp && initInsp.classList) initInsp.classList.remove('collapsed');
+        if (initInspExpand && initInspExpand.style) initInspExpand.style.display = 'none';
+        const initAnalyzer = document.getElementById('analyzer-panel');
+        if (initAnalyzer && initAnalyzer.style && initAnalyzer.style.display === 'none') {
+          initAnalyzer.style.display = 'flex';
+        }
+        this.setAnalyzerCollapsed(false);
+        this.inspector.render(this.renderer.selectedCompId, this.renderer.selectedWireId);
+
         this.updateScenarioGuide();
         this.updateStatusBar();
 
@@ -21989,7 +21962,7 @@
         }
 
         setTimeout(() => {
-          this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
+          this.setAnalyzerCollapsed(false);
           this.renderer.resize();
           if (this.splitScreenMode && this.rendererRight) {
             this.rendererRight.resize();
@@ -24191,7 +24164,8 @@
         this.renderer.panX = Math.round(cw / 2);
         this.renderer.panY = Math.round(ch / 2);
         this.renderer.zoom = 1.0;
-        document.getElementById('btn-zoom-reset').textContent = '100%';
+        const btnZoomReset = document.getElementById('btn-zoom-reset');
+        if (btnZoomReset) btnZoomReset.textContent = '100%';
         this.refreshAll();
       }
 
@@ -24223,11 +24197,26 @@
           'rail-delete': () => this.deleteSelection(),
           'rail-undo': () => this.undo(),
           'rail-redo': () => this.redo(),
-          'rail-fit': () => click('btn-zoom-fit'),
-          'rail-zoom-in': () => click('btn-zoom-in'),
-          'rail-zoom-out': () => click('btn-zoom-out'),
-          'rail-analyzer': () => click('btn-analyzer-toggle'),
-          'rail-inspector': () => click('btn-inspector-toggle'),
+          'rail-fit': () => this.runAlignAction('fit'),
+          'rail-zoom-in': () => this.setZoom(this.renderer.zoom * 1.15),
+          'rail-zoom-out': () => this.setZoom(this.renderer.zoom / 1.15),
+          'rail-analyzer': () => {
+            const p = document.getElementById('analyzer-panel');
+            if (p && p.style && p.style.display === 'none') {
+              p.style.display = 'flex';
+              this.setAnalyzerCollapsed(false);
+            } else {
+              click('btn-analyzer-toggle');
+            }
+          },
+          'rail-inspector': () => {
+            const p = document.getElementById('inspector');
+            if (p && p.classList && p.classList.contains('collapsed')) {
+              click('btn-inspector-expand');
+            } else {
+              click('btn-inspector-toggle');
+            }
+          },
           'rail-shortcuts': () => click('btn-help'),
           'rail-settings': () => click('mbtn-settings')
         };
@@ -24543,13 +24532,13 @@
           });
         }
 
-        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
           this.setZoom(this.renderer.zoom * 1.15);
         });
-        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
           this.setZoom(this.renderer.zoom / 1.15);
         });
-        document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+        document.getElementById('btn-zoom-reset')?.addEventListener('click', () => {
           const dpr = window.devicePixelRatio || 1;
           const cw = (this.gridCanvas ? this.gridCanvas.width / dpr : 1200);
           const ch = (this.gridCanvas ? this.gridCanvas.height / dpr : 800);
@@ -24570,7 +24559,8 @@
         this.renderer.panX = sx - worldBefore.x * clamped;
         this.renderer.panY = sy - worldBefore.y * clamped;
 
-        document.getElementById('btn-zoom-reset').textContent = `${Math.round(clamped * 100)}%`;
+        const btnZoomReset = document.getElementById('btn-zoom-reset');
+        if (btnZoomReset) btnZoomReset.textContent = `${Math.round(clamped * 100)}%`;
         this.renderer.render();
         this.updateStatusBar();
       }
@@ -28605,11 +28595,7 @@
         const b = this.getCircuitBounds();
         if (!b) return { zoom: 1, panX: 40, panY: 40 };
         const { w, h } = this.getViewportSize();
-        const tab = this.getActiveTab();
-        const inspectorEl = document.getElementById('inspector');
-        const floating = Boolean(inspectorEl && inspectorEl.classList && inspectorEl.classList.contains('collapsed'));
-        const guideOpen = floating && Boolean(tab && tab.scenarioKey) && !this.guideHidden && !this.guideCollapsed;
-        const inset = guideOpen && w >= 980 ? 316 : 0;
+        const inset = 0;
         const pad = Math.min(padding, Math.max(24, Math.round((w - inset) * 0.07)));
         const availW = Math.max(120, w - inset - pad * 2);
         const availH = Math.max(120, h - pad * 2);
@@ -28909,7 +28895,7 @@
 
       initExtendedUI() {
         this.scenarioFilterLevel = 0;
-        this.guideHidden = false;
+        this.guideHidden = true;
         this.guideCollapsed = false;
         this.visitedScenarios = new Set();
         this._scenarioPreviewCache = new Map();
@@ -28918,12 +28904,10 @@
         try {
           const seen = JSON.parse(localStorage.getItem('logicsim_scenarios_seen') || '[]');
           if (Array.isArray(seen)) seen.forEach(k => { if (typeof k === 'string' && SCENARIO_MAP.has(k)) this.visitedScenarios.add(k); });
-          this.guideCollapsed = localStorage.getItem('logicsim_guide_collapsed') === '1';
         } catch (e) { /* storage unavailable */ }
 
-        this.guideCardEl = document.getElementById('scenario-guide');
-        this.guideHomeEl = this.guideCardEl ? this.guideCardEl.parentElement : null;
-        if (this.inspector) this.inspector.onEmpty = () => this.updateScenarioGuide();
+        this.guideCardEl = null;
+        this.guideHomeEl = null;
 
         this.initAlignMenuEvents();
         this.initScenarioEvents();
@@ -29381,8 +29365,7 @@
             this.updateSplitSelectOptions();
           }
         }
-        this.guideHidden = false;
-        this.setAnalyzerCollapsed(this.circuit.probes.length === 0);
+        this.guideHidden = true;
         this.autoLayoutCircuit({ silent: true });
         this.visitedScenarios.add(key);
         try { localStorage.setItem('logicsim_scenarios_seen', JSON.stringify(Array.from(this.visitedScenarios))); } catch (e) { /* ignore */ }
@@ -29415,53 +29398,7 @@
 
       updateScenarioGuide() {
         const card = this.guideCardEl || document.getElementById('scenario-guide');
-        if (!card || !card.style) return;
-        const tab = this.getActiveTab();
-        const sc = tab && tab.scenarioKey ? SCENARIO_MAP.get(tab.scenarioKey) : null;
-        if (!sc || this.guideHidden) { card.style.display = 'none'; return; }
-
-        const inspectorEl = document.getElementById('inspector');
-        const inspectorOpen = Boolean(inspectorEl && inspectorEl.classList && !inspectorEl.classList.contains('collapsed'));
-        const nothingSelected = !this.renderer.selectedCompId && !this.renderer.selectedWireId && !this.renderer.selectedProbeId
-          && (!this.renderer.selectedCompIds || this.renderer.selectedCompIds.size === 0)
-          && (!this.renderer.selectedWireIds || this.renderer.selectedWireIds.size === 0);
-        this.guideDocked = inspectorOpen;
-        if (inspectorOpen) {
-          if (!nothingSelected) { card.style.display = 'none'; return; }
-          if (this.inspectorContainer && card.parentElement !== this.inspectorContainer && typeof this.inspectorContainer.appendChild === 'function') {
-            this.inspectorContainer.innerHTML = '';
-            this.inspectorContainer.appendChild(card);
-          }
-          card.classList.add('docked');
-        } else {
-          if (this.guideHomeEl && card.parentElement !== this.guideHomeEl && typeof this.guideHomeEl.appendChild === 'function') {
-            this.guideHomeEl.appendChild(card);
-          }
-          card.classList.remove('docked');
-        }
-
-        const lvl = SCENARIO_LEVELS.find(l => l.id === sc.level) || SCENARIO_LEVELS[0];
-        card.style.display = 'block';
-        card.classList.toggle('collapsed', Boolean(this.guideCollapsed) && !inspectorOpen);
-        const find = (id) => (typeof card.querySelector === 'function' ? card.querySelector('#' + id) : null) || document.getElementById(id);
-        const set = (id, text) => { const el = find(id); if (el) el.textContent = text; };
-        set('guide-title', sc.title);
-        set('guide-summary', sc.summary);
-        const level = find('guide-level');
-        if (level) { level.textContent = `Stufe ${lvl.id} · ${lvl.title}`; if (level.style) level.style.background = lvl.color; }
-        const list = find('guide-try');
-        if (list) list.innerHTML = (sc.tryIt || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
-        set('guide-position', `${SCENARIOS.indexOf(sc) + 1} / ${SCENARIOS.length}`);
-        const primary = find('guide-primary');
-        if (primary) {
-          if (sc.sequential) {
-            const running = this.engine.mode === 'sim' && this.engine.running;
-            primary.textContent = running ? '⏸ Simulation pausieren' : '▶ Simulation starten';
-          } else {
-            primary.textContent = 'Wahrheitstabelle';
-          }
-        }
-        set('guide-truth', '↺ Neu laden');
+        if (card && card.style) card.style.display = 'none';
       }
 
 
@@ -31025,9 +30962,14 @@
         document.getElementById('menu-item-toggle-analyzer')?.addEventListener('click', () => {
           closeAllMenus();
           const p = document.getElementById('analyzer-panel');
-          if (p) p.style.display = (p.style.display === 'none' ? 'flex' : 'none');
-          this.renderer.resize();
-          this.analyzer.resize();
+          if (p) {
+            if (p.style && p.style.display === 'none') {
+              p.style.display = 'flex';
+              this.setAnalyzerCollapsed(false);
+            } else {
+              this.setAnalyzerCollapsed(!p.classList.contains('collapsed'));
+            }
+          }
         });
         document.getElementById('menu-item-toggle-inspector')?.addEventListener('click', () => {
           closeAllMenus();
