@@ -7389,10 +7389,11 @@
     class Wire {
       constructor(id, fromCompId, fromPin, toCompId, toPin, waypoints = [], extra = {}) {
         this.id = String(id || 'wire_unknown');
-        this.fromCompId = String(fromCompId || '');
-        this.fromPin = Number.isFinite(Number(fromPin)) ? Number(fromPin) : 0;
-        this.toCompId = String(toCompId || '');
-        this.toPin = Number.isFinite(Number(toPin)) ? Number(toPin) : 0;
+        this._circuit = null;
+        this._fromCompId = String(fromCompId || '');
+        this._fromPin = Number.isFinite(Number(fromPin)) ? Number(fromPin) : 0;
+        this._toCompId = String(toCompId || '');
+        this._toPin = Number.isFinite(Number(toPin)) ? Number(toPin) : 0;
         this.level = 0;
         this.waypoints = Array.isArray(waypoints)
           ? waypoints
@@ -7409,9 +7410,10 @@
         this._fromComp = null;
         this._toComp = null;
         this._fromWire = null;
+        this._polyCache = null;
 
-        this.fromWireId = (extra && extra.fromWireId && String(extra.fromWireId) !== this.id) ? String(extra.fromWireId) : null;
-        this.toWireId = (extra && extra.toWireId && String(extra.toWireId) !== this.id) ? String(extra.toWireId) : null;
+        this._fromWireId = (extra && extra.fromWireId && String(extra.fromWireId) !== this.id) ? String(extra.fromWireId) : null;
+        this._toWireId = (extra && extra.toWireId && String(extra.toWireId) !== this.id) ? String(extra.toWireId) : null;
         this.fromPoint = (extra && extra.fromPoint && typeof extra.fromPoint === 'object' && Number.isFinite(Number(extra.fromPoint.x)) && Number.isFinite(Number(extra.fromPoint.y)))
           ? {
               x: Math.round(Math.max(-100000, Math.min(100000, Number(extra.fromPoint.x)))),
@@ -7425,6 +7427,67 @@
             }
           : null;
         this.style = (extra && extra.style === 'diagonal') ? 'diagonal' : 'orthogonal';
+        Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+      }
+
+      get fromCompId() { return this._fromCompId; }
+      set fromCompId(v) {
+        const s = String(v || '');
+        if (this._fromCompId !== s) {
+          this._fromCompId = s;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
+      }
+
+      get fromPin() { return this._fromPin; }
+      set fromPin(v) {
+        const n = Number.isFinite(Number(v)) ? Number(v) : 0;
+        if (this._fromPin !== n) {
+          this._fromPin = n;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
+      }
+
+      get toCompId() { return this._toCompId; }
+      set toCompId(v) {
+        const s = String(v || '');
+        if (this._toCompId !== s) {
+          this._toCompId = s;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
+      }
+
+      get toPin() { return this._toPin; }
+      set toPin(v) {
+        const n = Number.isFinite(Number(v)) ? Number(v) : 0;
+        if (this._toPin !== n) {
+          this._toPin = n;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
+      }
+
+      get fromWireId() { return this._fromWireId; }
+      set fromWireId(v) {
+        const s = (v && String(v) !== this.id) ? String(v) : null;
+        if (this._fromWireId !== s) {
+          this._fromWireId = s;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
+      }
+
+      get toWireId() { return this._toWireId; }
+      set toWireId(v) {
+        const s = (v && String(v) !== this.id) ? String(v) : null;
+        if (this._toWireId !== s) {
+          this._toWireId = s;
+          Wire._linkEpoch = (Wire._linkEpoch + 1) | 0;
+          if (this._circuit) this._circuit._topoVersion++;
+        }
       }
 
       toJSON() {
@@ -7446,6 +7509,7 @@
         return json;
       }
     }
+    Wire._linkEpoch = 1;
 
     /**
      * Logic Probe (Test Probe / Signal Clip attached to a Wire)
@@ -8773,6 +8837,65 @@
         this.nextId = 1;
         this._probeCompCount = 0;
         this._topoVersion = 0;
+        this._inputWireMap = new Map();
+        this._forkChildCounts = new Map();
+        this._wireIndexEpoch = -1;
+        this._wireIndexLen = -1;
+        this._refMap = new Map();
+        this._refNext = new Map();
+        this._refSyncedLen = -1;
+      }
+
+      _ensureWireIndex() {
+        if (this._wireIndexEpoch === Wire._linkEpoch && this._wireIndexLen === this.wires.length) return;
+        const inMap = this._inputWireMap;
+        const forkCounts = this._forkChildCounts;
+        inMap.clear();
+        forkCounts.clear();
+        const wires = this.wires;
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          if (!w) continue;
+          w._circuit = this;
+          if (w._toCompId) {
+            inMap.set(`${w._toCompId}\u0000${w._toPin}`, w);
+          }
+          if (w._fromWireId) {
+            forkCounts.set(w._fromWireId, (forkCounts.get(w._fromWireId) || 0) + 1);
+          }
+        }
+        this._wireIndexEpoch = Wire._linkEpoch;
+        this._wireIndexLen = wires.length;
+      }
+
+      _ensureRefIndex() {
+        if (this._refSyncedLen === this.components.length) return;
+        this._refMap.clear();
+        this._refNext.clear();
+        for (let i = 0; i < this.components.length; i++) {
+          const c = this.components[i];
+          const r = c && c.params && c.params.ref;
+          if (r) this._refMap.set(r, c.id);
+        }
+        this._refSyncedLen = this.components.length;
+      }
+
+      _isRefTaken(ref, exceptId = null) {
+        this._ensureRefIndex();
+        const ownerId = this._refMap.get(ref);
+        if (ownerId && ownerId !== exceptId) {
+          const owner = this.compMap.get(ownerId);
+          if (owner && owner.params && owner.params.ref === ref) return true;
+          this._refMap.delete(ref);
+        }
+        for (let i = 0; i < this.components.length; i++) {
+          const comp = this.components[i];
+          if (comp.id !== exceptId && comp.params && comp.params.ref === ref) {
+            this._refMap.set(ref, comp.id);
+            return true;
+          }
+        }
+        return false;
       }
 
       generateId(prefix = 'c') {
@@ -8794,11 +8917,10 @@
 
       generateReference(type, exceptId = null) {
         const prefix = referencePrefixForType(type);
-        const used = new Set(this.components
-          .filter(comp => comp.id !== exceptId && comp.params && comp.params.ref)
-          .map(comp => comp.params.ref));
-        let index = 1;
-        while (used.has(`${prefix}${index}`)) index += 1;
+        this._ensureRefIndex();
+        let index = this._refNext.get(prefix) || 1;
+        while (this._isRefTaken(`${prefix}${index}`, exceptId)) index += 1;
+        this._refNext.set(prefix, index + 1);
         return `${prefix}${index}`;
       }
 
@@ -8806,8 +8928,7 @@
         const prefix = referencePrefixForType(type);
         const value = String(rawRef || '').trim().toUpperCase();
         if (new RegExp(`^${prefix}\\d{1,4}$`).test(value)) {
-          const taken = this.components.some(comp => comp.id !== exceptId && comp.params && comp.params.ref === value);
-          if (!taken) return value;
+          if (!this._isRefTaken(value, exceptId)) return value;
         }
         return this.generateReference(type, exceptId);
       }
@@ -8820,9 +8941,12 @@
         const id = cleanForced || this.generateId('comp');
         const comp = new Component(id, type, x, y, customParams);
         comp.circuit = this;
+        this._ensureRefIndex();
         comp.params.ref = this.normalizeReference(comp.type, customParams && customParams.ref, comp.id);
         this.components.push(comp);
         this.compMap.set(comp.id, comp);
+        this._refMap.set(comp.params.ref, comp.id);
+        this._refSyncedLen = this.components.length;
         if (comp.type === 'PROBE') this._probeCompCount++;
         this._topoVersion++;
         return comp;
@@ -8960,8 +9084,9 @@
 
       /** Returns true when `wire` is an intermediate Steiner fork trunk ending at `toPoint` with downstream `fromWireId` children. */
       isForkTrunkWire(wire) {
-        if (!wire || wire.toCompId || wire.toWireId || !wire.toPoint) return false;
-        return Array.isArray(this.wires) && this.wires.some(w => w && w.fromWireId === wire.id);
+        if (!wire || wire.toCompId || wire.toWireId || !wire.toPoint || !Array.isArray(this.wires)) return false;
+        this._ensureWireIndex();
+        return (this._forkChildCounts.get(wire.id) || 0) > 0;
       }
 
       /** Splits overlapping shared-source wire prefixes into stored Steiner trunk + fork branch trees (fromWireId + fromPoint). */
@@ -9324,6 +9449,7 @@
         this.wireMap.clear();
         for (let i = 0; i < this.wires.length; i++) {
           const w = this.wires[i];
+          w._circuit = this;
           w._fromComp = this.compMap.get(w.fromCompId) || null;
           w._toComp = this.compMap.get(w.toCompId) || null;
           this.wireMap.set(w.id, w);
@@ -9337,6 +9463,8 @@
           const p = this.probes[i];
           this.probeMap.set(p.id, p);
         }
+        this._wireIndexEpoch = -1;
+        this._ensureWireIndex();
       }
 
       removeComponent(compId, ringBuffer = null) {
@@ -9347,8 +9475,13 @@
           this._probeCompCount = Math.max(0, (this._probeCompCount || 0) - 1);
           if (ringBuffer) ringBuffer.removeChannel(comp.id);
         }
+        if (comp.params && comp.params.ref) {
+          this._refMap.delete(comp.params.ref);
+          this._refNext.delete(referencePrefixForType(comp.type));
+        }
         this.components.splice(idx, 1);
         this.compMap.delete(compId);
+        this._refSyncedLen = this.components.length;
         this._topoVersion++;
         const removedWires = this.wires.filter(
           w => w.fromCompId === compId || w.toCompId === compId || this.resolveWireRoot(w).compId === compId
@@ -9380,12 +9513,14 @@
           }
         }
 
+        this._ensureWireIndex();
         const cleanForced = (forcedId && forcedId !== '__proto__' && forcedId !== 'constructor' && forcedId !== 'prototype' && !this.wireMap.has(String(forcedId)))
           ? String(forcedId)
           : null;
         if (cleanForced) this._bumpNextIdFrom(cleanForced);
         const id = cleanForced || this.generateId('wire');
         const wire = new Wire(id, fromCompId || '', fromPin || 0, toCompId || '', toPin || 0, waypoints, extra);
+        wire._circuit = this;
         wire._fromComp = fromComp;
         wire._toComp = toComp;
 
@@ -9401,6 +9536,15 @@
 
         this.wires.push(wire);
         this.wireMap.set(wire.id, wire);
+        if (wire._toCompId) {
+          this._inputWireMap.set(`${wire._toCompId}\u0000${wire._toPin}`, wire);
+        }
+        if (wire._fromWireId) {
+          this._forkChildCounts.set(wire._fromWireId, (this._forkChildCounts.get(wire._fromWireId) || 0) + 1);
+        }
+        this._wireIndexEpoch = Wire._linkEpoch;
+        this._wireIndexLen = this.wires.length;
+        this._topoVersion++;
         if (toComp && toComp.inputs[toPin]) {
           toComp.inputs[toPin].value = wire.level;
         }
@@ -9597,7 +9741,9 @@
       }
 
       getWireToInput(toCompId, toPin) {
-        return this.wires.find(w => w.toCompId === toCompId && w.toPin === toPin) || null;
+        if (!toCompId) return null;
+        this._ensureWireIndex();
+        return this._inputWireMap.get(`${toCompId}\u0000${toPin}`) || null;
       }
 
       updateGateInputCount(compId, newCount) {
@@ -9613,6 +9759,7 @@
           comp.params.invertedInputs = new Array(n).fill(false);
         }
         comp.rebuildPins();
+        this._topoVersion++;
 
         const removed = this.wires.filter(w => w.toCompId === compId && w.toPin >= n).map(w => w.id);
         removed.forEach(id => this.removeWire(id));
@@ -9687,18 +9834,63 @@
           changed = false;
           passes++;
 
-          for (let i = 0; i < this.wires.length; i++) {
-            const w1 = this.wires[i];
-            if (!w1) continue;
+          const openList = [];
+          const cellSize = Math.max(16, snapRadius);
+          const cellBuckets = new Map();
+          const addPtBucket = (pt, entry) => {
+            const cx = Math.floor(pt.x / cellSize);
+            const cy = Math.floor(pt.y / cellSize);
+            const key = (cx * 131072) + cy;
+            let b = cellBuckets.get(key);
+            if (!b) { b = []; cellBuckets.set(key, b); }
+            b.push(entry);
+          };
 
-            for (let j = i + 1; j < this.wires.length; j++) {
-              const w2 = this.wires[j];
+          for (let idx = 0; idx < this.wires.length; idx++) {
+            const w = this.wires[idx];
+            if (!w) continue;
+            const openEnd = Boolean(w.toPoint && !w.toCompId && !w.toWireId && !this.isForkTrunkWire(w));
+            const openStart = Boolean(w.fromPoint && !w.fromCompId && !w.fromWireId);
+            if (!openEnd && !openStart) continue;
+            const entry = { w, idx, openEnd, openStart };
+            openList.push(entry);
+            if (openEnd) addPtBucket(w.toPoint, entry);
+            if (openStart) addPtBucket(w.fromPoint, entry);
+          }
+          if (openList.length < 2) break;
+
+          for (let aIdx = 0; aIdx < openList.length; aIdx++) {
+            const e1 = openList[aIdx];
+            const w1 = e1.w;
+            const candMap = new Map();
+            const collectNear = (pt) => {
+              const cx = Math.floor(pt.x / cellSize);
+              const cy = Math.floor(pt.y / cellSize);
+              for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                  const bucket = cellBuckets.get((cx + dx) * 131072 + (cy + dy));
+                  if (!bucket) continue;
+                  for (let k = 0; k < bucket.length; k++) {
+                    const e2 = bucket[k];
+                    if (e2.idx > e1.idx) candMap.set(e2.w.id, e2);
+                  }
+                }
+              }
+            };
+            if (e1.openEnd) collectNear(w1.toPoint);
+            if (e1.openStart) collectNear(w1.fromPoint);
+            if (candMap.size === 0) continue;
+            const cands = Array.from(candMap.values()).sort((p, q) => p.idx - q.idx);
+
+            for (let cIdx = 0; cIdx < cands.length; cIdx++) {
+              const e2 = cands[cIdx];
+              const w2 = e2.w;
               if (!w2 || w1.id === w2.id) continue;
 
-              const w1OpenEnd = Boolean(w1.toPoint && !w1.toCompId && !w1.toWireId && !this.isForkTrunkWire(w1));
-              const w1OpenStart = Boolean(w1.fromPoint && !w1.fromCompId && !w1.fromWireId);
-              const w2OpenEnd = Boolean(w2.toPoint && !w2.toCompId && !w2.toWireId && !this.isForkTrunkWire(w2));
-              const w2OpenStart = Boolean(w2.fromPoint && !w2.fromCompId && !w2.fromWireId);
+              const w1OpenEnd = e1.openEnd;
+              const w1OpenStart = e1.openStart;
+              const w2OpenEnd = e2.openEnd;
+              const w2OpenStart = e2.openStart;
 
               // 1. w1 has open end, w2 has open start meeting at same point
               if (w1OpenEnd && w2OpenStart && Math.hypot(w1.toPoint.x - w2.fromPoint.x, w1.toPoint.y - w2.fromPoint.y) <= snapRadius) {
@@ -9932,6 +10124,13 @@
         this.wireMap.clear();
         this.probes = [];
         this.probeMap.clear();
+        this._inputWireMap.clear();
+        this._forkChildCounts.clear();
+        this._wireIndexEpoch = Wire._linkEpoch;
+        this._wireIndexLen = 0;
+        this._refMap.clear();
+        this._refNext.clear();
+        this._refSyncedLen = 0;
         this._probeCompCount = 0;
         this._topoVersion++;
         this.globalGateDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
@@ -13337,60 +13536,663 @@
         return curr ? curr.id : wire.id;
       }
 
-      getWirePolyline(wire) {
-        let p1 = null;
-        let p2 = null;
-
-        if (wire.fromCompId) {
-          const fromComp = this.circuit.getComponent(wire.fromCompId);
-          if (fromComp) p1 = fromComp.getPinWorldPos(true, wire.fromPin);
+      _getCircuitMaxY() {
+        const comps = this.circuit && this.circuit.components;
+        if (!comps || comps.length === 0) return 400;
+        let h = 2166136261;
+        for (let i = 0; i < comps.length; i++) {
+          const c = comps[i];
+          h = Math.imul(h ^ (c.y | 0), 16777619);
+          h = Math.imul(h ^ (c.height | 0), 16777619);
         }
-        if (!p1 && wire.fromPoint) {
-          p1 = { x: wire.fromPoint.x, y: wire.fromPoint.y };
-        } else if (!p1 && wire.fromWireId) {
-          const fw = this.circuit.getWire(wire.fromWireId);
+        if (this._maxYCache && this._maxYCache.len === comps.length && this._maxYCache.hash === h) {
+          return this._maxYCache.val;
+        }
+        let cMaxY = -Infinity;
+        for (let i = 0; i < comps.length; i++) {
+          const bottom = comps[i].y + comps[i].height;
+          if (bottom > cMaxY) cMaxY = bottom;
+        }
+        const val = cMaxY > -Infinity ? cMaxY : 400;
+        this._maxYCache = { len: comps.length, hash: h, val };
+        return val;
+      }
+
+      getWirePolyline(wire, depth = 0) {
+        if (!wire || depth > 24) return [];
+        let p1x = NaN, p1y = NaN;
+        let p2x = NaN, p2y = NaN;
+
+        if (wire._fromCompId) {
+          const fc = (wire._fromComp && wire._fromComp.id === wire._fromCompId && this.circuit.compMap.get(wire._fromCompId) === wire._fromComp)
+            ? wire._fromComp
+            : this.circuit.getComponent(wire._fromCompId);
+          if (fc) {
+            wire._fromComp = fc;
+            const pin = fc.outputs[wire._fromPin];
+            if (pin) { p1x = fc.x + pin.relX; p1y = fc.y + pin.relY; }
+            else { p1x = fc.x; p1y = fc.y; }
+          }
+        }
+        if (Number.isNaN(p1x) && wire.fromPoint) {
+          p1x = wire.fromPoint.x;
+          p1y = wire.fromPoint.y;
+        } else if (Number.isNaN(p1x) && wire._fromWireId) {
+          const fw = this.circuit.getWire(wire._fromWireId);
           if (fw) {
-            const fwPts = this.getWirePolyline(fw);
-            p1 = wire.fromPoint || (fwPts.length > 0 ? fwPts[0] : { x: 0, y: 0 });
+            if (wire.fromPoint) {
+              p1x = wire.fromPoint.x;
+              p1y = wire.fromPoint.y;
+            } else {
+              const fwPts = this.getWirePolyline(fw, depth + 1);
+              p1x = fwPts.length > 0 ? fwPts[0].x : 0;
+              p1y = fwPts.length > 0 ? fwPts[0].y : 0;
+            }
           }
         }
 
-        if (wire.toCompId) {
-          const toComp = this.circuit.getComponent(wire.toCompId);
-          if (toComp) p2 = toComp.getPinWorldPos(false, wire.toPin);
+        if (wire._toCompId) {
+          const tc = (wire._toComp && wire._toComp.id === wire._toCompId && this.circuit.compMap.get(wire._toCompId) === wire._toComp)
+            ? wire._toComp
+            : this.circuit.getComponent(wire._toCompId);
+          if (tc) {
+            wire._toComp = tc;
+            const pin = tc.inputs[wire._toPin];
+            if (pin) { p2x = tc.x + pin.relX; p2y = tc.y + pin.relY; }
+            else { p2x = tc.x; p2y = tc.y; }
+          }
         }
-        if (!p2 && wire.toPoint) {
-          p2 = { x: wire.toPoint.x, y: wire.toPoint.y };
-        } else if (!p2 && wire.toWireId) {
-          const tw = this.circuit.getWire(wire.toWireId);
+        if (Number.isNaN(p2x) && wire.toPoint) {
+          p2x = wire.toPoint.x;
+          p2y = wire.toPoint.y;
+        } else if (Number.isNaN(p2x) && wire._toWireId) {
+          const tw = this.circuit.getWire(wire._toWireId);
           if (tw) {
-            const twPts = this.getWirePolyline(tw);
-            p2 = wire.toPoint || (twPts.length > 0 ? twPts[twPts.length - 1] : { x: 0, y: 0 });
+            if (wire.toPoint) {
+              p2x = wire.toPoint.x;
+              p2y = wire.toPoint.y;
+            } else {
+              const twPts = this.getWirePolyline(tw, depth + 1);
+              p2x = twPts.length > 0 ? twPts[twPts.length - 1].x : 0;
+              p2y = twPts.length > 0 ? twPts[twPts.length - 1].y : 0;
+            }
           }
         }
 
-        if (!p1 || !p2) return [];
-        return this.computeWirePath(p1, p2, wire._preview ? null : wire.waypoints, wire.channelOffset || 0, wire.style);
+        if (Number.isNaN(p1x) || Number.isNaN(p2x)) return [];
+
+        const wps = wire._preview ? null : wire.waypoints;
+        const wpLen = wps ? wps.length : 0;
+        let wpHash = wpLen;
+        for (let i = 0; i < wpLen; i++) {
+          const wp = wps[i];
+          wpHash = Math.imul(wpHash ^ (wp.x | 0), 16777619) ^ (wp.y | 0);
+        }
+        const canDiag = this.allowDiagonalWires !== false ? 1 : 0;
+        const chOff = wire.channelOffset || 0;
+        const stCode = wire.style === 'diagonal' ? 1 : 0;
+        const backMaxY = (wpLen === 0 && stCode === 0 && p1x - p2x > 140) ? this._getCircuitMaxY() : 0;
+
+        const cache = wire._polyCache;
+        if (cache &&
+            cache.p1x === p1x && cache.p1y === p1y &&
+            cache.p2x === p2x && cache.p2y === p2y &&
+            cache.wpLen === wpLen && cache.wpHash === wpHash &&
+            cache.canDiag === canDiag && cache.chOff === chOff &&
+            cache.stCode === stCode && cache.backMaxY === backMaxY) {
+          return cache.pts;
+        }
+
+        const pts = this.computeWirePath({ x: p1x, y: p1y }, { x: p2x, y: p2y }, wps, chOff, wire.style);
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let stamp = Math.imul(2166136261 ^ (p1x | 0), 16777619);
+        stamp = Math.imul(stamp ^ (p1y | 0), 16777619);
+        stamp = Math.imul(stamp ^ (p2x | 0), 16777619);
+        stamp = Math.imul(stamp ^ (p2y | 0), 16777619);
+        stamp = Math.imul(stamp ^ wpHash, 16777619);
+        stamp = Math.imul(stamp ^ ((canDiag << 16) ^ (stCode << 8) ^ (chOff | 0)), 16777619) | 0;
+        for (let i = 0; i < pts.length; i++) {
+          const px = pts[i].x, py = pts[i].y;
+          if (px < minX) minX = px;
+          if (px > maxX) maxX = px;
+          if (py < minY) minY = py;
+          if (py > maxY) maxY = py;
+        }
+        wire._polyCache = {
+          p1x, p1y, p2x, p2y, wpLen, wpHash, canDiag, chOff, stCode, backMaxY,
+          pts, minX, minY, maxX, maxY, stamp
+        };
+        return pts;
+      }
+
+      /**
+       * Maintains a 64x64 Uniform Spatial Grid (cellSize = 160 px over [-5120, +5120]^2)
+       * plus cached wire crossings and junction templates invalidated by rolling geometry hash.
+       */
+      _ensureSpatialScene(needBridges = false, needJunctions = false) {
+        const circuit = this.circuit;
+        if (!circuit) return null;
+        const comps = circuit.components || [];
+        const wires = circuit.wires || [];
+
+        let gHash = (2166136261 ^ comps.length) | 0;
+        for (let i = 0; i < comps.length; i++) {
+          const c = comps[i];
+          gHash = Math.imul(gHash ^ (c.x | 0), 16777619);
+          gHash = Math.imul(gHash ^ (c.y | 0), 16777619);
+          gHash = Math.imul(gHash ^ ((c.width << 10) ^ c.height), 16777619);
+        }
+
+        const wireEntries = [];
+        for (let i = 0; i < wires.length; i++) {
+          const w = wires[i];
+          const pts = this.getWirePolyline(w);
+          if (pts.length < 2) continue;
+          const pc = w._polyCache;
+          gHash = Math.imul(gHash ^ (pc ? pc.stamp : pts.length), 16777619);
+          wireEntries.push({
+            wire: w,
+            idx: i,
+            pts,
+            minX: pc ? pc.minX : -5000,
+            minY: pc ? pc.minY : -5000,
+            maxX: pc ? pc.maxX : 5000,
+            maxY: pc ? pc.maxY : 5000
+          });
+        }
+        gHash = Math.imul(gHash ^ (Wire._linkEpoch | 0), 16777619) | 0;
+
+        let sc = this._spatialSceneCache;
+        if (!sc || sc.circuit !== circuit || sc.gHash !== gHash || sc.compLen !== comps.length || sc.wireEntryLen !== wireEntries.length) {
+          const CELL = 160;
+          const OFFSET = 5120;
+          const GRID_DIM = 64;
+          const compGrid = new Map();
+          const wireGrid = new Map();
+          const clampCell = (v) => v < 0 ? 0 : (v >= GRID_DIM ? GRID_DIM - 1 : v);
+
+          for (let i = comps.length - 1; i >= 0; i--) {
+            const c = comps[i];
+            const pad = 24;
+            const gx0 = clampCell(((c.x - pad + OFFSET) / CELL) | 0);
+            const gx1 = clampCell(((c.x + c.width + pad + OFFSET) / CELL) | 0);
+            const gy0 = clampCell(((c.y - pad + OFFSET) / CELL) | 0);
+            const gy1 = clampCell(((c.y + c.height + pad + OFFSET) / CELL) | 0);
+            for (let gy = gy0; gy <= gy1; gy++) {
+              const rowOff = gy << 6;
+              for (let gx = gx0; gx <= gx1; gx++) {
+                const key = rowOff | gx;
+                let bucket = compGrid.get(key);
+                if (!bucket) { bucket = []; compGrid.set(key, bucket); }
+                bucket.push(c);
+              }
+            }
+          }
+
+          for (let eIdx = wireEntries.length - 1; eIdx >= 0; eIdx--) {
+            const entry = wireEntries[eIdx];
+            const pts = entry.pts;
+            const visitedCells = new Set();
+            for (let s = 0; s < pts.length - 1; s++) {
+              const pA = pts[s], pB = pts[s + 1];
+              const sx0 = clampCell(((Math.min(pA.x, pB.x) - 12 + OFFSET) / CELL) | 0);
+              const sx1 = clampCell(((Math.max(pA.x, pB.x) + 12 + OFFSET) / CELL) | 0);
+              const sy0 = clampCell(((Math.min(pA.y, pB.y) - 12 + OFFSET) / CELL) | 0);
+              const sy1 = clampCell(((Math.max(pA.y, pB.y) + 12 + OFFSET) / CELL) | 0);
+              for (let gy = sy0; gy <= sy1; gy++) {
+                const rowOff = gy << 6;
+                for (let gx = sx0; gx <= sx1; gx++) {
+                  const key = rowOff | gx;
+                  if (visitedCells.has(key)) continue;
+                  visitedCells.add(key);
+                  let bucket = wireGrid.get(key);
+                  if (!bucket) { bucket = []; wireGrid.set(key, bucket); }
+                  bucket.push(entry);
+                }
+              }
+            }
+          }
+
+          sc = {
+            circuit,
+            gHash,
+            compLen: comps.length,
+            wireEntryLen: wireEntries.length,
+            wireEntries,
+            compGrid,
+            wireGrid,
+            crossingsMap: null,
+            junctionTemplates: null
+          };
+          this._spatialSceneCache = sc;
+        }
+
+        if (needBridges && !sc.crossingsMap) {
+          sc.crossingsMap = this._computeSegmentCrossings(sc.wireEntries);
+        }
+        if (needJunctions && !sc.junctionTemplates) {
+          sc.junctionTemplates = this._computeJunctionTemplates(sc.wireEntries);
+        }
+        return sc;
+      }
+
+      _computeSegmentCrossings(wireEntries) {
+        const segmentCrossingsMap = new Map();
+        const horizSegs = [];
+        const vertSegs = [];
+        const diagSegs = [];
+        const allSegs = [];
+
+        for (let e = 0; e < wireEntries.length; e++) {
+          const entry = wireEntries[e];
+          const w = entry.wire;
+          const pts = entry.pts;
+          const net = this.getWireNet(w);
+          for (let i = 0; i < pts.length - 1; i++) {
+            const pA = pts[i];
+            const pB = pts[i + 1];
+            const dx = pB.x - pA.x;
+            const dy = pB.y - pA.y;
+            const len = Math.hypot(dx, dy);
+            if (len < 16) continue;
+            const isH = Math.abs(dy) < 1e-4;
+            const isV = Math.abs(dx) < 1e-4;
+            const rank = isH ? 3 : (isV ? 1 : 2);
+            const seg = {
+              id: allSegs.length,
+              wireId: w.id,
+              net,
+              segIndex: i,
+              pA,
+              pB,
+              dx,
+              dy,
+              len,
+              rank,
+              minX: Math.min(pA.x, pB.x),
+              maxX: Math.max(pA.x, pB.x),
+              minY: Math.min(pA.y, pB.y),
+              maxY: Math.max(pA.y, pB.y)
+            };
+            allSegs.push(seg);
+            if (isH) horizSegs.push(seg);
+            else if (isV) vertSegs.push(seg);
+            else diagSegs.push(seg);
+          }
+        }
+
+        const recordPair = (s1, s2) => {
+          if (s1.wireId === s2.wireId || s1.net === s2.net) return;
+          if (s1.maxX < s2.minX + 6 || s1.minX > s2.maxX - 6 ||
+              s1.maxY < s2.minY + 6 || s1.minY > s2.maxY - 6) {
+            return;
+          }
+          const denom = s1.dx * s2.dy - s1.dy * s2.dx;
+          if (Math.abs(denom) < 1e-6) return;
+
+          const deltaX = s2.pA.x - s1.pA.x;
+          const deltaY = s2.pA.y - s1.pA.y;
+          const t = (deltaX * s2.dy - deltaY * s2.dx) / denom;
+          const u = (deltaX * s1.dy - deltaY * s1.dx) / denom;
+
+          const minDist = 8;
+          const tMargin = minDist / s1.len;
+          const uMargin = minDist / s2.len;
+
+          if (t >= tMargin && t <= 1 - tMargin && u >= uMargin && u <= 1 - uMargin) {
+            const ix = s1.pA.x + t * s1.dx;
+            const iy = s1.pA.y + t * s1.dy;
+
+            let s1Wins = false;
+            if (s1.rank !== s2.rank) {
+              s1Wins = s1.rank > s2.rank;
+            } else if (s1.wireId !== s2.wireId) {
+              s1Wins = String(s1.wireId) < String(s2.wireId);
+            } else {
+              s1Wins = s1.segIndex < s2.segIndex;
+            }
+
+            const winSeg = s1Wins ? s1 : s2;
+            const winDist = (s1Wins ? t : u) * winSeg.len;
+            const key = `${winSeg.wireId}:${winSeg.segIndex}`;
+            let list = segmentCrossingsMap.get(key);
+            if (!list) {
+              list = [];
+              segmentCrossingsMap.set(key, list);
+            }
+            list.push({ x: ix, y: iy, dist: winDist });
+          }
+        };
+
+        // 1. Orthogonal Plane-Sweep across X with 64px Y-Band Buckets: O((H + V) log(H + V) + k)
+        if (horizSegs.length > 0 && vertSegs.length > 0) {
+          const Y_SHIFT = 6; // 64 px bands
+          const Y_OFFSET = 5248;
+          const NUM_BANDS = 168;
+          const yBands = Array.from({ length: NUM_BANDS }, () => []);
+          const bandOf = (y) => {
+            const b = ((y + Y_OFFSET) | 0) >> Y_SHIFT;
+            return b < 0 ? 0 : (b >= NUM_BANDS ? NUM_BANDS - 1 : b);
+          };
+
+          const events = [];
+          for (let i = 0; i < horizSegs.length; i++) {
+            const hs = horizSegs[i];
+            if (hs.maxX - hs.minX < 12) continue;
+            events.push({ x: hs.minX + 6, type: 0, seg: hs });
+            events.push({ x: hs.maxX - 6, type: 2, seg: hs });
+          }
+          for (let i = 0; i < vertSegs.length; i++) {
+            const vs = vertSegs[i];
+            if (vs.maxY - vs.minY < 12) continue;
+            events.push({ x: vs.pA.x, type: 1, seg: vs });
+          }
+          events.sort((a, b) => (a.x - b.x) || (a.type - b.type));
+
+          for (let i = 0; i < events.length; i++) {
+            const ev = events[i];
+            if (ev.type === 0) {
+              yBands[bandOf(ev.seg.pA.y)].push(ev.seg);
+            } else if (ev.type === 2) {
+              const bucket = yBands[bandOf(ev.seg.pA.y)];
+              const idx = bucket.indexOf(ev.seg);
+              if (idx !== -1) {
+                bucket[idx] = bucket[bucket.length - 1];
+                bucket.pop();
+              }
+            } else {
+              const vs = ev.seg;
+              const b0 = bandOf(vs.minY + 6);
+              const b1 = bandOf(vs.maxY - 6);
+              for (let b = b0; b <= b1; b++) {
+                const bucket = yBands[b];
+                for (let k = 0; k < bucket.length; k++) {
+                  recordPair(bucket[k], vs);
+                }
+              }
+            }
+          }
+        }
+
+        // 2. Diagonal segments via 160px Spatial Cells (skipped entirely when diagSegs.length === 0)
+        if (diagSegs.length > 0) {
+          const CELL = 160;
+          const OFFSET = 5120;
+          const cellMap = new Map();
+          const clampC = (v) => v < 0 ? 0 : (v >= 64 ? 63 : v);
+          for (let i = 0; i < allSegs.length; i++) {
+            const s = allSegs[i];
+            const gx0 = clampC(((s.minX + OFFSET) / CELL) | 0);
+            const gx1 = clampC(((s.maxX + OFFSET) / CELL) | 0);
+            const gy0 = clampC(((s.minY + OFFSET) / CELL) | 0);
+            const gy1 = clampC(((s.maxY + OFFSET) / CELL) | 0);
+            for (let gy = gy0; gy <= gy1; gy++) {
+              const row = gy << 6;
+              for (let gx = gx0; gx <= gx1; gx++) {
+                const key = row | gx;
+                let b = cellMap.get(key);
+                if (!b) { b = []; cellMap.set(key, b); }
+                b.push(s);
+              }
+            }
+          }
+          const testedPairs = new Set();
+          for (let d = 0; d < diagSegs.length; d++) {
+            const ds = diagSegs[d];
+            const gx0 = clampC(((ds.minX + OFFSET) / CELL) | 0);
+            const gx1 = clampC(((ds.maxX + OFFSET) / CELL) | 0);
+            const gy0 = clampC(((ds.minY + OFFSET) / CELL) | 0);
+            const gy1 = clampC(((ds.maxY + OFFSET) / CELL) | 0);
+            for (let gy = gy0; gy <= gy1; gy++) {
+              const row = gy << 6;
+              for (let gx = gx0; gx <= gx1; gx++) {
+                const bucket = cellMap.get(row | gx);
+                if (!bucket) continue;
+                for (let k = 0; k < bucket.length; k++) {
+                  const os = bucket[k];
+                  if (os.id === ds.id) continue;
+                  // Skip HxV pairs already processed above
+                  if (os.rank !== 2 && ds.rank !== 2) continue;
+                  const lo = ds.id < os.id ? ds.id : os.id;
+                  const hi = ds.id < os.id ? os.id : ds.id;
+                  const pKey = lo * 65536 + hi;
+                  if (testedPairs.has(pKey)) continue;
+                  testedPairs.add(pKey);
+                  recordPair(allSegs[lo], allSegs[hi]);
+                }
+              }
+            }
+          }
+        }
+
+        for (const list of segmentCrossingsMap.values()) {
+          if (list.length > 1) list.sort((a, b) => a.dist - b.dist);
+        }
+        return segmentCrossingsMap;
+      }
+
+      _computeJunctionTemplates(wireEntries) {
+        if (!wireEntries || wireEntries.length === 0) return [];
+        const templates = [];
+        const juncGrid = new Map();
+        const JCELL = 8;
+        const hasNearJunction = (px, py, rad) => {
+          const rSq = rad * rad;
+          const cx = Math.floor(px / JCELL), cy = Math.floor(py / JCELL);
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              const list = juncGrid.get((cx + dx) * 131072 + (cy + dy));
+              if (!list) continue;
+              for (let i = 0; i < list.length; i++) {
+                const j = list[i];
+                const ddx = j.x - px, ddy = j.y - py;
+                if (ddx * ddx + ddy * ddy < rSq) return true;
+              }
+            }
+          }
+          return false;
+        };
+        const addTemplate = (tpl) => {
+          templates.push(tpl);
+          const cx = Math.floor(tpl.x / JCELL), cy = Math.floor(tpl.y / JCELL);
+          const key = cx * 131072 + cy;
+          let list = juncGrid.get(key);
+          if (!list) { list = []; juncGrid.set(key, list); }
+          list.push(tpl);
+        };
+
+        const pinGroups = new Map();
+        const entryById = new Map();
+        const SCELL = 80;
+        const segGrid = new Map();
+
+        for (let idx = 0; idx < wireEntries.length; idx++) {
+          const entry = wireEntries[idx];
+          const w = entry.wire;
+          entryById.set(w.id, entry);
+          if (w._fromCompId) {
+            const key = `${w._fromCompId}:${w._fromPin}`;
+            let grp = pinGroups.get(key);
+            if (!grp) { grp = []; pinGroups.set(key, grp); }
+            grp.push(entry);
+          }
+          const pts = entry.pts;
+          const seenCells = new Set();
+          for (let m = 0; m < pts.length - 1; m++) {
+            const sA = pts[m], sB = pts[m + 1];
+            const gx0 = Math.floor((Math.min(sA.x, sB.x) - 5) / SCELL);
+            const gx1 = Math.floor((Math.max(sA.x, sB.x) + 5) / SCELL);
+            const gy0 = Math.floor((Math.min(sA.y, sB.y) - 5) / SCELL);
+            const gy1 = Math.floor((Math.max(sA.y, sB.y) + 5) / SCELL);
+            for (let gy = gy0; gy <= gy1; gy++) {
+              for (let gx = gx0; gx <= gx1; gx++) {
+                const cKey = gx * 131072 + gy;
+                if (seenCells.has(cKey)) continue;
+                seenCells.add(cKey);
+                let bucket = segGrid.get(cKey);
+                if (!bucket) { bucket = []; segGrid.set(cKey, bucket); }
+                bucket.push(entry);
+              }
+            }
+          }
+        }
+
+        for (const group of pinGroups.values()) {
+          if (group.length < 2) continue;
+          const p0 = group[0].pts[0];
+          const candidatePoints = new Map();
+          const groupWires = group.map(e => e.wire);
+
+          for (let i = 0; i < group.length; i++) {
+            const pts1 = group[i].pts;
+            for (let k = 1; k < pts1.length - 1; k++) {
+              const pt = pts1[k];
+              const kKey = `${Math.round(pt.x)},${Math.round(pt.y)}`;
+              if (candidatePoints.has(kKey)) continue;
+              let hit = false;
+              for (let j = 0; j < group.length && !hit; j++) {
+                if (i === j) continue;
+                const pts2 = group[j].pts;
+                for (let m = 0; m < pts2.length - 1; m++) {
+                  const sA = pts2[m], sB = pts2[m + 1];
+                  if (pt.x >= Math.min(sA.x, sB.x) - 0.5 && pt.x <= Math.max(sA.x, sB.x) + 0.5 &&
+                      pt.y >= Math.min(sA.y, sB.y) - 0.5 && pt.y <= Math.max(sA.y, sB.y) + 0.5) {
+                    hit = true;
+                    break;
+                  }
+                }
+              }
+              if (hit) {
+                candidatePoints.set(kKey, { x: pt.x, y: pt.y, wireA: groupWires[0], wireB: null, groupWires });
+              }
+            }
+          }
+
+          for (const cp of candidatePoints.values()) {
+            if (Math.hypot(cp.x - p0.x, cp.y - p0.y) >= 4) {
+              addTemplate(cp);
+            }
+          }
+        }
+
+        const findAttachedEntry = (w, pt, linkedWireId) => {
+          if (linkedWireId) {
+            const direct = entryById.get(linkedWireId);
+            if (direct && direct.wire.id !== w.id) return direct;
+          }
+          const cKey = Math.floor(pt.x / SCELL) * 131072 + Math.floor(pt.y / SCELL);
+          const bucket = segGrid.get(cKey);
+          if (!bucket) return null;
+          for (let i = 0; i < bucket.length; i++) {
+            const other = bucket[i];
+            if (other.wire.id === w.id) continue;
+            if (this.distToWireSq(pt.x, pt.y, other.pts) <= 16) return other;
+          }
+          return null;
+        };
+
+        for (let idx = 0; idx < wireEntries.length; idx++) {
+          const entry = wireEntries[idx];
+          const w = entry.wire;
+          if (w._fromWireId || w.fromPoint) {
+            const startPt = entry.pts[0];
+            const other = findAttachedEntry(w, startPt, w._fromWireId);
+            if (other && !hasNearJunction(startPt.x, startPt.y, 6)) {
+              addTemplate({ x: startPt.x, y: startPt.y, wireA: w, wireB: other.wire, groupWires: null });
+            }
+          }
+          if (w._toWireId || w.toPoint) {
+            const endPt = entry.pts[entry.pts.length - 1];
+            const other = findAttachedEntry(w, endPt, w._toWireId);
+            if (other && !hasNearJunction(endPt.x, endPt.y, 6)) {
+              addTemplate({ x: endPt.x, y: endPt.y, wireA: w, wireB: other.wire, groupWires: null });
+            }
+          }
+        }
+
+        return templates;
+      }
+
+      _materializeJunctions(templates) {
+        if (!templates || templates.length === 0) return [];
+        const selSet = this.selectedWireIds;
+        const primarySel = this.selectedWireId;
+        const out = new Array(templates.length);
+        for (let i = 0; i < templates.length; i++) {
+          const t = templates[i];
+          let isSelected = false;
+          if (t.groupWires) {
+            for (let k = 0; k < t.groupWires.length; k++) {
+              const gwId = t.groupWires[k].id;
+              if (selSet.has(gwId) || gwId === primarySel) { isSelected = true; break; }
+            }
+          } else {
+            const aId = t.wireA.id;
+            const bId = t.wireB ? t.wireB.id : '';
+            isSelected = selSet.has(aId) || (bId !== '' && selSet.has(bId)) || aId === primarySel;
+          }
+          out[i] = {
+            x: t.x,
+            y: t.y,
+            level: t.wireA.level,
+            isSelected
+          };
+        }
+        return out;
       }
 
       findPinAt(worldX, worldY, radius = 10) {
+        if (!this.circuit || !this.circuit.components || this.circuit.components.length === 0) return null;
         const rSq = radius * radius;
-        for (let i = this.circuit.components.length - 1; i >= 0; i--) {
-          const comp = this.circuit.components[i];
+        const sc = this._ensureSpatialScene(false, false);
+        const CELL = 160, OFFSET = 5120;
+        const clampC = (v) => v < 0 ? 0 : (v >= 64 ? 63 : v);
+        const gx0 = clampC(((worldX - radius + OFFSET) / CELL) | 0);
+        const gx1 = clampC(((worldX + radius + OFFSET) / CELL) | 0);
+        const gy0 = clampC(((worldY - radius + OFFSET) / CELL) | 0);
+        const gy1 = clampC(((worldY + radius + OFFSET) / CELL) | 0);
+
+        const cands = gx0 === gx1 && gy0 === gy1
+          ? (sc.compGrid.get((gy0 << 6) | gx0) || [])
+          : (() => {
+              const seen = new Set();
+              const arr = [];
+              for (let gy = gy0; gy <= gy1; gy++) {
+                for (let gx = gx0; gx <= gx1; gx++) {
+                  const b = sc.compGrid.get((gy << 6) | gx);
+                  if (!b) continue;
+                  for (let k = 0; k < b.length; k++) {
+                    if (!seen.has(b[k])) { seen.add(b[k]); arr.push(b[k]); }
+                  }
+                }
+              }
+              if (arr.length > 1) {
+                const comps = this.circuit.components;
+                arr.sort((a, b) => comps.indexOf(b) - comps.indexOf(a));
+              }
+              return arr;
+            })();
+
+        for (let i = 0; i < cands.length; i++) {
+          const comp = cands[i];
           for (let p = 0; p < comp.outputs.length; p++) {
-            const pos = comp.getPinWorldPos(true, p);
-            const dx = worldX - pos.x;
-            const dy = worldY - pos.y;
+            const pin = comp.outputs[p];
+            const px = comp.x + pin.relX;
+            const py = comp.y + pin.relY;
+            const dx = worldX - px;
+            const dy = worldY - py;
             if (dx * dx + dy * dy <= rSq) {
-              return { compId: comp.id, isOutput: true, pinIndex: p, x: pos.x, y: pos.y };
+              return { compId: comp.id, isOutput: true, pinIndex: p, x: px, y: py };
             }
           }
           for (let p = 0; p < comp.inputs.length; p++) {
-            const pos = comp.getPinWorldPos(false, p);
-            const dx = worldX - pos.x;
-            const dy = worldY - pos.y;
+            const pin = comp.inputs[p];
+            const px = comp.x + pin.relX;
+            const py = comp.y + pin.relY;
+            const dx = worldX - px;
+            const dy = worldY - py;
             if (dx * dx + dy * dy <= rSq) {
-              return { compId: comp.id, isOutput: false, pinIndex: p, x: pos.x, y: pos.y };
+              return { compId: comp.id, isOutput: false, pinIndex: p, x: px, y: py };
             }
           }
         }
@@ -13399,14 +14201,16 @@
 
 
       findComponentAt(worldX, worldY) {
-        for (let i = this.circuit.components.length - 1; i >= 0; i--) {
-          const c = this.circuit.components[i];
-          if (
-            worldX >= c.x &&
-            worldX <= c.x + c.width &&
-            worldY >= c.y &&
-            worldY <= c.y + c.height
-          ) {
+        if (!this.circuit || !this.circuit.components || this.circuit.components.length === 0) return null;
+        const sc = this._ensureSpatialScene(false, false);
+        const CELL = 160, OFFSET = 5120;
+        const gx = Math.max(0, Math.min(63, ((worldX + OFFSET) / CELL) | 0));
+        const gy = Math.max(0, Math.min(63, ((worldY + OFFSET) / CELL) | 0));
+        const bucket = sc.compGrid.get((gy << 6) | gx);
+        if (!bucket) return null;
+        for (let i = 0; i < bucket.length; i++) {
+          const c = bucket[i];
+          if (worldX >= c.x && worldX <= c.x + c.width && worldY >= c.y && worldY <= c.y + c.height) {
             return c;
           }
         }
@@ -13415,21 +14219,42 @@
 
 
       findWireAt(worldX, worldY, tolerance = 7) {
+        if (!this.circuit || !this.circuit.wires || this.circuit.wires.length === 0) return null;
         const tolSq = tolerance * tolerance;
+        const sc = this._ensureSpatialScene(false, false);
+        const CELL = 160, OFFSET = 5120;
+        const clampC = (v) => v < 0 ? 0 : (v >= 64 ? 63 : v);
+        const gx0 = clampC(((worldX - tolerance + OFFSET) / CELL) | 0);
+        const gx1 = clampC(((worldX + tolerance + OFFSET) / CELL) | 0);
+        const gy0 = clampC(((worldY - tolerance + OFFSET) / CELL) | 0);
+        const gy1 = clampC(((worldY + tolerance + OFFSET) / CELL) | 0);
+
         let bestWire = null;
         let bestDistSq = tolSq;
-        for (let i = this.circuit.wires.length - 1; i >= 0; i--) {
-          const w = this.circuit.wires[i];
-          const pts = this.getWirePolyline(w);
-          if (pts.length < 2) continue;
+        let bestIdx = -1;
 
-          for (let j = 0; j < pts.length - 1; j++) {
-            const pA = pts[j];
-            const pB = pts[j + 1];
-            const dSq = this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y);
-            if (dSq < bestDistSq || (dSq <= bestDistSq && !bestWire)) {
-              bestDistSq = dSq;
-              bestWire = w;
+        for (let gy = gy0; gy <= gy1; gy++) {
+          const row = gy << 6;
+          for (let gx = gx0; gx <= gx1; gx++) {
+            const bucket = sc.wireGrid.get(row | gx);
+            if (!bucket) continue;
+            for (let b = 0; b < bucket.length; b++) {
+              const entry = bucket[b];
+              if (worldX < entry.minX - tolerance || worldX > entry.maxX + tolerance ||
+                  worldY < entry.minY - tolerance || worldY > entry.maxY + tolerance) {
+                continue;
+              }
+              const pts = entry.pts;
+              for (let j = 0; j < pts.length - 1; j++) {
+                const pA = pts[j];
+                const pB = pts[j + 1];
+                const dSq = this.distToSegmentSq(worldX, worldY, pA.x, pA.y, pB.x, pB.y);
+                if (dSq < bestDistSq || (dSq <= bestDistSq && (!bestWire || entry.idx > bestIdx))) {
+                  bestDistSq = dSq;
+                  bestWire = entry.wire;
+                  bestIdx = entry.idx;
+                }
+              }
             }
           }
         }
@@ -13494,115 +14319,22 @@
 
       findWireJunctions(wireEntries) {
         if (!wireEntries || wireEntries.length === 0) return [];
-
-        const junctions = [];
-        const pinGroups = new Map();
-
-        for (const entry of wireEntries) {
-          const w = entry.wire;
-          if (w.fromCompId) {
-            const key = `${w.fromCompId}:${w.fromPin}`;
-            if (!pinGroups.has(key)) pinGroups.set(key, []);
-            pinGroups.get(key).push(entry);
-          }
-        }
-
-        for (const [key, group] of pinGroups.entries()) {
-          if (group.length < 2) continue;
-
-          const p0 = group[0].pts[0];
-          const candidatePoints = new Map();
-
-          for (let i = 0; i < group.length; i++) {
-            for (let j = 0; j < group.length; j++) {
-              if (i === j) continue;
-              const pts1 = group[i].pts;
-              const pts2 = group[j].pts;
-              for (let k = 1; k < pts1.length - 1; k++) {
-                const pt = pts1[k];
-                for (let m = 0; m < pts2.length - 1; m++) {
-                  const sA = pts2[m];
-                  const sB = pts2[m + 1];
-                  const minX = Math.min(sA.x, sB.x) - 0.5;
-                  const maxX = Math.max(sA.x, sB.x) + 0.5;
-                  const minY = Math.min(sA.y, sB.y) - 0.5;
-                  const maxY = Math.max(sA.y, sB.y) + 0.5;
-                  if (pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY) {
-                    const kKey = `${Math.round(pt.x)},${Math.round(pt.y)}`;
-                    if (!candidatePoints.has(kKey)) {
-                      candidatePoints.set(kKey, {
-                        x: pt.x,
-                        y: pt.y,
-                        level: group[0].wire.level,
-                        isSelected: group.some(e => this.selectedWireIds.has(e.wire.id) || e.wire.id === this.selectedWireId)
-                      });
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          for (const cp of candidatePoints.values()) {
-            if (Math.hypot(cp.x - p0.x, cp.y - p0.y) >= 4) {
-              junctions.push(cp);
-            }
-          }
-        }
-
-        for (const entry of wireEntries) {
-          const w = entry.wire;
-          if (w.fromWireId || w.fromPoint) {
-            const startPt = entry.pts[0];
-            for (const other of wireEntries) {
-              if (other.wire.id === w.id) continue;
-              if (other.wire.id === w.fromWireId || this.distToWireSq(startPt.x, startPt.y, other.pts) <= 16) {
-                if (!junctions.some(j => Math.hypot(j.x - startPt.x, j.y - startPt.y) < 6)) {
-                  junctions.push({
-                    x: startPt.x,
-                    y: startPt.y,
-                    level: w.level,
-                    isSelected: this.selectedWireIds.has(w.id) || this.selectedWireIds.has(other.wire.id) || w.id === this.selectedWireId
-                  });
-                }
-              }
-            }
-          }
-          if (w.toWireId || w.toPoint) {
-            const endPt = entry.pts[entry.pts.length - 1];
-            for (const other of wireEntries) {
-              if (other.wire.id === w.id) continue;
-              if (other.wire.id === w.toWireId || this.distToWireSq(endPt.x, endPt.y, other.pts) <= 16) {
-                if (!junctions.some(j => Math.hypot(j.x - endPt.x, j.y - endPt.y) < 6)) {
-                  junctions.push({
-                    x: endPt.x,
-                    y: endPt.y,
-                    level: w.level,
-                    isSelected: this.selectedWireIds.has(w.id) || this.selectedWireIds.has(other.wire.id) || w.id === this.selectedWireId
-                  });
-                }
-              }
-            }
-          }
-        }
-
-        return junctions;
+        const templates = this._computeJunctionTemplates(wireEntries);
+        return this._materializeJunctions(templates);
       }
 
       findJunctionAt(worldX, worldY, radius = 10) {
         if (!this.circuit || !Array.isArray(this.circuit.wires) || this.circuit.wires.length === 0) return null;
-        const wireEntries = [];
-        for (const w of this.circuit.wires) {
-          const pts = this.getWirePolyline(w);
-          if (pts && pts.length >= 2) wireEntries.push({ wire: w, pts });
-        }
-        const junctions = this.findWireJunctions(wireEntries);
-        if (!junctions || junctions.length === 0) return null;
+        const sc = this._ensureSpatialScene(false, true);
+        const wireEntries = sc.wireEntries;
+        const templates = sc.junctionTemplates;
+        if (!templates || templates.length === 0) return null;
 
         const rSq = radius * radius;
         let best = null;
         let bestDistSq = rSq;
-        for (const j of junctions) {
+        for (let i = 0; i < templates.length; i++) {
+          const j = templates[i];
           const dx = worldX - j.x;
           const dy = worldY - j.y;
           const dSq = dx * dx + dy * dy;
@@ -13619,8 +14351,27 @@
         const startWires = [];
         const passWires = [];
 
-        for (const entry of wireEntries) {
-          const { wire: w, pts } = entry;
+        const CELL = 160, OFFSET = 5120;
+        const clampC = (v) => v < 0 ? 0 : (v >= 64 ? 63 : v);
+        const gx0 = clampC(((jx - 8 + OFFSET) / CELL) | 0);
+        const gx1 = clampC(((jx + 8 + OFFSET) / CELL) | 0);
+        const gy0 = clampC(((jy - 8 + OFFSET) / CELL) | 0);
+        const gy1 = clampC(((jy + 8 + OFFSET) / CELL) | 0);
+        const nearEntries = [];
+        const seen = new Set();
+        for (let gy = gy0; gy <= gy1; gy++) {
+          const row = gy << 6;
+          for (let gx = gx0; gx <= gx1; gx++) {
+            const b = sc.wireGrid.get(row | gx);
+            if (!b) continue;
+            for (let k = 0; k < b.length; k++) {
+              if (!seen.has(b[k])) { seen.add(b[k]); nearEntries.push(b[k]); }
+            }
+          }
+        }
+
+        for (let idx = 0; idx < nearEntries.length; idx++) {
+          const { wire: w, pts } = nearEntries[idx];
           const first = pts[0];
           const last = pts[pts.length - 1];
           const atStart = (!w.fromCompId && (w.fromPoint || w.fromWireId)) && Math.hypot(first.x - jx, first.y - jy) <= 4;
@@ -14260,103 +15011,30 @@
       drawWires(ctx) {
         if (!this.circuit.wires || this.circuit.wires.length === 0) return;
 
-        const wireEntries = [];
         const showBridges = Boolean(this.showWireBridges);
+        const sc = this._ensureSpatialScene(showBridges, true);
+        const wireEntries = sc.wireEntries;
+        if (wireEntries.length === 0) return;
+        const segmentCrossingsMap = showBridges ? sc.crossingsMap : null;
 
-        for (const w of this.circuit.wires) {
-          const pts = this.getWirePolyline(w);
-          if (pts.length < 2) continue;
-          wireEntries.push({ wire: w, pts });
-        }
-
-        const segmentCrossingsMap = new Map();
-
-        if (showBridges) {
-          const allSegments = [];
-          for (const entry of wireEntries) {
-            const w = entry.wire;
-            const pts = entry.pts;
-            const net = this.getWireNet(w);
-            for (let i = 0; i < pts.length - 1; i++) {
-              const pA = pts[i];
-              const pB = pts[i + 1];
-              const dx = pB.x - pA.x;
-              const dy = pB.y - pA.y;
-              const len = Math.hypot(dx, dy);
-              if (len < 16) continue;
-              const isH = Math.abs(dy) < 1e-4;
-              const isV = Math.abs(dx) < 1e-4;
-              const rank = isH ? 3 : (isV ? 1 : 2);
-              allSegments.push({
-                wireId: w.id,
-                net,
-                segIndex: i,
-                pA,
-                pB,
-                dx,
-                dy,
-                len,
-                rank,
-                minX: Math.min(pA.x, pB.x),
-                maxX: Math.max(pA.x, pB.x),
-                minY: Math.min(pA.y, pB.y),
-                maxY: Math.max(pA.y, pB.y)
-              });
-            }
-          }
-
-          for (let i = 0; i < allSegments.length; i++) {
-            const s1 = allSegments[i];
-            for (let j = i + 1; j < allSegments.length; j++) {
-              const s2 = allSegments[j];
-              if (s1.wireId === s2.wireId || s1.net === s2.net) continue;
-
-              if (s1.maxX < s2.minX + 6 || s1.minX > s2.maxX - 6 ||
-                  s1.maxY < s2.minY + 6 || s1.minY > s2.maxY - 6) {
-                continue;
-              }
-
-              const denom = s1.dx * s2.dy - s1.dy * s2.dx;
-              if (Math.abs(denom) < 1e-6) continue;
-
-              const deltaX = s2.pA.x - s1.pA.x;
-              const deltaY = s2.pA.y - s1.pA.y;
-              const t = (deltaX * s2.dy - deltaY * s2.dx) / denom;
-              const u = (deltaX * s1.dy - deltaY * s1.dx) / denom;
-
-              const minDist = 8;
-              const tMargin = minDist / s1.len;
-              const uMargin = minDist / s2.len;
-
-              if (t >= tMargin && t <= 1 - tMargin && u >= uMargin && u <= 1 - uMargin) {
-                const ix = s1.pA.x + t * s1.dx;
-                const iy = s1.pA.y + t * s1.dy;
-
-                let s1Wins = false;
-                if (s1.rank !== s2.rank) {
-                  s1Wins = s1.rank > s2.rank;
-                } else if (s1.wireId !== s2.wireId) {
-                  s1Wins = String(s1.wireId) < String(s2.wireId);
-                } else {
-                  s1Wins = s1.segIndex < s2.segIndex;
-                }
-
-                const winSeg = s1Wins ? s1 : s2;
-                const winDist = (s1Wins ? t : u) * winSeg.len;
-                const key = `${winSeg.wireId}:${winSeg.segIndex}`;
-                let list = segmentCrossingsMap.get(key);
-                if (!list) {
-                  list = [];
-                  segmentCrossingsMap.set(key, list);
-                }
-                list.push({ x: ix, y: iy, dist: winDist });
-              }
-            }
-          }
-        }
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        const rawW = (ctx && ctx.canvas) ? ctx.canvas.width : (this.canvas ? this.canvas.width : 100000);
+        const rawH = (ctx && ctx.canvas) ? ctx.canvas.height : (this.canvas ? this.canvas.height : 100000);
+        const canvasW = rawW / dpr;
+        const canvasH = rawH / dpr;
+        const cullPad = 60;
+        const viewLeft = -this.panX / this.zoom - cullPad;
+        const viewTop = -this.panY / this.zoom - cullPad;
+        const viewRight = (canvasW - this.panX) / this.zoom + cullPad;
+        const viewBottom = (canvasH - this.panY) / this.zoom + cullPad;
 
         const pal = this.getThemePalette();
-        for (const entry of wireEntries) {
+        for (let eIdx = 0; eIdx < wireEntries.length; eIdx++) {
+          const entry = wireEntries[eIdx];
+          if (entry.maxX < viewLeft || entry.minX > viewRight ||
+              entry.maxY < viewTop || entry.minY > viewBottom) {
+            continue;
+          }
           const { wire: w, pts } = entry;
           const isSelected = this.selectedWireIds.has(w.id) || w.id === this.selectedWireId;
           const isHovered = w.id === this.hoveredWireId;
@@ -14391,12 +15069,9 @@
             const pA = pts[i];
             const pB = pts[i + 1];
 
-            const key = `${w.id}:${i}`;
-            const crossings = segmentCrossingsMap.get(key);
+            const crossings = showBridges ? segmentCrossingsMap.get(`${w.id}:${i}`) : null;
 
-            if (showBridges && crossings && crossings.length > 0) {
-              crossings.sort((a, b) => a.dist - b.dist);
-
+            if (crossings && crossings.length > 0) {
               const dx = pB.x - pA.x;
               const dy = pB.y - pA.y;
               const theta = Math.atan2(dy, dx);
@@ -14557,8 +15232,9 @@
           }
         }
 
-        const junctions = this.findWireJunctions(wireEntries);
+        const junctions = this._materializeJunctions(sc.junctionTemplates);
         for (const junc of junctions) {
+          if (junc.x < viewLeft || junc.x > viewRight || junc.y < viewTop || junc.y > viewBottom) continue;
           ctx.save();
           const isHigh = junc.level === 1;
           const isSel = junc.isSelected;
@@ -17058,7 +17734,7 @@
           ctx.textAlign = 'left';
           ctx.fillText(probeName.slice(0, 9), btns.rename.x + 4, rowTop + rowH / 2 + 4);
 
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const wire = this.circuit.getWire ? this.circuit.getWire(probe.wireId) : this.circuit.wires.find(w => w.id === probe.wireId);
           const currentVal = wire ? wire.level : (probe.inputs ? probe.inputs[0]?.value : 0);
           const refOffset = this.playheadOffset !== null ? this.playheadOffset : hoveredOffset;
           const displayVal = refOffset !== null
@@ -24612,7 +25288,7 @@
         centerCanvas.addEventListener('click', () => {
           this.selectItem(null, null, probe.id);
           this.highlightInspector();
-          const wire = this.circuit.wires.find(w => w.id === probe.wireId);
+          const wire = this.circuit.getWire ? this.circuit.getWire(probe.wireId) : this.circuit.wires.find(w => w.id === probe.wireId);
           if (wire) {
             const pts = this.renderer.getWirePolyline(wire);
             const pos = this.renderer.getPointAlongPolyline(pts, probe.offsetRatio ?? 0.5);
