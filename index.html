@@ -13249,6 +13249,7 @@
         this._headSnapshot = null;
         this._isScrubbed = false;
         this._probeSamplesCache = new Map();
+        this._deferTickUpdate = false;
       }
 
       get maxHistory() { return this._maxHistory; }
@@ -13784,7 +13785,7 @@
         }
         this.ringBuffer.record(this.tickCount, probeSamples);
 
-        if (typeof this.onUpdate === 'function') this.onUpdate();
+        if (!this._deferTickUpdate && typeof this.onUpdate === 'function') this.onUpdate();
       }
 
       loop(now) {
@@ -13795,11 +13796,18 @@
 
         const interval = 1000 / this.frequency;
         let ticksThisFrame = 0;
-        while (this.accumulator >= interval && ticksThisFrame < 5) {
-          this.stepTick();
-          this.accumulator -= interval;
-          ticksThisFrame++;
+        // Catch-up ticks of one frame share a single UI refresh: intermediate states are never painted anyway.
+        this._deferTickUpdate = true;
+        try {
+          while (this.accumulator >= interval && ticksThisFrame < 5) {
+            this.stepTick();
+            this.accumulator -= interval;
+            ticksThisFrame++;
+          }
+        } finally {
+          this._deferTickUpdate = false;
         }
+        if (ticksThisFrame > 0 && typeof this.onUpdate === 'function') this.onUpdate();
         if (this.accumulator > interval * 2) {
           this.accumulator = interval;
         }
@@ -14725,7 +14733,18 @@
         this.lowSignalColor = null;
       }
 
+      // Called many times per frame; the palette only depends on the theme and the HIGH signal color.
       getThemePalette() {
+        const theme = this.appTheme;
+        const high = this.highSignalColor;
+        const memo = this._paletteMemo;
+        if (memo && memo.theme === theme && memo.high === high) return memo.pal;
+        const pal = this._buildThemePalette();
+        this._paletteMemo = { theme, high, pal };
+        return pal;
+      }
+
+      _buildThemePalette() {
         switch (this.appTheme) {
           case 'pitch_black':
             return {
@@ -16671,23 +16690,29 @@
         const minorFull = dotSize * 1.2;
         const majorFull = dotSize * 2;
 
+        // Dots never overlap, so collecting each colour's dots into one path and filling it once
+        // yields the same pixels as one fillRect per dot at a fraction of the per-call overhead.
         ctx.fillStyle = pal.gridDot;
+        ctx.beginPath();
         for (let x = startX; x <= endX; x += step) {
           const isMajorX = (x % majorStep === 0);
           for (let y = startY; y <= endY; y += step) {
             if (isMajorX && (y % majorStep === 0)) continue;
-            ctx.fillRect(x - minorHalf, y - minorHalf, minorFull, minorFull);
+            ctx.rect(x - minorHalf, y - minorHalf, minorFull, minorFull);
           }
         }
+        ctx.fill();
 
         ctx.fillStyle = pal.gridMajor;
         const majorStartX = Math.ceil(startX / majorStep) * majorStep;
         const majorStartY = Math.ceil(startY / majorStep) * majorStep;
+        ctx.beginPath();
         for (let x = majorStartX; x <= endX; x += majorStep) {
           for (let y = majorStartY; y <= endY; y += majorStep) {
-            ctx.fillRect(x - dotSize, y - dotSize, majorFull, majorFull);
+            ctx.rect(x - dotSize, y - dotSize, majorFull, majorFull);
           }
         }
+        ctx.fill();
 
         ctx.save();
         ctx.strokeStyle = pal.gridBorder;
