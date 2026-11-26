@@ -5200,6 +5200,82 @@ runTest('WISH-077', 'Mathematical data-structure optimizations (O(1) topology/sp
   }
 });
 
+runTest('WISH-081', 'Render & simulation-loop optimizations keep behavior identical (per-frame UI refresh, memoized palette, batched dot grid)', () => {
+  // 1. Catch-up ticks of one animation frame share a single onUpdate; manual stepTick() still updates every time.
+  const c = new Circuit();
+  const clk = c.addComponent('CLOCK', 0, 0, { halfPeriod: 1 });
+  const led = c.addComponent('LED', 100, 0);
+  c.addWire(clk.id, 0, led.id, 0);
+  let updates = 0;
+  const eng = new SimulationEngine(c, new RingBuffer(64), () => { updates++; });
+  eng.setMode('sim');
+  eng.setFrequency(60);
+  updates = 0;
+  eng.stepTick();
+  eng.stepTick();
+  assertEqual(updates, 2, 'Manual stepTick() refreshes the UI after every tick');
+
+  const origRaf = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = () => 0;
+  try {
+    eng.running = true;
+    eng.lastFrameTime = 0;
+    eng.accumulator = 0;
+    const tickBefore = eng.tickCount;
+    updates = 0;
+    eng.loop(5 * (1000 / 60) + 1);
+    assertEqual(eng.tickCount - tickBefore, 5, 'Loop still executes all catch-up ticks of the frame');
+    assertEqual(updates, 1, 'Catch-up ticks of one frame trigger exactly one UI refresh');
+    assertEqual(eng._deferTickUpdate, false, 'Deferred-update flag is cleared after the frame');
+    assertEqual(eng.ringBuffer.count >= 7, true, 'Every catch-up tick is still recorded in the analyzer ring buffer');
+    updates = 0;
+    eng.lastFrameTime = 0;
+    eng.accumulator = 0;
+    eng.loop(1);
+    assertEqual(updates, 0, 'A frame without a due tick does not refresh the UI');
+  } finally {
+    eng.running = false;
+    globalThis.requestAnimationFrame = origRaf;
+  }
+
+  // 2. Theme palette is memoized per theme + HIGH color and still follows theme/color changes.
+  const rend = new CanvasRenderer(createMockElem('canvas'), new Circuit());
+  rend.appTheme = 'modern';
+  const p1 = rend.getThemePalette();
+  assertEqual(rend.getThemePalette() === p1, true, 'Repeated palette lookups reuse the memoized palette object');
+  rend.appTheme = 'light_cad';
+  const p2 = rend.getThemePalette();
+  assertEqual(p2.wireLow, '#64748b', 'Theme switch invalidates the palette memo');
+  rend.appTheme = 'modern';
+  rend.highSignalColor = '#ffb300';
+  assertEqual(rend.getThemePalette().moduleValue, '#ffb300', 'HIGH signal color change invalidates the palette memo');
+  assertEqual(rend.getThemePalette().bg, p1.bg, 'Memoized palette keeps identical theme values');
+
+  // 3. Dot grid: same dot rectangles as before, collected into one path per colour (2 fills instead of 1 fillRect per dot).
+  const calls = { rect: [], fill: 0, fillRect: 0 };
+  const spy = Object.assign({}, mockCtx, {
+    rect: (x, y, w, h) => calls.rect.push([x, y, w, h]),
+    fill: () => { calls.fill++; },
+    fillRect: () => { calls.fillRect++; }
+  });
+  rend.zoom = 1;
+  rend.panX = 0;
+  rend.panY = 0;
+  rend.drawDotGrid(spy, 200, 100);
+  // 200x100 view at zoom 1 -> x 0..200, y 0..100 in 20 px steps = 11 x 6 grid points, 6 of them major (x,y % 100 === 0)
+  assertEqual(calls.rect.length, 66, 'Every grid point is emitted exactly once (60 minor + 6 major dots)');
+  assertEqual(calls.fill, 2, 'Minor and major dots are filled with one fill each');
+  assertEqual(calls.fillRect, 0, 'No per-dot fillRect calls remain');
+  const dotSize = 1.6;
+  const major = calls.rect.filter(r => Math.abs(r[2] - dotSize * 2) < 1e-9);
+  assertEqual(major.length, 6, 'Major dots keep their larger size');
+  assertEqual(major.every(r => Math.abs(((r[0] + dotSize) % 100)) < 1e-9 && Math.abs(((r[1] + dotSize) % 100)) < 1e-9), true, 'Major dots stay on the 100 px lattice');
+
+  // 4. Static source contract
+  assertEqual(html.includes('_deferTickUpdate'), true, 'Sim loop defers per-tick UI refresh');
+  assertEqual(html.includes('_paletteMemo'), true, 'CanvasRenderer memoizes the theme palette');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
