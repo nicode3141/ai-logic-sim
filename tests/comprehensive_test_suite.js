@@ -4978,6 +4978,228 @@ runTest('WISH-079', 'Remove floating canvas zoom controls and scenario guide, an
   app.setZoom(z0);
 });
 
+runTest('WISH-077', 'Mathematical data-structure optimizations (O(1) topology/spatial maps, quotient netlist, bit-packed history/mipmap, SWAR truth tables, delta undo) and configurable schematic plan optimizer', () => {
+  const rawHtml = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  const prevLang = I18N.currentLang;
+
+  try {
+    // 1. UI controls exist for configurable plan optimization
+    assertEqual(rawHtml.includes('id="settings-optimize-plan"'), true, 'Settings modal includes #settings-optimize-plan');
+    assertEqual(rawHtml.includes('id="chk-optimize-plan"'), true, 'Align popover includes #chk-optimize-plan');
+    assertEqual(rawHtml.includes('data-align-action="optimize"'), true, 'Align popover includes optimize action button');
+    assertEqual(rawHtml.includes('id="chk-synth-optimize"'), true, 'Boolean synthesis modal includes #chk-synth-optimize');
+    assertEqual(rawHtml.includes('id="menu-item-optimize-plan"'), true, 'Analysis menu includes #menu-item-optimize-plan');
+
+    const app = new LogicSimApp();
+    app.circuit.clear(app.ringBuffer);
+    assertEqual(app.optimizePlanEnabled, false, 'Schematic plan optimization is opt-in (disabled by default)');
+
+    // 2. O(1) _inputWireMap, _forkChildCounts, mergeOpenWireTermini, and 64x64 spatial scene queries
+    const swA = app.circuit.addComponent('SWITCH', 40, 60, { label: 'A', initialValue: 1 });
+    const swB = app.circuit.addComponent('SWITCH', 40, 180, { label: 'B', initialValue: 0 });
+    const gAnd = app.circuit.addComponent('AND', 240, 100, { numInputs: 2 });
+    const wIn0 = app.circuit.addWire(swA.id, 0, gAnd.id, 0);
+    assertEqual(app.circuit.getWireToInput(gAnd.id, 0), wIn0, 'O(1) getWireToInput finds wire on pin 0');
+    wIn0.toPin = 1;
+    assertEqual(app.circuit.getWireToInput(gAnd.id, 0), null, 'Pin 0 cleared when wire.toPin setter mutates pin');
+    assertEqual(app.circuit.getWireToInput(gAnd.id, 1), wIn0, 'O(1) getWireToInput tracks updated pin 1');
+    wIn0.toPin = 0;
+
+    const trunk = app.circuit.addWire(swB.id, 0, null, 0, null, [], { toPoint: { x: 160, y: 200 } });
+    const child = app.circuit.addWire(null, 0, gAnd.id, 1, null, [], { fromWireId: trunk.id, fromPoint: { x: 160, y: 200 } });
+    assertEqual(app.circuit.isForkTrunkWire(trunk), true, 'O(1) _forkChildCounts marks trunk wire');
+    assertEqual(app.renderer.findComponentAt(260, 120), gAnd, '64x64 spatial grid hits component body');
+    assertEqual(app.renderer.findWireAt(190, 200) === child || app.renderer.findWireAt(130, 200) === trunk, true, '64x64 spatial grid hits wire segment');
+
+    // Quotient netlist propagates multi-hop wire branches in a single pass
+    swB.state.value = 1;
+    swB.outputs[0].value = 1;
+    swB.nextOutputs[0] = 1;
+    app.circuit.updateWireLevelsFromDrivers();
+    assertEqual(gAnd.inputs[1].value, 1, 'Quotient netlist propagates signal across fork trunk + branch in 1 pass');
+
+    // Cell-hashed mergeOpenWireTermini merges coincident open ends
+    const open1 = app.circuit.addWire(swA.id, 0, null, 0, null, [], { toPoint: { x: 140, y: 320 } });
+    const ledM = app.circuit.addComponent('LED', 320, 300);
+    const open2 = app.circuit.addWire(null, 0, ledM.id, 0, null, [], { fromPoint: { x: 140, y: 320 } });
+    const mergedCnt = app.circuit.mergeOpenWireTermini(16);
+    assertEqual(mergedCnt >= 1, true, 'Spatial cell-hashed mergeOpenWireTermini merges coincident open termini');
+    assertEqual(Boolean(open1.id && open2.id), true, 'Open wire handles remain valid');
+
+    // 3. CUSTOM_IC combinational LUT compilation & bit-packed SimulationEngine HistoryRing wrap-around (>512 ticks)
+    const ic = app.circuit.addComponent('CUSTOM_IC', 420, 100, {
+      label: 'XOR_IC',
+      inputs: [
+        { name: 'X', targets: [{ targetCompIdx: 0, targetPin: 0 }] },
+        { name: 'Y', targets: [{ targetCompIdx: 0, targetPin: 1 }] }
+      ],
+      outputs: [{ name: 'Z', sourceCompIdx: 0, sourcePin: 0 }],
+      subcircuit: {
+        components: [{ type: 'XOR', dx: 0, dy: 0, params: { numInputs: 2 } }],
+        wires: []
+      }
+    });
+    const icPlan = ic._getCompiledIC();
+    assertEqual(Boolean(icPlan && icPlan.lut instanceof Int32Array && icPlan.lut.length === 4), true, 'Pure combinational CUSTOM_IC compiles 2^k Int32Array LUT');
+    assertEqual(icPlan.lut[0] === 0 && icPlan.lut[1] === 1 && icPlan.lut[2] === 1 && icPlan.lut[3] === 0, true, 'Compiled CUSTOM_IC LUT matches XOR truth vector');
+
+    app.circuit.clear(app.ringBuffer);
+    const clk = app.circuit.addComponent('CLOCK', 40, 80, { halfPeriod: 1, highTicks: 1, lowTicks: 1 });
+    const cnt = app.circuit.addComponent('COUNTER', 220, 60, { mode: 'binary' });
+    const swEn = app.circuit.addComponent('CONST', 40, 160, { value: 1 });
+    app.circuit.addWire(clk.id, 0, cnt.id, 0);
+    app.circuit.addWire(swEn.id, 0, cnt.id, 1);
+    app.engine.setMode('sim');
+    for (let t = 0; t < 600; t++) {
+      app.engine.stepTick();
+    }
+    assertEqual(app.engine.tickCount, 600, 'Simulation ran 600 ticks past 512-entry HistoryRing capacity');
+    assertEqual(app.engine.history.length, 512, 'Bit-packed HistoryRing caps cleanly at 512 entries with O(1) eviction');
+    const countAt600 = cnt.state.count;
+    app.engine.scrubToTick(550);
+    const countAt550 = cnt.state.count;
+    assertEqual(countAt550 !== countAt600, true, 'O(1) scrubToTick restores historical sequential state from bit-packed ring');
+    app.engine.scrubToTick(600);
+    assertEqual(cnt.state.count, countAt600, 'Scrubbing back to head restores lazy _headSnapshot state');
+    app.engine.setMode('edit');
+
+    // 4. Bit-packed RingBuffer + 2-bit Monoid Mipmap glitch preservation & zoomed-out analyzer
+    const rb = new RingBuffer(10000);
+    rb.ensureChannel('prb_1');
+    const zeroMap = new Map([['prb_1', 0]]);
+    const oneMap = new Map([['prb_1', 1]]);
+    for (let t = 1; t <= 10200; t++) {
+      // Single 1-tick HIGH glitch at tick 5555 (well inside wrapped 201..10200 window)
+      rb.record(t, t === 5555 ? oneMap : zeroMap);
+    }
+    assertEqual(rb.count, 10000, 'Bit-packed RingBuffer wraps at 10,000 ticks');
+    assertEqual(rb.getRangeSummary('prb_1', 0, 5000), 1, 'Pure LOW range summarizes to monoid state 1');
+    assertEqual(rb.getRangeSummary('prb_1', 5000, 6000), 3, 'Single 1-tick HIGH glitch in 1,000-tick span summarizes to monoid state 3 (never lost!)');
+    assertEqual(rb.getValueAtOffset('prb_1', 5555 - 201), 1, 'Exact bit lookup retrieves 1-tick glitch after wrap-around');
+    app.analyzer.pixelsPerTick = 0.25;
+    app.analyzer.render();
+    app.analyzer.pixelsPerTick = 12;
+
+    // 5. 32-Bit SWAR TruthTableGenerator, Quine-McCluskey minimization, and >8 input opt-in
+    app.circuit.clear(app.ringBuffer);
+    BooleanParser.synthesizeToCircuit(app.circuit, BooleanParser.parse('Y = (A & B) | (A & !B); Maj = (A & B) | (A & C) | (B & C)'), { mode: 'replace' });
+    const tt = TruthTableGenerator.generate(app.circuit, app.engine);
+    assertEqual(tt.rows.length, 8, '3-variable SWAR truth table produces 8 rows');
+    assertEqual(tt.minMap.Y.formula, 'A', 'Quine-McCluskey minimizes (A & B) | (A & !B) to A');
+    for (const row of tt.rows) {
+      assertEqual(row.outputs.Y, row.inputs.A, 'SWAR row evaluation matches simplified Boolean function Y = A');
+      const majExpected = (row.inputs.A + row.inputs.B + row.inputs.C) >= 2 ? 1 : 0;
+      assertEqual(row.outputs.Maj, majExpected, 'SWAR row evaluation matches 3-input Majority carry function');
+    }
+
+    const wideCircuit = new Circuit();
+    const wideSw = [];
+    for (let i = 0; i < 10; i++) {
+      wideSw.push(wideCircuit.addComponent('SWITCH', 40, 40 + i * 60, { label: `X${i}` }));
+    }
+    const wideAnd = wideCircuit.addComponent('AND', 260, 120, { numInputs: 2 });
+    const wideLed = wideCircuit.addComponent('LED', 420, 120, { label: 'OUT10' });
+    wideCircuit.addWire(wideSw[0].id, 0, wideAnd.id, 0);
+    wideCircuit.addWire(wideSw[9].id, 0, wideAnd.id, 1);
+    wideCircuit.addWire(wideAnd.id, 0, wideLed.id, 0);
+    const ttDefault = TruthTableGenerator.generate(wideCircuit, null);
+    assertEqual(ttDefault.rows.length, 256, 'Default TruthTableGenerator caps at 8 inputs (256 rows)');
+    assertEqual(Boolean(ttDefault.warning && ttDefault.warning.includes('8 Eingänge')), true, 'Default 8-input warning preserved');
+    const ttExpanded = TruthTableGenerator.generate(wideCircuit, null, { maxInputs: 10 });
+    assertEqual(ttExpanded.rows.length, 1024, 'Opt-in maxInputs: 10 evaluates 1,024 rows via SWAR');
+    assertEqual(ttExpanded.warning, null, 'No warning when all 10 inputs are analyzed');
+
+    // 6. Structural Delta Undo/Redo roundtrip
+    app.circuit.clear(app.ringBuffer);
+    const tab = app.getActiveTab();
+    tab.undoStack = [];
+    tab.redoStack = [];
+    tab.lastSnapshot = null;
+    app.commitHistory(tab);
+    const uSw = app.circuit.addComponent('SWITCH', 60, 80, { label: 'U1' });
+    app.checkpointHistory(tab);
+    uSw.x = 180;
+    uSw.y = 220;
+    app.checkpointHistory(tab);
+    assertEqual(tab.undoStack.length, 2, 'Two distinct structural delta entries recorded');
+    assertEqual(tab.undoStack[1].__delta, 1, 'Undo entry uses compact O(|Delta|) structural patch format');
+    app.undo(tab);
+    assertEqual(app.circuit.getComponent(uSw.id).x, 60, 'Delta undo restores previous component X coordinate');
+    app.undo(tab);
+    assertEqual(app.circuit.components.length, 0, 'Second delta undo removes added component');
+    app.redo(tab);
+    app.redo(tab);
+    assertEqual(app.circuit.getComponent(uSw.id).x, 180, 'Delta redo restores moved component X coordinate');
+
+    // 7. Configurable Schematic Plan Optimizer (CSE, NOT bubble-pushing, double-NOT elimination, pin untangling)
+    const cRaw = new Circuit();
+    const cOpt = new Circuit();
+    const eqs = BooleanParser.parse('F1 = !!(A & B) | !C; F2 = (A & B) & !C');
+    BooleanParser.synthesizeToCircuit(cRaw, eqs, { mode: 'replace' });
+    BooleanParser.synthesizeToCircuit(cOpt, eqs, { mode: 'replace', optimizePlan: true });
+    assertEqual(cOpt.components.length < cRaw.components.length, true, 'Optimized plan uses fewer components than unoptimized synthesis');
+    assertEqual(cOpt.components.filter(c => c.type === 'NOT').length, 0, 'All standalone NOT gates eliminated/absorbed into pin bubbles');
+    assertEqual(cOpt.components.filter(c => c.type === 'AND').length, 2, 'Shared (A & B) subexpression synthesized once via DAG CSE');
+
+    const ttRaw = TruthTableGenerator.generate(cRaw, null);
+    const ttOpt = TruthTableGenerator.generate(cOpt, null);
+    assertEqual(ttRaw.rows.length, ttOpt.rows.length, 'Optimized circuit has same input space');
+    for (let r = 0; r < ttRaw.rows.length; r++) {
+      assertEqual(ttOpt.rows[r].outputs.F1, ttRaw.rows[r].outputs.F1, `Row ${r} F1 preserved after optimizePlan`);
+      assertEqual(ttOpt.rows[r].outputs.F2, ttRaw.rows[r].outputs.F2, `Row ${r} F2 preserved after optimizePlan`);
+    }
+
+    // Commutative pin untangling when driver Y coordinates cross
+    const cCross = new Circuit();
+    const sTop = cCross.addComponent('SWITCH', 40, 40, { label: 'TOP' });
+    const sBot = cCross.addComponent('SWITCH', 40, 220, { label: 'BOT' });
+    const gSym = cCross.addComponent('OR', 240, 120, { numInputs: 2, invertedInputs: [true, false] });
+    const lOut = cCross.addComponent('LED', 420, 120, { label: 'Y' });
+    cCross.addWire(sBot.id, 0, gSym.id, 0); // lower switch connected to upper pin 0 (inverted!)
+    cCross.addWire(sTop.id, 0, gSym.id, 1); // upper switch connected to lower pin 1 (non-inverted!)
+    cCross.addWire(gSym.id, 0, lOut.id, 0);
+    const ttBeforeUntangle = TruthTableGenerator.generate(cCross, null);
+    const untangleStats = cCross.optimizePlan({ untanglePins: true });
+    assertEqual(untangleStats.swappedPins, 2, 'Rearrangement-inequality untangler swaps crossed symmetric input pins');
+    assertEqual(gSym.params.invertedInputs[0], false, 'Inversion bubble moves with wire so Boolean semantics stay invariant');
+    assertEqual(gSym.params.invertedInputs[1], true, 'Lower pin receives the inverted bubble from sBot');
+    const ttAfterUntangle = TruthTableGenerator.generate(cCross, null);
+    for (let r = 0; r < ttBeforeUntangle.rows.length; r++) {
+      assertEqual(ttAfterUntangle.rows[r].outputs.Y, ttBeforeUntangle.rows[r].outputs.Y, `Pin untangling preserves exact truth table row ${r}`);
+    }
+
+    // Settings persistence & English I18N parity
+    const origGet = localStorage.getItem;
+    const origSet = localStorage.setItem;
+    const memStore = new Map();
+    localStorage.getItem = (k) => (memStore.has(k) ? memStore.get(k) : null);
+    localStorage.setItem = (k, v) => { memStore.set(k, String(v)); };
+    try {
+      app.setOptimizePlanEnabled(true);
+      app.saveSettings();
+      const appReloaded = new LogicSimApp();
+      assertEqual(appReloaded.optimizePlanEnabled, true, 'optimizePlanEnabled persists across settings reload');
+      appReloaded.setOptimizePlanEnabled(false);
+      appReloaded.saveSettings();
+      app.setOptimizePlanEnabled(false);
+    } finally {
+      localStorage.getItem = origGet;
+      localStorage.setItem = origSet;
+    }
+
+    I18N.currentLang = 'en';
+    assertEqual(I18N.t('menu.analysis.optimize_plan'), 'Optimize Schematic', 'Analysis menu item translates to English');
+    assertEqual(I18N.phrase('Beim Anordnen Schaltung optimieren'), 'Optimize circuit when aligning', 'Align checkbox translates to English');
+    assertEqual(
+      I18N.phrase('⚡ Schaltplan optimiert: 3 Gatter eingespart, 2 Inverter absorbiert, 2 Pins entwirrt'),
+      '⚡ Schematic optimized: 3 gates saved, 2 inverters absorbed, 2 pins untangled',
+      'Optimization summary toast translates to English'
+    );
+  } finally {
+    I18N.currentLang = prevLang;
+  }
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');

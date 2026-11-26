@@ -262,6 +262,21 @@ Nach Implementierung der Spezifikation muss die Test-Suite `layout_eval.js` folg
 
 ---
 
-## 7. Zusammenfassung
+## 7. Mathematische Engine-Erweiterungen (WISH-077)
 
-Dieses Spezifikationsdokument bildet das vollständige Fundament für die anstehende Implementierung. Es kombiniert anerkannte Algorithmen aus modernen EDA-Systemen (ELK Layered, Brandes & Köpf, Steiner-Tree-Trunks) mit den spezifischen Wünschen des Benutzers nach flexibler Konfigurierbarkeit, intuitiven Reglern und einem aufgeräumten CAD-Schaltplan-Look.
+Im Rahmen von **WISH-077** wurden die Layout-, Routing- und Schaltplan-Optimierungsstufen mathematisch erweitert:
+
+1. **Linearzeit-Zyklusauflösung (Weighted Eades–Lin–Smyth FAS, $\mathcal{O}(|V| + |E|)$)**:
+   - Anstelle wiederholter Tarjan-Durchläufe zerlegt `AutoLayoutEngine.layoutSubCircuit` den Graphen einmalig in starke Zusammenhangskomponenten (SCCs) und löst nichttriviale SCCs in $\mathcal{O}(|V_C| + |E_C|)$ über eine vorwärtsgewichtete Quellen-/Senken-Eliminierung mit Maximierung von $\delta(u) = w^+(u) - w^-(u)$ auf (Logik $\to$ Sequenzbaustein bevorzugt vorwärts, Registerausgang $\to$ Logik als natürliche Rückkopplungskante).
+2. **Mehrstufige Cut-Value-Rangstraffung**:
+   - Interne DAG-Ketten werden über vorwärts-/rückwärtsgerichtete Relaxations-Sweeps innerhalb ihrer zulässigen Rangintervalle $[L_{\min}(g), L_{\max}(g)]$ gestrafft, um unnötige Dummy-Knoten und mehrspaltige Leitungsspannen zu minimieren.
+3. **Allokationsfreier `WireRouter`-Pool & PathFinder Negotiated Congestion**:
+   - `WireRouter._acquirePool(N)` hält sämtliche Gitter- und A*-Zustands-`TypedArrays` (`blocked`, `cost`, `hist`, `hNet`, `vNet`, `inTree`, `dist`, `seen`, `closed`, `prevState`, `heapState`, `heapKey`) persistent im Speicher (`0` GC-Allokationen bei wiederholtem Routing) und belegt überkreuzte Gitterknoten über die Rip-Up-Pässe mit historischen Überlastungskosten (`hist`), wobei stets die global beste Routing-Lösung übernommen wird.
+4. **Optionale Schaltplan-Optimierung (`Circuit.optimizePlan`)**:
+   - Als explizit zuschaltbare Einstellung (`#settings-optimize-plan`, `#chk-optimize-plan`, `#chk-synth-optimize`) sowie Direktaktion (`#menu-item-optimize-plan`, Auto-Anordnen-Popover) vereinfacht `Circuit.optimizePlan()` redundante Puffer/Doppelnegationen, verschmilzt `AND/OR/XOR + NOT` zu `NAND/NOR/XNOR`, absorbiert Einzel-`NOT`-Gatter in Eingangs-Negationsblasen (`○`), teilt identische Teilausdrücke per DAG-Hash-Consing (CSE) und entwirrt kommutative Gatter-Eingangspins monoton nach der Treiber-$Y$-Koordinate (Umordnungsungleichung).
+
+---
+
+## 8. Zusammenfassung
+
+Dieses Spezifikationsdokument bildet das vollständige Fundament für die Layout- und Routing-Architektur. Es kombiniert anerkannte Algorithmen aus modernen EDA-Systemen (ELK Layered, Eades–Lin–Smyth FAS, Brandes & Köpf, PathFinder Maze Routing, Steiner-Tree-Trunks, DAG-CSE) mit flexibler Konfigurierbarkeit und einem aufgeräumten CAD-Schaltplan-Look.

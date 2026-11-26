@@ -8913,6 +8913,35 @@
         }
       }
 
+      _getCompiledIC() {
+        if (this.type !== 'CUSTOM_IC' || !this.params || !this.params.subcircuit) return null;
+        const savedIn = this.inputs.map(p => p.value);
+        const savedNext = this.nextOutputs.slice();
+        const inv = this.params.invertedInputs;
+        try {
+          if (!this._internalCircuit || !this._icPlan) {
+            this.compute();
+          }
+          const plan = this._icPlan;
+          if (plan && plan.lut) {
+            const total = plan.lut.length;
+            const inCount = this.inputs.length;
+            for (let mask = 0; mask < total; mask++) {
+              if (plan.lut[mask] !== -1) continue;
+              for (let p = 0; p < inCount; p++) {
+                const want = (mask >>> p) & 1;
+                this.inputs[p].value = (inv && inv[p]) ? (want ^ 1) : want;
+              }
+              this.compute();
+            }
+          }
+          return plan || null;
+        } finally {
+          for (let p = 0; p < savedIn.length; p++) this.inputs[p].value = savedIn[p];
+          for (let o = 0; o < savedNext.length; o++) this.nextOutputs[o] = savedNext[o];
+        }
+      }
+
       /**
        * PHASE 2 (Commit)
        */
@@ -23202,7 +23231,7 @@
             existing._icPlan = null;
             existing._internalCircuit = false;
             existing.rebuildPins();
-            existing.initState();
+            existing.resetState();
             existing.compute();
             existing.commit(true);
           } else {
