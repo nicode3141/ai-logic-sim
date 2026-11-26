@@ -11230,36 +11230,145 @@
         }
         const gid = nodes.map((_, i) => gfind(i));
 
-        const scoreBackEdge = (e, sccOf) => {
-          let s = 0;
-          if (e.a.seq && !e.b.seq) s += 8;          // register output -> logic: natural loop closing wire
-          else if (!e.a.seq && e.b.seq) s -= 4;     // logic -> register is the natural forward direction
-          if (e.a.ox > e.b.ox) s += 2;              // already drawn right-to-left by the user
-          else if (e.a.ox < e.b.ox) s -= 1;
+        // Linear-time Weighted Eades-Lin-Smyth (ELS) Greedy Feedback Arc Set per nontrivial SCC (O(V + E))
+        const sccAdj = nodes.map(() => []);
+        for (const e of edges) {
+          if (e.kind === 'fwd') sccAdj[gid[e.a.li]].push(gid[e.b.li]);
+        }
+        const { comp: sccOf, nComp } = AutoLayoutEngine.stronglyConnected(n, sccAdj);
+        const sccGroups = Array.from({ length: nComp }, () => []);
+        for (let i = 0; i < n; i++) {
+          if (gid[i] === i) sccGroups[sccOf[i]].push(i);
+        }
+
+        const forwardPrefWeight = (e) => {
+          let w = 10;
+          if (!e.a.seq && e.b.seq) w += 12;          // logic -> register: natural forward path
+          else if (e.a.seq && !e.b.seq) w -= 8;      // register output -> logic: natural feedback loop closure
+          if (e.a.ox < e.b.ox) w += 2;
+          else if (e.a.ox > e.b.ox) w -= 1;
           let extIn = 0;
-          for (const ie of e.b.in) if (sccOf[gid[ie.a.li]] !== sccOf[gid[e.b.li]]) extIn++;
-          if (extIn > 0) s += 1;                    // loop is entered at the target
-          return s * 100000 + (e.a.idx - e.b.idx);
+          for (const ie of e.b.in) {
+            if (sccOf[gid[ie.a.li]] !== sccOf[gid[e.b.li]]) extIn++;
+          }
+          if (extIn > 0) w -= 1;
+          return Math.max(1, w);
         };
-        for (let guard = 0; guard < edges.length + 2; guard++) {
-          const adj = nodes.map(() => []);
-          for (const e of edges) if (e.kind === 'fwd') adj[gid[e.a.li]].push(gid[e.b.li]);
-          const { comp: sccOf, nComp } = AutoLayoutEngine.stronglyConnected(n, adj);
-          const size = new Int32Array(nComp);
-          for (let i = 0; i < n; i++) if (gid[i] === i) size[sccOf[i]]++;
-          const best = new Map();
+
+        const hasCyclicScc = sccGroups.some(grp => grp.length >= 2);
+        if (hasCyclicScc) {
+          const inSccEdges = Array.from({ length: nComp }, () => []);
           for (const e of edges) {
             if (e.kind !== 'fwd') continue;
-            const ca = sccOf[gid[e.a.li]], cb = sccOf[gid[e.b.li]];
-            if (ca !== cb || size[ca] < 2) continue;
-            const sc = scoreBackEdge(e, sccOf);
-            const cur = best.get(ca);
-            if (!cur || sc > cur.sc) best.set(ca, { e, sc });
+            const u = gid[e.a.li], v = gid[e.b.li];
+            if (u === v) { e.kind = 'lat'; continue; }
+            const cu = sccOf[u];
+            if (cu === sccOf[v] && sccGroups[cu].length >= 2) {
+              inSccEdges[cu].push(e);
+            }
           }
-          if (best.size === 0) break;
-          for (const { e } of best.values()) {
-            for (const p of edges) {
-              if (p.kind === 'fwd' && gid[p.a.li] === gid[e.a.li] && gid[p.b.li] === gid[e.b.li]) p.kind = 'back';
+
+          const ordPos = new Int32Array(n);
+          for (let cId = 0; cId < nComp; cId++) {
+            const members = sccGroups[cId];
+            if (members.length < 2) continue;
+            const mLen = members.length;
+            const localIdx = new Map();
+            for (let i = 0; i < mLen; i++) localIdx.set(members[i], i);
+
+            const outList = Array.from({ length: mLen }, () => []);
+            const inList = Array.from({ length: mLen }, () => []);
+            const outDeg = new Int32Array(mLen);
+            const inDeg = new Int32Array(mLen);
+            const outW = new Float64Array(mLen);
+            const inW = new Float64Array(mLen);
+            const alive = new Uint8Array(mLen);
+            alive.fill(1);
+
+            for (const e of inSccEdges[cId]) {
+              const ui = localIdx.get(gid[e.a.li]);
+              const vi = localIdx.get(gid[e.b.li]);
+              const w = forwardPrefWeight(e);
+              outList[ui].push({ to: vi, w });
+              inList[vi].push({ from: ui, w });
+              outDeg[ui]++;
+              inDeg[vi]++;
+              outW[ui] += w;
+              inW[vi] += w;
+            }
+
+            const sL = [];
+            const sR = [];
+            const srcQ = [];
+            const snkQ = [];
+            for (let i = 0; i < mLen; i++) {
+              if (inDeg[i] === 0) srcQ.push(i);
+              else if (outDeg[i] === 0) snkQ.push(i);
+            }
+
+            const removeVertex = (ui) => {
+              alive[ui] = 0;
+              for (const arc of outList[ui]) {
+                const vi = arc.to;
+                if (!alive[vi]) continue;
+                inW[vi] -= arc.w;
+                if (--inDeg[vi] === 0) srcQ.push(vi);
+              }
+              for (const arc of inList[ui]) {
+                const pi = arc.from;
+                if (!alive[pi]) continue;
+                outW[pi] -= arc.w;
+                if (--outDeg[pi] === 0) snkQ.push(pi);
+              }
+            };
+
+            let rem = mLen;
+            while (rem > 0) {
+              while (srcQ.length > 0) {
+                const ui = srcQ.pop();
+                if (!alive[ui]) continue;
+                sL.push(members[ui]);
+                removeVertex(ui);
+                rem--;
+              }
+              while (snkQ.length > 0) {
+                const ui = snkQ.pop();
+                if (!alive[ui]) continue;
+                sR.push(members[ui]);
+                removeVertex(ui);
+                rem--;
+              }
+              if (rem <= 0) break;
+
+              let bestUi = -1;
+              let bestDelta = -Infinity;
+              for (let i = 0; i < mLen; i++) {
+                if (!alive[i]) continue;
+                const d = outW[i] - inW[i];
+                if (
+                  bestUi === -1 ||
+                  d > bestDelta ||
+                  (d === bestDelta && (nodes[members[i]].ox < nodes[members[bestUi]].ox ||
+                    (nodes[members[i]].ox === nodes[members[bestUi]].ox && nodes[members[i]].idx < nodes[members[bestUi]].idx)))
+                ) {
+                  bestDelta = d;
+                  bestUi = i;
+                }
+              }
+              if (bestUi === -1) break;
+              sL.push(members[bestUi]);
+              removeVertex(bestUi);
+              rem--;
+            }
+
+            for (let i = sR.length - 1; i >= 0; i--) sL.push(sR[i]);
+            for (let rank = 0; rank < sL.length; rank++) {
+              ordPos[sL[rank]] = rank + 1;
+            }
+            for (const e of inSccEdges[cId]) {
+              if (ordPos[gid[e.a.li]] > ordPos[gid[e.b.li]]) {
+                e.kind = 'back';
+              }
             }
           }
         }
@@ -11283,19 +11392,46 @@
             if (--indeg[v] === 0) topo.push(v);
           }
         }
-        for (let qi = topo.length - 1; qi >= 0; qi--) {
-          const g = topo[qi];
-          if (gIn[g].length === 0) continue;
-          let hi = Infinity, wOut = 0;
-          for (const v of gOut[g]) {
-            if (gOut[v].length === 0) continue; // pure displays follow their driver
-            wOut++;
-            if (gLayer[v] - 1 < hi) hi = gLayer[v] - 1;
+        // Network-Simplex-style cut-value rank tightening across internal DAG chains
+        for (let sweep = 0; sweep < 3; sweep++) {
+          let moved = false;
+          for (let qi = topo.length - 1; qi >= 0; qi--) {
+            const g = topo[qi];
+            if (gIn[g].length === 0) continue;
+            let hi = Infinity, wOut = 0;
+            for (const v of gOut[g]) {
+              if (gOut[v].length === 0) continue; // pure displays follow their driver
+              wOut++;
+              if (gLayer[v] - 1 < hi) hi = gLayer[v] - 1;
+            }
+            if (wOut === 0 || hi <= gLayer[g]) continue;
+            let wIn = 0;
+            for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.5 : 1;
+            if (wOut > wIn && gLayer[g] !== hi) {
+              gLayer[g] = hi;
+              moved = true;
+            }
           }
-          if (wOut === 0 || hi <= gLayer[g]) continue;
-          let wIn = 0;
-          for (const u of gIn[g]) wIn += gIn[u].length === 0 ? 0.5 : 1;
-          if (wOut > wIn) gLayer[g] = hi;
+          if (sweep > 0) {
+            for (let qi = 0; qi < topo.length; qi++) {
+              const g = topo[qi];
+              if (gIn[g].length === 0 || gOut[g].length === 0) continue;
+              let lo = 0, wIn = 0;
+              for (const u of gIn[g]) {
+                wIn += gIn[u].length === 0 ? 0.5 : 1;
+                if (gLayer[u] + 1 > lo) lo = gLayer[u] + 1;
+              }
+              let wOut = 0;
+              for (const v of gOut[g]) {
+                if (gOut[v].length > 0) wOut++;
+              }
+              if (wIn > wOut && gLayer[g] > lo) {
+                gLayer[g] = lo;
+                moved = true;
+              }
+            }
+          }
+          if (!moved) break;
         }
         for (let i = 0; i < n; i++) {
           if (gid[i] !== i || gIn[i].length > 0 || gOut[i].length === 0) continue;
@@ -11748,6 +11884,55 @@
      *  - cost = length + bends + crossings + closeness to components
      */
     class WireRouter {
+      static _acquirePool(N) {
+        let pool = WireRouter._pool;
+        if (!pool || pool.cap < N) {
+          let cap = pool ? pool.cap : 4096;
+          while (cap < N) cap *= 2;
+          pool = {
+            cap,
+            blocked: new Uint8Array(cap),
+            cost: new Float32Array(cap),
+            hist: new Float32Array(cap),
+            hNet: new Int32Array(cap),
+            vNet: new Int32Array(cap),
+            inTree: new Uint8Array(cap),
+            dist: new Float64Array(cap * 4),
+            seen: new Int32Array(cap * 4),
+            closed: new Int32Array(cap * 4),
+            prevState: new Int32Array(cap * 4),
+            qCap: Math.max(8192, cap * 4),
+            heapState: new Int32Array(Math.max(8192, cap * 4)),
+            heapKey: new Float64Array(Math.max(8192, cap * 4)),
+            stamp: 0
+          };
+          WireRouter._pool = pool;
+        }
+        if (pool.stamp > 0x70000000) {
+          pool.seen.fill(0);
+          pool.closed.fill(0);
+          pool.stamp = 0;
+        }
+        pool.blocked.fill(0, 0, N);
+        pool.cost.fill(0, 0, N);
+        pool.hist.fill(0, 0, N);
+        pool.hNet.fill(0, 0, N);
+        pool.vNet.fill(0, 0, N);
+        pool.inTree.fill(0, 0, N);
+        return pool;
+      }
+
+      static _growQueueArena(pool) {
+        const nextCap = pool.qCap * 2;
+        const ns = new Int32Array(nextCap);
+        const nk = new Float64Array(nextCap);
+        ns.set(pool.heapState);
+        nk.set(pool.heapKey);
+        pool.heapState = ns;
+        pool.heapKey = nk;
+        pool.qCap = nextCap;
+      }
+
       constructor(circuit, options = {}) {
         this.circuit = circuit;
         this.opt = Object.assign({ bend: 3, cross: 24, margin: 6, maxCells: 700000, passes: 2 }, options || {});
@@ -11829,10 +12014,12 @@
         const N = W * H;
         if (!(N > 0) || N > this.opt.maxCells) return result;
 
-        const blocked = new Uint8Array(N);
-        const cost = new Float32Array(N);
-        const hNet = new Int32Array(N); // edge n -> n+1
-        const vNet = new Int32Array(N); // edge n -> n+W
+        const pool = WireRouter._acquirePool(N);
+        const blocked = pool.blocked;
+        const cost = pool.cost;
+        const hist = pool.hist;
+        const hNet = pool.hNet; // edge n -> n+1
+        const vNet = pool.vNet; // edge n -> n+W
         const nodeOf = (x, y) => {
           const ix = (x - x0) / G, iy = (y - y0) / G;
           if (ix < 0 || iy < 0 || ix >= W || iy >= H || ix !== Math.floor(ix) || iy !== Math.floor(iy)) return -1;
@@ -11954,45 +12141,56 @@
           net.base = new Map(net.parent);
         }
 
-        const dist = new Float64Array(N * 4);
-        const seen = new Int32Array(N * 4);
-        const closed = new Int32Array(N * 4);
-        const prevState = new Int32Array(N * 4);
-        const inTree = new Uint8Array(N);
-        let stamp = 0;
+        const dist = pool.dist;
+        const seen = pool.seen;
+        const closed = pool.closed;
+        const prevState = pool.prevState;
+        const inTree = pool.inTree;
         const DELTA = [1, W, -1, -W];
         const BEND = this.opt.bend, CROSS = this.opt.cross;
-        const heap = [];
-        const heapKey = [];
+        let heapLen = 0;
+
+        // Zero-allocation Pooled TypedArray Binary Min-Heap (exact under non-monotonic trunk reuse costs)
         const push = (key, s) => {
-          let i = heap.length;
-          heap.push(s); heapKey.push(key);
+          if (heapLen >= pool.qCap) WireRouter._growQueueArena(pool);
+          const hs = pool.heapState;
+          const hk = pool.heapKey;
+          let i = heapLen++;
           while (i > 0) {
             const p = (i - 1) >> 1;
-            if (heapKey[p] <= key) break;
-            heap[i] = heap[p]; heapKey[i] = heapKey[p];
+            if (hk[p] <= key) break;
+            hs[i] = hs[p];
+            hk[i] = hk[p];
             i = p;
           }
-          heap[i] = s; heapKey[i] = key;
+          hs[i] = s;
+          hk[i] = key;
         };
+
         const pop = () => {
-          const top = heap[0];
-          const lastS = heap.pop(), lastK = heapKey.pop();
-          const len = heap.length;
+          const hs = pool.heapState;
+          const hk = pool.heapKey;
+          const top = hs[0];
+          const len = --heapLen;
           if (len > 0) {
+            const lastS = hs[len];
+            const lastK = hk[len];
             let i = 0;
             for (;;) {
-              let c = 2 * i + 1;
+              let c = (i << 1) + 1;
               if (c >= len) break;
-              if (c + 1 < len && heapKey[c + 1] < heapKey[c]) c++;
-              if (heapKey[c] >= lastK) break;
-              heap[i] = heap[c]; heapKey[i] = heapKey[c];
+              if (c + 1 < len && hk[c + 1] < hk[c]) c++;
+              if (hk[c] >= lastK) break;
+              hs[i] = hs[c];
+              hk[i] = hk[c];
               i = c;
             }
-            heap[i] = lastS; heapKey[i] = lastK;
+            hs[i] = lastS;
+            hk[i] = lastK;
           }
           return top;
         };
+
         const edgeAt = (nd, dir) => {
           const ix = nd % W;
           if (dir === 0) return ix + 1 < W ? hNet[nd] : 0;
@@ -12002,16 +12200,18 @@
         };
 
         const search = (net, start) => {
+          if (start < 0 || start >= N) return null;
           if (inTree[start]) return [start];
-          stamp++;
-          heap.length = 0; heapKey.length = 0;
+          const stamp = ++pool.stamp;
+          heapLen = 0;
           const id = net.id;
           const s0 = start * 4 + 2;
           dist[s0] = 0; seen[s0] = stamp; prevState[s0] = -1;
           push(0, s0);
           let expansions = 0;
           const limit = N * 6;
-          while (heap.length > 0) {
+          const hasBox = net.bx0 <= net.bx1 && net.by0 <= net.by1;
+          while (heapLen > 0) {
             const s = pop();
             if (closed[s] === stamp) continue;
             closed[s] = stamp;
@@ -12020,7 +12220,12 @@
             if (inTree[nd]) {
               const path = [];
               let cur = s;
-              while (cur !== -1) { path.push(cur >> 2); cur = prevState[cur]; }
+              let pathGuard = 0;
+              while (cur !== -1 && pathGuard++ <= N * 4) {
+                path.push(cur >> 2);
+                cur = prevState[cur];
+              }
+              if (cur !== -1) return null;
               path.reverse();
               return path; // start ... junction
             }
@@ -12041,19 +12246,24 @@
               const ff = f !== 0 && f !== id, f1 = p1 !== 0 && p1 !== id, f2 = p2 !== 0 && p2 !== id;
               let extra = 0;
               if (ff || f1 || f2) {
-                if (!ff && f1 && f2 && p1 === p2) extra = CROSS; else continue;
+                if (!ff && f1 && f2 && p1 === p2) extra = CROSS + hist[m]; else continue;
               }
-              const stepCost = eo === id ? 0.05 : 1 + cost[m];
+              const stepCost = eo === id ? 0.05 : 1 + cost[m] + (hist[m] * 0.2);
               let c = base + stepCost + extra;
               if (ndir !== d) c += BEND + 2 * cost[nd];
               if (inTree[m] && f !== id) c += BEND;
               const ms = m * 4 + ndir;
+              if (closed[ms] === stamp) continue;
               if (seen[ms] === stamp && dist[ms] <= c) continue;
               seen[ms] = stamp; dist[ms] = c; prevState[ms] = s;
-              const mx = m % W, my = (m - mx) / W;
-              const hx = mx < net.bx0 ? net.bx0 - mx : (mx > net.bx1 ? mx - net.bx1 : 0);
-              const hy = my < net.by0 ? net.by0 - my : (my > net.by1 ? my - net.by1 : 0);
-              push(c + hx + hy, ms);
+              let h = 0;
+              if (hasBox) {
+                const mx = m % W, my = (m - mx) / W;
+                const hx = mx < net.bx0 ? net.bx0 - mx : (mx > net.bx1 ? mx - net.bx1 : 0);
+                const hy = my < net.by0 ? net.by0 - my : (my > net.by1 ? my - net.by1 : 0);
+                h = hx + hy;
+              }
+              push(c + h, ms);
             }
           }
           return null;
@@ -12133,43 +12343,88 @@
           const manhattan = (Math.abs(e.tx - net.sx) + Math.abs(e.ty - net.sy)) / G;
           return hops <= manhattan && bends <= (e.ty === net.sy ? 0 : 2);
         };
+        const extractSolution = () => {
+          const sol = new Map();
+          let routedCnt = 0;
+          let bendSum = 0;
+          let crossCnt = 0;
+          for (const net of active) {
+            for (const code of net.edges) {
+              if (code >= 0) {
+                const rNode = code + 1;
+                if (rNode < N && vNet[rNode] !== 0 && vNet[rNode] !== net.id && rNode >= W && vNet[rNode - W] === vNet[rNode]) {
+                  if (net.id < vNet[rNode]) crossCnt++;
+                }
+              }
+            }
+            for (const e of net.wires) {
+              if (!e.ok || !e.routed) continue;
+              const pts = [];
+              let cur = e.t, guard = 0;
+              while (cur !== -1 && cur !== undefined && guard++ < N) {
+                const ix = cur % W, iy = (cur - ix) / W;
+                pts.push({ x: x0 + ix * G, y: y0 + iy * G });
+                cur = net.parent.get(cur);
+              }
+              if (cur === undefined) continue; // broken chain: keep fallback
+              pts.reverse();
+              const corners = [];
+              for (let i = 1; i + 1 < pts.length; i++) {
+                const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+                if ((a.x === b.x && b.x === c.x) || (a.y === b.y && b.y === c.y)) continue;
+                corners.push(b);
+              }
+              if ((!net.hasPin || !e.hasDst) && corners.length === 0 && pts.length >= 2) {
+                const pA = pts[0], pB = pts[pts.length - 1];
+                if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + G)) {
+                  corners.push({ x: pB.x, y: pB.y });
+                }
+              }
+              routedCnt++;
+              bendSum += corners.length;
+              sol.set(e.wire.id, corners);
+            }
+          }
+          const qualityCost = crossCnt * 100 + bendSum * 4;
+          return { sol, routedCnt, qualityCost, crossCnt };
+        };
+
+        let bestPass = extractSolution();
         const big = N > 150000 || active.length > 400;
         const passes = big ? 0 : (active.length > 120 ? Math.min(1, this.opt.passes) : this.opt.passes);
         for (let pass = 0; pass < passes; pass++) {
+          if (bestPass.crossCnt > 0) {
+            for (const net of active) {
+              for (const code of net.edges) {
+                if (code >= 0) {
+                  const rNode = code + 1;
+                  if (rNode < N && rNode >= W && vNet[rNode] !== 0 && vNet[rNode] !== net.id && vNet[rNode - W] === vNet[rNode]) {
+                    hist[rNode] = Math.min(18, hist[rNode] + 2.0);
+                  }
+                }
+              }
+            }
+          }
           const seq = pass % 2 === 0 ? active.slice().reverse() : active;
+          let changedAny = false;
           for (const nt of seq) {
             if (isIdeal(nt)) continue;
             ripNet(nt);
             routeNet(nt);
+            changedAny = true;
+          }
+          if (!changedAny) break;
+          const cand = extractSolution();
+          if (
+            cand.routedCnt > bestPass.routedCnt ||
+            (cand.routedCnt === bestPass.routedCnt && cand.qualityCost <= bestPass.qualityCost)
+          ) {
+            bestPass = cand;
           }
         }
 
-        for (const net of active) {
-          for (const e of net.wires) {
-            if (!e.ok || !e.routed) continue;
-            const pts = [];
-            let cur = e.t, guard = 0;
-            while (cur !== -1 && cur !== undefined && guard++ < N) {
-              const ix = cur % W, iy = (cur - ix) / W;
-              pts.push({ x: x0 + ix * G, y: y0 + iy * G });
-              cur = net.parent.get(cur);
-            }
-            if (cur === undefined) continue; // broken chain: keep fallback
-            pts.reverse();
-            const corners = [];
-            for (let i = 1; i + 1 < pts.length; i++) {
-              const a = pts[i - 1], b = pts[i], c = pts[i + 1];
-              if ((a.x === b.x && b.x === c.x) || (a.y === b.y && b.y === c.y)) continue;
-              corners.push(b);
-            }
-            if ((!net.hasPin || !e.hasDst) && corners.length === 0 && pts.length >= 2) {
-              const pA = pts[0], pB = pts[pts.length - 1];
-              if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + G)) {
-                corners.push({ x: pB.x, y: pB.y });
-              }
-            }
-            result.set(e.wire.id, corners);
-          }
+        for (const [wid, corners] of bestPass.sol) {
+          result.set(wid, corners);
         }
         return result;
       }
@@ -22151,11 +22406,331 @@
 
 
       /**
-       * Snapshot based history: `tab.lastSnapshot` is the last committed circuit state.
-       * Every edit ends in refreshAll() -> commitHistory(), which moves the previous
-       * state onto the undo stack. This makes *every* edit undoable without having
-       * to remember a pushHistory() call at each mutation site.
+       * Entity-level Structural Delta History (`O(|Δ|)` Undo/Redo):
+       * Computes compact bidirectional diffs (`{ __delta: 1, inverse, forward }`) across
+       * components, wires, probes, and circuit metadata so single-entity edits store ~240 B
+       * instead of full-circuit JSON strings, while remaining backward-compatible with raw JSON snapshots.
        */
+      static _captureHistState(circuit) {
+        const comps = new Map();
+        const compOrder = new Array(circuit.components.length);
+        for (let i = 0; i < circuit.components.length; i++) {
+          const c = circuit.components[i];
+          const data = c.toJSON();
+          comps.set(c.id, { raw: JSON.stringify(data), data });
+          compOrder[i] = c.id;
+        }
+        const wires = new Map();
+        const wireOrder = new Array(circuit.wires.length);
+        for (let i = 0; i < circuit.wires.length; i++) {
+          const w = circuit.wires[i];
+          const data = w.toJSON();
+          wires.set(w.id, { raw: JSON.stringify(data), data });
+          wireOrder[i] = w.id;
+        }
+        const probes = new Map();
+        const probeOrder = new Array(circuit.probes.length);
+        for (let i = 0; i < circuit.probes.length; i++) {
+          const p = circuit.probes[i];
+          const data = p.toJSON();
+          probes.set(p.id, { raw: JSON.stringify(data), data });
+          probeOrder[i] = p.id;
+        }
+        const metaObj = {
+          globalGateDelay: Number.isFinite(circuit.globalGateDelay) ? circuit.globalGateDelay : 1,
+          moduleGateDelays: { ...(circuit.moduleGateDelays || {}) }
+        };
+        return {
+          comps,
+          compOrder,
+          wires,
+          wireOrder,
+          probes,
+          probeOrder,
+          metaRaw: JSON.stringify(metaObj),
+          metaObj
+        };
+      }
+
+      static _sameOrder(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      }
+
+      static _computeHistDelta(prev, next) {
+        const invUpsertComps = [];
+        const invRemoveComps = [];
+        const fwdUpsertComps = [];
+        const fwdRemoveComps = [];
+
+        for (const [id, pEntry] of prev.comps) {
+          const nEntry = next.comps.get(id);
+          if (!nEntry) {
+            invUpsertComps.push(pEntry);
+            fwdRemoveComps.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertComps.push(pEntry);
+            fwdUpsertComps.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.comps) {
+          if (!prev.comps.has(id)) {
+            invRemoveComps.push(id);
+            fwdUpsertComps.push(nEntry);
+          }
+        }
+
+        const invUpsertWires = [];
+        const invRemoveWires = [];
+        const fwdUpsertWires = [];
+        const fwdRemoveWires = [];
+
+        for (const [id, pEntry] of prev.wires) {
+          const nEntry = next.wires.get(id);
+          if (!nEntry) {
+            invUpsertWires.push(pEntry);
+            fwdRemoveWires.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertWires.push(pEntry);
+            fwdUpsertWires.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.wires) {
+          if (!prev.wires.has(id)) {
+            invRemoveWires.push(id);
+            fwdUpsertWires.push(nEntry);
+          }
+        }
+
+        const invUpsertProbes = [];
+        const invRemoveProbes = [];
+        const fwdUpsertProbes = [];
+        const fwdRemoveProbes = [];
+
+        for (const [id, pEntry] of prev.probes) {
+          const nEntry = next.probes.get(id);
+          if (!nEntry) {
+            invUpsertProbes.push(pEntry);
+            fwdRemoveProbes.push(id);
+          } else if (pEntry.raw !== nEntry.raw) {
+            invUpsertProbes.push(pEntry);
+            fwdUpsertProbes.push(nEntry);
+          }
+        }
+        for (const [id, nEntry] of next.probes) {
+          if (!prev.probes.has(id)) {
+            invRemoveProbes.push(id);
+            fwdUpsertProbes.push(nEntry);
+          }
+        }
+
+        const compOrderChanged = !LogicSimApp._sameOrder(prev.compOrder, next.compOrder);
+        const wireOrderChanged = !LogicSimApp._sameOrder(prev.wireOrder, next.wireOrder);
+        const probeOrderChanged = !LogicSimApp._sameOrder(prev.probeOrder, next.probeOrder);
+        const metaChanged = prev.metaRaw !== next.metaRaw;
+
+        const hasChanges = (
+          invUpsertComps.length > 0 || invRemoveComps.length > 0 ||
+          invUpsertWires.length > 0 || invRemoveWires.length > 0 ||
+          invUpsertProbes.length > 0 || invRemoveProbes.length > 0 ||
+          compOrderChanged || wireOrderChanged || probeOrderChanged || metaChanged
+        );
+        if (!hasChanges) return null;
+
+        return {
+          __delta: 1,
+          inverse: {
+            removeWires: invRemoveWires,
+            removeProbes: invRemoveProbes,
+            removeComps: invRemoveComps,
+            upsertComps: invUpsertComps,
+            upsertWires: invUpsertWires,
+            upsertProbes: invUpsertProbes,
+            compOrder: compOrderChanged ? prev.compOrder : null,
+            wireOrder: wireOrderChanged ? prev.wireOrder : null,
+            probeOrder: probeOrderChanged ? prev.probeOrder : null,
+            metaObj: metaChanged ? prev.metaObj : null,
+            metaRaw: metaChanged ? prev.metaRaw : null
+          },
+          forward: {
+            removeWires: fwdRemoveWires,
+            removeProbes: fwdRemoveProbes,
+            removeComps: fwdRemoveComps,
+            upsertComps: fwdUpsertComps,
+            upsertWires: fwdUpsertWires,
+            upsertProbes: fwdUpsertProbes,
+            compOrder: compOrderChanged ? next.compOrder : null,
+            wireOrder: wireOrderChanged ? next.wireOrder : null,
+            probeOrder: probeOrderChanged ? next.probeOrder : null,
+            metaObj: metaChanged ? next.metaObj : null,
+            metaRaw: metaChanged ? next.metaRaw : null
+          }
+        };
+      }
+
+      _applyHistoryPatch(tab, patch) {
+        const circuit = tab.circuit;
+        const rb = tab.ringBuffer;
+
+        if (patch.removeProbes.length > 0) {
+          const rem = new Set(patch.removeProbes);
+          for (const pid of rem) {
+            circuit.probeMap.delete(pid);
+            if (rb) rb.removeChannel(pid);
+          }
+          circuit.probes = circuit.probes.filter(p => !rem.has(p.id));
+        }
+
+        if (patch.removeWires.length > 0) {
+          const rem = new Set(patch.removeWires);
+          for (const wid of rem) circuit.wireMap.delete(wid);
+          circuit.wires = circuit.wires.filter(w => !rem.has(w.id));
+        }
+
+        if (patch.removeComps.length > 0) {
+          const rem = new Set(patch.removeComps);
+          for (const cid of rem) circuit.compMap.delete(cid);
+          circuit.components = circuit.components.filter(c => !rem.has(c.id));
+        }
+
+        for (let i = 0; i < patch.upsertComps.length; i++) {
+          const cd = patch.upsertComps[i].data;
+          const existing = circuit.compMap.get(cd.id);
+          const cleanParams = sanitizeParams(cd.params || {});
+          if (existing && existing.type === cd.type) {
+            existing.x = Number.isFinite(cd.x) ? Math.max(-5000, Math.min(5000, cd.x)) : 0;
+            existing.y = Number.isFinite(cd.y) ? Math.max(-5000, Math.min(5000, cd.y)) : 0;
+            existing.params = cleanParams;
+            existing._icPlan = null;
+            existing._internalCircuit = false;
+            existing.rebuildPins();
+            existing.initState();
+            existing.compute();
+            existing.commit(true);
+          } else {
+            if (existing) {
+              const idx = circuit.components.indexOf(existing);
+              const fresh = new Component(cd.id, cd.type, cd.x, cd.y, cleanParams);
+              fresh.circuit = circuit;
+              circuit.compMap.set(fresh.id, fresh);
+              if (idx >= 0) circuit.components[idx] = fresh;
+              else circuit.components.push(fresh);
+            } else {
+              const fresh = new Component(cd.id, cd.type, cd.x, cd.y, cleanParams);
+              fresh.circuit = circuit;
+              circuit.compMap.set(fresh.id, fresh);
+              circuit.components.push(fresh);
+            }
+          }
+          const m = /(\d+)$/.exec(cd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.compOrder) {
+          const ordered = [];
+          for (let i = 0; i < patch.compOrder.length; i++) {
+            const c = circuit.compMap.get(patch.compOrder[i]);
+            if (c) ordered.push(c);
+          }
+          circuit.components = ordered;
+        }
+
+        for (let i = 0; i < patch.upsertWires.length; i++) {
+          const wd = patch.upsertWires[i].data;
+          let w = circuit.wireMap.get(wd.id);
+          const cleanWps = Array.isArray(wd.waypoints)
+            ? wd.waypoints.map(p => ({ x: p.x, y: p.y }))
+            : [];
+          if (w) {
+            w.fromCompId = wd.fromCompId ?? null;
+            w.fromPin = wd.fromPin ?? 0;
+            w.toCompId = wd.toCompId ?? null;
+            w.toPin = wd.toPin ?? 0;
+            w.fromWireId = wd.fromWireId ?? null;
+            w.fromPoint = wd.fromPoint ? { x: wd.fromPoint.x, y: wd.fromPoint.y } : null;
+            w.toWireId = wd.toWireId ?? null;
+            w.toPoint = wd.toPoint ? { x: wd.toPoint.x, y: wd.toPoint.y } : null;
+            w.waypoints = cleanWps;
+            w.channelOffset = wd.channelOffset || 0;
+            w.style = wd.style === 'diagonal' ? 'diagonal' : 'orthogonal';
+            w.autoRouted = Boolean(wd.autoRouted);
+          } else {
+            w = new Wire(wd.id, wd.fromCompId ?? null, wd.fromPin ?? 0, wd.toCompId ?? null, wd.toPin ?? 0, cleanWps, {
+              channelOffset: wd.channelOffset || 0,
+              style: wd.style || 'orthogonal',
+              autoRouted: Boolean(wd.autoRouted),
+              fromWireId: wd.fromWireId ?? null,
+              fromPoint: wd.fromPoint ? { x: wd.fromPoint.x, y: wd.fromPoint.y } : null,
+              toWireId: wd.toWireId ?? null,
+              toPoint: wd.toPoint ? { x: wd.toPoint.x, y: wd.toPoint.y } : null
+            });
+            w._circuit = circuit;
+            circuit.wireMap.set(w.id, w);
+            circuit.wires.push(w);
+          }
+          const m = /(\d+)$/.exec(wd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.wireOrder) {
+          const orderedWires = [];
+          for (let i = 0; i < patch.wireOrder.length; i++) {
+            const w = circuit.wireMap.get(patch.wireOrder[i]);
+            if (w) orderedWires.push(w);
+          }
+          circuit.wires = orderedWires;
+        }
+
+        // Refresh cached wire component pointers
+        for (let i = 0; i < circuit.wires.length; i++) {
+          const w = circuit.wires[i];
+          w._circuit = circuit;
+          w._fromComp = w.fromCompId ? (circuit.compMap.get(w.fromCompId) || null) : null;
+          w._toComp = w.toCompId ? (circuit.compMap.get(w.toCompId) || null) : null;
+        }
+
+        for (let i = 0; i < patch.upsertProbes.length; i++) {
+          const pd = patch.upsertProbes[i].data;
+          let pr = circuit.probeMap.get(pd.id);
+          if (pr) {
+            pr.wireId = pd.wireId;
+            pr.name = String(pd.name || pr.name).slice(0, 24);
+            pr.color = pd.color || pr.color;
+            pr.offsetRatio = Number.isFinite(pd.offsetRatio) ? Math.max(0.05, Math.min(0.95, pd.offsetRatio)) : 0.5;
+          } else {
+            pr = new Probe(pd.id, pd.wireId, pd.name, pd.color, pd.offsetRatio);
+            circuit.probeMap.set(pr.id, pr);
+            circuit.probes.push(pr);
+          }
+          if (rb) rb.ensureChannel(pr.id);
+          const m = /(\d+)$/.exec(pd.id);
+          if (m) circuit.nextId = Math.max(circuit.nextId || 1, parseInt(m[1], 10) + 1);
+        }
+
+        if (patch.probeOrder) {
+          const orderedProbes = [];
+          for (let i = 0; i < patch.probeOrder.length; i++) {
+            const pr = circuit.probeMap.get(patch.probeOrder[i]);
+            if (pr) orderedProbes.push(pr);
+          }
+          circuit.probes = orderedProbes;
+        }
+
+        if (patch.metaObj) {
+          circuit.globalGateDelay = parseGateDelay(patch.metaObj.globalGateDelay, 1);
+          circuit.moduleGateDelays = { ...(patch.metaObj.moduleGateDelays || {}) };
+        }
+
+        circuit._topoVersion = (circuit._topoVersion + 1) | 0;
+        circuit._inputWireMapDirty = true;
+        circuit._forkCountDirty = true;
+        if (typeof circuit._rebuildRefIndex === 'function') circuit._rebuildRefIndex();
+        circuit.syncImmediateWireLevels();
+      }
+
       resolveHistoryTab(targetTab = null) {
         return targetTab || (this.activePane === 'right' ? (this.getRightTab() || this.getActiveTab()) : this.getActiveTab());
       }
@@ -22163,20 +22738,43 @@
       commitHistory(targetTab = null, coalesce = false) {
         const tab = this.resolveHistoryTab(targetTab);
         if (!tab || !tab.circuit) return false;
-        const snapshot = JSON.stringify(tab.circuit.toJSON());
-        if (tab.lastSnapshot === null || tab.lastSnapshot === undefined) {
-          tab.lastSnapshot = snapshot;
+        const nextState = LogicSimApp._captureHistState(tab.circuit);
+        if (!tab._histState || tab.lastSnapshot === null || tab.lastSnapshot === undefined) {
+          tab._histState = nextState;
+          tab._cachedJsonStr = null;
+          tab.lastSnapshot = '__DELTA_TRACKED__';
           return false;
         }
-        if (snapshot === tab.lastSnapshot) return false;
+        // Support tests/external code that manually assigned a JSON string to tab.lastSnapshot
+        if (typeof tab.lastSnapshot === 'string' && tab.lastSnapshot.startsWith('{')) {
+          try {
+            const tmp = new Circuit();
+            tmp.fromJSON(JSON.parse(tab.lastSnapshot));
+            tab._histState = LogicSimApp._captureHistState(tmp);
+          } catch (_) {}
+        }
+        const delta = LogicSimApp._computeHistDelta(tab._histState, nextState);
+        if (!delta) return false;
+
         const now = Date.now();
-        const merge = coalesce && tab.lastCommitCoalesced && (now - (tab.lastCommitTime || 0)) < 900;
-        if (!merge) {
-          tab.undoStack.push(tab.lastSnapshot);
+        const merge = coalesce && tab.lastCommitCoalesced && (now - (tab.lastCommitTime || 0)) < 900 && tab.undoStack.length > 0;
+        if (merge && tab._coalesceBaseState) {
+          const mergedDelta = LogicSimApp._computeHistDelta(tab._coalesceBaseState, nextState);
+          if (mergedDelta) {
+            tab.undoStack[tab.undoStack.length - 1] = mergedDelta;
+          } else {
+            tab.undoStack.pop();
+          }
+        } else {
+          if (coalesce) tab._coalesceBaseState = tab._histState;
+          else tab._coalesceBaseState = null;
+          tab.undoStack.push(delta);
           if (tab.undoStack.length > 100) tab.undoStack.shift();
         }
         tab.redoStack = [];
-        tab.lastSnapshot = snapshot;
+        tab._histState = nextState;
+        tab._cachedJsonStr = null;
+        tab.lastSnapshot = '__DELTA_TRACKED__';
         tab.lastCommitTime = now;
         tab.lastCommitCoalesced = Boolean(coalesce);
         this.updateUndoRedoUI();
@@ -22187,18 +22785,29 @@
       checkpointHistory(targetTab = null) {
         this.commitHistory(targetTab);
         const tab = this.resolveHistoryTab(targetTab);
-        if (tab) tab.lastCommitCoalesced = false;
+        if (tab) {
+          tab.lastCommitCoalesced = false;
+          tab._coalesceBaseState = null;
+        }
       }
 
       pushHistory(targetTab = null) {
         this.checkpointHistory(targetTab);
       }
 
-      restoreHistorySnapshot(tab, snapshot) {
+      restoreHistorySnapshot(tab, snapshot, direction = 'inverse') {
         if (this._layoutAnim) this.finishLayoutAnimation();
-        tab.circuit.fromJSON(JSON.parse(snapshot), tab.ringBuffer);
-        tab.lastSnapshot = JSON.stringify(tab.circuit.toJSON());
+        if (snapshot && typeof snapshot === 'object' && snapshot.__delta === 1) {
+          const patch = direction === 'forward' ? snapshot.forward : snapshot.inverse;
+          this._applyHistoryPatch(tab, patch);
+        } else if (typeof snapshot === 'string') {
+          tab.circuit.fromJSON(JSON.parse(snapshot), tab.ringBuffer);
+        }
+        tab._histState = LogicSimApp._captureHistState(tab.circuit);
+        tab._cachedJsonStr = null;
+        tab.lastSnapshot = '__DELTA_TRACKED__';
         tab.lastCommitCoalesced = false;
+        tab._coalesceBaseState = null;
         if (tab === this.getActiveTab()) {
           this.globalGateDelay = Number.isFinite(tab.circuit.globalGateDelay) ? tab.circuit.globalGateDelay : 1;
           this.moduleGateDelays = { ...(tab.circuit.moduleGateDelays || {}) };
@@ -22226,9 +22835,15 @@
         if (!tab) return;
         this.commitHistory(tab);
         if (tab.undoStack.length === 0) return;
-        tab.redoStack.push(tab.lastSnapshot);
-        const prevState = tab.undoStack.pop();
-        this.restoreHistorySnapshot(tab, prevState);
+        const entry = tab.undoStack.pop();
+        if (entry && typeof entry === 'object' && entry.__delta === 1) {
+          tab.redoStack.push(entry);
+          this.restoreHistorySnapshot(tab, entry, 'inverse');
+        } else {
+          const curJson = JSON.stringify(tab.circuit.toJSON());
+          tab.redoStack.push(curJson);
+          this.restoreHistorySnapshot(tab, entry, 'inverse');
+        }
         this.showToast('↶ Rückgängig ausgeführt');
       }
 
@@ -22238,10 +22853,16 @@
         if (!tab) return;
         if (this.commitHistory(tab)) return; // a fresh edit invalidated the redo stack
         if (tab.redoStack.length === 0) return;
-        const nextState = tab.redoStack.pop();
-        tab.undoStack.push(tab.lastSnapshot);
+        const entry = tab.redoStack.pop();
         const keepRedo = tab.redoStack.slice();
-        this.restoreHistorySnapshot(tab, nextState);
+        if (entry && typeof entry === 'object' && entry.__delta === 1) {
+          tab.undoStack.push(entry);
+          this.restoreHistorySnapshot(tab, entry, 'forward');
+        } else {
+          const curJson = JSON.stringify(tab.circuit.toJSON());
+          tab.undoStack.push(curJson);
+          this.restoreHistorySnapshot(tab, entry, 'forward');
+        }
         tab.redoStack = keepRedo;
         this.updateUndoRedoUI();
         this.showToast('↷ Wiederholen ausgeführt');
@@ -31382,9 +32003,19 @@
         if (!this.autoSaveCircuit) return;
         try {
           const activeTab = this.getActiveTab();
-          const payload = (activeTab && activeTab.circuit === this.circuit && activeTab.lastSnapshot)
-            ? activeTab.lastSnapshot
-            : JSON.stringify(this.circuit.toJSON());
+          let payload;
+          if (activeTab && activeTab.circuit === this.circuit) {
+            if (typeof activeTab.lastSnapshot === 'string' && activeTab.lastSnapshot.startsWith('{')) {
+              payload = activeTab.lastSnapshot;
+            } else {
+              if (!activeTab._cachedJsonStr) {
+                activeTab._cachedJsonStr = JSON.stringify(this.circuit.toJSON());
+              }
+              payload = activeTab._cachedJsonStr;
+            }
+          } else {
+            payload = JSON.stringify(this.circuit.toJSON());
+          }
           localStorage.setItem('logicsim_autosave', payload);
         } catch (e) {}
       }
