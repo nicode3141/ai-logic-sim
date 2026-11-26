@@ -8089,6 +8089,7 @@
         }));
 
         this.nextOutputs = this.outputs.map(p => p.value);
+        if (this.circuit) this.circuit._topoVersion++;
       }
 
       computePinRelY(index, total) {
@@ -8297,13 +8298,13 @@
           }
           case 'MAJORITY': {
             const inCount = inputs.length;
-            let ones = 0;
+            let x = 0;
             for (let i = 0; i < inCount; i++) {
               let v = inputs[i].value ? 1 : 0;
               if (inv && inv[i]) v ^= 1;
-              if (v === 1) ones++;
+              x |= (v << i);
             }
-            const base = ones >= Math.ceil(inCount / 2) ? 1 : 0;
+            const base = POPCNT8[x & 0xff] >= ((inCount + 1) >> 1) ? 1 : 0;
             this.nextOutputs[0] = params.invertedOutput ? (base ^ 1) : base;
             break;
           }
@@ -8356,27 +8357,21 @@
           case 'XOR': {
             const inCount = inputs.length;
             let base = 0;
-            if (params.xorMode === 'parity') {
-              let sum = 0;
-              for (let i = 0; i < inCount; i++) {
-                let v = inputs[i].value ? 1 : 0;
-                if (inv && inv[i]) v ^= 1;
-                sum += v;
-              }
-              base = sum & 1;
-            } else if (inCount === 2) {
+            if (inCount === 2) {
               let v0 = inputs[0].value ? 1 : 0;
               let v1 = inputs[1].value ? 1 : 0;
               if (inv) { if (inv[0]) v0 ^= 1; if (inv[1]) v1 ^= 1; }
               base = v0 ^ v1;
             } else {
-              let ones = 0;
+              let x = 0;
               for (let i = 0; i < inCount; i++) {
                 let v = inputs[i].value ? 1 : 0;
                 if (inv && inv[i]) v ^= 1;
-                if (v === 1) ones++;
+                x |= (v << i);
               }
-              base = ones === 1 ? 1 : 0;
+              base = params.xorMode === 'parity'
+                ? (POPCNT8[x & 0xff] & 1)
+                : ((x !== 0 && (x & (x - 1)) === 0) ? 1 : 0);
             }
             this.nextOutputs[0] = params.invertedOutput ? (base ^ 1) : base;
             break;
@@ -8384,27 +8379,21 @@
           case 'XNOR': {
             const inCount = inputs.length;
             let base = 0;
-            if (params.xorMode === 'parity') {
-              let sum = 0;
-              for (let i = 0; i < inCount; i++) {
-                let v = inputs[i].value ? 1 : 0;
-                if (inv && inv[i]) v ^= 1;
-                sum += v;
-              }
-              base = sum & 1;
-            } else if (inCount === 2) {
+            if (inCount === 2) {
               let v0 = inputs[0].value ? 1 : 0;
               let v1 = inputs[1].value ? 1 : 0;
               if (inv) { if (inv[0]) v0 ^= 1; if (inv[1]) v1 ^= 1; }
               base = v0 ^ v1;
             } else {
-              let ones = 0;
+              let x = 0;
               for (let i = 0; i < inCount; i++) {
                 let v = inputs[i].value ? 1 : 0;
                 if (inv && inv[i]) v ^= 1;
-                if (v === 1) ones++;
+                x |= (v << i);
               }
-              base = ones === 1 ? 1 : 0;
+              base = params.xorMode === 'parity'
+                ? (POPCNT8[x & 0xff] & 1)
+                : ((x !== 0 && (x & (x - 1)) === 0) ? 1 : 0);
             }
             const isOutInv = params.invertedOutput !== undefined ? Boolean(params.invertedOutput) : true;
             this.nextOutputs[0] = isOutInv ? (base ^ 1) : base;
@@ -8606,6 +8595,7 @@
               }
               Component._icDepth = depth + 1;
               try {
+                const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
                 if (!this._internalCircuit) {
                   const sub = this.params.subcircuit;
                   const rawComps = Array.isArray(sub.components) ? sub.components.slice(0, CUSTOM_MODULE_MAX_PARTS) : [];
@@ -8621,67 +8611,196 @@
                   }
                   const rawWires = Array.isArray(sub.wires) ? sub.wires.slice(0, CUSTOM_MODULE_MAX_PARTS * 4) : [];
                   this._internalWires = rawWires.filter(w => w && typeof w === 'object');
-                  this._internalCircuit = true;
-                }
-                const ins = Array.isArray(this.params.inputs) ? this.params.inputs : [];
-                for (let i = 0; i < ins.length && i < this.inputs.length; i++) {
-                  const port = ins[i];
-                  const inVal = this.getEffectiveInputValue(i);
-                  if (!port || typeof port !== 'object') continue;
-                  const targets = Array.isArray(port.targets) ? port.targets.slice(0, 64) : (port.targetCompIdx !== undefined ? [port] : []);
-                  for (let ti = 0; ti < targets.length; ti++) {
-                    const t = targets[ti];
-                    if (!t || typeof t !== 'object') continue;
-                    const comp = this._internalComps[t.targetCompIdx];
-                    if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
-                      comp.inputs[t.targetPin].value = inVal;
+
+                  const nSub = this._internalComps.length;
+                  const outWireLinks = Array.from({ length: nSub }, () => []);
+                  const allWireLinks = [];
+                  const combInDeg = new Int32Array(nSub);
+                  const combAdj = Array.from({ length: nSub }, () => []);
+                  let hasSeqOrCustom = false;
+                  const seqIndices = [];
+                  const combIndices = [];
+                  for (let ci = 0; ci < nSub; ci++) {
+                    const ct = this._internalComps[ci].type;
+                    if (seqTypes[ct]) {
+                      hasSeqOrCustom = true;
+                      seqIndices.push(ci);
+                    } else {
+                      if (ct === 'CUSTOM_IC') hasSeqOrCustom = true;
+                      combIndices.push(ci);
                     }
                   }
-                }
-                const seqTypes = { CLOCK: 1, COUNTER: 1, SHIFT_REG: 1, SR_FF: 1, D_FF: 1, JK_FF: 1, T_FF: 1, D_LATCH: 1 };
-                const propagateInternalWires = () => {
                   for (let wi = 0; wi < this._internalWires.length; wi++) {
                     const w = this._internalWires[wi];
-                    const fromC = this._internalComps[w.from];
-                    const toC = this._internalComps[w.to];
+                    const fromIdx = w.from, toIdx = w.to;
+                    const fromC = this._internalComps[fromIdx];
+                    const toC = this._internalComps[toIdx];
                     if (fromC && toC && fromC.outputs[w.fp] && toC.inputs[w.tp]) {
-                      toC.inputs[w.tp].value = fromC.outputs[w.fp].value;
-                    }
-                  }
-                };
-                propagateInternalWires();
-                const maxPasses = Math.max(4, Math.min(32, this._internalComps.length + 2));
-                for (let iter = 0; iter < maxPasses; iter++) {
-                  let anyChanged = false;
-                  for (let ci = 0; ci < this._internalComps.length; ci++) {
-                    const c = this._internalComps[ci];
-                    if (iter > 0 && seqTypes[c.type]) continue;
-                    c.compute();
-                  }
-                  for (let ci = 0; ci < this._internalComps.length; ci++) {
-                    const c = this._internalComps[ci];
-                    if (iter > 0 && seqTypes[c.type]) continue;
-                    for (let o = 0; o < c.outputs.length; o++) {
-                      if (c.nextOutputs[o] !== c.outputs[o].value) {
-                        anyChanged = true;
-                        break;
+                      const link = { srcPin: fromC.outputs[w.fp], dstPin: toC.inputs[w.tp] };
+                      allWireLinks.push(link);
+                      outWireLinks[fromIdx].push(link);
+                      if (!seqTypes[fromC.type] && !seqTypes[toC.type]) {
+                        combAdj[fromIdx].push(toIdx);
+                        combInDeg[toIdx]++;
                       }
                     }
-                    c.commit(true);
                   }
-                  propagateInternalWires();
-                  if (iter > 0 && !anyChanged) break;
+                  const topoComb = [];
+                  for (let k = 0; k < combIndices.length; k++) {
+                    const ci = combIndices[k];
+                    if (combInDeg[ci] === 0) topoComb.push(ci);
+                  }
+                  for (let q = 0; q < topoComb.length; q++) {
+                    const u = topoComb[q];
+                    const nexts = combAdj[u];
+                    for (let m = 0; m < nexts.length; m++) {
+                      const v = nexts[m];
+                      if (--combInDeg[v] === 0) topoComb.push(v);
+                    }
+                  }
+                  const isAcyclicComb = topoComb.length === combIndices.length;
+                  const inPortCount = Math.min(Array.isArray(this.params.inputs) ? this.params.inputs.length : 0, this.inputs.length);
+                  const outPortCount = Math.min(Array.isArray(this.params.outputs) ? this.params.outputs.length : 0, this.nextOutputs.length);
+                  const canUseLut = !hasSeqOrCustom && isAcyclicComb && inPortCount <= 10 && outPortCount <= 16;
+
+                  this._icPlan = {
+                    allWireLinks,
+                    outWireLinks,
+                    seqIndices,
+                    topoComb,
+                    isAcyclicComb,
+                    lut: canUseLut ? new Int32Array(1 << inPortCount).fill(-1) : null
+                  };
+                  this._internalCircuit = true;
                 }
+
+                const ins = Array.isArray(this.params.inputs) ? this.params.inputs : [];
                 const outs = Array.isArray(this.params.outputs) ? this.params.outputs : [];
                 const invOut = Boolean(this.params.invertedOutput);
-                for (let j = 0; j < outs.length && j < this.nextOutputs.length; j++) {
-                  const port = outs[j];
-                  let outVal = 0;
-                  if (port && typeof port === 'object' && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
-                    const oc = this._internalComps[port.sourceCompIdx];
-                    outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
+                const inLimit = Math.min(ins.length, this.inputs.length);
+                const outLimit = Math.min(outs.length, this.nextOutputs.length);
+                const plan = this._icPlan;
+
+                if (plan && plan.lut) {
+                  let inMask = 0;
+                  for (let i = 0; i < inLimit; i++) {
+                    if (this.getEffectiveInputValue(i)) inMask |= (1 << i);
                   }
-                  this.nextOutputs[j] = invOut ? (outVal ? 0 : 1) : outVal;
+                  let packed = plan.lut[inMask];
+                  if (packed === -1) {
+                    for (let i = 0; i < inLimit; i++) {
+                      const port = ins[i];
+                      const inVal = (inMask >>> i) & 1;
+                      if (!port || typeof port !== 'object') continue;
+                      const targets = Array.isArray(port.targets) ? port.targets.slice(0, 64) : (port.targetCompIdx !== undefined ? [port] : []);
+                      for (let ti = 0; ti < targets.length; ti++) {
+                        const t = targets[ti];
+                        if (!t || typeof t !== 'object') continue;
+                        const comp = this._internalComps[t.targetCompIdx];
+                        if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                          comp.inputs[t.targetPin].value = inVal;
+                        }
+                      }
+                    }
+                    const links = plan.allWireLinks;
+                    for (let wi = 0; wi < links.length; wi++) links[wi].dstPin.value = links[wi].srcPin.value;
+                    const topo = plan.topoComb;
+                    for (let k = 0; k < topo.length; k++) {
+                      const ci = topo[k];
+                      const c = this._internalComps[ci];
+                      c.compute();
+                      c.commit(true);
+                      const outLinks = plan.outWireLinks[ci];
+                      for (let wl = 0; wl < outLinks.length; wl++) outLinks[wl].dstPin.value = outLinks[wl].srcPin.value;
+                    }
+                    packed = 0;
+                    for (let j = 0; j < outLimit; j++) {
+                      const port = outs[j];
+                      if (port && typeof port === 'object' && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
+                        const oc = this._internalComps[port.sourceCompIdx];
+                        if (oc.outputs[port.sourcePin]?.value) packed |= (1 << j);
+                      }
+                    }
+                    plan.lut[inMask] = packed;
+                  }
+                  for (let j = 0; j < outLimit; j++) {
+                    const bit = (packed >>> j) & 1;
+                    this.nextOutputs[j] = invOut ? (bit ^ 1) : bit;
+                  }
+                } else {
+                  for (let i = 0; i < inLimit; i++) {
+                    const port = ins[i];
+                    const inVal = this.getEffectiveInputValue(i);
+                    if (!port || typeof port !== 'object') continue;
+                    const targets = Array.isArray(port.targets) ? port.targets.slice(0, 64) : (port.targetCompIdx !== undefined ? [port] : []);
+                    for (let ti = 0; ti < targets.length; ti++) {
+                      const t = targets[ti];
+                      if (!t || typeof t !== 'object') continue;
+                      const comp = this._internalComps[t.targetCompIdx];
+                      if (comp && comp.inputs && comp.inputs[t.targetPin] !== undefined) {
+                        comp.inputs[t.targetPin].value = inVal;
+                      }
+                    }
+                  }
+                  const links = plan.allWireLinks;
+                  for (let wi = 0; wi < links.length; wi++) links[wi].dstPin.value = links[wi].srcPin.value;
+
+                  if (plan.isAcyclicComb) {
+                    const topo = plan.topoComb;
+                    const seqs = plan.seqIndices;
+                    // Settle input-driven combinational logic before clocking sequential elements, or evaluate seqs + topo in 2 clean waves
+                    if (seqs.length > 0) {
+                      for (let s = 0; s < seqs.length; s++) this._internalComps[seqs[s]].compute();
+                      for (let k = 0; k < topo.length; k++) this._internalComps[topo[k]].compute();
+                      for (let s = 0; s < seqs.length; s++) {
+                        const ci = seqs[s];
+                        this._internalComps[ci].commit(true);
+                        const outLinks = plan.outWireLinks[ci];
+                        for (let wl = 0; wl < outLinks.length; wl++) outLinks[wl].dstPin.value = outLinks[wl].srcPin.value;
+                      }
+                    }
+                    for (let k = 0; k < topo.length; k++) {
+                      const ci = topo[k];
+                      const c = this._internalComps[ci];
+                      c.compute();
+                      c.commit(true);
+                      const outLinks = plan.outWireLinks[ci];
+                      for (let wl = 0; wl < outLinks.length; wl++) outLinks[wl].dstPin.value = outLinks[wl].srcPin.value;
+                    }
+                  } else {
+                    const maxPasses = Math.max(4, Math.min(32, this._internalComps.length + 2));
+                    for (let iter = 0; iter < maxPasses; iter++) {
+                      let anyChanged = false;
+                      for (let ci = 0; ci < this._internalComps.length; ci++) {
+                        const c = this._internalComps[ci];
+                        if (iter > 0 && seqTypes[c.type]) continue;
+                        c.compute();
+                      }
+                      for (let ci = 0; ci < this._internalComps.length; ci++) {
+                        const c = this._internalComps[ci];
+                        if (iter > 0 && seqTypes[c.type]) continue;
+                        for (let o = 0; o < c.outputs.length; o++) {
+                          if (c.nextOutputs[o] !== c.outputs[o].value) {
+                            anyChanged = true;
+                            break;
+                          }
+                        }
+                        c.commit(true);
+                      }
+                      for (let wi = 0; wi < links.length; wi++) links[wi].dstPin.value = links[wi].srcPin.value;
+                      if (iter > 0 && !anyChanged) break;
+                    }
+                  }
+
+                  for (let j = 0; j < outLimit; j++) {
+                    const port = outs[j];
+                    let outVal = 0;
+                    if (port && typeof port === 'object' && port.sourceCompIdx !== undefined && this._internalComps[port.sourceCompIdx]) {
+                      const oc = this._internalComps[port.sourceCompIdx];
+                      outVal = oc.outputs[port.sourcePin]?.value ? 1 : 0;
+                    }
+                    this.nextOutputs[j] = invOut ? (outVal ? 0 : 1) : outVal;
+                  }
                 }
               } finally {
                 Component._icDepth = depth;
@@ -8820,6 +8939,12 @@
         };
       }
     }
+
+    const POPCNT8 = (() => {
+      const tbl = new Uint8Array(256);
+      for (let i = 1; i < 256; i++) tbl[i] = tbl[i >> 1] + (i & 1);
+      return tbl;
+    })();
 
     /**
      * Circuit Graph & Topology Manager
@@ -10345,79 +10470,183 @@
         this.syncImmediateWireLevels();
       }
 
-      updateWireLevelsFromDrivers() {
+      /**
+       * Compiles the circuit's electrical equivalence classes (Quotient Graph G / ~)
+       * into flat direct Pin/Wire arrays so `updateWireLevelsFromDrivers` executes in
+       * O(P_in + E) with zero hash-map lookups and zero multi-hop wire relaxation loops.
+       */
+      _getCompiledNetlist() {
         const comps = this.components;
         const wires = this.wires;
-        const compMap = this.compMap;
-        const wireMap = this.wireMap;
-        const wireLen = wires.length;
         const compLen = comps.length;
+        const wireLen = wires.length;
+        const cached = this._compiledNetlist;
+        if (cached &&
+            cached.topoVer === this._topoVersion &&
+            cached.linkEpoch === Wire._linkEpoch &&
+            cached.compLen === compLen &&
+            cached.wireLen === wireLen) {
+          return cached;
+        }
 
+        const allInputPins = [];
         for (let i = 0; i < compLen; i++) {
           const inp = comps[i].inputs;
-          const inCount = inp.length;
-          for (let p = 0; p < inCount; p++) {
-            inp[p].value = 0;
+          for (let p = 0; p < inp.length; p++) {
+            allInputPins.push(inp[p]);
           }
+        }
+
+        const wireIdxById = new Map();
+        for (let i = 0; i < wireLen; i++) {
+          wireIdxById.set(wires[i].id, i);
         }
 
         let hasWireLinks = false;
         for (let i = 0; i < wireLen; i++) {
           const w = wires[i];
-          if (w.fromCompId) {
-            const srcComp = w._fromComp || compMap.get(w.fromCompId);
-            const pin = srcComp ? srcComp.outputs[w.fromPin] : null;
-            const lvl = pin ? pin.value : 0;
-            w.level = lvl;
-            if (lvl === 1) {
-              const dstComp = w._toComp || compMap.get(w.toCompId);
-              if (dstComp) {
-                const dstPin = dstComp.inputs[w.toPin];
-                if (dstPin) dstPin.value = 1;
-              }
-            }
-          } else {
-            w.level = 0;
-          }
-          if (w.fromWireId || w.toWireId) hasWireLinks = true;
+          if (w._fromWireId || w._toWireId) { hasWireLinks = true; break; }
         }
 
-        if (hasWireLinks) {
-          const maxWireHops = Math.min(64, wireLen + 2);
-          for (let pass = 0; pass < maxWireHops; pass++) {
-            let wireChanged = false;
-            for (let i = 0; i < wireLen; i++) {
-              const w = wires[i];
-              if (!w.fromCompId && w.fromWireId) {
-                let srcWire = w._fromWire;
-                if (!srcWire || srcWire.id !== w.fromWireId) {
-                  srcWire = wireMap.get(w.fromWireId) || null;
-                  w._fromWire = srcWire;
-                }
-                if (srcWire && srcWire.level === 1 && w.level !== 1) {
-                  w.level = 1;
-                  wireChanged = true;
-                }
-              }
-              if (w.toWireId && w.level === 1) {
-                const dstWire = wireMap.get(w.toWireId);
-                if (dstWire && !dstWire.fromCompId && dstWire.level !== 1) {
-                  dstWire.level = 1;
-                  wireChanged = true;
-                }
-              }
-            }
-            if (!wireChanged) break;
+        const netBySrcPin = new Map();
+        const driverNets = [];
+        const getOrCreateNet = (srcPin) => {
+          let net = netBySrcPin.get(srcPin);
+          if (!net) {
+            net = { srcPin, wires: [], sinkPins: [], _wireSet: new Set(), _pinSet: new Set() };
+            netBySrcPin.set(srcPin, net);
+            driverNets.push(net);
           }
+          return net;
+        };
+
+        if (!hasWireLinks) {
           for (let i = 0; i < wireLen; i++) {
             const w = wires[i];
-            if (!w.fromCompId && w.level === 1) {
-              const dstComp = w._toComp || compMap.get(w.toCompId);
-              if (dstComp) {
-                const dstPin = dstComp.inputs[w.toPin];
-                if (dstPin) dstPin.value = 1;
+            if (!w._fromCompId) continue;
+            const srcComp = (w._fromComp && w._fromComp.id === w._fromCompId && this.compMap.get(w._fromCompId) === w._fromComp)
+              ? w._fromComp
+              : this.compMap.get(w._fromCompId);
+            w._fromComp = srcComp || null;
+            const srcPin = srcComp ? srcComp.outputs[w._fromPin] : null;
+            if (!srcPin) continue;
+            const net = getOrCreateNet(srcPin);
+            net.wires.push(w);
+            if (w._toCompId) {
+              const dstComp = (w._toComp && w._toComp.id === w._toCompId && this.compMap.get(w._toCompId) === w._toComp)
+                ? w._toComp
+                : this.compMap.get(w._toCompId);
+              w._toComp = dstComp || null;
+              const dstPin = dstComp ? dstComp.inputs[w._toPin] : null;
+              if (dstPin && !net._pinSet.has(dstPin)) {
+                net._pinSet.add(dstPin);
+                net.sinkPins.push(dstPin);
               }
             }
+          }
+        } else {
+          const adj = Array.from({ length: wireLen }, () => []);
+          for (let i = 0; i < wireLen; i++) {
+            const w = wires[i];
+            if (!w._fromCompId && w._fromWireId) {
+              const sIdx = wireIdxById.get(w._fromWireId);
+              if (sIdx !== undefined) adj[sIdx].push(i);
+            }
+            if (w._toWireId) {
+              const dIdx = wireIdxById.get(w._toWireId);
+              if (dIdx !== undefined && !wires[dIdx]._fromCompId) {
+                adj[i].push(dIdx);
+              }
+            }
+          }
+
+          const queue = new Int32Array(Math.max(1, wireLen));
+          const visited = new Int32Array(wireLen);
+          let visitStamp = 0;
+
+          for (let i = 0; i < wireLen; i++) {
+            const rootW = wires[i];
+            if (!rootW._fromCompId) continue;
+            const srcComp = this.compMap.get(rootW._fromCompId);
+            rootW._fromComp = srcComp || null;
+            const srcPin = srcComp ? srcComp.outputs[rootW._fromPin] : null;
+            if (!srcPin) continue;
+
+            const net = getOrCreateNet(srcPin);
+            visitStamp++;
+            let qHead = 0, qTail = 0;
+            visited[i] = visitStamp;
+            queue[qTail++] = i;
+
+            while (qHead < qTail) {
+              const u = queue[qHead++];
+              const wu = wires[u];
+              if (!net._wireSet.has(wu)) {
+                net._wireSet.add(wu);
+                net.wires.push(wu);
+              }
+              if (wu._toCompId) {
+                const dstComp = this.compMap.get(wu._toCompId);
+                wu._toComp = dstComp || null;
+                const dstPin = dstComp ? dstComp.inputs[wu._toPin] : null;
+                if (dstPin && !net._pinSet.has(dstPin)) {
+                  net._pinSet.add(dstPin);
+                  net.sinkPins.push(dstPin);
+                }
+              }
+              const nexts = adj[u];
+              for (let k = 0; k < nexts.length; k++) {
+                const v = nexts[k];
+                if (visited[v] !== visitStamp) {
+                  visited[v] = visitStamp;
+                  queue[qTail++] = v;
+                }
+              }
+            }
+          }
+        }
+
+        for (let d = 0; d < driverNets.length; d++) {
+          driverNets[d]._wireSet = null;
+          driverNets[d]._pinSet = null;
+        }
+
+        const compiled = {
+          topoVer: this._topoVersion,
+          linkEpoch: Wire._linkEpoch,
+          compLen,
+          wireLen,
+          allInputPins,
+          driverNets
+        };
+        this._compiledNetlist = compiled;
+        return compiled;
+      }
+
+      updateWireLevelsFromDrivers() {
+        const wires = this.wires;
+        const wireLen = wires.length;
+        const compiled = this._getCompiledNetlist();
+        const allInputPins = compiled.allInputPins;
+        const inLen = allInputPins.length;
+
+        for (let i = 0; i < inLen; i++) {
+          allInputPins[i].value = 0;
+        }
+        for (let i = 0; i < wireLen; i++) {
+          wires[i].level = 0;
+        }
+
+        const driverNets = compiled.driverNets;
+        const netCount = driverNets.length;
+        for (let d = 0; d < netCount; d++) {
+          const net = driverNets[d];
+          const lvl = net.srcPin.value;
+          if (lvl === 1) {
+            const nw = net.wires;
+            for (let k = 0; k < nw.length; k++) nw[k].level = 1;
+            const sp = net.sinkPins;
+            for (let k = 0; k < sp.length; k++) sp[k].value = 1;
           }
         }
       }
@@ -11853,6 +12082,108 @@
     }
 
     /**
+     * O(1) Circular History Ring for SimulationEngine step-back & scrubbing.
+     * Eliminates O(H) Array.shift() and O(H) linear tick search while preserving Array-like helpers.
+     */
+    class HistoryRing {
+      constructor(capacity = 512) {
+        this._cap = Math.max(1, capacity | 0);
+        this._slots = new Array(this._cap);
+        this._head = 0;
+        this._count = 0;
+      }
+
+      get length() { return this._count; }
+      set length(v) { if (v === 0) this.clear(); }
+
+      clear() {
+        this._head = 0;
+        this._count = 0;
+      }
+
+      setCapacity(cap) {
+        const c = Math.max(1, cap | 0);
+        if (c === this._cap) return;
+        const items = [];
+        for (let i = Math.max(0, this._count - c); i < this._count; i++) {
+          items.push(this.at(i));
+        }
+        this._cap = c;
+        this._slots = new Array(c);
+        for (let i = 0; i < items.length; i++) this._slots[i] = items[i];
+        this._head = 0;
+        this._count = items.length;
+      }
+
+      peekEvictSlot() {
+        return this._count >= this._cap ? this._slots[this._head] : null;
+      }
+
+      push(item) {
+        if (this._count < this._cap) {
+          const idx = (this._head + this._count) % this._cap;
+          this._slots[idx] = item;
+          this._count++;
+        } else {
+          this._slots[this._head] = item;
+          this._head = (this._head + 1) % this._cap;
+        }
+      }
+
+      pop() {
+        if (this._count <= 0) return undefined;
+        this._count--;
+        const idx = (this._head + this._count) % this._cap;
+        const val = this._slots[idx];
+        return val;
+      }
+
+      shift() {
+        if (this._count <= 0) return undefined;
+        const val = this._slots[this._head];
+        this._head = (this._head + 1) % this._cap;
+        this._count--;
+        return val;
+      }
+
+      at(offset) {
+        if (offset < 0 || offset >= this._count) return undefined;
+        return this._slots[(this._head + offset) % this._cap];
+      }
+
+      findByTick(targetTick) {
+        const n = this._count;
+        if (n === 0) return null;
+        const oldest = this._slots[this._head];
+        const newest = this._slots[(this._head + n - 1) % this._cap];
+        if (!oldest || !newest) return null;
+        if (targetTick < oldest.tickCount || targetTick > newest.tickCount) return null;
+        // Fast O(1) direct calculation when ticks are contiguous
+        if (newest.tickCount - oldest.tickCount === n - 1) {
+          const cand = this.at(targetTick - oldest.tickCount);
+          if (cand && cand.tickCount === targetTick) return cand;
+        }
+        let lo = 0, hi = n - 1;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          const s = this.at(mid);
+          if (s.tickCount === targetTick) return s;
+          if (s.tickCount < targetTick) lo = mid + 1;
+          else hi = mid - 1;
+        }
+        return null;
+      }
+
+      find(pred) {
+        for (let i = 0; i < this._count; i++) {
+          const s = this.at(i);
+          if (pred(s, i)) return s;
+        }
+        return undefined;
+      }
+    }
+
+    /**
      * Discrete Two-Phase Simulation Engine
      */
     class SimulationEngine {
@@ -11871,11 +12202,27 @@
         this.accumulator = 0;
         this.rafId = null;
 
-        this.history = [];
-        this.maxHistory = 512;
+        this._maxHistory = 512;
+        this._historyRing = new HistoryRing(512);
         this._headSnapshot = null;
         this._isScrubbed = false;
         this._probeSamplesCache = new Map();
+      }
+
+      get maxHistory() { return this._maxHistory; }
+      set maxHistory(v) {
+        const n = Math.max(1, parseInt(v, 10) || 512);
+        this._maxHistory = n;
+        if (this._historyRing) this._historyRing.setCapacity(n);
+      }
+
+      get history() { return this._historyRing; }
+      set history(val) {
+        if (!this._historyRing) this._historyRing = new HistoryRing(this._maxHistory || 512);
+        this._historyRing.clear();
+        if (Array.isArray(val)) {
+          for (let i = 0; i < val.length; i++) this._historyRing.push(val[i]);
+        }
       }
 
       setMode(newMode) {
@@ -12021,9 +12368,7 @@
         const ver = circuit._topoVersion || 0;
         const cached = this._snapTopo;
         if (cached && cached.circuit === circuit && cached.ver === ver && cached.compCount === compCount) {
-          let sumIn = 0;
-          for (let i = 0; i < compCount; i++) sumIn += comps[i].inputs.length;
-          if (sumIn === cached.totalIn) return cached;
+          return cached;
         }
         let totalIn = 0;
         let totalOut = 0;
@@ -12051,18 +12396,42 @@
             isStatefulType[i] = 1;
           }
         }
-        const topo = { circuit, ver, compCount, compIds, inCounts, outCounts, nextCounts, isStatefulType, totalIn, totalOut, totalNext };
+        const topo = {
+          circuit, ver, compCount, compIds, inCounts, outCounts, nextCounts, isStatefulType,
+          totalIn, totalOut, totalNext,
+          inWordsLen: (totalIn + 31) >>> 5,
+          outWordsLen: (totalOut + 31) >>> 5,
+          nextWordsLen: (totalNext + 31) >>> 5
+        };
         this._snapTopo = topo;
         return topo;
       }
 
-      createSnapshot() {
+      createSnapshot(reuseSlot = null) {
         const comps = this.circuit.components;
         const topo = this._getSnapshotTopology();
         const compCount = topo.compCount;
-        const inVals = new Uint8Array(topo.totalIn);
-        const outVals = new Uint8Array(topo.totalOut);
-        const nextVals = new Uint8Array(topo.totalNext);
+        const wires = this.circuit.wires;
+        const wireLen = wires.length;
+        const wireWordsLen = (wireLen + 31) >>> 5;
+
+        const canReuse = reuseSlot && reuseSlot.bitPacked &&
+          reuseSlot.inWords && reuseSlot.inWords.length === topo.inWordsLen &&
+          reuseSlot.outWords && reuseSlot.outWords.length === topo.outWordsLen &&
+          reuseSlot.nextWords && reuseSlot.nextWords.length === topo.nextWordsLen &&
+          reuseSlot.wireWords && reuseSlot.wireWords.length === wireWordsLen;
+
+        const inWords = canReuse ? reuseSlot.inWords : new Uint32Array(topo.inWordsLen);
+        const outWords = canReuse ? reuseSlot.outWords : new Uint32Array(topo.outWordsLen);
+        const nextWords = canReuse ? reuseSlot.nextWords : new Uint32Array(topo.nextWordsLen);
+        const wireWords = canReuse ? reuseSlot.wireWords : new Uint32Array(wireWordsLen);
+        if (canReuse) {
+          inWords.fill(0);
+          outWords.fill(0);
+          nextWords.fill(0);
+          wireWords.fill(0);
+        }
+
         const statefulEntries = [];
         const isStatefulType = topo.isStatefulType;
 
@@ -12073,16 +12442,25 @@
           const comp = comps[i];
           const ins = comp.inputs;
           const ic = ins.length;
-          for (let p = 0; p < ic; p++) inVals[inOff++] = ins[p].value ? 1 : 0;
+          for (let p = 0; p < ic; p++) {
+            if (ins[p].value) inWords[inOff >>> 5] |= (1 << (inOff & 31));
+            inOff++;
+          }
 
           const outs = comp.outputs;
           const oc = outs.length;
-          for (let p = 0; p < oc; p++) outVals[outOff++] = outs[p].value ? 1 : 0;
+          for (let p = 0; p < oc; p++) {
+            if (outs[p].value) outWords[outOff >>> 5] |= (1 << (outOff & 31));
+            outOff++;
+          }
 
           const nexts = comp.nextOutputs;
           if (nexts) {
             const nc = nexts.length;
-            for (let p = 0; p < nc; p++) nextVals[nextOff++] = nexts[p] ? 1 : 0;
+            for (let p = 0; p < nc; p++) {
+              if (nexts[p]) nextWords[nextOff >>> 5] |= (1 << (nextOff & 31));
+              nextOff++;
+            }
           }
 
           const st = comp.state;
@@ -12096,30 +12474,117 @@
           }
         }
 
-        const wires = this.circuit.wires;
-        const wireLen = wires.length;
-        const wireLevels = new Uint8Array(wireLen);
         for (let i = 0; i < wireLen; i++) {
-          wireLevels[i] = wires[i].level ? 1 : 0;
+          if (wires[i].level) wireWords[i >>> 5] |= (1 << (i & 31));
         }
+
+        if (canReuse) {
+          reuseSlot.tickCount = this.tickCount;
+          reuseSlot.compIds = topo.compIds;
+          reuseSlot.inCounts = topo.inCounts;
+          reuseSlot.outCounts = topo.outCounts;
+          reuseSlot.nextCounts = topo.nextCounts;
+          reuseSlot.wireLen = wireLen;
+          reuseSlot.statefulEntries = statefulEntries;
+          return reuseSlot;
+        }
+
         return {
           tickCount: this.tickCount,
           compact: true,
+          bitPacked: true,
           compIds: topo.compIds,
           inCounts: topo.inCounts,
           outCounts: topo.outCounts,
           nextCounts: topo.nextCounts,
-          inVals,
-          outVals,
-          nextVals,
-          statefulEntries,
-          wireLevels
+          inWords,
+          outWords,
+          nextWords,
+          wireWords,
+          wireLen,
+          statefulEntries
         };
       }
 
       restoreSnapshot(snap) {
         if (!snap) return;
         this.tickCount = snap.tickCount;
+        if (snap.bitPacked) {
+          const comps = this.circuit.components;
+          const compIds = snap.compIds;
+          const count = compIds.length;
+          const sameOrder = comps.length === count;
+          const inWords = snap.inWords;
+          const outWords = snap.outWords;
+          const nextWords = snap.nextWords;
+          let inOff = 0;
+          let outOff = 0;
+          let nextOff = 0;
+          for (let i = 0; i < count; i++) {
+            const ic = snap.inCounts[i];
+            const oc = snap.outCounts[i];
+            const nc = snap.nextCounts[i];
+            const comp = (sameOrder && comps[i] && comps[i].id === compIds[i])
+              ? comps[i]
+              : this.circuit.getComponent(compIds[i]);
+            if (comp) {
+              const ins = comp.inputs;
+              const inLimit = Math.min(ic, ins.length);
+              for (let p = 0; p < inLimit; p++) {
+                const bitIdx = inOff + p;
+                ins[p].value = (inWords[bitIdx >>> 5] >>> (bitIdx & 31)) & 1;
+              }
+
+              const outs = comp.outputs;
+              const outLimit = Math.min(oc, outs.length);
+              for (let p = 0; p < outLimit; p++) {
+                const bitIdx = outOff + p;
+                outs[p].value = (outWords[bitIdx >>> 5] >>> (bitIdx & 31)) & 1;
+              }
+
+              const nexts = comp.nextOutputs;
+              if (nexts) {
+                const nextLimit = Math.min(nc, nexts.length);
+                for (let p = 0; p < nextLimit; p++) {
+                  const bitIdx = nextOff + p;
+                  nexts[p] = (nextWords[bitIdx >>> 5] >>> (bitIdx & 31)) & 1;
+                }
+              }
+
+              if (comp.state) {
+                comp.state.delayTimer = 0;
+                comp.state.pendingOutput = null;
+                comp.state.pendingOutputs = null;
+                comp.state.delayLine = null;
+              }
+            }
+            inOff += ic;
+            outOff += oc;
+            nextOff += nc;
+          }
+          const entries = snap.statefulEntries;
+          for (let k = 0; k < entries.length; k++) {
+            const e = entries[k];
+            const comp = (sameOrder && comps[e.idx] && comps[e.idx].id === e.id)
+              ? comps[e.idx]
+              : this.circuit.getComponent(e.id);
+            if (comp) {
+              comp.state = this.cloneState(e.state);
+              if (Array.isArray(e.internalComps) && Array.isArray(comp._internalComps)) {
+                for (let m = 0; m < e.internalComps.length && m < comp._internalComps.length; m++) {
+                  this._restoreComponentSnapshot(comp._internalComps[m], e.internalComps[m]);
+                }
+              }
+            }
+          }
+          const wires = this.circuit.wires;
+          const wireWords = snap.wireWords;
+          const wLimit = Math.min(snap.wireLen, wires.length);
+          for (let i = 0; i < wLimit; i++) {
+            wires[i].level = (wireWords[i >>> 5] >>> (i & 31)) & 1;
+          }
+          return;
+        }
         if (snap.compact) {
           const comps = this.circuit.components;
           const compIds = snap.compIds;
@@ -12202,13 +12667,17 @@
       }
 
       scrubToTick(targetTick) {
+        if (!this._isScrubbed && this.tickCount === targetTick) {
+          return true;
+        }
         if (this._headSnapshot && this._headSnapshot.tickCount === targetTick) {
           this.restoreSnapshot(this._headSnapshot);
           this._isScrubbed = false;
+          this._headSnapshot = null;
           return true;
         }
-        if (!this.history || this.history.length === 0) return false;
-        const snap = this.history.find(s => s.tickCount === targetTick);
+        if (!this._historyRing || this._historyRing.length === 0) return false;
+        const snap = this._historyRing.findByTick(targetTick);
         if (!snap) return false;
         if (!this._isScrubbed) {
           this._headSnapshot = this.createSnapshot();
@@ -12219,14 +12688,15 @@
       }
 
       stepBackTick() {
-        if (this.mode !== 'sim' || this.running || this.history.length === 0) return;
+        if (this.mode !== 'sim' || this.running || this._historyRing.length === 0) return;
         if (this._isScrubbed && this._headSnapshot) {
           this.restoreSnapshot(this._headSnapshot);
           this._isScrubbed = false;
+          this._headSnapshot = null;
         }
-        const snap = this.history.pop();
+        const snap = this._historyRing.pop();
         this.restoreSnapshot(snap);
-        this._headSnapshot = this.createSnapshot();
+        this._headSnapshot = null;
         this.ringBuffer.rewind();
         if (typeof this.onUpdate === 'function') this.onUpdate();
       }
@@ -12240,11 +12710,10 @@
         if (this._isScrubbed && this._headSnapshot) {
           this.restoreSnapshot(this._headSnapshot);
           this._isScrubbed = false;
+          this._headSnapshot = null;
         }
-        if (this.history.length >= this.maxHistory) {
-          this.history.shift();
-        }
-        this.history.push(this.createSnapshot());
+        const reuseSlot = this._historyRing.peekEvictSlot();
+        this._historyRing.push(this.createSnapshot(reuseSlot));
 
         this.stepCircuit(this.circuit);
         if (this.secondaryCircuit && this.secondaryCircuit !== this.circuit) {
@@ -12252,7 +12721,7 @@
         }
 
         this.tickCount++;
-        this._headSnapshot = this.createSnapshot();
+        this._headSnapshot = null;
 
         const probeSamples = this._probeSamplesCache || new Map();
         probeSamples.clear();
@@ -15029,12 +15498,34 @@
         const viewBottom = (canvasH - this.panY) / this.zoom + cullPad;
 
         const pal = this.getThemePalette();
+        const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
+        const noGlowTheme = this.appTheme === 'java_swing' || this.appTheme === 'pitch_black';
+        const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
+        const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
+
+        const normalEntries = [];
+        const hoveredEntries = [];
+        const selectedEntries = [];
+        const isEditMode = Boolean(this.engine && this.engine.mode === 'edit');
+        const dragWireId = this.activeWaypointDrag && this.activeWaypointDrag.wire ? this.activeWaypointDrag.wire.id : null;
         for (let eIdx = 0; eIdx < wireEntries.length; eIdx++) {
           const entry = wireEntries[eIdx];
-          if (entry.maxX < viewLeft || entry.minX > viewRight ||
-              entry.maxY < viewTop || entry.minY > viewBottom) {
+          const w = entry.wire;
+          if ((entry.maxX < viewLeft || entry.minX > viewRight ||
+               entry.maxY < viewTop || entry.minY > viewBottom) && w.id !== dragWireId) {
             continue;
           }
+          const isSelected = this.selectedWireIds.has(w.id) || w.id === this.selectedWireId;
+          const isHovered = w.id === this.hoveredWireId;
+          if (isSelected) selectedEntries.push(entry);
+          else if (isHovered && isEditMode) hoveredEntries.push(entry);
+          else normalEntries.push(entry);
+        }
+        const orderedEntries = [...normalEntries, ...hoveredEntries, ...selectedEntries];
+
+        // Pass 1: Wire strokes (normal -> hovered -> selected so active wires sit cleanly on top)
+        for (let eIdx = 0; eIdx < orderedEntries.length; eIdx++) {
+          const entry = orderedEntries[eIdx];
           const { wire: w, pts } = entry;
           const isSelected = this.selectedWireIds.has(w.id) || w.id === this.selectedWireId;
           const isHovered = w.id === this.hoveredWireId;
@@ -15045,15 +15536,15 @@
             ctx.strokeStyle = '#ff5252';
             ctx.lineWidth = 4;
             ctx.shadowColor = 'rgba(255, 82, 82, 0.7)';
-            ctx.shadowBlur = 10;
-          } else if (isHovered && this.engine.mode === 'edit') {
+            ctx.shadowBlur = noGlowTheme ? 0 : 10;
+          } else if (isHovered && isEditMode) {
             ctx.strokeStyle = '#00b0ff';
             ctx.lineWidth = 3.5;
           } else if (isHigh) {
             ctx.strokeStyle = this.highSignalColor || '#00ff66';
             ctx.lineWidth = 2.8;
             ctx.shadowColor = this.highSignalGlow || 'rgba(0, 255, 102, 0.7)';
-            ctx.shadowBlur = (this.appTheme === 'java_swing' || this.appTheme === 'pitch_black') ? 0 : 8;
+            ctx.shadowBlur = noGlowTheme ? 0 : 8;
           } else {
             ctx.strokeStyle = this.lowSignalColor || pal.wireLow;
             ctx.lineWidth = 2.2;
@@ -15095,102 +15586,10 @@
             }
           }
           ctx.stroke();
-
-          if (isSelected && this.engine.mode === 'edit') {
-            const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
-            const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
-            const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
-            const isDraggingThisWp = this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id;
-            const handlePts = (isDraggingThisWp && w.waypoints && w.waypoints.length > 0)
-              ? w.waypoints
-              : (pts.length > 2 ? pts.slice(1, -1) : []);
-            if (handlePts.length > 0) {
-              for (let i = 0; i < handlePts.length; i++) {
-                const wp = handlePts[i];
-                const isHoveredWp = this.hoveredWaypoint &&
-                                    this.hoveredWaypoint.wire.id === w.id &&
-                                    this.hoveredWaypoint.waypointIndex === i;
-
-                ctx.save();
-                ctx.setLineDash([]);
-                if (isHoveredWp) {
-                  ctx.beginPath();
-                  ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
-                  ctx.fillStyle = 'rgba(0, 230, 118, 0.45)';
-                  ctx.fill();
-                }
-
-                ctx.beginPath();
-                ctx.arc(wp.x, wp.y, isHoveredWp ? 5.5 : 4, 0, Math.PI * 2);
-                ctx.fillStyle = isHoveredWp ? '#00e676' : '#ffffff';
-                ctx.fill();
-                ctx.lineWidth = 1.8;
-                ctx.strokeStyle = isHoveredWp ? '#061014' : accentBlue;
-                ctx.stroke();
-                ctx.restore();
-              }
-            }
-
-            for (let i = 0; i < pts.length - 1; i++) {
-              const pA = pts[i];
-              const pB = pts[i + 1];
-              const segLen = Math.hypot(pB.x - pA.x, pB.y - pA.y);
-              if (segLen < 22) continue;
-
-              const mx = (pA.x + pB.x) / 2;
-              const my = (pA.y + pB.y) / 2;
-              const isHoveredMid = this.hoveredMidpoint &&
-                                   this.hoveredMidpoint.wire.id === w.id &&
-                                   this.hoveredMidpoint.segmentIndex === i;
-
-              ctx.save();
-              ctx.setLineDash([]);
-              ctx.beginPath();
-              ctx.arc(mx, my, isHoveredMid ? 6 : 3.5, 0, Math.PI * 2);
-              ctx.fillStyle = isHoveredMid ? '#00e676' : (isLightCanvas ? 'rgba(2, 132, 199, 0.85)' : 'rgba(0, 176, 255, 0.55)');
-              ctx.fill();
-              ctx.lineWidth = 1.4;
-              ctx.strokeStyle = isHoveredMid ? '#061014' : contrastStroke;
-              ctx.stroke();
-
-              if (isHoveredMid) {
-                ctx.strokeStyle = '#061014';
-                ctx.lineWidth = 1.6;
-                ctx.beginPath();
-                ctx.moveTo(mx - 3, my); ctx.lineTo(mx + 3, my);
-                ctx.moveTo(mx, my - 3); ctx.lineTo(mx, my + 3);
-                ctx.stroke();
-              }
-              ctx.restore();
-            }
-
-            if (this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id) {
-              const dragWp = w.waypoints && w.waypoints[this.activeWaypointDrag.index];
-              if (dragWp) {
-                ctx.save();
-                ctx.setLineDash([3, 3]);
-                ctx.strokeStyle = 'rgba(0, 230, 118, 0.6)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(dragWp.x - 30, dragWp.y); ctx.lineTo(dragWp.x + 30, dragWp.y);
-                ctx.moveTo(dragWp.x, dragWp.y - 30); ctx.lineTo(dragWp.x, dragWp.y + 30);
-                ctx.stroke();
-
-                ctx.font = '10px monospace';
-                ctx.fillStyle = isLightCanvas ? '#047857' : '#00e676';
-                ctx.fillText(`${dragWp.x}, ${dragWp.y}`, dragWp.x + 10, dragWp.y - 8);
-                ctx.restore();
-              }
-            }
-          }
-
           ctx.restore();
         }
 
-        const isLightCanvas = this.appTheme === 'java_swing' || this.appTheme === 'light_cad';
-        const contrastStroke = isLightCanvas ? '#0f172a' : '#ffffff';
-        const accentBlue = isLightCanvas ? '#0284c7' : '#00b0ff';
-
+        // Pass 2: Open endpoints and junctions
         for (const entry of wireEntries) {
           const { wire: w, pts } = entry;
           if (!pts || pts.length === 0) continue;
@@ -15216,9 +15615,13 @@
               ctx.arc(ep.pt.x, ep.pt.y, isDragging ? 8 : 6.5, 0, Math.PI * 2);
               ctx.strokeStyle = isDragging ? contrastStroke : accentBlue;
               ctx.lineWidth = isDragging ? 2.2 : 1.8;
-              ctx.shadowColor = isDragging ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)') : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
-              ctx.shadowBlur = 8;
+              if (!noGlowTheme) {
+                ctx.shadowColor = isDragging ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)') : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
+                ctx.shadowBlur = 8;
+              }
               ctx.stroke();
+              ctx.shadowBlur = 0;
+              ctx.shadowColor = 'transparent';
             }
 
             ctx.beginPath();
@@ -15246,19 +15649,21 @@
             ctx.arc(junc.x, junc.y, isJuncDragging ? 9 : 8.5, 0, Math.PI * 2);
             ctx.strokeStyle = isJuncDragging ? contrastStroke : accentBlue;
             ctx.lineWidth = isJuncDragging ? 2.2 : 1.8;
-            ctx.shadowColor = isJuncDragging
-              ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)')
-              : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
-            ctx.shadowBlur = 8;
+            if (!noGlowTheme) {
+              ctx.shadowColor = isJuncDragging
+                ? (isLightCanvas ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.8)')
+                : (isLightCanvas ? 'rgba(2, 132, 199, 0.45)' : 'rgba(0, 176, 255, 0.6)');
+              ctx.shadowBlur = 8;
+            }
             ctx.stroke();
             ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
           }
 
           const dotRadius = (isJuncHovered || isJuncDragging) ? 6 : (isSel ? 4.8 : 4.0);
           const juncHighColor = this.highSignalColor || '#00ff66';
           const juncLowColor = this.lowSignalColor || pal.wireLow;
           const fillColor = (isJuncHovered || isJuncDragging) ? '#00e676' : (isSel ? accentBlue : (isHigh ? juncHighColor : juncLowColor));
-          const noGlowTheme = this.appTheme === 'java_swing' || this.appTheme === 'pitch_black';
 
           if (!noGlowTheme && (isHigh || isSel || isJuncHovered || isJuncDragging)) {
             ctx.shadowColor = (isJuncHovered || isJuncDragging)
@@ -15272,11 +15677,152 @@
           ctx.fillStyle = fillColor;
           ctx.fill();
           ctx.shadowBlur = 0;
+          ctx.shadowColor = 'transparent';
 
           ctx.lineWidth = 1.4;
           ctx.strokeStyle = isJuncDragging ? contrastStroke : (isLightCanvas ? '#0f172a' : '#080b10');
           ctx.stroke();
           ctx.restore();
+        }
+
+        // Pass 3: Selected-wire edit overlays (drawn last with shadow reset)
+        if (isEditMode && selectedEntries.length > 0) {
+          for (const entry of selectedEntries) {
+            const { wire: w, pts } = entry;
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            ctx.setLineDash([]);
+
+            const isDraggingThisWp = Boolean(this.activeWaypointDrag && this.activeWaypointDrag.wire.id === w.id);
+            const dragWp = (isDraggingThisWp && w.waypoints) ? w.waypoints[this.activeWaypointDrag.index] : null;
+
+            // 3a. Active waypoint drag crosshair behind handles
+            if (dragWp) {
+              ctx.save();
+              ctx.shadowBlur = 0;
+              ctx.shadowColor = 'transparent';
+              ctx.setLineDash([3, 3]);
+              ctx.strokeStyle = isLightCanvas ? 'rgba(4, 120, 87, 0.55)' : 'rgba(0, 230, 118, 0.6)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(dragWp.x - 30, dragWp.y); ctx.lineTo(dragWp.x + 30, dragWp.y);
+              ctx.moveTo(dragWp.x, dragWp.y - 30); ctx.lineTo(dragWp.x, dragWp.y + 30);
+              ctx.stroke();
+              ctx.restore();
+            }
+
+            // 3b. Segment midpoint handles
+            for (let i = 0; i < pts.length - 1; i++) {
+              const pA = pts[i];
+              const pB = pts[i + 1];
+              const segLen = Math.hypot(pB.x - pA.x, pB.y - pA.y);
+              if (segLen < 22) continue;
+
+              const mx = (pA.x + pB.x) / 2;
+              const my = (pA.y + pB.y) / 2;
+              const isHoveredMid = this.hoveredMidpoint &&
+                                   this.hoveredMidpoint.wire.id === w.id &&
+                                   this.hoveredMidpoint.segmentIndex === i;
+
+              ctx.save();
+              ctx.shadowBlur = 0;
+              ctx.shadowColor = 'transparent';
+              ctx.setLineDash([]);
+              ctx.beginPath();
+              ctx.arc(mx, my, isHoveredMid ? 6 : 3.5, 0, Math.PI * 2);
+              ctx.fillStyle = isHoveredMid ? '#00e676' : (isLightCanvas ? '#0284c7' : '#38bdf8');
+              ctx.fill();
+              ctx.lineWidth = 1.4;
+              ctx.strokeStyle = isHoveredMid ? '#061014' : contrastStroke;
+              ctx.stroke();
+
+              if (isHoveredMid) {
+                ctx.strokeStyle = '#061014';
+                ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                ctx.moveTo(mx - 3, my); ctx.lineTo(mx + 3, my);
+                ctx.moveTo(mx, my - 3); ctx.lineTo(mx, my + 3);
+                ctx.stroke();
+              }
+              ctx.restore();
+            }
+
+            // 3c. Visible waypoint corner handles derived from rendered polyline
+            const startPt = pts[0];
+            const endPt = pts[pts.length - 1];
+            const handleItems = [];
+            let matchedDragWp = false;
+            if (pts.length > 2) {
+              for (let i = 1; i < pts.length - 1; i++) {
+                const p = pts[i];
+                if (Math.hypot(p.x - startPt.x, p.y - startPt.y) <= 0.5 ||
+                    Math.hypot(p.x - endPt.x, p.y - endPt.y) <= 0.5) {
+                  continue;
+                }
+                const isDragMatch = Boolean(dragWp && Math.hypot(p.x - dragWp.x, p.y - dragWp.y) <= 0.5);
+                if (isDragMatch) matchedDragWp = true;
+                const isHoveredWp = !isDraggingThisWp && Boolean(
+                  this.hoveredWaypoint &&
+                  this.hoveredWaypoint.wire.id === w.id &&
+                  this.hoveredWaypoint.waypointIndex === (i - 1)
+                );
+                handleItems.push({ pt: p, isActive: isDragMatch || isHoveredWp });
+              }
+            }
+            if (dragWp && !matchedDragWp) {
+              handleItems.push({ pt: dragWp, isActive: true });
+            }
+
+            for (const item of handleItems) {
+              const wp = item.pt;
+              ctx.save();
+              ctx.shadowBlur = 0;
+              ctx.shadowColor = 'transparent';
+              ctx.setLineDash([]);
+              if (item.isActive) {
+                ctx.beginPath();
+                ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 230, 118, 0.45)';
+                ctx.fill();
+              }
+
+              ctx.beginPath();
+              ctx.arc(wp.x, wp.y, item.isActive ? 5.5 : 4, 0, Math.PI * 2);
+              ctx.fillStyle = item.isActive ? '#00e676' : '#ffffff';
+              ctx.fill();
+              ctx.lineWidth = 1.8;
+              ctx.strokeStyle = item.isActive ? '#061014' : accentBlue;
+              ctx.stroke();
+              ctx.restore();
+            }
+
+            // 3d. Active waypoint drag coordinate readout pill
+            if (dragWp) {
+              ctx.save();
+              ctx.shadowBlur = 0;
+              ctx.shadowColor = 'transparent';
+              ctx.setLineDash([]);
+              ctx.font = '600 10px monospace';
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'alphabetic';
+              const coordText = `${dragWp.x}, ${dragWp.y}`;
+              const tx = dragWp.x + 10;
+              const ty = dragWp.y - 8;
+              const textW = (typeof ctx.measureText === 'function' ? ctx.measureText(coordText).width : coordText.length * 6) || (coordText.length * 6);
+              ctx.fillStyle = isLightCanvas ? 'rgba(255, 255, 255, 0.92)' : 'rgba(15, 23, 42, 0.88)';
+              ctx.strokeStyle = isLightCanvas ? 'rgba(4, 120, 87, 0.35)' : 'rgba(0, 230, 118, 0.4)';
+              ctx.lineWidth = 1;
+              this.roundRect(ctx, tx - 4, ty - 11, textW + 8, 15, 3);
+              ctx.fill();
+              ctx.stroke();
+              ctx.fillStyle = isLightCanvas ? '#047857' : '#00e676';
+              ctx.fillText(coordText, tx, ty);
+              ctx.restore();
+            }
+
+            ctx.restore();
+          }
         }
       }
 
@@ -16461,6 +17007,8 @@
           ctx.fillStyle = lowColor;
         }
         ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = isHovered ? '#ffffff' : (isHigh ? highColor : (this.lowSignalColor ? this.lowSignalColor : pal.pinStroke));
