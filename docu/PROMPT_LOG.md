@@ -474,3 +474,62 @@ commits.
 - **Prompt:**
 
 > kannst du kicad auch mergen aber bitte nichts löschen oder verwerfen
+
+---
+
+## 2026-11-26 — Leitungs-Kontextmenü: „Messpunkt setzen“ & „Leitung löschen“ in Mausnähe
+
+- **Author:** Leegende
+- **Branch:** `dev`
+- **Related:** WISH-076
+- **Prompt:**
+
+> bearbeite das kontextmenu so  das messpunkt setzen und lösche in der nähe der maus sind
+
+
+---
+
+## 2026-11-26 — Mathematische Überlegungen zur Optimierung von Datenstrukturen & Algorithmen
+
+- **Author:** Leegende
+- **Branch:** `dev`
+- **Related:** n/a (Architektur- & Komplexitätsanalyse)
+- **Prompt:**
+
+> mache mathematische überlegung wie man die datenstruktur und sachen deutlich optimieren kann
+
+
+---
+
+## 2026-11-26 — Umsetzung der Datenstruktur- & Algorithmus-Optimierungen + optionale Schaltplan-Optimierung (WISH-077)
+
+- **Author:** Leegende
+- **Branch:** `feat/math-data-optimizations`
+- **Related:** WISH-077
+- **Prompt:**
+
+> füge alle hinzu außeßr 3. das sollte vielleicht auch eine einstellung sein die eine plan optimiert
+
+
+---
+
+## 2026-11-26 — Visual Bugfix (Wire Handles & Shadows)
+
+- **Author:** Leegende
+- **Branch:** `feat/math-data-optimizations`
+- **Related:** Visual Bugfix (Wire Handles & Shadows)
+- **Prompt:**
+
+> es gibt teilweise noch visual bugs
+
+---
+
+## 2026-11-26 — Automatische Formatierung von Konnektorpunkten in Modulen & verbessertes Einrasten in offene Module
+
+- **Author:** Leegende
+- **Branch:** `feat/wish-078-connector-format-and-snap`
+- **Related:** WISH-078
+- **Prompt:**
+
+> mache es so das wenn konnektorpunkte in modulen sind es automatisch formatiert wird und verbessere nochmal das endpunkte von verbindugen besser in offene module reinkommen
+

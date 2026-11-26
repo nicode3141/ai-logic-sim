@@ -5161,7 +5161,7 @@
 
           <div class="freq-control" style="padding: 2px 8px;">
             <span class="freq-label">Zeit-Zoom:</span>
-            <input type="range" id="slider-time-zoom" min="4" max="32" value="12" />
+            <input type="range" id="slider-time-zoom" min="0.25" max="32" step="0.25" value="12" />
             <span class="freq-val" id="label-time-zoom" style="display: none;">12 px/T</span>
           </div>
 
@@ -7302,20 +7302,54 @@
     const HEX_CHARS = ['0','1','2','3','4','5','6','7','8','9','A','b','C','d','E','F'];
 
     /**
-     * O(1) RingBuffer for Logic Analyzer Waveform History (Capacity N = 10000 Ticks)
+     * O(1) Bit-Packed RingBuffer with 2-Bit Monoid Mipmap Pyramid (Capacity N = 10000 Ticks)
+     * Summary monoid values: 1 = pure LOW (0), 2 = pure HIGH (1), 3 = both/transition (glitch-preserving).
      */
     class RingBuffer {
       constructor(capacity = 10000) {
         this.capacity = capacity;
+        this.wordCount = Math.max(1, (capacity + 31) >>> 5);
+        this.mipCount = Math.max(1, (this.wordCount + 7) >>> 3);
+        this._tailMask = (capacity & 31) === 0 ? -1 : ((1 << (capacity & 31)) - 1);
         this.ticks = new Uint32Array(capacity);
-        this.channels = new Map(); // probeId -> Uint8Array(capacity)
+        this.channels = new Map(); // probeId -> { words: Uint32Array, mip: Uint8Array }
         this.head = 0;
         this.count = 0;
       }
 
+      _createChannel() {
+        const mip = new Uint8Array(this.mipCount);
+        mip.fill(1);
+        return {
+          words: new Uint32Array(this.wordCount),
+          mip
+        };
+      }
+
+      _updateMipBlock(ch, mIdx) {
+        const base = mIdx << 3;
+        const end = Math.min(this.wordCount, base + 8);
+        const lastWord = this.wordCount - 1;
+        const tailMask = this._tailMask;
+        const words = ch.words;
+        let orAll = 0;
+        let andAll = -1;
+        for (let i = base; i < end; i++) {
+          const w = words[i] | 0;
+          if (i === lastWord && tailMask !== -1) {
+            orAll |= (w & tailMask);
+            andAll &= (w | ~tailMask);
+          } else {
+            orAll |= w;
+            andAll &= w;
+          }
+        }
+        ch.mip[mIdx] = orAll === 0 ? 1 : (andAll === -1 ? 2 : 3);
+      }
+
       ensureChannel(probeId) {
         if (!this.channels.has(probeId)) {
-          this.channels.set(probeId, new Uint8Array(this.capacity));
+          this.channels.set(probeId, this._createChannel());
         }
       }
 
@@ -7328,16 +7362,26 @@
         this.ticks[writeIdx] = tickNumber;
 
         if (probeSamples.size > 0 || this.channels.size > 0) {
-          for (const arr of this.channels.values()) {
-            arr[writeIdx] = 0;
+          const wIdx = writeIdx >>> 5;
+          const bitMask = 1 << (writeIdx & 31);
+          const clearMask = ~bitMask;
+          const mIdx = wIdx >>> 3;
+
+          for (const ch of this.channels.values()) {
+            ch.words[wIdx] &= clearMask;
           }
           for (const [probeId, val] of probeSamples) {
-            let arr = this.channels.get(probeId);
-            if (!arr) {
-              arr = new Uint8Array(this.capacity);
-              this.channels.set(probeId, arr);
+            let ch = this.channels.get(probeId);
+            if (!ch) {
+              ch = this._createChannel();
+              this.channels.set(probeId, ch);
             }
-            arr[writeIdx] = val ? 1 : 0;
+            if (val) {
+              ch.words[wIdx] |= bitMask;
+            }
+          }
+          for (const ch of this.channels.values()) {
+            this._updateMipBlock(ch, mIdx);
           }
         }
 
@@ -7362,17 +7406,78 @@
       getValueAtOffset(probeId, offset) {
         const off = Math.trunc(offset);
         if (!(off >= 0 && off < this.count)) return 0;
-        const arr = this.channels.get(probeId);
-        if (!arr) return 0;
+        const ch = this.channels.get(probeId);
+        if (!ch) return 0;
         const idx = (this.getOldestIndex() + off) % this.capacity;
-        return arr[idx];
+        return (ch.words[idx >>> 5] >>> (idx & 31)) & 1;
+      }
+
+      _scanPhysicalSpan(ch, a, b) {
+        const words = ch.words;
+        const mip = ch.mip;
+        let wA = a >>> 5;
+        const wB = b >>> 5;
+        const loBit = a & 31;
+        const hiBit = b & 31;
+        if (wA === wB) {
+          const len = hiBit - loBit + 1;
+          const mask = len === 32 ? -1 : (((1 << len) - 1) << loBit);
+          const masked = words[wA] & mask;
+          return masked === 0 ? 1 : (masked === mask ? 2 : 3);
+        }
+        let summary = 0;
+        if (loBit !== 0) {
+          const mask = -1 << loBit;
+          const masked = words[wA] & mask;
+          summary |= masked === 0 ? 1 : (masked === mask ? 2 : 3);
+          if (summary === 3) return 3;
+          wA++;
+        }
+        const fullEnd = hiBit === 31 ? wB + 1 : wB;
+        while (wA < fullEnd) {
+          if ((wA & 7) === 0 && wA + 8 <= fullEnd) {
+            summary |= mip[wA >>> 3];
+            if (summary === 3) return 3;
+            wA += 8;
+          } else {
+            const w = words[wA] | 0;
+            summary |= w === 0 ? 1 : (w === -1 ? 2 : 3);
+            if (summary === 3) return 3;
+            wA++;
+          }
+        }
+        if (hiBit !== 31) {
+          const mask = (1 << (hiBit + 1)) - 1;
+          const masked = words[wB] & mask;
+          summary |= masked === 0 ? 1 : (masked === mask ? 2 : 3);
+        }
+        return summary;
+      }
+
+      getRangeSummary(probeId, startOffset, endOffset) {
+        const s = Math.max(0, Math.trunc(startOffset));
+        const e = Math.min(this.count, Math.trunc(endOffset));
+        if (!(s < e)) return 0;
+        const ch = this.channels.get(probeId);
+        if (!ch) return 1;
+        const oldest = this.getOldestIndex();
+        const physStart = (oldest + s) % this.capacity;
+        const spanLen = e - s;
+        if (physStart + spanLen <= this.capacity) {
+          return this._scanPhysicalSpan(ch, physStart, physStart + spanLen - 1);
+        }
+        const s1 = this._scanPhysicalSpan(ch, physStart, this.capacity - 1);
+        if (s1 === 3) return 3;
+        const rem = physStart + spanLen - this.capacity;
+        return s1 | this._scanPhysicalSpan(ch, 0, rem - 1);
       }
 
       clear() {
         this.head = 0;
         this.count = 0;
-        for (const arr of this.channels.values()) {
-          arr.fill(0);
+        for (const ch of this.channels.values()) {
+          ch.words.fill(0);
+          ch.mip.fill(1);
         }
       }
 
@@ -9890,58 +9995,92 @@
         removed.forEach(id => this.removeWire(id));
       }
 
-      snapOpenWiresToComponent(comp, snapRadius = 24) {
+      snapOpenWiresToComponent(comp, snapRadius = 28) {
         if (!comp || !this.wires) return 0;
         let snappedCount = 0;
+        const snappedWireIds = [];
 
-        // 1. Input pins: look for open toPoint ends
+        // 1. Input pins: match open toPoint ends to unoccupied input pins by best alignment
+        const inCandidates = [];
         for (let i = 0; i < comp.inputs.length; i++) {
+          if (this.getWireToInput(comp.id, i)) continue;
           const pinPos = comp.getPinWorldPos(false, i);
-          const existing = this.getWireToInput(comp.id, i);
-          if (existing) continue;
-
+          const minX = Math.min(comp.x, pinPos.x);
+          const maxX = comp.x + comp.width;
           for (const w of this.wires) {
-            if (w.toPoint && !w.toCompId && !w.toWireId && !this.isForkTrunkWire(w)) {
-              const minX = Math.min(comp.x, pinPos.x);
-              const maxX = Math.max(comp.x, pinPos.x);
-              const clampedX = Math.max(minX, Math.min(maxX, w.toPoint.x));
-              const d = Math.hypot(w.toPoint.x - clampedX, w.toPoint.y - pinPos.y);
-              if (d <= snapRadius && w.fromCompId !== comp.id) {
-                w.toCompId = comp.id;
-                w.toPin = i;
-                w.toPoint = null;
-                w.toWireId = null;
-                w._toComp = comp;
-                w.waypoints = [];
-                snappedCount++;
-                break;
-              }
+            if (!w.toPoint || w.toCompId || w.toWireId || this.isForkTrunkWire(w)) continue;
+            const root = this.resolveWireRoot(w);
+            if (w.fromCompId === comp.id || root.compId === comp.id) continue;
+            const inBody = w.toPoint.x >= minX && w.toPoint.x <= maxX &&
+              w.toPoint.y >= comp.y && w.toPoint.y <= comp.y + comp.height;
+            const clampedX = Math.max(minX, Math.min(maxX, w.toPoint.x));
+            const d = Math.hypot(w.toPoint.x - clampedX, w.toPoint.y - pinPos.y);
+            if (inBody || (w.toPoint.x <= maxX + 12 && d <= snapRadius)) {
+              const cost = Math.abs(w.toPoint.y - pinPos.y) * 4 + Math.hypot(w.toPoint.x - pinPos.x, w.toPoint.y - pinPos.y);
+              inCandidates.push({ w, pinIndex: i, cost });
             }
           }
         }
+        if (inCandidates.length > 0) {
+          inCandidates.sort((a, b) => a.cost - b.cost);
+          const usedWires = new Set();
+          const usedPins = new Set();
+          for (const cand of inCandidates) {
+            if (usedWires.has(cand.w.id) || usedPins.has(cand.pinIndex)) continue;
+            usedWires.add(cand.w.id);
+            usedPins.add(cand.pinIndex);
+            cand.w.toCompId = comp.id;
+            cand.w.toPin = cand.pinIndex;
+            cand.w.toPoint = null;
+            cand.w.toWireId = null;
+            cand.w._toComp = comp;
+            cand.w.waypoints = [];
+            cand.w.autoRouted = true;
+            snappedWireIds.push(cand.w.id);
+            snappedCount++;
+          }
+        }
 
-        // 2. Output pins: look for open fromPoint starts
+        // 2. Output pins: match open fromPoint starts to output pins by best alignment
+        const outCandidates = [];
         for (let i = 0; i < comp.outputs.length; i++) {
           const pinPos = comp.getPinWorldPos(true, i);
+          const minX = comp.x;
+          const maxX = Math.max(comp.x + comp.width, pinPos.x);
+          const hasExistingOut = this.wires.some(ow => ow.fromCompId === comp.id && ow.fromPin === i);
           for (const w of this.wires) {
-            if (w.fromPoint && !w.fromCompId && !w.fromWireId) {
-              const minX = Math.min(comp.x + comp.width, pinPos.x);
-              const maxX = Math.max(comp.x + comp.width, pinPos.x);
-              const clampedX = Math.max(minX, Math.min(maxX, w.fromPoint.x));
-              const d = Math.hypot(w.fromPoint.x - clampedX, w.fromPoint.y - pinPos.y);
-              if (d <= snapRadius && w.toCompId !== comp.id) {
-                w.fromCompId = comp.id;
-                w.fromPin = i;
-                w.fromPoint = null;
-                w.fromWireId = null;
-                w._fromComp = comp;
-                w.waypoints = [];
-                snappedCount++;
-              }
+            if (!w.fromPoint || w.fromCompId || w.fromWireId || w.toCompId === comp.id) continue;
+            const inBody = w.fromPoint.x >= minX && w.fromPoint.x <= maxX &&
+              w.fromPoint.y >= comp.y && w.fromPoint.y <= comp.y + comp.height;
+            const clampedX = Math.max(minX, Math.min(maxX, w.fromPoint.x));
+            const d = Math.hypot(w.fromPoint.x - clampedX, w.fromPoint.y - pinPos.y);
+            if (inBody || (w.fromPoint.x >= minX - 12 && d <= snapRadius)) {
+              const cost = Math.abs(w.fromPoint.y - pinPos.y) * 4 +
+                Math.hypot(w.fromPoint.x - pinPos.x, w.fromPoint.y - pinPos.y) +
+                (hasExistingOut ? 2 : 0);
+              outCandidates.push({ w, pinIndex: i, cost });
             }
           }
         }
+        if (outCandidates.length > 0) {
+          outCandidates.sort((a, b) => a.cost - b.cost);
+          const usedStartWires = new Set();
+          for (const cand of outCandidates) {
+            if (usedStartWires.has(cand.w.id)) continue;
+            usedStartWires.add(cand.w.id);
+            cand.w.fromCompId = comp.id;
+            cand.w.fromPin = cand.pinIndex;
+            cand.w.fromPoint = null;
+            cand.w.fromWireId = null;
+            cand.w._fromComp = comp;
+            cand.w.waypoints = [];
+            cand.w.autoRouted = true;
+            snappedWireIds.push(cand.w.id);
+            snappedCount++;
+          }
+        }
 
+        this._lastSnappedWireIds = snappedWireIds;
         if (snappedCount > 0) {
           this.syncImmediateWireLevels();
         }
@@ -11628,15 +11767,23 @@
 
         const todo = [];
         const fixed = [];
+        const openPts = [];
         for (const w of (circuit.wires || [])) {
           const isTarget = !targetIds || targetIds.has(w.id);
           if (!isTarget) {
             fixed.push(w);
             continue;
           }
+          if (circuit.isForkTrunkWire && circuit.isForkTrunkWire(w)) continue;
           const root = circuit.resolveWireRoot ? circuit.resolveWireRoot(w) : { compId: w.fromCompId, pin: w.fromPin };
           const fc = compMap.get(root.compId), tc = compMap.get(w.toCompId);
-          if (!fc || !tc || !fc.outputs[root.pin] || !tc.inputs[w.toPin]) continue;
+          const hasSrc = Boolean(fc && fc.outputs && fc.outputs[root.pin]);
+          const hasDst = Boolean(tc && tc.inputs && tc.inputs[w.toPin]);
+          const srcPt = !hasSrc ? ((root.rootWire && root.rootWire.fromPoint) || (!w.fromWireId ? w.fromPoint : null)) : null;
+          const dstPt = !hasDst ? (!w.toWireId ? w.toPoint : null) : null;
+          if ((!hasSrc && !srcPt) || (!hasDst && !dstPt)) continue;
+          if (srcPt) openPts.push({ x: Math.round(srcPt.x / G) * G, y: Math.round(srcPt.y / G) * G });
+          if (dstPt) openPts.push({ x: Math.round(dstPt.x / G) * G, y: Math.round(dstPt.y / G) * G });
           todo.push(w);
         }
         for (const w of todo) result.set(w.id, null);
@@ -11648,6 +11795,10 @@
           if (c.y < minY) minY = c.y;
           if (c.x + c.width > maxX) maxX = c.x + c.width;
           if (c.y + c.height > maxY) maxY = c.y + c.height;
+        }
+        for (const p of openPts) {
+          if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
         }
         const fixedPts = new Map();
         if (fixedPolyline) {
@@ -11714,10 +11865,16 @@
           const key = hasPin ? (root.compId + '\u0000' + root.pin) : ('~float\u0000' + (root.rootWire ? root.rootWire.id : w.id));
           let net = nets.get(key);
           if (!net) {
-            const p = hasPin ? fc.getPinWorldPos(true, root.pin) : (fixedPts.get(w.id)?.[0] || { x: 0, y: 0 });
+            const floatRaw = !hasPin ? ((root.rootWire && root.rootWire.fromPoint) || w.fromPoint || fixedPts.get(w.id)?.[0] || null) : null;
+            const p = hasPin
+              ? fc.getPinWorldPos(true, root.pin)
+              : (floatRaw ? { x: Math.round(floatRaw.x / G) * G, y: Math.round(floatRaw.y / G) * G } : { x: 0, y: 0 });
+            const srcNode = (hasPin || floatRaw) ? nodeOf(p.x, p.y) : -1;
             net = {
-              id: netList.length + 1, key, sx: p.x, sy: p.y, src: hasPin ? nodeOf(p.x, p.y) : -1,
-              wires: [], parent: new Map(), base: null, edges: [], ok: hasPin,
+              id: netList.length + 1, key, sx: p.x, sy: p.y, src: srcNode,
+              hasPin,
+              wires: [], parent: new Map(), base: null, edges: [],
+              ok: hasPin ? true : (srcNode >= 0 && !blocked[srcNode]),
               bx0: 0, bx1: 0, by0: 0, by1: 0
             };
             nets.set(key, net);
@@ -11757,24 +11914,40 @@
         for (const w of todo) {
           const net = getNet(w);
           const tc = compMap.get(w.toCompId);
-          const tp = tc.getPinWorldPos(false, w.toPin);
+          const hasDst = Boolean(tc && tc.inputs && tc.inputs[w.toPin]);
+          const tp = hasDst
+            ? tc.getPinWorldPos(false, w.toPin)
+            : { x: Math.round(w.toPoint.x / G) * G, y: Math.round(w.toPoint.y / G) * G };
           const t = nodeOf(tp.x, tp.y);
-          const entry = { wire: w, t, a: t - 1, ok: true, tx: tp.x, ty: tp.y };
+          const a = hasDst ? (t - 1) : t;
+          const entry = { wire: w, t, a, hasDst, ok: true, tx: tp.x, ty: tp.y };
           net.wires.push(entry);
-          if (net.src < 0 || (net.src % W) + 1 >= W || blocked[net.src + 1]) { net.ok = false; continue; }
-          if (t < 0 || (t % W) === 0 || blocked[t - 1]) { entry.ok = false; continue; }
+          if (net.hasPin) {
+            if (net.src < 0 || (net.src % W) + 1 >= W || blocked[net.src + 1]) { net.ok = false; continue; }
+          } else {
+            if (net.src < 0 || blocked[net.src]) { net.ok = false; continue; }
+          }
+          if (hasDst) {
+            if (t < 0 || (t % W) === 0 || blocked[t - 1]) { entry.ok = false; continue; }
+          } else {
+            if (t < 0 || blocked[t]) { entry.ok = false; continue; }
+          }
         }
         for (const net of netList) {
           if (!net.ok || net.wires.length === 0) continue;
-          if (!setEdge(net.src, net.src + 1, net.id)) { net.ok = false; continue; }
-          if (!net.parent.has(net.src)) net.parent.set(net.src, -1);
-          if (!net.parent.has(net.src + 1)) net.parent.set(net.src + 1, net.src);
+          if (net.hasPin) {
+            if (!setEdge(net.src, net.src + 1, net.id)) { net.ok = false; continue; }
+            if (!net.parent.has(net.src)) net.parent.set(net.src, -1);
+            if (!net.parent.has(net.src + 1)) net.parent.set(net.src + 1, net.src);
+          } else {
+            if (!net.parent.has(net.src)) net.parent.set(net.src, -1);
+          }
         }
         for (const net of netList) {
           if (!net.ok) continue;
           for (const e of net.wires) {
             if (!e.ok) continue;
-            if (!setEdge(e.a, e.t, net.id)) e.ok = false;
+            if (e.hasDst && !setEdge(e.a, e.t, net.id)) e.ok = false;
           }
           net.base = new Map(net.parent);
         }
@@ -11914,7 +12087,7 @@
               }
               if (!net.parent.has(p)) { net.parent.set(p, q); inTree[p] = 1; growBox(net, p); }
             }
-            if (!net.parent.has(e.t)) net.parent.set(e.t, e.a);
+            if (e.hasDst && !net.parent.has(e.t)) net.parent.set(e.t, e.a);
             e.routed = true;
           }
           unloadTree(net);
@@ -11986,6 +12159,12 @@
               const a = pts[i - 1], b = pts[i], c = pts[i + 1];
               if ((a.x === b.x && b.x === c.x) || (a.y === b.y && b.y === c.y)) continue;
               corners.push(b);
+            }
+            if ((!net.hasPin || !e.hasDst) && corners.length === 0 && pts.length >= 2) {
+              const pA = pts[0], pB = pts[pts.length - 1];
+              if (!(Math.abs(pA.y - pB.y) < 0.5 && pB.x >= pA.x + G)) {
+                corners.push({ x: pB.x, y: pB.y });
+              }
             }
             result.set(e.wire.id, corners);
           }
@@ -14666,6 +14845,198 @@
           }
         }
         return null;
+      }
+
+      resolveWireEndpointPin(worldX, worldY, options = {}) {
+        if (!this.circuit || !this.circuit.components || this.circuit.components.length === 0) return null;
+        const wantInput = options.wantInput !== false;
+        const wantOutput = options.wantOutput !== false;
+        const originCompId = options.originCompId || null;
+        const originIsOutput = options.originIsOutput ?? null;
+        const originPinIndex = options.originPinIndex ?? null;
+        const ignoreWireId = options.ignoreWireId || null;
+        const forbidSameComp = Boolean(options.forbidSameComp);
+        const pinRadius = options.pinRadius !== undefined ? options.pinRadius : 20;
+        const allowBodySnap = options.allowBodySnap !== false;
+
+        const sc = this._ensureSpatialScene(false, false);
+        const CELL = 160, OFFSET = 5120;
+        const clampC = (v) => v < 0 ? 0 : (v >= 64 ? 63 : v);
+        const queryPad = Math.max(pinRadius, 48);
+        const gx0 = clampC(((worldX - queryPad + OFFSET) / CELL) | 0);
+        const gx1 = clampC(((worldX + queryPad + OFFSET) / CELL) | 0);
+        const gy0 = clampC(((worldY - queryPad + OFFSET) / CELL) | 0);
+        const gy1 = clampC(((worldY + queryPad + OFFSET) / CELL) | 0);
+
+        const cands = [];
+        const seen = new Set();
+        for (let gy = gy0; gy <= gy1; gy++) {
+          for (let gx = gx0; gx <= gx1; gx++) {
+            const b = sc.compGrid.get((gy << 6) | gx);
+            if (!b) continue;
+            for (let k = 0; k < b.length; k++) {
+              if (!seen.has(b[k])) { seen.add(b[k]); cands.push(b[k]); }
+            }
+          }
+        }
+        if (cands.length === 0) return null;
+        if (cands.length > 1) {
+          const comps = this.circuit.components;
+          cands.sort((a, b) => comps.indexOf(b) - comps.indexOf(a));
+        }
+
+        // 1. Magnetic snap to nearest open compatible pin within pinRadius
+        let bestPin = null;
+        let bestScore = Infinity;
+        for (let i = 0; i < cands.length; i++) {
+          const comp = cands[i];
+          if (forbidSameComp && comp.id === originCompId) continue;
+          if (wantOutput) {
+            for (let p = 0; p < comp.outputs.length; p++) {
+              if (comp.id === originCompId && originIsOutput === true && p === originPinIndex) continue;
+              const pin = comp.outputs[p];
+              const px = comp.x + pin.relX;
+              const py = comp.y + pin.relY;
+              const d = Math.hypot(worldX - px, worldY - py);
+              if (d <= pinRadius) {
+                const score = d + Math.abs(worldY - py) * 0.35;
+                if (score < bestScore) {
+                  bestScore = score;
+                  bestPin = { compId: comp.id, isOutput: true, pinIndex: p, x: px, y: py };
+                }
+              }
+            }
+          }
+          if (wantInput) {
+            for (let p = 0; p < comp.inputs.length; p++) {
+              if (comp.id === originCompId && originIsOutput === false && p === originPinIndex) continue;
+              const existing = this.circuit.getWireToInput(comp.id, p);
+              if (existing && existing.id !== ignoreWireId) continue;
+              const pin = comp.inputs[p];
+              const px = comp.x + pin.relX;
+              const py = comp.y + pin.relY;
+              const d = Math.hypot(worldX - px, worldY - py);
+              if (d <= pinRadius) {
+                const score = d + Math.abs(worldY - py) * 0.35;
+                if (score < bestScore) {
+                  bestScore = score;
+                  bestPin = { compId: comp.id, isOutput: false, pinIndex: p, x: px, y: py };
+                }
+              }
+            }
+          }
+        }
+        if (bestPin) return bestPin;
+
+        // 2. Open-module body & lead-in capture: dropping/hovering on an open module enters its nearest free pin
+        if (allowBodySnap) {
+          for (let i = 0; i < cands.length; i++) {
+            const comp = cands[i];
+            if (comp.id === originCompId) continue;
+            const stubPad = ONLY_GATE_TYPES[comp.type] ? GATE_PIN_STUB : 0;
+            const leftPad = wantInput ? (stubPad + 20) : 6;
+            const rightPad = wantOutput ? (stubPad + 20) : 6;
+            const yPad = 8;
+            if (
+              worldX < comp.x - leftPad || worldX > comp.x + comp.width + rightPad ||
+              worldY < comp.y - yPad || worldY > comp.y + comp.height + yPad
+            ) {
+              continue;
+            }
+            let modPin = null;
+            let modScore = Infinity;
+            if (wantInput) {
+              for (let p = 0; p < comp.inputs.length; p++) {
+                const existing = this.circuit.getWireToInput(comp.id, p);
+                if (existing && existing.id !== ignoreWireId) continue;
+                const pin = comp.inputs[p];
+                const px = comp.x + pin.relX;
+                const py = comp.y + pin.relY;
+                const score = Math.abs(worldY - py) * 3 + Math.hypot(worldX - px, worldY - py);
+                if (score < modScore) {
+                  modScore = score;
+                  modPin = { compId: comp.id, isOutput: false, pinIndex: p, x: px, y: py };
+                }
+              }
+            }
+            if (wantOutput) {
+              for (let p = 0; p < comp.outputs.length; p++) {
+                const pin = comp.outputs[p];
+                const px = comp.x + pin.relX;
+                const py = comp.y + pin.relY;
+                const hasOut = this.circuit.wires.some(ow => ow.id !== ignoreWireId && ow.fromCompId === comp.id && ow.fromPin === p);
+                const score = Math.abs(worldY - py) * 3 + Math.hypot(worldX - px, worldY - py) + (hasOut ? 6 : 0);
+                if (score < modScore) {
+                  modScore = score;
+                  modPin = { compId: comp.id, isOutput: true, pinIndex: p, x: px, y: py };
+                }
+              }
+            }
+            if (modPin) return modPin;
+          }
+        }
+        return null;
+      }
+
+      wireHasConnectorOrSegmentInModule(wire, pts, comp) {
+        if (!wire || !pts || pts.length < 2 || !comp) return false;
+        const x1 = comp.x;
+        const y1 = comp.y;
+        const x2 = comp.x + comp.width;
+        const y2 = comp.y + comp.height;
+        const cache = wire._polyCache;
+        if (cache && cache.pts === pts) {
+          if (cache.maxX < x1 || cache.minX > x2 || cache.maxY < y1 || cache.minY > y2) return false;
+        }
+
+        const root = this.circuit && this.circuit.resolveWireRoot
+          ? this.circuit.resolveWireRoot(wire)
+          : { compId: wire.fromCompId, pin: wire.fromPin };
+        let ownStartOnComp = wire.fromCompId === comp.id;
+        if (!ownStartOnComp && !wire.fromCompId && root.compId === comp.id) {
+          const rp = comp.getPinWorldPos(true, root.pin);
+          if (Math.abs(pts[0].x - rp.x) < 1 && Math.abs(pts[0].y - rp.y) < 1) ownStartOnComp = true;
+        }
+        const ownEndOnComp = wire.toCompId === comp.id;
+
+        const pStart = pts[0];
+        if (!ownStartOnComp && pStart.x >= x1 && pStart.x <= x2 && pStart.y >= y1 && pStart.y <= y2) {
+          return true;
+        }
+        const pEnd = pts[pts.length - 1];
+        if (!ownEndOnComp && pEnd.x >= x1 && pEnd.x <= x2 && pEnd.y >= y1 && pEnd.y <= y2) {
+          return true;
+        }
+        for (let i = 1; i < pts.length - 1; i++) {
+          const p = pts[i];
+          if (p.x >= x1 && p.x <= x2 && p.y >= y1 && p.y <= y2) return true;
+        }
+        if (Array.isArray(wire.waypoints)) {
+          for (let i = 0; i < wire.waypoints.length; i++) {
+            const wp = wire.waypoints[i];
+            if (pts.length === 2 && ownEndOnComp && Math.abs(wp.x - pEnd.x) < 1 && Math.abs(wp.y - pEnd.y) < 1) continue;
+            if (wp.x >= x1 && wp.x <= x2 && wp.y >= y1 && wp.y <= y2) return true;
+          }
+        }
+
+        if (x2 - x1 > 2 && y2 - y1 > 2 && this.isWireIntersectingBox(pts, x1 + 1, y1 + 1, x2 - 1, y2 - 1)) {
+          return true;
+        }
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          if (Math.abs(a.y - b.y) < 0.5) {
+            if (a.y >= y1 && a.y <= y2) {
+              const ov = Math.min(Math.max(a.x, b.x), x2) - Math.max(Math.min(a.x, b.x), x1);
+              if (ov > 1) return true;
+            }
+          } else if (Math.abs(a.x - b.x) < 0.5) {
+            if (a.x >= x1 && a.x <= x2) {
+              const ov = Math.min(Math.max(a.y, b.y), y2) - Math.max(Math.min(a.y, b.y), y1);
+              if (ov > 1) return true;
+            }
+          }
+        }
+        return false;
       }
 
 
@@ -17599,12 +17970,28 @@
         this.canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
           if (e.ctrlKey || e.shiftKey || (this.hoverY !== null && this.hoverY <= 22)) {
-            const delta = e.deltaY < 0 ? 2 : -2;
-            this.pixelsPerTick = Math.max(4, Math.min(32, this.pixelsPerTick + delta));
+            const zoomIn = e.deltaY < 0;
+            const subSteps = [0.1, 0.25, 0.5, 1, 2, 4];
+            if (this.pixelsPerTick < 4 || (this.pixelsPerTick === 4 && !zoomIn)) {
+              let bestIdx = 0;
+              for (let k = 0; k < subSteps.length; k++) {
+                if (Math.abs(subSteps[k] - this.pixelsPerTick) < Math.abs(subSteps[bestIdx] - this.pixelsPerTick)) {
+                  bestIdx = k;
+                }
+              }
+              const nextIdx = Math.max(0, Math.min(subSteps.length - 1, bestIdx + (zoomIn ? 1 : -1)));
+              this.pixelsPerTick = subSteps[nextIdx];
+            } else {
+              const delta = zoomIn ? 2 : -2;
+              this.pixelsPerTick = Math.max(4, Math.min(32, Math.round(this.pixelsPerTick) + delta));
+            }
             const zoomSlider = document.getElementById('slider-time-zoom');
             const zoomLabel = document.getElementById('label-time-zoom');
-            if (zoomSlider) zoomSlider.value = this.pixelsPerTick;
-            if (zoomLabel) zoomLabel.textContent = `${this.pixelsPerTick} px/T`;
+            if (zoomSlider) zoomSlider.value = String(Math.max(0.25, this.pixelsPerTick));
+            if (zoomLabel) {
+              const fmt = this.pixelsPerTick < 1 ? this.pixelsPerTick.toFixed(2) : String(Math.round(this.pixelsPerTick * 100) / 100);
+              zoomLabel.textContent = `${fmt} px/T`;
+            }
           } else {
             const step = e.deltaY > 0 ? 0.06 : -0.06;
             this.scrollRatio = Math.max(0, Math.min(1, this.scrollRatio + step));
@@ -17889,6 +18276,11 @@
       getOffsetForTick(tick) {
         const count = this.ringBuffer ? this.ringBuffer.count : 0;
         if (count === 0) return 0;
+        const firstTick = this.ringBuffer.getTickAtOffset(0);
+        const lastTick = this.ringBuffer.getTickAtOffset(count - 1);
+        if (lastTick - firstTick === count - 1) {
+          return Math.max(0, Math.min(count - 1, tick - firstTick));
+        }
         let low = 0;
         let high = count - 1;
         while (low <= high) {
@@ -18106,29 +18498,58 @@
           }
         }
 
-        const labelInterval = this.pixelsPerTick >= 18 ? 2 : (this.pixelsPerTick >= 10 ? 5 : 10);
-        for (let i = 0; i <= visibleTicks; i++) {
-          const offset = startOffset + i;
-          const x = this.gutterWidth + i * this.pixelsPerTick;
-          if (x > width) break;
+        const ppt = this.pixelsPerTick;
+        const labelInterval = ppt >= 18 ? 2 : (ppt >= 10 ? 5 : (ppt >= 4 ? 10 : (ppt >= 2 ? 25 : (ppt >= 1 ? 50 : (ppt >= 0.5 ? 100 : (ppt >= 0.2 ? 250 : 500))))));
+        const drawMinorGrid = ppt >= 4;
+        if (drawMinorGrid) {
+          for (let i = 0; i <= visibleTicks; i++) {
+            const offset = startOffset + i;
+            const x = this.gutterWidth + i * ppt;
+            if (x > width) break;
 
-          const tickNum = offset < totalSamples
-            ? this.ringBuffer.getTickAtOffset(offset)
-            : (totalSamples > 0 ? this.ringBuffer.getTickAtOffset(totalSamples - 1) + (offset - totalSamples + 1) : i + 1);
+            const tickNum = offset < totalSamples
+              ? this.ringBuffer.getTickAtOffset(offset)
+              : (totalSamples > 0 ? this.ringBuffer.getTickAtOffset(totalSamples - 1) + (offset - totalSamples + 1) : i + 1);
 
-          const isMajor = (tickNum % labelInterval) === 0;
-          ctx.strokeStyle = isMajor ? tickDividerMajor : tickDividerMinor;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x, headerH);
-          ctx.lineTo(x, height);
-          ctx.stroke();
+            const isMajor = (tickNum % labelInterval) === 0;
+            ctx.strokeStyle = isMajor ? tickDividerMajor : tickDividerMinor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, headerH);
+            ctx.lineTo(x, height);
+            ctx.stroke();
 
-          if (isMajor && offset < totalSamples) {
-            ctx.fillStyle = tickLabelColor;
-            ctx.font = '9.5px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${tickNum}`, x, 14);
+            if (isMajor && offset < totalSamples) {
+              ctx.fillStyle = tickLabelColor;
+              ctx.font = '9.5px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(`${tickNum}`, x, 14);
+            }
+          }
+        } else {
+          const baseTick = totalSamples > 0 ? this.ringBuffer.getTickAtOffset(startOffset) : 1;
+          const firstMod = baseTick % labelInterval;
+          let stepIdx = firstMod === 0 ? 0 : (labelInterval - firstMod);
+          while (stepIdx <= visibleTicks) {
+            const offset = startOffset + stepIdx;
+            const x = this.gutterWidth + stepIdx * ppt;
+            if (x > width) break;
+            const tickNum = offset < totalSamples
+              ? this.ringBuffer.getTickAtOffset(offset)
+              : (totalSamples > 0 ? this.ringBuffer.getTickAtOffset(totalSamples - 1) + (offset - totalSamples + 1) : stepIdx + 1);
+            ctx.strokeStyle = tickDividerMajor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, headerH);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+            if (offset < totalSamples) {
+              ctx.fillStyle = tickLabelColor;
+              ctx.font = '9.5px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(`${tickNum}`, x, 14);
+            }
+            stepIdx += labelInterval;
           }
         }
 
@@ -18196,35 +18617,110 @@
             ctx.save();
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
-            ctx.beginPath();
+            const fillH = lowY - highY;
 
-            for (let offset = startOffset; offset < endOffset; offset++) {
-              const i = offset - startOffset;
-              const x0 = this.gutterWidth + i * this.pixelsPerTick;
-              const x1 = x0 + this.pixelsPerTick;
-              const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
-              const y = val === 1 ? highY : lowY;
+            if (ppt >= 1.5 || typeof this.ringBuffer.getRangeSummary !== 'function') {
+              ctx.beginPath();
+              let prevVal = this.ringBuffer.getValueAtOffset(probe.id, startOffset);
+              let prevY = prevVal === 1 ? highY : lowY;
+              ctx.moveTo(this.gutterWidth, prevY);
+              let runStart = prevVal === 1 ? 0 : -1;
+              const highRuns = [];
 
-              if (offset === startOffset) {
-                ctx.moveTo(x0, y);
-              } else {
-                const prevVal = this.ringBuffer.getValueAtOffset(probe.id, offset - 1);
-                if (prevVal !== val) {
-                  ctx.lineTo(x0, y);
+              for (let offset = startOffset + 1; offset < endOffset; offset++) {
+                const i = offset - startOffset;
+                const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
+                if (val !== prevVal) {
+                  const xEdge = this.gutterWidth + i * ppt;
+                  ctx.lineTo(xEdge, prevY);
+                  prevY = val === 1 ? highY : lowY;
+                  ctx.lineTo(xEdge, prevY);
+                  if (val === 1) {
+                    runStart = i;
+                  } else if (runStart >= 0) {
+                    highRuns.push(runStart, i);
+                    runStart = -1;
+                  }
+                  prevVal = val;
                 }
               }
-              ctx.lineTo(x1, y);
-            }
-            ctx.stroke();
+              const totalCount = endOffset - startOffset;
+              ctx.lineTo(this.gutterWidth + totalCount * ppt, prevY);
+              if (runStart >= 0) {
+                highRuns.push(runStart, totalCount);
+              }
+              ctx.stroke();
 
-            ctx.fillStyle = color;
-            ctx.globalAlpha = 0.08;
-            for (let offset = startOffset; offset < endOffset; offset++) {
-              const val = this.ringBuffer.getValueAtOffset(probe.id, offset);
-              if (val === 1) {
-                const i = offset - startOffset;
-                const x0 = this.gutterWidth + i * this.pixelsPerTick;
-                ctx.fillRect(x0, highY, this.pixelsPerTick, lowY - highY);
+              if (highRuns.length > 0) {
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.08;
+                for (let r = 0; r < highRuns.length; r += 2) {
+                  const sIdx = highRuns[r];
+                  const eIdx = highRuns[r + 1];
+                  ctx.fillRect(this.gutterWidth + sIdx * ppt, highY, (eIdx - sIdx) * ppt, fillH);
+                }
+              }
+            } else {
+              // Sub-pixel Mipmap Envelope Mode (O(plotW)): preserves 1-tick glitches at arbitrary zoom-out
+              const spanTicks = endOffset - startOffset;
+              const usedCols = Math.max(1, Math.min(Math.ceil(plotW), Math.ceil(spanTicks * ppt)));
+              ctx.beginPath();
+              let prevLevelY = null;
+              let runStartPx = -1;
+              const highPxRuns = [];
+
+              for (let px = 0; px < usedCols; px++) {
+                const t0 = startOffset + Math.floor(px / ppt);
+                if (t0 >= endOffset) break;
+                const t1 = Math.min(endOffset, Math.max(t0 + 1, startOffset + Math.floor((px + 1) / ppt)));
+                const sigma = this.ringBuffer.getRangeSummary(probe.id, t0, t1);
+                const xL = this.gutterWidth + px;
+                const xR = xL + 1;
+
+                if (sigma === 3) {
+                  // Both 0 and 1 occurred in [t0, t1): draw full vertical transition/glitch envelope
+                  if (prevLevelY === null) {
+                    ctx.moveTo(xL + 0.5, lowY);
+                  } else {
+                    ctx.lineTo(xL + 0.5, prevLevelY);
+                    ctx.lineTo(xL + 0.5, prevLevelY === highY ? lowY : highY);
+                  }
+                  ctx.lineTo(xL + 0.5, highY);
+                  ctx.lineTo(xL + 0.5, lowY);
+                  const endVal = this.ringBuffer.getValueAtOffset(probe.id, t1 - 1);
+                  prevLevelY = endVal === 1 ? highY : lowY;
+                  ctx.moveTo(xL + 0.5, prevLevelY);
+                  ctx.lineTo(xR, prevLevelY);
+                  if (runStartPx < 0) runStartPx = px;
+                } else {
+                  const y = sigma === 2 ? highY : lowY;
+                  if (prevLevelY === null) {
+                    ctx.moveTo(xL, y);
+                  } else if (prevLevelY !== y) {
+                    ctx.lineTo(xL, prevLevelY);
+                    ctx.lineTo(xL, y);
+                  }
+                  ctx.lineTo(xR, y);
+                  prevLevelY = y;
+                  if (sigma === 2) {
+                    if (runStartPx < 0) runStartPx = px;
+                  } else if (runStartPx >= 0) {
+                    highPxRuns.push(runStartPx, px);
+                    runStartPx = -1;
+                  }
+                }
+              }
+              if (runStartPx >= 0) {
+                highPxRuns.push(runStartPx, usedCols);
+              }
+              ctx.stroke();
+
+              if (highPxRuns.length > 0) {
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.08;
+                for (let r = 0; r < highPxRuns.length; r += 2) {
+                  ctx.fillRect(this.gutterWidth + highPxRuns[r], highY, highPxRuns[r + 1] - highPxRuns[r], fillH);
+                }
               }
             }
             ctx.restore();
@@ -21494,12 +21990,53 @@
 
         if (wire) {
           this.finishNewWire(wire, waypoints);
-          this.triggerEditPropagation(this.circuit);
           this.mergeOpenWireTermini(16);
+          this.formatConnectorsInModules(null, this.circuit, this.renderer);
+          this.triggerEditPropagation(this.circuit);
         }
         this.renderer.activeWireDrag = null;
         this.refreshAll();
         return Boolean(wire);
+      }
+
+      resolveActiveWireDragPin(worldX, worldY, drag = this.renderer?.activeWireDrag, pinRadius = 20) {
+        if (!drag || !this.renderer) return null;
+        let wantInput = true;
+        let wantOutput = true;
+        if (drag.compId) {
+          wantInput = Boolean(drag.isOutput);
+          wantOutput = !drag.isOutput;
+        } else if (drag.fromWireId) {
+          const fw = this.circuit.getWire(drag.fromWireId);
+          const root = fw ? this.circuit.resolveWireRoot(fw) : null;
+          wantInput = true;
+          wantOutput = !(root && root.compId);
+        }
+        return this.renderer.resolveWireEndpointPin(worldX, worldY, {
+          wantInput,
+          wantOutput,
+          originCompId: drag.compId || null,
+          originIsOutput: drag.compId ? Boolean(drag.isOutput) : null,
+          originPinIndex: drag.compId ? drag.pinIndex : null,
+          pinRadius,
+          allowBodySnap: true
+        });
+      }
+
+      resolveTerminusDragPin(worldX, worldY, dragTerm, pinRadius = 20) {
+        if (!dragTerm || !dragTerm.wire || !this.renderer) return null;
+        const wire = dragTerm.wire;
+        const root = this.circuit.resolveWireRoot(wire);
+        const otherCompId = dragTerm.isEnd ? (wire.fromCompId || root.compId || null) : (wire.toCompId || null);
+        return this.renderer.resolveWireEndpointPin(worldX, worldY, {
+          wantInput: Boolean(dragTerm.isEnd),
+          wantOutput: Boolean(dragTerm.isStart),
+          originCompId: otherCompId,
+          forbidSameComp: Boolean(otherCompId),
+          ignoreWireId: wire.id,
+          pinRadius,
+          allowBodySnap: true
+        });
       }
 
       ensureWireWaypoints(wire, forceSync = false) {
@@ -21990,6 +22527,9 @@
           if (comp) {
             totalSnapped += this.snapOpenWiresToComponent(comp);
           }
+        }
+        if (newCompIds.length > 0) {
+          this.formatConnectorsInModules(newCompIds, this.circuit, this.renderer);
         }
         if (totalSnapped > 0) {
           this.showToast(totalSnapped === 1 ? '1 offene Leitung eingerastet' : `${totalSnapped} offene Leitungen eingerastet`);
@@ -23538,7 +24078,8 @@
               this.getDefaultParamsForNewComponent('NOT')
             );
             if (comp) {
-              const snapped = this.snapOpenWiresToComponent(comp, 24, tab.circuit);
+              const snapped = this.snapOpenWiresToComponent(comp, 28, tab.circuit, renderer);
+              this.formatConnectorsInModules([comp.id], tab.circuit, renderer);
               if (snapped > 0) {
                 this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
               } else {
@@ -23571,7 +24112,8 @@
           if (comp) {
             comp.x = Math.max(-5000, Math.min(5000 - (comp.width || 80), Math.round((worldPos.x - comp.width / 2) / GRID_SIZE) * GRID_SIZE));
             comp.y = Math.max(-5000, Math.min(5000 - (comp.height || 40), Math.round((worldPos.y - comp.height / 2) / GRID_SIZE) * GRID_SIZE));
-            const snapped = this.snapOpenWiresToComponent(comp, 24, tab.circuit);
+            const snapped = this.snapOpenWiresToComponent(comp, 28, tab.circuit, renderer);
+            this.formatConnectorsInModules([comp.id], tab.circuit, renderer);
             if (snapped > 0) {
               this.showToast(snapped === 1 ? '1 offene Leitung eingerastet' : `${snapped} offene Leitungen eingerastet`);
             }
@@ -23583,13 +24125,21 @@
           finalizeDrop();
       }
 
-      snapOpenWiresToComponent(comp, snapRadius = 24, targetCircuit = this.circuit) {
+      snapOpenWiresToComponent(comp, snapRadius = 28, targetCircuit = this.circuit, targetRenderer = null) {
         if (!comp || !targetCircuit) return 0;
+        const rend = targetRenderer || (targetCircuit === this.circuit ? this.renderer : this.rendererRight);
         const count = targetCircuit.snapOpenWiresToComponent(comp, snapRadius);
-        if (count > 0 && targetCircuit === this.circuit) {
-          for (const w of targetCircuit.wires) {
-            if (w.toCompId === comp.id || w.fromCompId === comp.id) {
-              this.cleanWireWaypoints(w);
+        if (count > 0) {
+          const snappedIds = Array.isArray(targetCircuit._lastSnappedWireIds) && targetCircuit._lastSnappedWireIds.length > 0
+            ? targetCircuit._lastSnappedWireIds
+            : targetCircuit.wires.filter(w => w.toCompId === comp.id || w.fromCompId === comp.id).map(w => w.id);
+          if (this.smartWires && rend) {
+            this.routeWires(snappedIds, { circuit: targetCircuit, renderer: rend, forceBranches: true });
+            if (targetCircuit === this.circuit) this.deconflictWireChannels();
+          } else if (targetCircuit === this.circuit) {
+            for (const wid of snappedIds) {
+              const w = targetCircuit.getWire(wid);
+              if (w) this.cleanWireWaypoints(w);
             }
           }
         }
@@ -23735,14 +24285,15 @@
           }
 
           if (this.renderer.activeWireDrag) {
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            const drag = this.renderer.activeWireDrag;
+            const selfPin = drag.compId ? this.renderer.findPinAt(world.x, world.y, 12) : null;
+            if (selfPin && selfPin.compId === drag.compId && Boolean(selfPin.isOutput) === Boolean(drag.isOutput) && selfPin.pinIndex === drag.pinIndex) {
+              this.renderer.activeWireDrag = null;
+              this.renderer.render();
+              return;
+            }
+            const hitPin = this.resolveActiveWireDragPin(world.x, world.y, drag, 20);
             if (hitPin) {
-              const drag = this.renderer.activeWireDrag;
-              if (drag.compId && hitPin.compId === drag.compId && hitPin.pinIndex === drag.pinIndex) {
-                this.renderer.activeWireDrag = null;
-                this.renderer.render();
-                return;
-              }
               this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
               return;
             }
@@ -24094,11 +24645,8 @@
             if (e.shiftKey && this.allowDiagonalWires !== false) {
               this.renderer.activeWireDrag.style = 'diagonal';
             }
-            const snapPin = this.renderer.findPinAt(world.x, world.y, 12);
-            if (
-              snapPin &&
-              (!this.renderer.activeWireDrag.compId || (snapPin.compId !== this.renderer.activeWireDrag.compId || snapPin.pinIndex !== this.renderer.activeWireDrag.pinIndex))
-            ) {
+            const snapPin = this.resolveActiveWireDragPin(world.x, world.y, this.renderer.activeWireDrag, 20);
+            if (snapPin) {
               this.renderer.activeWireDrag.currX = snapPin.x;
               this.renderer.activeWireDrag.currY = snapPin.y;
               this.renderer.hoveredPin = snapPin;
@@ -24128,22 +24676,14 @@
             const dragTerm = this.draggingTerminus;
             const wire = dragTerm.wire;
 
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 14);
+            const hitPin = this.resolveTerminusDragPin(world.x, world.y, dragTerm, 20);
             let snapX = Math.round(world.x / GRID_SIZE) * GRID_SIZE;
             let snapY = Math.round(world.y / GRID_SIZE) * GRID_SIZE;
 
             if (hitPin) {
-              if (dragTerm.isEnd && !hitPin.isOutput && (!wire.fromCompId || hitPin.compId !== wire.fromCompId)) {
-                snapX = hitPin.x;
-                snapY = hitPin.y;
-                this.renderer.hoveredPin = hitPin;
-              } else if (dragTerm.isStart && hitPin.isOutput && (!wire.toCompId || hitPin.compId !== wire.toCompId)) {
-                snapX = hitPin.x;
-                snapY = hitPin.y;
-                this.renderer.hoveredPin = hitPin;
-              } else {
-                this.renderer.hoveredPin = null;
-              }
+              snapX = hitPin.x;
+              snapY = hitPin.y;
+              this.renderer.hoveredPin = hitPin;
             } else {
               this.renderer.hoveredPin = null;
             }
@@ -24492,9 +25032,9 @@
             const drag = this.renderer.activeWireDrag;
             const dragDist = Math.hypot(world.x - drag.startX, world.y - drag.startY);
 
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 10);
+            const hitPin = this.resolveActiveWireDragPin(world.x, world.y, drag, 20);
 
-            if (hitPin && (!drag.compId || (hitPin.compId !== drag.compId || hitPin.pinIndex !== drag.pinIndex))) {
+            if (hitPin) {
               this.finishActiveWireAtPoint({ x: hitPin.x, y: hitPin.y }, null, hitPin);
               this.mergeOpenWireTermini(16);
             } else if (dragDist >= 24) {
@@ -24514,6 +25054,7 @@
             for (const w of affected) {
               this.cleanWireWaypoints(w);
             }
+            this.formatConnectorsInModules(null, this.circuit, this.renderer);
             this.circuit.syncImmediateWireLevels();
             this.refreshAll();
           }
@@ -24525,29 +25066,41 @@
             this.renderer.activeTerminusDrag = null;
             this.renderer.hoveredPin = null;
 
-            const hitPin = this.renderer.findPinAt(world.x, world.y, 10);
-            if (hitPin) {
-              if (dragTerm.isEnd && !hitPin.isOutput && (!wire.fromCompId || hitPin.compId !== wire.fromCompId)) {
+            const hitPin = this.resolveTerminusDragPin(world.x, world.y, dragTerm, 20);
+            let connectedToPin = false;
+            if (hitPin && wire) {
+              if (dragTerm.isEnd && !hitPin.isOutput) {
                 wire.toCompId = hitPin.compId;
                 wire.toPin = hitPin.pinIndex;
+                wire._toComp = this.circuit.getComponent(hitPin.compId) || null;
                 wire.toPoint = null;
                 wire.toWireId = null;
-              } else if (dragTerm.isStart && hitPin.isOutput && (!wire.toCompId || hitPin.compId !== wire.toCompId)) {
+                connectedToPin = true;
+              } else if (dragTerm.isStart && hitPin.isOutput) {
                 wire.fromCompId = hitPin.compId;
                 wire.fromPin = hitPin.pinIndex;
+                wire._fromComp = this.circuit.getComponent(hitPin.compId) || null;
                 wire.fromPoint = null;
                 wire.fromWireId = null;
+                connectedToPin = true;
               }
             }
 
             if (wire) {
-              this.cleanWireWaypoints(wire);
+              if (connectedToPin && this.smartWires && (!wire.waypoints || wire.waypoints.length === 0)) {
+                this.routeWires([wire.id]);
+                this.deconflictWireChannels();
+              } else {
+                this.cleanWireWaypoints(wire);
+              }
               this.circuit.syncImmediateWireLevels();
               if (this.inspector && this.renderer.selectedWireId === wire.id) {
                 this.inspector.render(null, wire.id);
               }
             }
             this.mergeOpenWireTermini(16);
+            this.formatConnectorsInModules(null, this.circuit, this.renderer);
+            this.triggerEditPropagation(this.circuit);
             this.refreshAll();
           }
 
@@ -24561,6 +25114,7 @@
                 this.inspector.render(null, w.id);
               }
             }
+            this.formatConnectorsInModules(null, this.circuit, this.renderer);
             this.refreshAll();
           }
 
@@ -24580,6 +25134,7 @@
             if (dragSeg.endJunctionDrag && dragSeg.endJunctionDrag.allWires) {
               for (const aw of dragSeg.endJunctionDrag.allWires) this.cleanWireWaypoints(aw);
             }
+            this.formatConnectorsInModules(null, this.circuit, this.renderer);
             this.refreshAll();
           }
 
@@ -24660,17 +25215,10 @@
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
             const world = this.renderer.screenToWorld(sx, sy);
-            let targetPin = this.renderer.findPinAt(world.x, world.y, 16);
             const drag = this.renderer.activeWireDrag;
-            if (!targetPin) {
-              const hitComp = this.renderer.findComponentAt(world.x, world.y);
-              if (hitComp && hitComp.id !== drag.compId && hitComp.inputs.length === 1 && hitComp.outputs.length === 0) {
-                const pos = hitComp.getPinWorldPos(false, 0);
-                targetPin = { compId: hitComp.id, isOutput: false, pinIndex: 0, x: pos.x, y: pos.y };
-              }
-            }
+            const targetPin = this.resolveActiveWireDragPin(world.x, world.y, drag, 20);
 
-            if (targetPin && (!drag.compId || (targetPin.compId !== drag.compId || targetPin.pinIndex !== drag.pinIndex))) {
+            if (targetPin) {
               this.finishActiveWireAtPoint({ x: targetPin.x, y: targetPin.y }, null, targetPin);
               return;
             }
@@ -25980,15 +26528,17 @@
 
         const zoomSlider = document.getElementById('slider-time-zoom');
         const zoomLabel = document.getElementById('label-time-zoom');
+        const formatZoomLabel = (v) => `${v < 1 ? v.toFixed(2) : (Math.round(v * 100) / 100)} px/T`;
         zoomSlider.addEventListener('input', (e) => {
-          const val = parseInt(e.target.value, 10);
+          const val = Math.max(0.1, Math.min(32, parseFloat(e.target.value) || 12));
           this.analyzer.pixelsPerTick = val;
-          zoomLabel.textContent = `${val} px/T`;
+          zoomLabel.textContent = formatZoomLabel(val);
           this.analyzer.render();
         });
         attachSliderHoldRepeat(zoomSlider, (val) => {
-          this.analyzer.pixelsPerTick = val;
-          zoomLabel.textContent = `${val} px/T`;
+          const num = Math.max(0.1, Math.min(32, Number(val) || 12));
+          this.analyzer.pixelsPerTick = num;
+          zoomLabel.textContent = formatZoomLabel(num);
           this.analyzer.render();
         });
 
@@ -26434,23 +26984,29 @@
        * waypoints. `targetIds` = null re-routes every wire of the active circuit.
        */
       routeWires(targetIds = null, options = {}) {
-        const circuit = this.circuit;
+        const circuit = options.circuit || this.circuit;
+        const renderer = options.renderer || (circuit === this.circuit ? this.renderer : this.rendererRight) || this.renderer;
         const outcome = { routed: 0, fallback: 0 };
         if (!circuit || !circuit.wires || circuit.wires.length === 0) return outcome;
         const useDiagonal = Boolean(options.allowDiagonal) && this.allowDiagonalWires !== false;
+        const forceBranches = Boolean(options.forceBranches);
         let ids = targetIds ? new Set(targetIds) : null;
 
         if (ids) {
           const seedRootKeys = new Set();
+          const seedFloatRoots = new Set();
           for (const w of circuit.wires) {
             if (!ids.has(w.id)) continue;
             const root = circuit.resolveWireRoot(w);
             if (root.compId) seedRootKeys.add(`${root.compId}\u0000${root.pin}`);
+            else if (root.rootWire) seedFloatRoots.add(root.rootWire.id);
           }
-          if (seedRootKeys.size > 0) {
+          if (seedRootKeys.size > 0 || seedFloatRoots.size > 0) {
             for (const w of circuit.wires) {
               const root = circuit.resolveWireRoot(w);
               if (root.compId && seedRootKeys.has(`${root.compId}\u0000${root.pin}`)) {
+                ids.add(w.id);
+              } else if (!root.compId && root.rootWire && seedFloatRoots.has(root.rootWire.id)) {
                 ids.add(w.id);
               }
             }
@@ -26460,7 +27016,7 @@
             added = false;
             for (const w of circuit.wires) {
               if (!w.fromCompId && w.fromWireId && ids.has(w.fromWireId) && !ids.has(w.id)) {
-                const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
+                const isAuto = forceBranches || w.autoRouted || !w.waypoints || w.waypoints.length === 0;
                 if (isAuto) {
                   ids.add(w.id);
                   added = true;
@@ -26476,7 +27032,9 @@
         for (const w of circuit.wires) {
           if (ids && !ids.has(w.id)) continue;
           const root = circuit.resolveWireRoot(w);
-          const key = root.compId ? `${root.compId}\u0000${root.pin}` : '';
+          const key = root.compId
+            ? `${root.compId}\u0000${root.pin}`
+            : (root.rootWire ? `~float\u0000${root.rootWire.id}` : '');
           if (key) netKeyByWireId.set(w.id, key);
           if (circuit.isForkTrunkWire && circuit.isForkTrunkWire(w)) {
             oldTrunkIds.add(w.id);
@@ -26508,6 +27066,9 @@
               w.fromWireId = null;
               w.fromPoint = null;
             }
+          } else if (root.rootWire && root.rootWire.fromPoint && !w.fromCompId && w.fromWireId && oldTrunkIds.has(root.rootWire.id)) {
+            w.fromPoint = { x: root.rootWire.fromPoint.x, y: root.rootWire.fromPoint.y };
+            w.fromWireId = null;
           }
           w.waypoints = [];
           w.channelOffset = 0;
@@ -26524,7 +27085,7 @@
         }
         let routes = null;
         try {
-          routes = new WireRouter(circuit).route(ids, (w) => this.renderer.getWirePolyline(w));
+          routes = new WireRouter(circuit).route(ids, (w) => renderer.getWirePolyline(w));
         } catch (err) {
           console.warn('Wire router failed, using direct routes:', err);
         }
@@ -26619,7 +27180,7 @@
           for (const w of circuit.wires) {
             if (!w.fromCompId && w.fromWireId && ids.has(w.fromWireId) && !ids.has(w.id)) {
               const parent = circuit.getWire(w.fromWireId);
-              const parentPts = parent ? this.renderer.getWirePolyline(parent) : [];
+              const parentPts = parent ? renderer.getWirePolyline(parent) : [];
               const anchor = w.fromPoint || (parentPts[0] || null);
               const dSq = (anchor && parentPts.length >= 2) ? circuit._projectPointOnPoints(parentPts, anchor).distSq : Infinity;
               if (dSq > 16 && w.toCompId) {
@@ -26639,7 +27200,7 @@
             return this.routeWires(detachedIds, options);
           }
         }
-        circuit.normalizeForkWires((w) => this.renderer.getWirePolyline(w), affectedRootKeys);
+        circuit.normalizeForkWires((w) => renderer.getWirePolyline(w), affectedRootKeys);
         circuit.updateWireLevelsFromDrivers();
         return outcome;
       }
@@ -26655,35 +27216,162 @@
         return outcome;
       }
 
-      /** Re-routes the automatically routed wires touching the given components (after a move). */
-      rerouteWiresAround(compIds) {
-        const circuit = this.circuit;
-        if (!circuit || !this.smartWires) return 0;
-        const moved = new Set(compIds || []);
-        if (moved.size === 0) return 0;
-        const boxes = [];
-        for (const id of moved) {
-          const c = circuit.getComponent(id);
-          if (c) boxes.push(c);
+      /**
+       * Automatically formats any connector points (junctions, waypoints, corners, open endpoints)
+       * or wire segments that lie inside component bodies:
+       *  1. Snaps open wire endpoints inside/near open modules into their free pins.
+       *  2. Evicts remaining open endpoints trapped inside fully-occupied modules to clean grid points outside.
+       *  3. Re-routes any wires (including manual/forked wires) whose connector points or segments collide with modules.
+       */
+      formatConnectorsInModules(scopeCompIds = null, targetCircuit = this.circuit, targetRenderer = this.renderer) {
+        const circuit = targetCircuit || this.circuit;
+        const renderer = targetRenderer || (circuit === this.circuit ? this.renderer : this.rendererRight) || this.renderer;
+        if (!circuit || !renderer || !circuit.components || circuit.components.length === 0 || !circuit.wires || circuit.wires.length === 0) {
+          return 0;
         }
-        const targets = [];
+        const comps = circuit.components;
+        let formattedCount = 0;
+
+        // 1. Snap open endpoints that lie inside or at open modules
+        const snapSet = new Set(scopeCompIds || []);
         for (const w of circuit.wires) {
-          const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
-          if (!isAuto) continue;
-          const root = circuit.resolveWireRoot(w);
-          if (moved.has(w.fromCompId) || moved.has(root.compId) || moved.has(w.toCompId)) { targets.push(w.id); continue; }
-          const pts = this.renderer.getWirePolyline(w);
-          for (const c of boxes) {
-            if (this.renderer.isWireIntersectingBox(pts, c.x + 1, c.y + 1, c.x + c.width - 1, c.y + c.height - 1)) {
-              targets.push(w.id);
+          const openEnd = w.toPoint && !w.toCompId && !w.toWireId && !circuit.isForkTrunkWire(w);
+          const openStart = w.fromPoint && !w.fromCompId && !w.fromWireId;
+          if (!openEnd && !openStart) continue;
+          for (const c of comps) {
+            if (snapSet.has(c.id)) continue;
+            if (
+              (openEnd && w.toPoint.x >= c.x - 20 && w.toPoint.x <= c.x + c.width + 12 && w.toPoint.y >= c.y - 12 && w.toPoint.y <= c.y + c.height + 12) ||
+              (openStart && w.fromPoint.x >= c.x - 12 && w.fromPoint.x <= c.x + c.width + 20 && w.fromPoint.y >= c.y - 12 && w.fromPoint.y <= c.y + c.height + 12)
+            ) {
+              snapSet.add(c.id);
+            }
+          }
+        }
+        const newlySnappedIds = [];
+        for (const cid of snapSet) {
+          const comp = circuit.getComponent(cid);
+          if (!comp) continue;
+          const cnt = circuit.snapOpenWiresToComponent(comp, 28);
+          if (cnt > 0) {
+            formattedCount += cnt;
+            if (Array.isArray(circuit._lastSnappedWireIds)) {
+              for (const wid of circuit._lastSnappedWireIds) newlySnappedIds.push(wid);
+            }
+          }
+        }
+
+        // 2. Evict remaining open endpoints trapped inside fully-occupied modules
+        const findContainingComp = (px, py) => {
+          for (let i = comps.length - 1; i >= 0; i--) {
+            const c = comps[i];
+            if (px >= c.x && px <= c.x + c.width && py >= c.y && py <= c.y + c.height) return c;
+          }
+          return null;
+        };
+        const evictOpenPt = (pt, preferLeft) => {
+          const hit = findContainingComp(pt.x, pt.y);
+          if (!hit) return false;
+          const G = GRID_SIZE;
+          const gy = Math.max(-5000, Math.min(5000, Math.round(pt.y / G) * G));
+          const gx = Math.max(-5000, Math.min(5000, Math.round(pt.x / G) * G));
+          for (let step = 1; step <= 8; step++) {
+            const leftX = Math.max(-5000, hit.x - step * G);
+            const rightX = Math.min(5000, hit.x + hit.width + step * G);
+            const topY = Math.max(-5000, hit.y - step * G);
+            const botY = Math.min(5000, hit.y + hit.height + step * G);
+            const cands = preferLeft
+              ? [{ x: leftX, y: gy }, { x: gx, y: topY }, { x: gx, y: botY }, { x: rightX, y: gy }]
+              : [{ x: rightX, y: gy }, { x: gx, y: topY }, { x: gx, y: botY }, { x: leftX, y: gy }];
+            for (const cand of cands) {
+              if (!findContainingComp(cand.x, cand.y)) {
+                pt.x = cand.x;
+                pt.y = cand.y;
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        const collidingSet = new Set(newlySnappedIds);
+        for (const w of circuit.wires) {
+          if (w.toPoint && !w.toCompId && !w.toWireId && !circuit.isForkTrunkWire(w)) {
+            if (evictOpenPt(w.toPoint, true)) {
+              collidingSet.add(w.id);
+              formattedCount++;
+            }
+          }
+          if (w.fromPoint && !w.fromCompId && !w.fromWireId) {
+            if (evictOpenPt(w.fromPoint, false)) {
+              collidingSet.add(w.id);
+              formattedCount++;
+            }
+          }
+        }
+
+        // 3. Detect any wires whose connector points (junctions, waypoints, corners) or segments lie inside modules
+        for (const w of circuit.wires) {
+          if (collidingSet.has(w.id)) continue;
+          const pts = renderer.getWirePolyline(w);
+          if (!pts || pts.length < 2) continue;
+          for (let i = 0; i < comps.length; i++) {
+            if (renderer.wireHasConnectorOrSegmentInModule(w, pts, comps[i])) {
+              collidingSet.add(w.id);
               break;
             }
           }
         }
-        if (targets.length === 0) return 0;
-        this.routeWires(targets);
+
+        if (collidingSet.size > 0) {
+          this.routeWires(Array.from(collidingSet), {
+            circuit,
+            renderer,
+            forceBranches: true
+          });
+          if (circuit === this.circuit) {
+            this.deconflictWireChannels();
+          }
+          formattedCount += collidingSet.size;
+        }
+        return formattedCount;
+      }
+
+      /** Re-routes the automatically routed wires touching the given components (after a move) and formats any connector points inside modules. */
+      rerouteWiresAround(compIds) {
+        const circuit = this.circuit;
+        if (!circuit) return 0;
+        const moved = new Set(compIds || []);
+        const comps = circuit.components || [];
+        const targets = new Set();
+
+        for (const w of circuit.wires) {
+          const pts = this.renderer.getWirePolyline(w);
+          let inModule = false;
+          if (pts && pts.length >= 2) {
+            for (let i = 0; i < comps.length; i++) {
+              if (this.renderer.wireHasConnectorOrSegmentInModule(w, pts, comps[i])) {
+                inModule = true;
+                break;
+              }
+            }
+          }
+          if (inModule) {
+            targets.add(w.id);
+            continue;
+          }
+          if (!this.smartWires || moved.size === 0) continue;
+          const isAuto = w.autoRouted || !w.waypoints || w.waypoints.length === 0;
+          if (!isAuto) continue;
+          const root = circuit.resolveWireRoot(w);
+          if (moved.has(w.fromCompId) || moved.has(root.compId) || moved.has(w.toCompId)) {
+            targets.add(w.id);
+          }
+        }
+        if (targets.size === 0) return 0;
+        this.routeWires(Array.from(targets), { forceBranches: true });
         this.deconflictWireChannels();
-        return targets.length;
+        return targets.size;
       }
 
       /**
@@ -28001,6 +28689,8 @@
           if (ic) {
             ic.x = Math.round((gx - ic.width / 2) / GRID_SIZE) * GRID_SIZE;
             ic.y = Math.round((gy - ic.height / 2) / GRID_SIZE) * GRID_SIZE;
+            this.snapOpenWiresToComponent(ic, 28, circuit, renderer);
+            this.formatConnectorsInModules([ic.id], circuit, renderer);
           }
           renderer.selectedCompIds.clear();
           renderer.selectedCompIds.add(ic.id);
@@ -28021,6 +28711,13 @@
           circuit.addWire(a.id, w.fp, b2.id, w.tp, null, waypoints);
         }
         if (typeof circuit.normalizeForkWires === 'function') circuit.normalizeForkWires();
+        const createdIds = created.filter(Boolean).map(c => c.id);
+        for (const c of created) {
+          if (c) this.snapOpenWiresToComponent(c, 28, circuit, renderer);
+        }
+        if (createdIds.length > 0) {
+          this.formatConnectorsInModules(createdIds, circuit, renderer);
+        }
         renderer.selectedCompIds.clear();
         for (const c of created) renderer.selectedCompIds.add(c.id);
         renderer.selectedWireId = null;
@@ -28442,7 +29139,12 @@
             }
           }
         }
+        for (const id of ids) {
+          const comp = this.circuit.getComponent(id);
+          if (comp) this.snapOpenWiresToComponent(comp);
+        }
         this.rerouteWiresAround(ids);
+        this.formatConnectorsInModules(ids, this.circuit, this.renderer);
         this._coalesceHistory = true;
         this.refreshAll();
         if (ids.length === 1) this.inspector.render(ids[0], null);
@@ -28508,13 +29210,14 @@
         for (const w of (this._previewWires || [])) w._preview = false;
         this._previewWires = [];
         if (moved) {
-          this.rerouteWiresAround(compIds);
           if (Array.isArray(compIds)) {
             for (const id of compIds) {
               const comp = this.circuit.getComponent(id);
               if (comp) this.snapOpenWiresToComponent(comp);
             }
           }
+          this.rerouteWiresAround(compIds);
+          this.formatConnectorsInModules(compIds, this.circuit, this.renderer);
         }
       }
 
