@@ -24316,6 +24316,43 @@
           `;
           menu.appendChild(header);
 
+          const addProbeItem = document.createElement('div');
+          addProbeItem.className = 'ctx-item';
+          addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt setzen</span>`;
+          addProbeItem.addEventListener('click', () => {
+            this.checkpointHistory();
+            const pts = this.renderer.getWirePolyline(wire);
+            const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
+            const probe = this.circuit.addProbe(wire.id, {
+              ...this.getDefaultParamsForNewComponent('PROBE'),
+              offsetRatio: ratio
+            });
+            if (probe) {
+              this.selectItem(null, null, probe.id);
+              this.highlightInspector();
+              this.refreshAll();
+            }
+            this.hideContextMenu();
+          });
+          menu.appendChild(addProbeItem);
+
+          const delWire = document.createElement('div');
+          delWire.className = 'ctx-item danger';
+          delWire.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
+          delWire.addEventListener('click', () => {
+            if (this.engine.mode === 'sim') return;
+            this.checkpointHistory();
+            this.circuit.removeWire(wire.id, this.ringBuffer);
+            this.selectItem(null, null);
+            this.refreshAll();
+            this.hideContextMenu();
+          });
+          menu.appendChild(delWire);
+
+          const wireQuickDiv = document.createElement('div');
+          wireQuickDiv.className = 'ctx-divider';
+          menu.appendChild(wireQuickDiv);
+
           const openInspect = document.createElement('div');
           openInspect.className = 'ctx-item';
           openInspect.innerHTML = `<span>${ICONS.wrench}</span> <span>Im Inspector anzeigen</span>`;
@@ -24412,39 +24449,6 @@
             this.hideContextMenu();
           });
           menu.appendChild(autoRouteWire);
-
-          const addProbeItem = document.createElement('div');
-          addProbeItem.className = 'ctx-item';
-          addProbeItem.innerHTML = `<span>${ICONS.probe}</span> <span>Messpunkt setzen</span>`;
-          addProbeItem.addEventListener('click', () => {
-            this.checkpointHistory();
-            const pts = this.renderer.getWirePolyline(wire);
-            const ratio = worldPos ? this.renderer.getProjectedRatioOnPolyline(pts, worldPos) : 0.5;
-            const probe = this.circuit.addProbe(wire.id, {
-              ...this.getDefaultParamsForNewComponent('PROBE'),
-              offsetRatio: ratio
-            });
-            if (probe) {
-              this.selectItem(null, null, probe.id);
-              this.highlightInspector();
-              this.refreshAll();
-            }
-            this.hideContextMenu();
-          });
-          menu.appendChild(addProbeItem);
-
-          const delWire = document.createElement('div');
-          delWire.className = 'ctx-item danger';
-          delWire.innerHTML = `<span>${ICONS.trash}</span> <span>Leitung löschen</span>`;
-          delWire.addEventListener('click', () => {
-            if (this.engine.mode === 'sim') return;
-            this.checkpointHistory();
-            this.circuit.removeWire(wire.id, this.ringBuffer);
-            this.selectItem(null, null);
-            this.refreshAll();
-            this.hideContextMenu();
-          });
-          menu.appendChild(delWire);
 
         } else {
           const header = document.createElement('div');

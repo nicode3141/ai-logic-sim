@@ -4662,6 +4662,37 @@ runTest('WISH-049', 'File menu exposes PNG and PDF circuit exports', () => {
   assertEqual(html.includes("'menu.file.export_pdf': 'Export PDF'"), true, 'English PDF label exists');
 });
 
+runTest('WISH-076', 'Wire context menu places Messpunkt setzen and Leitung löschen at the top near the mouse cursor', () => {
+  const app = new LogicSimApp();
+  app.circuit.clear(app.ringBuffer);
+  app.engine.mode = 'edit';
+  const sw = app.circuit.addComponent('SWITCH', 40, 80);
+  const led = app.circuit.addComponent('LED', 240, 80);
+  const wire = app.circuit.addWire(sw.id, 0, led.id, 0);
+
+  app.showContextMenu(180, 120, null, wire, { x: 140, y: 100 });
+  const children = Array.from(app.contextMenuEl.children);
+  const actionItems = children.filter(el => (el.className || '').includes('ctx-item'));
+  assertEqual(actionItems.length >= 4, true, 'Wire context menu renders action items');
+  assertEqual((actionItems[0].textContent || '').includes('Messpunkt setzen'), true, 'First action item near mouse is Messpunkt setzen');
+  assertEqual((actionItems[1].textContent || '').includes('Leitung löschen'), true, 'Second action item near mouse is Leitung löschen');
+  assertEqual((actionItems[1].className || '').includes('danger'), true, 'Leitung löschen retains danger styling');
+  const dividerIdx = children.findIndex(el => (el.className || '').includes('ctx-divider'));
+  const probeIdx = children.indexOf(actionItems[0]);
+  const delIdx = children.indexOf(actionItems[1]);
+  assertEqual(probeIdx < delIdx && delIdx < dividerIdx, true, 'Quick actions precede divider separating secondary wire actions');
+
+  // Clicking Messpunkt setzen adds a probe to the wire
+  actionItems[0].dispatchEvent({ type: 'click' });
+  assertEqual(app.circuit.getProbes().length, 1, 'Clicking Messpunkt setzen adds a probe');
+
+  // Re-open menu and click Leitung löschen to remove wire
+  app.showContextMenu(180, 120, null, wire, { x: 140, y: 100 });
+  const delBtn = Array.from(app.contextMenuEl.children).find(el => (el.textContent || '').includes('Leitung löschen'));
+  delBtn.dispatchEvent({ type: 'click' });
+  assertEqual(app.circuit.wires.some(w => w.id === wire.id), false, 'Clicking Leitung löschen removes the wire');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
