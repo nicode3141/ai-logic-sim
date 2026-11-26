@@ -4602,6 +4602,11 @@
               <span data-i18n="menu.analysis.bool_synth">Boolesche Schaltalgebra &amp; Synthese...</span>
               <span class="menu-shortcut">Strg+B</span>
             </button>
+            <div class="app-menu-divider"></div>
+            <button class="app-menu-item" id="menu-item-optimize-plan">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span data-i18n="menu.analysis.optimize_plan">Schaltplan optimieren</span>
+            </button>
           </div>
         </div>
 
@@ -4685,6 +4690,10 @@
               <span class="align-row-text"><strong>Ansicht einpassen</strong><small>Schaltung zentrieren</small></span>
               <kbd>F</kbd>
             </button>
+            <button class="align-row" data-align-action="optimize">
+              <span class="align-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+              <span class="align-row-text"><strong>Schaltplan optimieren</strong><small>Redundante Gatter &amp; Inverter vereinfachen</small></span>
+            </button>
 
 
 
@@ -4708,6 +4717,7 @@
             <label class="align-check"><input type="checkbox" id="chk-layout-animation" checked /> <span>Anordnen animieren</span></label>
             <label class="align-check"><input type="checkbox" id="chk-smart-wires" checked /> <span>Leitungen beim Verschieben neu verlegen</span></label>
             <label class="align-check"><input type="checkbox" id="chk-wire-bridges" checked /> <span>Brücken an Kreuzungen</span></label>
+            <label class="align-check"><input type="checkbox" id="chk-optimize-plan" /> <span>Beim Anordnen Schaltung optimieren</span></label>
             <div class="align-report" id="align-report">Noch nicht angeordnet.</div>
           </div>
         </div>
@@ -5310,6 +5320,10 @@
               <input type="radio" name="synth-placement" value="replace" />
               <span>Neue Schaltung (ersetzt die aktuelle)</span>
             </label>
+            <label class="synth-radio-label" style="margin-left: 8px;">
+              <input type="checkbox" id="chk-synth-optimize" />
+              <span>Schaltplan optimieren (Teilausdrücke teilen &amp; Negationsblasen ○ nutzen)</span>
+            </label>
           </div>
         </div>
         <div class="modal-footer">
@@ -5458,6 +5472,13 @@
                 <div>
                   <div style="font-weight: 600; color: var(--text-main);">Schräge Leitungen erlauben</div>
                   <div style="font-size: 11px; color: var(--text-dim);">Diagonale Leitungsführung mit Umschalt-Taste erlauben. Aus: strikt rechtwinklig.</div>
+                </div>
+              </label>
+              <label class="settings-checkbox-label">
+                <input type="checkbox" id="settings-optimize-plan" />
+                <div>
+                  <div style="font-weight: 600; color: var(--text-main);">Schaltplan automatisch optimieren</div>
+                  <div style="font-size: 11px; color: var(--text-dim);">Fasst beim Anordnen und bei der Synthese identische Gatter zusammen, vereinfacht Doppelnegationen und nutzt Negationsblasen (○).</div>
                 </div>
               </label>
             </div>
@@ -5684,6 +5705,7 @@
           'menu.analysis': 'Analyse',
           'menu.analysis.truth_table': 'Wahrheitstabelle…',
           'menu.analysis.bool_synth': 'Schaltalgebra & Synthese…',
+          'menu.analysis.optimize_plan': 'Schaltplan optimieren',
           'menu.norm': 'Norm',
           'menu.norm.din40700': 'DIN 40700 (klassisch)',
           'menu.norm.din60617': 'DIN EN 60617 (IEC)',
@@ -5842,6 +5864,7 @@
           'menu.analysis': 'Analysis',
           'menu.analysis.truth_table': 'Truth Table…',
           'menu.analysis.bool_synth': 'Boolean Synthesis…',
+          'menu.analysis.optimize_plan': 'Optimize Schematic',
           'menu.norm': 'Symbols',
           'menu.norm.din40700': 'DIN 40700 (classic)',
           'menu.norm.din60617': 'DIN EN 60617 (IEC)',
@@ -6341,6 +6364,13 @@
       'HIGH Signalfarbe flüssig wählen': 'Pick HIGH signal color smoothly', 'LOW Signalfarbe flüssig wählen': 'Pick LOW signal color smoothly',
       'Hexadezimalcode': 'Hexadecimal color code', 'Schräge Leitungen erlauben': 'Allow diagonal wires',
       'Diagonale Leitungsführung mit Umschalt-Taste erlauben. Aus: strikt rechtwinklig.': 'Allow diagonal wire routing while holding Shift. Off: strictly orthogonal.',
+      'Schaltplan optimieren': 'Optimize schematic',
+      'Redundante Gatter & Inverter vereinfachen': 'Simplify redundant gates & inverters',
+      'Beim Anordnen Schaltung optimieren': 'Optimize circuit when aligning',
+      'Schaltplan optimieren (Teilausdrücke teilen & Negationsblasen ○ nutzen)': 'Optimize schematic (share subexpressions & use pin bubbles ○)',
+      'Schaltplan automatisch optimieren': 'Automatically optimize schematic plan',
+      'Fasst beim Anordnen und bei der Synthese identische Gatter zusammen, vereinfacht Doppelnegationen und nutzt Negationsblasen (○).': 'Merges identical gates, removes double negations and absorbs inverters into pin bubbles (○) during alignment and synthesis.',
+      '✓ Schaltplan ist bereits optimal': '✓ Schematic is already optimal',
       'Oberflächengröße (Schrift & Bedienelemente):': 'UI Scale (Font & Controls):',
       'Menüs, Werkzeugleiste, Palette und Eigenschaften größer oder kleiner darstellen. Die Zeichenfläche bleibt unverändert.': 'Scale menus, toolbar, palette and inspector larger or smaller. The canvas remains unchanged.',
       'Kleiner': 'Smaller', 'Größer': 'Larger', 'Oberflächengröße in Prozent': 'UI scale in percent'
@@ -6402,6 +6432,8 @@
       [/^Leitungsbrücken (aktiviert|deaktiviert)$/, (m) => `Wire bridges ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
       [/^Schräge Leitungen (erlaubt|deaktiviert)$/, (m) => `Diagonal wires ${m[1] === 'erlaubt' ? 'on' : 'off'}`],
       [/^Gatterverzögerungs-Anzeige (aktiviert|deaktiviert)$/, (m) => `Gate delay display ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
+      [/^Schaltplan-Optimierung (aktiviert|deaktiviert)$/, (m) => `Schematic optimization ${m[1] === 'aktiviert' ? 'on' : 'off'}`],
+      [/^⚡ Schaltplan optimiert: (\d+) Gatter eingespart, (\d+) Inverter absorbiert, (\d+) Pins entwirrt$/, (m) => `⚡ Schematic optimized: ${I18N_PLURAL(m[1], 'gate', 'gates')} saved, ${I18N_PLURAL(m[2], 'inverter', 'inverters')} absorbed, ${I18N_PLURAL(m[3], 'pin', 'pins')} untangled`],
       [/^Schalter im Edit-Modus (klickbar|nur verschiebbar)$/, (m) => `Switches in edit mode: ${m[1] === 'klickbar' ? 'clickable' : 'move only'}`],
       [/^Fehler beim Laden der JSON-Datei: (.*)$/, (m, tr) => `Could not load the JSON file: ${tr(m[1])}`],
       [/^Synthese-Fehler: (.*)$/, (m, tr) => `Synthesis error: ${tr(m[1])}`],
@@ -10569,6 +10601,591 @@
         this.nextId = Math.max(this.nextId, maxNum + 1);
         this.syncWirePointers();
         this.syncImmediateWireLevels();
+      }
+
+      /**
+       * Algebraic & topological schematic plan optimizer (`WISH-077`):
+       *  1. Eliminates neutral buffers and double-negation (`NOT -> NOT`) chains
+       *  2. Fuses `AND/OR/XOR + NOT` into `NAND/NOR/XNOR` (and vice versa) when fan-out is 1
+       *  3. Absorbs standalone `NOT` gates into downstream gate input bubbles (`○`)
+       *  4. Simplifies constant/idempotent/complementary gate inputs (`A & A -> A`, `A & !A -> 0`)
+       *  5. Merges duplicate combinational subexpressions via DAG Hash-Consing (CSE)
+       *  6. Untangles commutative gate input pins monotonically by driver Y (Rearrangement Inequality)
+       */
+      optimizePlan(options = {}) {
+        const stats = {
+          removedGates: 0,
+          removedWires: 0,
+          mergedGates: 0,
+          absorbedInverters: 0,
+          swappedPins: 0,
+          totalChanges: 0
+        };
+        if (!this.components || this.components.length === 0) return stats;
+
+        const PURE_COMB_GATES = {
+          NOT: 1, BUFFER: 1, AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, MAJORITY: 1
+        };
+        const COMMUTATIVE_GATES = {
+          AND: 1, OR: 1, NAND: 1, NOR: 1, XOR: 1, XNOR: 1, MAJORITY: 1
+        };
+        const FLIP_TYPE = {
+          AND: 'NAND', NAND: 'AND',
+          OR: 'NOR', NOR: 'OR',
+          XOR: 'XNOR', XNOR: 'XOR'
+        };
+        const DEFAULT_INV_OUT = { NOT: true, NAND: true, NOR: true, XNOR: true };
+
+        const getEffOutInv = (comp) => {
+          if (comp.params && comp.params.invertedOutput !== undefined) {
+            return Boolean(comp.params.invertedOutput);
+          }
+          return Boolean(DEFAULT_INV_OUT[comp.type]);
+        };
+
+        const hasProbeOnWire = (wireId) => {
+          for (let i = 0; i < this.probes.length; i++) {
+            if (this.probes[i].wireId === wireId) return true;
+          }
+          return false;
+        };
+
+        const migrateProbes = (oldWireId, newWireId) => {
+          for (let i = this.probes.length - 1; i >= 0; i--) {
+            const pr = this.probes[i];
+            if (pr.wireId === oldWireId) {
+              if (newWireId) {
+                pr.wireId = newWireId;
+              } else {
+                this.probeMap.delete(pr.id);
+                this.probes.splice(i, 1);
+              }
+            }
+          }
+        };
+
+        const removeWireById = (wid, fallbackProbeWireId = null) => {
+          if (!this.wireMap.has(wid)) return;
+          migrateProbes(wid, fallbackProbeWireId);
+          this.wireMap.delete(wid);
+          const idx = this.wires.findIndex(w => w.id === wid);
+          if (idx >= 0) this.wires.splice(idx, 1);
+          stats.removedWires++;
+          this._inputWireMapDirty = true;
+          this._forkCountDirty = true;
+        };
+
+        const pruneOrphanForkTrunks = () => {
+          let pruned = true;
+          while (pruned) {
+            pruned = false;
+            this._forkCountDirty = true;
+            for (let i = this.wires.length - 1; i >= 0; i--) {
+              const w = this.wires[i];
+              if (!w.toCompId && w.autoRouted && !this.isForkTrunkWire(w)) {
+                let altWireId = null;
+                const root = this.resolveWireRoot(w);
+                if (root.compId) {
+                  const other = this.wires.find(ow => ow.id !== w.id && this.resolveWireRoot(ow).compId === root.compId && this.resolveWireRoot(ow).pin === root.pin);
+                  if (other) altWireId = other.id;
+                }
+                removeWireById(w.id, altWireId);
+                pruned = true;
+              }
+            }
+          }
+        };
+
+        const getOutgoingSinks = (compId, outPin = 0) => {
+          const leafCompWires = [];
+          const trunkWires = [];
+          const floatingWires = [];
+          for (let i = 0; i < this.wires.length; i++) {
+            const w = this.wires[i];
+            const root = this.resolveWireRoot(w);
+            if (root.compId !== compId || root.pin !== outPin) continue;
+            if (w.toCompId) leafCompWires.push(w);
+            else if (this.isForkTrunkWire(w)) trunkWires.push(w);
+            else floatingWires.push(w);
+          }
+          return { leafCompWires, trunkWires, floatingWires };
+        };
+
+        const redirectDriverTo = (oldCompId, oldOutPin, newCompId, newOutPin, invertAtSinks = false) => {
+          if (oldCompId === newCompId && oldOutPin === newOutPin && !invertAtSinks) return true;
+          const { leafCompWires, trunkWires, floatingWires } = getOutgoingSinks(oldCompId, oldOutPin);
+          for (let i = 0; i < leafCompWires.length; i++) {
+            if (leafCompWires[i].toCompId === newCompId) return false;
+          }
+          if (invertAtSinks) {
+            if (floatingWires.length > 0 || leafCompWires.length === 0) return false;
+            for (let i = 0; i < trunkWires.length; i++) {
+              if (hasProbeOnWire(trunkWires[i].id)) return false;
+            }
+            for (let i = 0; i < leafCompWires.length; i++) {
+              const lw = leafCompWires[i];
+              if (hasProbeOnWire(lw.id)) return false;
+              const dst = this.getComponent(lw.toCompId);
+              if (!dst || !ONLY_GATE_TYPES[dst.type]) return false;
+            }
+          }
+
+          const targetFallbackWire = leafCompWires[0]
+            ? leafCompWires[0].id
+            : (floatingWires[0] ? floatingWires[0].id : (this.wires.find(w => w.fromCompId === newCompId && w.fromPin === newOutPin)?.id || null));
+
+          for (let i = 0; i < trunkWires.length; i++) {
+            removeWireById(trunkWires[i].id, targetFallbackWire);
+          }
+
+          for (let i = 0; i < leafCompWires.length; i++) {
+            const lw = leafCompWires[i];
+            lw.fromCompId = newCompId;
+            lw.fromPin = newOutPin;
+            lw.fromWireId = null;
+            lw.fromPoint = null;
+            lw.waypoints = [];
+            lw.channelOffset = 0;
+            lw.autoRouted = true;
+            if (invertAtSinks) {
+              const dst = this.getComponent(lw.toCompId);
+              if (dst) {
+                if (!Array.isArray(dst.params.invertedInputs)) {
+                  dst.params.invertedInputs = new Array(dst.inputs.length).fill(false);
+                }
+                dst.params.invertedInputs[lw.toPin] = !dst.params.invertedInputs[lw.toPin];
+              }
+            }
+          }
+
+          for (let i = 0; i < floatingWires.length; i++) {
+            const fw = floatingWires[i];
+            fw.fromCompId = newCompId;
+            fw.fromPin = newOutPin;
+            fw.fromWireId = null;
+            fw.fromPoint = null;
+          }
+
+          this._inputWireMapDirty = true;
+          this._forkCountDirty = true;
+          return true;
+        };
+
+        const deleteGateComponent = (compId, fallbackProbeWireId = null) => {
+          const inWires = this.wires.filter(w => w.toCompId === compId);
+          for (let i = 0; i < inWires.length; i++) {
+            removeWireById(inWires[i].id, fallbackProbeWireId);
+          }
+          if (this.compMap.has(compId)) {
+            this.compMap.delete(compId);
+            const idx = this.components.findIndex(c => c.id === compId);
+            if (idx >= 0) this.components.splice(idx, 1);
+            stats.removedGates++;
+          }
+          pruneOrphanForkTrunks();
+          this._topoVersion = (this._topoVersion + 1) | 0;
+        };
+
+        const wouldCreateCombCycle = (srcId, dstId) => {
+          if (srcId === dstId) return true;
+          const visited = new Set([dstId]);
+          const stack = [dstId];
+          while (stack.length > 0) {
+            const u = stack.pop();
+            const uComp = this.getComponent(u);
+            if (!uComp || LAYOUT_SEQUENTIAL_TYPES[uComp.type]) continue;
+            for (let i = 0; i < this.wires.length; i++) {
+              const w = this.wires[i];
+              if (!w.toCompId) continue;
+              const root = this.resolveWireRoot(w);
+              if (root.compId !== u) continue;
+              if (w.toCompId === srcId) return true;
+              if (!visited.has(w.toCompId)) {
+                visited.add(w.toCompId);
+                stack.push(w.toCompId);
+              }
+            }
+          }
+          return false;
+        };
+
+        for (let pass = 0; pass < 8; pass++) {
+          let changedInPass = false;
+
+          // 1. Neutral BUFFER / neutralized NOT elimination, NOT->NOT double negation, Gate+NOT fusion, and Bubble-Pushing
+          const gateSnapshot = this.components.slice();
+          for (let gi = 0; gi < gateSnapshot.length; gi++) {
+            const c = gateSnapshot[gi];
+            if (!this.compMap.has(c.id)) continue;
+            if (c.type !== 'NOT' && c.type !== 'BUFFER') continue;
+
+            const wIn = this.getWireToInput(c.id, 0);
+            if (!wIn) continue;
+            const root = this.resolveWireRoot(wIn);
+            if (!root.compId || root.compId === c.id) continue;
+            const srcComp = this.getComponent(root.compId);
+            if (!srcComp) continue;
+
+            const invIn = Boolean(c.params && c.params.invertedInputs && c.params.invertedInputs[0]);
+            const invOut = getEffOutInv(c);
+            const netInv = invIn !== invOut;
+            const cSinks = getOutgoingSinks(c.id, 0);
+            const hasOut = cSinks.leafCompWires.length > 0 || cSinks.floatingWires.length > 0;
+            if (!hasOut) continue;
+
+            if (!netInv) {
+              // Pure identity buffer/double-bubbled NOT
+              if (!wouldCreateCombCycle(root.compId, c.id) && redirectDriverTo(c.id, 0, root.compId, root.pin, false)) {
+                const probeTarget = getOutgoingSinks(root.compId, root.pin).leafCompWires[0]?.id || null;
+                deleteGateComponent(c.id, probeTarget);
+                changedInPass = true;
+                continue;
+              }
+            } else {
+              // Inverting NOT / inverted BUFFER: check upstream exclusive driver first
+              const upSinks = getOutgoingSinks(srcComp.id, root.pin);
+              const exclusiveToC = (
+                upSinks.leafCompWires.length === 1 &&
+                upSinks.leafCompWires[0].toCompId === c.id &&
+                upSinks.floatingWires.length === 0 &&
+                !hasProbeOnWire(wIn.id) &&
+                upSinks.trunkWires.every(tw => !hasProbeOnWire(tw.id))
+              );
+
+              if (exclusiveToC && (srcComp.type === 'NOT' || srcComp.type === 'BUFFER')) {
+                const srcInvIn = Boolean(srcComp.params && srcComp.params.invertedInputs && srcComp.params.invertedInputs[0]);
+                const srcNetInv = srcInvIn !== getEffOutInv(srcComp);
+                const wUpIn = this.getWireToInput(srcComp.id, 0);
+                const rootUp = wUpIn ? this.resolveWireRoot(wUpIn) : null;
+                if (srcNetInv && rootUp && rootUp.compId && rootUp.compId !== srcComp.id && rootUp.compId !== c.id) {
+                  // Double negation: X -> NOT_1 -> NOT_2 -> sinks  ===>  X -> sinks
+                  if (redirectDriverTo(c.id, 0, rootUp.compId, rootUp.pin, false)) {
+                    const probeTarget = getOutgoingSinks(rootUp.compId, rootUp.pin).leafCompWires[0]?.id || null;
+                    deleteGateComponent(c.id, probeTarget);
+                    deleteGateComponent(srcComp.id, probeTarget);
+                    stats.absorbedInverters += 2;
+                    changedInPass = true;
+                    continue;
+                  }
+                }
+              }
+
+              if (exclusiveToC && FLIP_TYPE[srcComp.type] && root.pin === 0) {
+                // Fuse AND+NOT -> NAND, OR+NOT -> NOR, XOR+NOT -> XNOR (and vice versa)
+                if (redirectDriverTo(c.id, 0, srcComp.id, 0, false)) {
+                  const curOutInv = getEffOutInv(srcComp);
+                  if (curOutInv === Boolean(DEFAULT_INV_OUT[srcComp.type])) {
+                    srcComp.type = FLIP_TYPE[srcComp.type];
+                    srcComp.params.invertedOutput = Boolean(DEFAULT_INV_OUT[srcComp.type]);
+                  } else {
+                    srcComp.params.invertedOutput = !curOutInv;
+                  }
+                  srcComp.rebuildPins();
+                  const probeTarget = getOutgoingSinks(srcComp.id, 0).leafCompWires[0]?.id || null;
+                  deleteGateComponent(c.id, probeTarget);
+                  stats.absorbedInverters++;
+                  changedInPass = true;
+                  continue;
+                }
+              }
+
+              // Bubble-push standalone NOT into downstream gate input bubbles (○)
+              if (!wouldCreateCombCycle(root.compId, c.id) && redirectDriverTo(c.id, 0, root.compId, root.pin, true)) {
+                const probeTarget = getOutgoingSinks(root.compId, root.pin).leafCompWires[0]?.id || null;
+                deleteGateComponent(c.id, probeTarget);
+                stats.absorbedInverters++;
+                changedInPass = true;
+                continue;
+              }
+            }
+          }
+
+          // 2. Idempotent / Complement / Constant Input Simplification on AND/NAND/OR/NOR
+          const multiSnapshot = this.components.slice();
+          for (let gi = 0; gi < multiSnapshot.length; gi++) {
+            const c = multiSnapshot[gi];
+            if (!this.compMap.has(c.id)) continue;
+            if (c.type !== 'AND' && c.type !== 'NAND' && c.type !== 'OR' && c.type !== 'NOR') continue;
+            const cSinks = getOutgoingSinks(c.id, 0);
+            if (cSinks.leafCompWires.length === 0 && cSinks.floatingWires.length === 0) continue;
+
+            const isAndFamily = c.type === 'AND' || c.type === 'NAND';
+            const identityBit = isAndFamily ? 1 : 0;
+            const annihilatorBit = isAndFamily ? 0 : 1;
+            const outInv = getEffOutInv(c);
+
+            let annihilated = false;
+            const seenPolarities = new Map(); // sigKey -> bitmask (1 for pos, 2 for neg)
+            const keptEntries = [];
+            const droppedWires = [];
+
+            for (let p = 0; p < c.inputs.length; p++) {
+              const invP = Boolean(c.params && c.params.invertedInputs && c.params.invertedInputs[p]) ? 1 : 0;
+              const w = this.getWireToInput(c.id, p);
+              const root = w ? this.resolveWireRoot(w) : null;
+              const drv = (root && root.compId) ? this.getComponent(root.compId) : null;
+
+              if (!w || !drv || drv.type === 'CONST') {
+                const rawConst = (w && drv && drv.type === 'CONST') ? (drv.params.value ? 1 : 0) : 0;
+                const effConst = rawConst ^ invP;
+                if (effConst === annihilatorBit) {
+                  annihilated = true;
+                }
+                if (w) droppedWires.push(w);
+                continue;
+              }
+
+              const sigKey = `${root.compId}:${root.pin}`;
+              const polBit = invP ? 2 : 1;
+              const prevMask = seenPolarities.get(sigKey) || 0;
+              if ((prevMask | polBit) === 3) {
+                // Complementary pair X & !X = 0 or X | !X = 1
+                annihilated = true;
+              }
+              if (prevMask & polBit) {
+                // Duplicate identical input X & X = X or X | X = X
+                droppedWires.push(w);
+              } else {
+                seenPolarities.set(sigKey, prevMask | polBit);
+                keptEntries.push({ w, root, invP });
+              }
+            }
+
+            if (annihilated || keptEntries.length === 0) {
+              const baseVal = annihilated ? annihilatorBit : identityBit;
+              const finalVal = outInv ? (baseVal ^ 1) : baseVal;
+              const constComp = this.addComponent('CONST', c.x, c.y, {
+                label: `Konstante ${finalVal}`,
+                value: finalVal
+              });
+              if (constComp && redirectDriverTo(c.id, 0, constComp.id, 0, false)) {
+                const probeTarget = getOutgoingSinks(constComp.id, 0).leafCompWires[0]?.id || null;
+                deleteGateComponent(c.id, probeTarget);
+                changedInPass = true;
+                continue;
+              }
+            } else if (keptEntries.length === 1) {
+              const sole = keptEntries[0];
+              const netInv = Boolean(sole.invP) !== outInv;
+              if (!netInv) {
+                if (!wouldCreateCombCycle(sole.root.compId, c.id) && redirectDriverTo(c.id, 0, sole.root.compId, sole.root.pin, false)) {
+                  const probeTarget = getOutgoingSinks(sole.root.compId, sole.root.pin).leafCompWires[0]?.id || null;
+                  deleteGateComponent(c.id, probeTarget);
+                  changedInPass = true;
+                  continue;
+                }
+              } else {
+                for (let d = 0; d < droppedWires.length; d++) {
+                  removeWireById(droppedWires[d].id, sole.w.id);
+                }
+                c.type = 'NOT';
+                c.params.numInputs = 1;
+                c.params.invertedInputs = [false];
+                c.params.invertedOutput = true;
+                sole.w.toPin = 0;
+                c.rebuildPins();
+                pruneOrphanForkTrunks();
+                this._inputWireMapDirty = true;
+                this._topoVersion = (this._topoVersion + 1) | 0;
+                changedInPass = true;
+                continue;
+              }
+            } else if (keptEntries.length < c.inputs.length && keptEntries.length >= 2) {
+              for (let d = 0; d < droppedWires.length; d++) {
+                removeWireById(droppedWires[d].id, keptEntries[0].w.id);
+              }
+              const newInv = new Array(keptEntries.length).fill(false);
+              for (let k = 0; k < keptEntries.length; k++) {
+                keptEntries[k].w.toPin = k;
+                newInv[k] = Boolean(keptEntries[k].invP);
+              }
+              c.params.numInputs = keptEntries.length;
+              c.params.invertedInputs = newInv;
+              c.rebuildPins();
+              pruneOrphanForkTrunks();
+              this._inputWireMapDirty = true;
+              this._topoVersion = (this._topoVersion + 1) | 0;
+              changedInPass = true;
+              continue;
+            }
+          }
+
+          // 3. DAG Common Subexpression Elimination (CSE / Hash-Consing) across acyclic combinational gates & duplicate CONSTs
+          const constCanon = new Map();
+          for (const c of this.components.slice()) {
+            if (!this.compMap.has(c.id) || c.type !== 'CONST') continue;
+            const cSinks = getOutgoingSinks(c.id, 0);
+            if (cSinks.leafCompWires.length === 0 && cSinks.floatingWires.length === 0) continue;
+            const valBit = c.params && c.params.value ? 1 : 0;
+            const lbl = String(c.params?.label || '').trim();
+            if (lbl && lbl !== `Konstante ${valBit}` && lbl !== String(valBit)) continue;
+            if (constCanon.has(valBit)) {
+              const canon = constCanon.get(valBit);
+              if (redirectDriverTo(c.id, 0, canon.id, 0, false)) {
+                const probeTarget = getOutgoingSinks(canon.id, 0).leafCompWires[0]?.id || null;
+                deleteGateComponent(c.id, probeTarget);
+                stats.mergedGates++;
+                changedInPass = true;
+              }
+            } else {
+              constCanon.set(valBit, c);
+            }
+          }
+
+          // Topological order over PURE_COMB_GATES for multi-level CSE
+          const combList = this.components.filter(c => PURE_COMB_GATES[c.type]);
+          const combById = new Map();
+          combList.forEach((c, idx) => combById.set(c.id, idx));
+          const adj = Array.from({ length: combList.length }, () => []);
+          const indeg = new Int32Array(combList.length);
+          for (let i = 0; i < this.wires.length; i++) {
+            const w = this.wires[i];
+            if (!w.toCompId) continue;
+            const dstIdx = combById.get(w.toCompId);
+            if (dstIdx === undefined) continue;
+            const root = this.resolveWireRoot(w);
+            if (!root.compId) continue;
+            const srcIdx = combById.get(root.compId);
+            if (srcIdx !== undefined && srcIdx !== dstIdx) {
+              adj[srcIdx].push(dstIdx);
+              indeg[dstIdx]++;
+            }
+          }
+          const topoOrder = [];
+          for (let i = 0; i < combList.length; i++) {
+            if (indeg[i] === 0) topoOrder.push(combList[i]);
+          }
+          for (let q = 0; q < topoOrder.length; q++) {
+            const uIdx = combById.get(topoOrder[q].id);
+            for (const vIdx of adj[uIdx]) {
+              if (--indeg[vIdx] === 0) topoOrder.push(combList[vIdx]);
+            }
+          }
+
+          const canonGates = new Map();
+          for (let q = 0; q < topoOrder.length; q++) {
+            const c = topoOrder[q];
+            if (!this.compMap.has(c.id)) continue;
+            const cSinks = getOutgoingSinks(c.id, 0);
+            if (cSinks.leafCompWires.length === 0 && cSinks.floatingWires.length === 0) continue;
+
+            let connectedIn = 0;
+            const tokens = [];
+            for (let p = 0; p < c.inputs.length; p++) {
+              const invP = Boolean(c.params && c.params.invertedInputs && c.params.invertedInputs[p]) ? 1 : 0;
+              const w = this.getWireToInput(c.id, p);
+              const root = w ? this.resolveWireRoot(w) : null;
+              if (root && root.compId) {
+                connectedIn++;
+                const drv = this.getComponent(root.compId);
+                if (drv && drv.type === 'CONST') {
+                  const cv = (drv.params.value ? 1 : 0) ^ invP;
+                  tokens.push(`#C:${cv}`);
+                } else {
+                  tokens.push(`${root.compId}:${root.pin}:${invP}`);
+                }
+              } else {
+                tokens.push(`#C:${invP}`);
+              }
+            }
+            if (connectedIn === 0) continue;
+
+            if (COMMUTATIVE_GATES[c.type]) {
+              tokens.sort();
+            }
+            const baseOpMap = {
+              NOT: 'BUF', BUFFER: 'BUF',
+              AND: 'AND', NAND: 'AND',
+              OR: 'OR', NOR: 'OR',
+              XOR: 'XOR', XNOR: 'XOR',
+              MAJORITY: 'MAJ'
+            };
+            const baseOp = baseOpMap[c.type] || c.type;
+            const outInv = getEffOutInv(c) ? 1 : 0;
+            const xorMode = (baseOp === 'XOR' && c.inputs.length > 2) ? (c.params?.xorMode || 'exclusive') : '';
+            const delayTag = (c.params && c.params.delay !== null && c.params.delay !== undefined) ? String(c.params.delay) : '';
+            const sig = `${baseOp}|${outInv}|${xorMode}|${delayTag}|${tokens.join(',')}`;
+
+            const existingCanon = canonGates.get(sig);
+            if (existingCanon && this.compMap.has(existingCanon.id) && !wouldCreateCombCycle(existingCanon.id, c.id)) {
+              if (redirectDriverTo(c.id, 0, existingCanon.id, 0, false)) {
+                const probeTarget = getOutgoingSinks(existingCanon.id, 0).leafCompWires[0]?.id || null;
+                deleteGateComponent(c.id, probeTarget);
+                stats.mergedGates++;
+                changedInPass = true;
+              }
+            } else {
+              canonGates.set(sig, c);
+            }
+          }
+
+          if (!changedInPass) break;
+        }
+
+        // 4. Commutative Pin Untangling via Rearrangement Inequality (monotone driver Y order)
+        if (options.untanglePins !== false) {
+          for (let i = 0; i < this.components.length; i++) {
+            const c = this.components[i];
+            if (!COMMUTATIVE_GATES[c.type] || c.inputs.length < 2) continue;
+            const slots = [];
+            for (let p = 0; p < c.inputs.length; p++) {
+              const w = this.getWireToInput(c.id, p);
+              if (!w || w.toCompId !== c.id) continue;
+              const root = this.resolveWireRoot(w);
+              let srcY = null;
+              if (root.compId) {
+                const sc = this.getComponent(root.compId);
+                if (sc && sc.outputs && sc.outputs[root.pin]) {
+                  srcY = sc.getPinWorldPos(true, root.pin).y;
+                }
+              } else if (w.fromPoint) {
+                srcY = w.fromPoint.y;
+              }
+              if (!Number.isFinite(srcY)) continue;
+              const invBit = Boolean(c.params && c.params.invertedInputs && c.params.invertedInputs[p]);
+              slots.push({ pinSlot: p, wire: w, invBit, srcY });
+            }
+            if (slots.length < 2) continue;
+
+            let alreadySorted = true;
+            for (let k = 1; k < slots.length; k++) {
+              if (slots[k].srcY < slots[k - 1].srcY - 0.5) {
+                alreadySorted = false;
+                break;
+              }
+            }
+            if (alreadySorted) continue;
+
+            const pinIndices = slots.map(s => s.pinSlot);
+            const sortedItems = slots.slice().sort((a, b) => (a.srcY - b.srcY) || (a.pinSlot - b.pinSlot));
+            if (!Array.isArray(c.params.invertedInputs)) {
+              c.params.invertedInputs = new Array(c.inputs.length).fill(false);
+            }
+            for (let k = 0; k < sortedItems.length; k++) {
+              const targetPin = pinIndices[k];
+              const item = sortedItems[k];
+              if (item.wire.toPin !== targetPin) {
+                item.wire.toPin = targetPin;
+                item.wire.waypoints = [];
+                item.wire.channelOffset = 0;
+                item.wire.autoRouted = true;
+                stats.swappedPins++;
+              }
+              c.params.invertedInputs[targetPin] = item.invBit;
+            }
+            this._inputWireMapDirty = true;
+          }
+        }
+
+        this._topoVersion = (this._topoVersion + 1) | 0;
+        this._inputWireMapDirty = true;
+        this._forkCountDirty = true;
+        if (typeof this._rebuildRefIndex === 'function') this._rebuildRefIndex();
+        this.syncWirePointers();
+        this.syncImmediateWireLevels();
+
+        stats.totalChanges = stats.removedGates + stats.removedWires + stats.mergedGates + stats.absorbedInverters + stats.swappedPins;
+        return stats;
       }
 
       /**
@@ -20773,6 +21390,10 @@
 
           currentEqY = Math.max(currentEqY + 100, Math.ceil((gateYCounter + 40) / GRID_SIZE) * GRID_SIZE);
         });
+
+        if (options && options.optimizePlan && typeof circuit.optimizePlan === 'function') {
+          circuit.optimizePlan({ untanglePins: true });
+        }
       }
     }
 
@@ -21872,6 +22493,7 @@
         this.appTheme = 'modern';
         this.symbolStandard = 'DIN_40700';
         this.autoSaveCircuit = true;
+        this.optimizePlanEnabled = false;
 
         this.loadSettings();
 
@@ -28801,6 +29423,11 @@
         const scope = null;
 
         this.checkpointHistory();
+        if ((options && options.optimizePlan) || (options?.optimizePlan !== false && this.optimizePlanEnabled)) {
+          if (typeof circuit.optimizePlan === 'function') {
+            circuit.optimizePlan({ untanglePins: true });
+          }
+        }
         const before = new Map();
         for (const c of circuit.components) before.set(c.id, { x: c.x, y: c.y });
         const viewBefore = { zoom: this.renderer.zoom, panX: this.renderer.panX, panY: this.renderer.panY };
@@ -29008,6 +29635,14 @@
             this.saveSettings();
           });
         }
+        const chkOptPlan = document.getElementById('chk-optimize-plan');
+        if (chkOptPlan) {
+          chkOptPlan.checked = Boolean(this.optimizePlanEnabled);
+          chkOptPlan.addEventListener('change', () => {
+            this.setOptimizePlanEnabled(chkOptPlan.checked);
+            this.saveSettings();
+          });
+        }
 
         document.getElementById('menu-item-reroute')?.addEventListener('click', () => {
           if (this.engine.mode === 'sim') return;
@@ -29038,6 +29673,8 @@
           this.lastLayoutReport = { metrics: m, info: { layers: 0 }, routing: { fallback: 0 }, scoped: false, wiresOnly: true };
           this.refreshAll();
           this.showToast(`Leitungen neu verlegt · ${m.straightWires}/${m.wires} gerade · ${m.crossings === 0 ? 'keine Kreuzungen' : m.crossings + ' Kreuzungen'}`);
+        } else if (action === 'optimize') {
+          this.optimizeCircuitPlan();
         } else if (action === 'fit') {
           if (this.circuit.components.length === 0) return;
           this.zoomToFit(60);
@@ -29064,6 +29701,8 @@
         if (chkSmart) chkSmart.checked = this.smartWires !== false;
         const chkBridges = document.getElementById('chk-wire-bridges');
         if (chkBridges) chkBridges.checked = this.showWireBridges === true;
+        const chkOptPlan = document.getElementById('chk-optimize-plan');
+        if (chkOptPlan) chkOptPlan.checked = Boolean(this.optimizePlanEnabled);
         const rep = document.getElementById('align-report');
         if (rep) {
           const memo = this.getActiveTab() ? this.getActiveTab().layoutMemo : null;
@@ -30636,6 +31275,38 @@
         this.showToast(`Eingänge live geschaltet: ${summary}`);
       }
 
+      optimizeCircuitPlan(options = {}) {
+        if (this.engine.mode !== 'edit') {
+          this.showToast('Anordnen geht nur im Edit-Modus (Tab).');
+          return null;
+        }
+        if (!this.circuit || this.circuit.components.length === 0) {
+          this.showToast('Die Arbeitsfläche ist leer – es gibt nichts anzuordnen.');
+          return null;
+        }
+        if (this._layoutAnim) this.finishLayoutAnimation();
+        this.checkpointHistory();
+        const stats = this.circuit.optimizePlan({ untanglePins: true });
+        if (stats.totalChanges > 0) {
+          this.autoLayoutCircuit({ keepView: true, silent: true });
+          // Run a final pin-untangle pass after new Y coordinates are assigned
+          const postUntangle = this.circuit.optimizePlan({ untanglePins: true });
+          if (postUntangle.swappedPins > 0) {
+            stats.swappedPins += postUntangle.swappedPins;
+            stats.totalChanges += postUntangle.swappedPins;
+            this.autoRouteAllWires();
+          }
+          this.selectItem(null, null);
+          this.refreshAll();
+          if (!options.silent) {
+            this.showToast(`⚡ Schaltplan optimiert: ${stats.removedGates} Gatter eingespart, ${stats.absorbedInverters} Inverter absorbiert, ${stats.swappedPins} Pins entwirrt`);
+          }
+        } else if (!options.silent) {
+          this.showToast('✓ Schaltplan ist bereits optimal');
+        }
+        return stats;
+      }
+
       openBoolSynthModal() {
         const modalBackdrop = document.getElementById('modal-backdrop');
         const ttModal = document.getElementById('truth-table-modal');
@@ -30645,6 +31316,9 @@
         if (ttModal) ttModal.style.display = 'none';
         synthModal.style.display = 'flex';
         modalBackdrop.style.display = 'flex';
+
+        const chkSynthOpt = document.getElementById('chk-synth-optimize');
+        if (chkSynthOpt) chkSynthOpt.checked = Boolean(this.optimizePlanEnabled);
 
         const textarea = document.getElementById('synth-input');
         if (textarea) {
@@ -30753,14 +31427,20 @@
 
           const placementRadio = document.querySelector('input[name="synth-placement"]:checked');
           const placement = placementRadio ? placementRadio.value : 'append';
+          const chkSynthOpt = document.getElementById('chk-synth-optimize');
+          const useOptPlan = chkSynthOpt ? Boolean(chkSynthOpt.checked) : Boolean(this.optimizePlanEnabled);
 
           if (this.engine.mode === 'sim') {
             this.engine.setMode('edit');
           }
 
           this.checkpointHistory();
-          BooleanParser.synthesizeToCircuit(this.circuit, equations, { mode: placement });
+          BooleanParser.synthesizeToCircuit(this.circuit, equations, { mode: placement, optimizePlan: useOptPlan });
           this.autoLayoutCircuit({ silent: true });
+          if (useOptPlan && typeof this.circuit.optimizePlan === 'function') {
+            const post = this.circuit.optimizePlan({ untanglePins: true });
+            if (post.swappedPins > 0) this.autoRouteAllWires();
+          }
           this.circuit.syncImmediateWireLevels();
           this.refreshAll();
           this.closeAllModals();
@@ -30809,6 +31489,8 @@
         if (chkWireBridges) chkWireBridges.checked = Boolean(this.showWireBridges);
         const chkAllowDiagonal = document.getElementById('settings-allow-diagonal-wires');
         if (chkAllowDiagonal) chkAllowDiagonal.checked = Boolean(this.allowDiagonalWires !== false);
+        const chkOptimizePlan = document.getElementById('settings-optimize-plan');
+        if (chkOptimizePlan) chkOptimizePlan.checked = Boolean(this.optimizePlanEnabled);
         const chkGateDelay = document.getElementById('settings-show-gate-delay');
         if (chkGateDelay) chkGateDelay.checked = Boolean(this.showGateDelay);
         const curGlobalDelay = Number.isFinite(this.globalGateDelay) ? this.globalGateDelay : 1;
@@ -31021,6 +31703,10 @@
           closeAllMenus();
           this.openBoolSynthModal();
         });
+        document.getElementById('menu-item-optimize-plan')?.addEventListener('click', () => {
+          closeAllMenus();
+          this.optimizeCircuitPlan();
+        });
 
         document.getElementById('menu-norm-din40700')?.addEventListener('click', () => {
           closeAllMenus();
@@ -31227,6 +31913,16 @@
           });
         }
 
+        const chkOptimizePlan = document.getElementById('settings-optimize-plan');
+        if (chkOptimizePlan) {
+          chkOptimizePlan.checked = Boolean(this.optimizePlanEnabled);
+          chkOptimizePlan.addEventListener('change', (e) => {
+            this.setOptimizePlanEnabled(e.target.checked);
+            this.saveSettings();
+            this.showToast(`Schaltplan-Optimierung ${this.optimizePlanEnabled ? 'aktiviert' : 'deaktiviert'}`);
+          });
+        }
+
         const chkGateDelay = document.getElementById('settings-show-gate-delay');
         if (chkGateDelay) {
           chkGateDelay.checked = this.showGateDelay;
@@ -31336,6 +32032,7 @@
             this.setAppTheme('modern', false);
             this.setShowWireBridges(true);
             this.setAllowDiagonalWires(true);
+            this.setOptimizePlanEnabled(false);
             this.setShowGateDelay(false);
             this.setGlobalGateDelay(1, true);
             this.setUiScale(1, { save: false });
@@ -31647,6 +32344,18 @@
         if (this.rendererRight) this.rendererRight.render();
       }
 
+      setOptimizePlanEnabled(enabled) {
+        this.optimizePlanEnabled = Boolean(enabled);
+        if (typeof document !== 'undefined') {
+          const chkSettings = document.getElementById('settings-optimize-plan');
+          if (chkSettings) chkSettings.checked = this.optimizePlanEnabled;
+          const chkAlign = document.getElementById('chk-optimize-plan');
+          if (chkAlign) chkAlign.checked = this.optimizePlanEnabled;
+          const chkSynth = document.getElementById('chk-synth-optimize');
+          if (chkSynth) chkSynth.checked = this.optimizePlanEnabled;
+        }
+      }
+
       setShowGateDelay(enabled) {
         this.showGateDelay = Boolean(enabled);
         if (this.renderer) this.renderer.showGateDelay = this.showGateDelay;
@@ -31836,6 +32545,7 @@
             if (s.smartWires !== undefined) this.smartWires = Boolean(s.smartWires);
             if (s.showWireBridges !== undefined) this.setShowWireBridges(Boolean(s.showWireBridges));
             if (s.allowDiagonalWires !== undefined) this.setAllowDiagonalWires(Boolean(s.allowDiagonalWires));
+            if (s.optimizePlanEnabled !== undefined) this.setOptimizePlanEnabled(Boolean(s.optimizePlanEnabled));
             if (s.globalGateDelay !== undefined) this.setGlobalGateDelay(s.globalGateDelay, false);
             if (s.moduleGateDelays && typeof s.moduleGateDelays === 'object') {
               for (const [k, v] of Object.entries(s.moduleGateDelays)) {
@@ -31871,6 +32581,12 @@
           } else if (!raw) {
             this.setAllowDiagonalWires(true);
           }
+          const storedOptimizePlan = localStorage.getItem('logicsim_optimize_plan');
+          if (storedOptimizePlan !== null) {
+            this.setOptimizePlanEnabled(storedOptimizePlan === 'true');
+          } else if (!raw) {
+            this.setOptimizePlanEnabled(false);
+          }
           const storedDelay = localStorage.getItem('logicsim_global_delay');
           if (storedDelay !== null) {
             this.setGlobalGateDelay(parseInt(storedDelay, 10), false);
@@ -31900,6 +32616,7 @@
             smartWires: this.smartWires,
             showWireBridges: this.showWireBridges,
             allowDiagonalWires: this.allowDiagonalWires !== false,
+            optimizePlanEnabled: Boolean(this.optimizePlanEnabled),
             globalGateDelay: this.globalGateDelay,
             moduleGateDelays: { ...(this.moduleGateDelays || {}) },
             showGateDelay: this.showGateDelay,
@@ -31916,6 +32633,7 @@
           localStorage.setItem('logicsim_user_settings', JSON.stringify(s));
           localStorage.setItem('logicsim_wire_bridges', String(this.showWireBridges));
           localStorage.setItem('logicsim_allow_diagonal_wires', String(this.allowDiagonalWires !== false));
+          localStorage.setItem('logicsim_optimize_plan', String(Boolean(this.optimizePlanEnabled)));
           localStorage.setItem('logicsim_global_delay', String(this.globalGateDelay));
           localStorage.setItem('logicsim_show_gate_delay', String(this.showGateDelay));
           localStorage.setItem('logicsim_theme', this.appTheme);
