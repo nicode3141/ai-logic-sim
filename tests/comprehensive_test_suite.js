@@ -4662,6 +4662,281 @@ runTest('WISH-049', 'File menu exposes PNG and PDF circuit exports', () => {
   assertEqual(html.includes("'menu.file.export_pdf': 'Export PDF'"), true, 'English PDF label exists');
 });
 
+runTest('WISH-076', 'Wire context menu places Messpunkt setzen and Leitung löschen at the top near the mouse cursor', () => {
+  const app = new LogicSimApp();
+  app.circuit.clear(app.ringBuffer);
+  app.engine.mode = 'edit';
+  const sw = app.circuit.addComponent('SWITCH', 40, 80);
+  const led = app.circuit.addComponent('LED', 240, 80);
+  const wire = app.circuit.addWire(sw.id, 0, led.id, 0);
+
+  app.showContextMenu(180, 120, null, wire, { x: 140, y: 100 });
+  const children = Array.from(app.contextMenuEl.children);
+  const actionItems = children.filter(el => (el.className || '').includes('ctx-item'));
+  assertEqual(actionItems.length >= 4, true, 'Wire context menu renders action items');
+  assertEqual((actionItems[0].textContent || '').includes('Messpunkt setzen'), true, 'First action item near mouse is Messpunkt setzen');
+  assertEqual((actionItems[1].textContent || '').includes('Leitung löschen'), true, 'Second action item near mouse is Leitung löschen');
+  assertEqual((actionItems[1].className || '').includes('danger'), true, 'Leitung löschen retains danger styling');
+  const dividerIdx = children.findIndex(el => (el.className || '').includes('ctx-divider'));
+  const probeIdx = children.indexOf(actionItems[0]);
+  const delIdx = children.indexOf(actionItems[1]);
+  assertEqual(probeIdx < delIdx && delIdx < dividerIdx, true, 'Quick actions precede divider separating secondary wire actions');
+
+  // Clicking Messpunkt setzen adds a probe to the wire
+  actionItems[0].dispatchEvent({ type: 'click' });
+  assertEqual(app.circuit.getProbes().length, 1, 'Clicking Messpunkt setzen adds a probe');
+
+  // Re-open menu and click Leitung löschen to remove wire
+  app.showContextMenu(180, 120, null, wire, { x: 140, y: 100 });
+  const delBtn = Array.from(app.contextMenuEl.children).find(el => (el.textContent || '').includes('Leitung löschen'));
+  delBtn.dispatchEvent({ type: 'click' });
+  assertEqual(app.circuit.wires.some(w => w.id === wire.id), false, 'Clicking Leitung löschen removes the wire');
+});
+
+runTest('VISUAL-BUGS', 'Active waypoint drag hides off-path ghost handles, resets shadow state, and layers selected wire overlays on top', () => {
+  const prevCreateTextNode = document.createTextNode;
+  if (!document.createTextNode) {
+    document.createTextNode = (txt) => ({ nodeType: 3, textContent: String(txt || '') });
+  }
+  const app = new LogicSimApp();
+  app.circuit.clear(app.ringBuffer);
+  app.engine.setMode('edit');
+  app.renderer.panX = 0;
+  app.renderer.panY = 0;
+  app.renderer.zoom = 1;
+  app.renderer.appTheme = 'light_cad';
+
+  const createStatefulSpyCtx = () => {
+    const stack = [];
+    const arcs = [];
+    const texts = [];
+    const strokes = [];
+    const ctx = Object.assign({}, mockCtx, {
+      shadowBlur: 0,
+      shadowColor: 'transparent',
+      strokeStyle: '#000',
+      fillStyle: '#000',
+      lineWidth: 1,
+      font: '10px monospace',
+      textAlign: 'left',
+      textBaseline: 'alphabetic',
+      canvas: { width: 1200, height: 800 },
+      save: () => {
+        stack.push({
+          shadowBlur: ctx.shadowBlur,
+          shadowColor: ctx.shadowColor,
+          strokeStyle: ctx.strokeStyle,
+          fillStyle: ctx.fillStyle,
+          lineWidth: ctx.lineWidth
+        });
+      },
+      restore: () => {
+        const prev = stack.pop();
+        if (prev) Object.assign(ctx, prev);
+      },
+      arc: (x, y, r) => {
+        arcs.push({ x, y, r, shadowBlur: ctx.shadowBlur, strokeStyle: ctx.strokeStyle, fillStyle: ctx.fillStyle });
+      },
+      fillText: (txt, x, y) => {
+        texts.push({ txt: String(txt), x, y, shadowBlur: ctx.shadowBlur, fillStyle: ctx.fillStyle });
+      },
+      stroke: () => {
+        strokes.push({ strokeStyle: ctx.strokeStyle, lineWidth: ctx.lineWidth, shadowBlur: ctx.shadowBlur });
+      }
+    });
+    return { ctx, arcs, texts, strokes };
+  };
+
+  try {
+    // 1. Branched open-ended wire with backtracked/off-path waypoints during active drag
+    const sw = app.circuit.addComponent('SWITCH', 400, 140);
+    const led = app.circuit.addComponent('LED', 680, 140);
+    const trunk = app.circuit.addWire(sw.id, 0, led.id, 0);
+    const branch = app.circuit.addWire('', 0, '', 0, null, [
+      { x: 580, y: 160 },
+      { x: 600, y: 20 },
+      { x: 640, y: 100 }
+    ], {
+      fromWireId: trunk.id,
+      fromPoint: { x: 580, y: 160 },
+      toPoint: { x: 640, y: 60 }
+    });
+
+    app.selectItem(null, branch.id);
+    app.renderer.activeWaypointDrag = { wire: branch, index: 1 };
+
+    const spy1 = createStatefulSpyCtx();
+    app.renderer.drawWires(spy1.ctx);
+
+    // Off-path waypoints (640, 100) and endpoint-coincident (580, 160) must NOT draw ghost circles
+    assertEqual(spy1.arcs.some(a => Math.abs(a.x - 640) < 0.5 && Math.abs(a.y - 100) < 0.5), false, 'No off-path ghost waypoint handle drawn at (640, 100)');
+    assertEqual(spy1.arcs.some(a => Math.abs(a.x - 580) < 0.5 && Math.abs(a.y - 160) < 0.5 && a.r === 4), false, 'No endpoint-coincident waypoint circle drawn at (580, 160)');
+
+    // Visible bend (640, 20) and active dragged corner (600, 20) MUST be drawn cleanly with shadowBlur === 0
+    const cornerAtBend = spy1.arcs.find(a => Math.abs(a.x - 640) < 0.5 && Math.abs(a.y - 20) < 0.5 && a.r === 4);
+    assertEqual(Boolean(cornerAtBend), true, 'Visible corner handle drawn at (640, 20)');
+    assertEqual(cornerAtBend.shadowBlur, 0, 'Corner handle has shadowBlur === 0');
+
+    const activeDot = spy1.arcs.find(a => Math.abs(a.x - 600) < 0.5 && Math.abs(a.y - 20) < 0.5 && a.r === 5.5);
+    const activeHalo = spy1.arcs.find(a => Math.abs(a.x - 600) < 0.5 && Math.abs(a.y - 20) < 0.5 && a.r === 8);
+    assertEqual(Boolean(activeDot && activeHalo), true, 'Active dragged waypoint handle + halo drawn at (600, 20)');
+    assertEqual(activeDot.shadowBlur, 0, 'Active dragged waypoint dot has shadowBlur === 0');
+    assertEqual(activeHalo.shadowBlur, 0, 'Active dragged waypoint halo has shadowBlur === 0');
+
+    const coordLabel = spy1.texts.find(t => t.txt === '600, 20');
+    assertEqual(Boolean(coordLabel), true, 'Active drag coordinate label rendered');
+    assertEqual(coordLabel.shadowBlur, 0, 'Coordinate label has shadowBlur === 0 (no red shadow bleed)');
+
+    // Open-endpoint inner dot at (640, 60) must have shadowBlur === 0 (no blue halo bleed)
+    const openEndDot = spy1.arcs.find(a => Math.abs(a.x - 640) < 0.5 && Math.abs(a.y - 60) < 0.5 && a.r === 4);
+    assertEqual(Boolean(openEndDot), true, 'Open-endpoint inner dot drawn at (640, 60)');
+    assertEqual(openEndDot.shadowBlur, 0, 'Open-endpoint inner dot has shadowBlur === 0');
+
+    // 2. Z-order: selected wire (even if added BEFORE unselected wire) must draw stroke & overlays AFTER unselected wire stroke
+    const trunkStrokeIdx = spy1.strokes.findIndex(s => s.strokeStyle !== '#ff5252' && s.lineWidth <= 3);
+    const selectedStrokeIdx = spy1.strokes.findIndex(s => s.strokeStyle === '#ff5252');
+    assertEqual(trunkStrokeIdx >= 0 && selectedStrokeIdx > trunkStrokeIdx, true, 'Selected wire stroke renders above earlier/unselected wires');
+
+    // 3. No-glow theme (java_swing) suppresses shadowBlur on selected wire stroke and open-endpoint halo
+    app.renderer.appTheme = 'java_swing';
+    const spySwing = createStatefulSpyCtx();
+    app.renderer.drawWires(spySwing.ctx);
+    const swingSelectedStroke = spySwing.strokes.find(s => s.strokeStyle === '#ff5252');
+    assertEqual(Boolean(swingSelectedStroke) && swingSelectedStroke.shadowBlur === 0, true, 'java_swing disables shadowBlur on selected wire stroke');
+    const swingEndHalo = spySwing.arcs.find(a => Math.abs(a.x - 640) < 0.5 && Math.abs(a.y - 60) < 0.5 && a.r === 6.5);
+    assertEqual(Boolean(swingEndHalo) && swingEndHalo.shadowBlur === 0, true, 'java_swing disables shadowBlur on open-endpoint halo');
+
+    // 4. Collinear dragWp fallback: if dragged waypoint becomes collinear with neighbors, active handle still renders at dragWp
+    app.renderer.appTheme = 'light_cad';
+    branch.waypoints = [{ x: 600, y: 160 }, { x: 620, y: 160 }];
+    branch.toPoint = { x: 640, y: 160 };
+    app.renderer.activeWaypointDrag = { wire: branch, index: 0 };
+    const spyCollinear = createStatefulSpyCtx();
+    app.renderer.drawWires(spyCollinear.ctx);
+    const collinearActive = spyCollinear.arcs.find(a => Math.abs(a.x - 600) < 0.5 && Math.abs(a.y - 160) < 0.5 && a.r === 5.5);
+    assertEqual(Boolean(collinearActive), true, 'Collinear active drag waypoint still draws handle under cursor');
+  } finally {
+    app.renderer.activeWaypointDrag = null;
+    if (prevCreateTextNode === undefined) delete document.createTextNode;
+    else document.createTextNode = prevCreateTextNode;
+  }
+});
+
+runTest('WISH-078', 'Auto-format connector points inside modules and improve wire endpoint entry into open modules', () => {
+  const app = new LogicSimApp();
+  app.circuit.clear(app.ringBuffer);
+  app.engine.setMode('edit');
+
+  // 1. Open-module endpoint resolution: dropping/hovering a wire endpoint inside a multi-pin open module snaps to free input pins
+  const sw1 = app.circuit.addComponent('SWITCH', 40, 80, { initialValue: 1 });
+  const sw2 = app.circuit.addComponent('SWITCH', 40, 160, { initialValue: 1 });
+  const dff = app.circuit.addComponent('D_FF', 240, 80); // body [240..320, 80..160], inputs D@(240,100), CLK@(240,140)
+
+  app.renderer.activeWireDrag = {
+    compId: sw1.id,
+    isOutput: true,
+    pinIndex: 0,
+    startX: 120,
+    startY: 100,
+    waypoints: [],
+    currX: 280,
+    currY: 105
+  };
+  const resolvedD = app.resolveActiveWireDragPin(280, 105, app.renderer.activeWireDrag, 20);
+  assertEqual(Boolean(resolvedD), true, 'Wire drag inside open D_FF body resolves to an open input pin');
+  assertEqual(resolvedD.compId, dff.id, 'Resolved target component is D_FF');
+  assertEqual(resolvedD.isOutput, false, 'Resolved pin is an input');
+  assertEqual(resolvedD.pinIndex, 0, 'Upper half of D_FF resolves to input 0 (D)');
+  app.finishActiveWireAtPoint({ x: resolvedD.x, y: resolvedD.y }, null, resolvedD);
+
+  // Now input 0 (D) is occupied: dropping a second wire even near the upper half of D_FF automatically enters the remaining open input 1 (CLK)!
+  app.renderer.activeWireDrag = {
+    compId: sw2.id,
+    isOutput: true,
+    pinIndex: 0,
+    startX: 120,
+    startY: 180,
+    waypoints: [],
+    currX: 270,
+    currY: 108
+  };
+  const resolvedClk = app.resolveActiveWireDragPin(270, 108, app.renderer.activeWireDrag, 20);
+  assertEqual(Boolean(resolvedClk), true, 'Second wire drag onto partially-open D_FF resolves to remaining free pin');
+  assertEqual(resolvedClk.pinIndex, 1, 'Occupied pin 0 is skipped in favor of open pin 1 (CLK)');
+  app.finishActiveWireAtPoint({ x: resolvedClk.x, y: resolvedClk.y }, null, resolvedClk);
+  assertEqual(Boolean(app.circuit.getWireToInput(dff.id, 0)), true, 'D_FF pin 0 connected');
+  assertEqual(Boolean(app.circuit.getWireToInput(dff.id, 1)), true, 'D_FF pin 1 connected');
+
+  // 2. Open terminus drag into open module (AND gate) connects cleanly
+  const andGate = app.circuit.addComponent('AND', 440, 80); // body [440..520, 80..140], inputs @(420,100), @(420,120)
+  const openLead = app.circuit.addWire(dff.id, 0, null, 0, null, [], { toPoint: { x: 360, y: 100 } });
+  const termPin = app.resolveTerminusDragPin(470, 122, { wire: openLead, isEnd: true, isStart: false }, 20);
+  assertEqual(Boolean(termPin), true, 'Dragging open wire terminus onto open AND gate resolves target pin');
+  assertEqual(termPin.compId, andGate.id, 'Open terminus targets AND gate');
+  assertEqual(termPin.pinIndex, 1, 'Open terminus selects lower aligned open input pin 1');
+
+  // 3. Dropping/moving a wide module centered over multiple parallel open wire endpoints snaps each wire without pin-stealing
+  app.circuit.clear(app.ringBuffer);
+  const srcA = app.circuit.addComponent('SWITCH', 20, 80, { initialValue: 1 });
+  const srcB = app.circuit.addComponent('SWITCH', 20, 140, { initialValue: 0 });
+  // Intentionally add lower wire FIRST to verify sorted matching prevents pin 0 from stealing lower wire
+  const wLower = app.circuit.addWire(srcB.id, 0, null, 0, null, [], { toPoint: { x: 260, y: 140 } });
+  const wUpper = app.circuit.addWire(srcA.id, 0, null, 0, null, [], { toPoint: { x: 260, y: 120 } });
+  const hex = app.circuit.addComponent('HEX_DISPLAY', 220, 100); // body [220..300, 100..200], pins D0@(220,120), D1@(220,140)
+  const snappedMulti = app.snapOpenWiresToComponent(hex, 28, app.circuit, app.renderer);
+  assertEqual(snappedMulti, 2, 'Both open endpoints inside wide HEX_DISPLAY snap to its open inputs');
+  assertEqual(wUpper.toCompId === hex.id && wUpper.toPin === 0, true, 'Upper open wire snaps to D0 (pin 0)');
+  assertEqual(wLower.toCompId === hex.id && wLower.toPin === 1, true, 'Lower open wire snaps to D1 (pin 1) without greedy pin-stealing');
+
+  // 4. Connector points (manual waypoints AND Steiner fork junctions) inside a module are automatically formatted outside
+  app.circuit.clear(app.ringBuffer);
+  const driver = app.circuit.addComponent('SWITCH', 40, 120, { initialValue: 1 });
+  const ledTop = app.circuit.addComponent('LED', 420, 60);
+  const ledBot = app.circuit.addComponent('LED', 420, 180);
+  const trunk = app.circuit.addWire(driver.id, 0, null, 0, null, [], { toPoint: { x: 240, y: 140 } });
+  trunk.autoRouted = false;
+  const brTop = app.circuit.addWire('', 0, ledTop.id, 0, null, [{ x: 240, y: 80 }], {
+    fromWireId: trunk.id,
+    fromPoint: { x: 240, y: 140 }
+  });
+  brTop.autoRouted = false;
+  const brBot = app.circuit.addWire('', 0, ledBot.id, 0, null, [{ x: 240, y: 200 }], {
+    fromWireId: trunk.id,
+    fromPoint: { x: 240, y: 140 }
+  });
+  brBot.autoRouted = false;
+
+  // Place/move an obstacle module directly over the fork junction (240, 140)
+  const blocker = app.circuit.addComponent('COUNTER', 200, 100); // body [200..280, 100..220] covers junction (240, 140)!
+  app.endDragPreview([blocker.id], true);
+
+  for (const w of app.circuit.wires) {
+    const pts = app.renderer.getWirePolyline(w);
+    assertEqual(
+      app.renderer.wireHasConnectorOrSegmentInModule(w, pts, blocker),
+      false,
+      `Wire ${w.id} has zero connector points or segments inside COUNTER module after auto-formatting`
+    );
+  }
+  app.circuit.syncImmediateWireLevels();
+  assertEqual(ledTop.inputs[0].value, 1, 'Formatted fork still delivers HIGH signal to upper LED');
+  assertEqual(ledBot.inputs[0].value, 1, 'Formatted fork still delivers HIGH signal to lower LED');
+
+  // 5. Open endpoint dropped inside a fully-occupied module is evicted outside and routed cleanly around the module
+  const occSw = app.circuit.addComponent('SWITCH', 40, 260, { initialValue: 1 });
+  const occLed = app.circuit.addComponent('LED', 220, 260); // single input pin 0
+  app.circuit.addWire(occSw.id, 0, occLed.id, 0);
+  const extraSw = app.circuit.addComponent('SWITCH', 40, 320, { initialValue: 1 });
+  const trappedOpen = app.circuit.addWire(extraSw.id, 0, null, 0, null, [], { toPoint: { x: 240, y: 280 } }); // inside occLed [220..260, 260..300]!
+  app.formatConnectorsInModules(null, app.circuit, app.renderer);
+  assertEqual(Boolean(trappedOpen.toPoint), true, 'Unconnectable wire remains open');
+  const inOccLed = trappedOpen.toPoint.x >= occLed.x && trappedOpen.toPoint.x <= occLed.x + occLed.width &&
+    trappedOpen.toPoint.y >= occLed.y && trappedOpen.toPoint.y <= occLed.y + occLed.height;
+  assertEqual(inOccLed, false, 'Open connector point is automatically evicted outside fully-occupied module');
+  const trappedPts = app.renderer.getWirePolyline(trappedOpen);
+  assertEqual(app.renderer.wireHasConnectorOrSegmentInModule(trappedOpen, trappedPts, occLed), false, 'Open wire routes cleanly around occupied module');
+});
+
 console.log('\n================================================================');
 console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
 console.log('================================================================\n');
